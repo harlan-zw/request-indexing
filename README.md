@@ -25,7 +25,7 @@ Get your pages indexed on Google within 48 hours. (on average)
 
 - ⚡ Request indexing on new sites and pages, have them appear on Google in 48 hours.
 - 📊 Dashboard to see the search performance of all your Google Search Console sites.
-- 🌲 Keep your site data. Google Search Console data deletes site data longer than 16 months, start keeping it.
+- 🌲 Keep your site data. Google Search Console data deletes site data longer than 16 months, start keeping it. (soon)
 
 ## Background
 
