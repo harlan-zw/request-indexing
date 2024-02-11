@@ -16,7 +16,7 @@ if (!sites.value || !site) {
   })
 }
 
-const { data, pending } = await fetchSite(site)
+const { data, pending, refresh } = await fetchSite(site)
 
 const crawl = ref<undefined | true>()
 
@@ -25,6 +25,26 @@ const period = computed(() => data.value?.period || [])
 const analytics = computed(() => (data.value?.analytics || { period: { totalClicks: 0 }, prevPeriod: { totalClicks: 0 } }))
 
 const siteUrlFriendly = useFriendlySiteUrl(slug)
+
+const params = useUrlSearchParams('history', {
+  removeNullishValues: true,
+  removeFalsyValues: false,
+})
+
+const tab = computed({
+  get() {
+    return Number(params.tab) || 0
+  },
+  set(value) {
+    if (value === 0 && !pending.value && data.value)
+      refresh()
+
+    if (value)
+      params.tab = String(value)
+    else
+      params.tab = null
+  },
+})
 
 useHead({
   title: siteUrlFriendly,
@@ -87,6 +107,7 @@ const apiCallLimit = useRuntimeConfig().public.indexing.usageLimitPerUser
               </div>
             </div>
             <UTabs
+              v-model="tab"
               class="col-span-2" :items="[
                 { label: 'Non-Indexed Pages', count: nonIndexedUrlsCount },
                 { label: 'Indexed Pages', count: period.length },
