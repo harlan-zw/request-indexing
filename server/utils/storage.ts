@@ -46,8 +46,8 @@ const userSiteMerger = createDefu((data, key, value) => {
   if (key === 'urls' && Array.isArray(value)) {
     // dedupe the array based on the url
     const urlsToAdd = [...value].filter(Boolean)
-    data.urls = data.urls.map((u) => {
-      const existing = urlsToAdd.findIndex(v => v?.url === u.url)
+    data.urls = data.urls.filter(Boolean).map((u) => {
+      const existing = urlsToAdd.findIndex(v => v?.url === u?.url)
       if (existing >= 0) {
         const val = urlsToAdd[existing]
         delete urlsToAdd[existing]
