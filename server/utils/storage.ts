@@ -2,7 +2,7 @@ import type { Storage, StorageValue } from 'unstorage'
 import { prefixStorage } from 'unstorage'
 import { createDefu, defu } from 'defu'
 import { parse, stringify } from 'devalue'
-import type { SitePage, User, UserOAuthToken, UserSite } from '~/types'
+import type { User, UserOAuthToken, UserSite } from '~/types'
 import { decryptToken, encryptToken } from '~/server/utils/crypto'
 import { useRuntimeConfig } from '#imports'
 
@@ -39,18 +39,24 @@ export function getUser(userId: string) {
 
 export async function getUserSite(userId: string, siteUrl: string) {
   return (await userSiteAppStorage<UserSite>(userId, siteUrl)
-    .getItem('payload')) || { urls: [] } satisfies UserSite
+    .getItem('payload.json')) || { urls: [] } satisfies UserSite
 }
 
 const userSiteMerger = createDefu((data, key, value) => {
-  if (key === 'urls') {
+  if (key === 'urls' && Array.isArray(value)) {
     // dedupe the array based on the url
-    const urls = data.urls || []
-    const existing = urls.findIndex((u: SitePage) => u.url === value.url)
-    if (existing >= 0)
-      urls[existing] = defu(value, urls[existing])
-    else
-      urls.push(value)
+    const urlsToAdd = [...value]
+    data.urls = data.urls.map((u) => {
+      const existing = urlsToAdd.findIndex(v => v.url === u.url)
+      if (existing >= 0) {
+        const val = urlsToAdd[existing]
+        delete urlsToAdd[existing]
+        return defu(u, val)
+      }
+      return u
+    })
+    // just append new urls
+    data.urls.push(...urlsToAdd)
     return true
   }
 })
