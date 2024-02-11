@@ -47,6 +47,12 @@ export default defineEventHandler(async (event) => {
           statusText: 'Unauthorized',
         })
       }
+      else if (e.response?.status === 500) {
+        throw createError({
+          statusCode: 500,
+          statusText: 'Google Server is rate limiting us. Please try again in a minute.',
+        })
+      }
       throw e
     })
 })

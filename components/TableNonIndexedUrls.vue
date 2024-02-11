@@ -68,7 +68,7 @@ async function inspectUrl(row: SitePage) {
   const siteUrl = withHttps(siteUrlFriendly)
   inspectionsLoading.value = [...inspectionsLoading.value, row.url]
   await $fetch<SitePage>(`/api/sites/${encodeURIComponent(props.site.siteUrl)}/${encodeURIComponent(withBase(row.url, siteUrl))}`, {
-    timeout: 15000,
+    timeout: 90000, // 90 seconds
   })
     .finally(() => {
       inspectionsLoading.value = inspectionsLoading.value.filter(url => url !== row.url)
@@ -137,6 +137,7 @@ async function submitForIndexing(row: SitePage) {
   submitIndexingLoading.value = [...submitIndexingLoading.value, row.url]
   const { url: data, status } = await $fetch<{ status: 'already-submitted' | 'submitted', url: SitePage }>(`/api/indexing/${encodeURIComponent(withBase(row.url, siteUrl))}`, {
     method: 'POST',
+    timeout: 90000, // 90 seconds
     query: { siteUrl },
     onResponseError({ response }) {
       // handle 429
