@@ -1288,7 +1288,7 @@ const SiteCards = [
                 📊 <a href="#dashboard" class="underline">Dashboard</a> to see the search performance of all your Google Search Console sites.
               </p>
               <p>
-                🌲 <a href="#dashboard" class="underline">Keep your site data</a>. Google Search Console data deletes site data longer than 16 months, start keeping it.
+                🗓️ <a href="#dashboard" class="underline">Keep your site data</a>. Google Search Console data deletes site data longer than 16 months, start keeping it.
               </p>
             </div>
           </div>
