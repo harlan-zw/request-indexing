@@ -96,7 +96,7 @@ const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('
 
     <template #right>
       <div v-if="!loggedIn" class="flex gap-3 items-center gap-2">
-        <UButton to="/get-started" external color="gray" variant="link">
+        <UButton to="/get-started" external color="gray" variant="link" class="hidden md:block">
           <span>Login</span>
         </UButton>
         <UButton to="/get-started" external color="green" variant="outline">
@@ -164,8 +164,12 @@ const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('
 
     <template #panel>
       <UNavigationTree
+        v-if="loggedIn"
         :links="[links[0], ...authDropdownItems.flat()]" default-open
       />
+      <UButton v-else to="/get-started" external color="green" variant="outline">
+        <span>Get Started</span>
+      </UButton>
     </template>
   </UHeader>
 </template>
