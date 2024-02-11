@@ -1,9 +1,8 @@
 import { parseURL, withoutTrailingSlash } from 'ufo'
-import { normalizeSiteUrlForKey } from '~/server/utils/storage'
-import { fetchGoogleSearchConsoleAnalytics } from '~/server/utils/googleSearchConsole'
+import { getUserSite, normalizeSiteUrlForKey } from '~/server/utils/storage'
+import { fetchGoogleSearchConsoleAnalytics } from '~/server/utils/api/googleSearchConsole'
 import type { NitroAuthData, SiteAnalytics, SiteExpanded } from '~/types'
 import { fetchRobots, fetchSitemapUrls } from '~/server/utils/crawler/crawl'
-import { fetchSitesCached } from '~/server/utils/siteCache'
 
 const fetchSite = cachedFunction<SiteAnalytics, [NitroAuthData, string, boolean]>(
   async ({ tokens, user }: NitroAuthData, siteUrl: string) => {
@@ -15,7 +14,7 @@ const fetchSite = cachedFunction<SiteAnalytics, [NitroAuthData, string, boolean]
     group: 'app',
     name: 'user',
     shouldInvalidateCache(_, force?: boolean) {
-      return !!force
+      return !!force || import.meta.dev
     },
     getKey({ user }: NitroAuthData, siteUrl: string) {
       return `${user.userId}:sites:${normalizeSiteUrlForKey(siteUrl)}:analytics:${user.analyticsPeriod}`
@@ -44,7 +43,6 @@ export default defineEventHandler(async (event) => {
   // compute the non-indexed urls
   const { indexedUrls, period, sitemaps } = googleSearchConsoleAnalytics
 
-  console.log(indexedUrls.length)
   if (period.length >= 1000) {
     return {
       ...site,
@@ -77,14 +75,14 @@ export default defineEventHandler(async (event) => {
     // .filter(u => u !== '/') // some trailing slash issues, should fix properly
     .forEach(url => nonIndexedUrls.add(url))
 
-  const urlDb = await getUserNonIndexedUrls(user.userId, siteUrl)
+  const { urls } = await getUserSite(user.userId, siteUrl)
 
   return {
     ...site,
     ...googleSearchConsoleAnalytics,
     nonIndexedPercent: indexedUrls.length / (indexedUrls.length + [...nonIndexedUrls].length),
     nonIndexedUrls: [...nonIndexedUrls].map((url) => {
-      const entry = urlDb.find(u => parseURL(u.url).pathname === url)
+      const entry = urls.find(u => parseURL(u.url).pathname === url)
       return {
         ...entry,
         url,

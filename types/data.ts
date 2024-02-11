@@ -4,12 +4,21 @@ import type { RequiredNonNullable } from '~/types/util'
 
 export interface IndexedUrl extends RequiredNonNullable<searchconsole_v1.Schema$ApiDataRow> {
 }
-export interface NonIndexedUrl {
+export interface SitePage {
   url: string
+  lastInspected?: number
   // inspect url gsc response
   inspectionResult?: searchconsole_v1.Schema$UrlInspectionResult
   // submit url for indexing response
   urlNotificationMetadata?: indexing_v3.Schema$UrlNotificationMetadata
+}
+
+export interface UserSite {
+  urls: SitePage[]
+  crawl?: {
+    updatedAt: number
+    urls: string[]
+  }
 }
 
 export interface GoogleSearchConsoleSite {
@@ -34,15 +43,19 @@ export interface SiteAnalytics {
     url: string
     clicks: number
     clicksPercent: number
+    prevClicks: number
     impressions: number
     impressionsPercent: number
+    prevImpressions: number
   }[]
   keywords: {
     keyword: string
     position: number
+    prevPosition: number
     positionPercent: number
     ctr: number
     ctrPercent: number
+    prevCtr: number
     clicks: number
   }[]
   graph: {
@@ -55,5 +68,5 @@ export interface SiteAnalytics {
 
 export interface SiteExpanded extends SiteAnalytics, GoogleSearchConsoleSite {
   nonIndexedPercent: number
-  nonIndexedUrls: NonIndexedUrl[]
+  nonIndexedUrls: SitePage[]
 }

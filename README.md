@@ -9,7 +9,7 @@ Get your pages indexed on Google within 48 hours. (on average)
 <tbody>
 <td align="center">
 <img width="800" height="0" /><br>
-<i>Status:</i> <a href="https://github.com/harlan-zw/nuxt-seo/releases/tag/v2.0.0">Just Released 🥳/a></b> <br>
+<i>Status:</i> <a href="https://requestindexing.com/">Released 🥳/a></b> <br>
 <sup> Please report any issues 🐛</sup><br>
 <sub>Made possible by my <a href="https://github.com/sponsors/harlan-zw">Sponsor Program 💖</a><br> Follow me <a href="https://twitter.com/harlan_zw">@harlan_zw</a> 🐦 • Join <a href="https://discord.gg/275MBUBvgP">Discord</a> for help</sub><br>
 <img width="800" height="0" />

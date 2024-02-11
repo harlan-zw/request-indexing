@@ -1,9 +1,10 @@
 import type { H3Error, H3Event } from 'h3'
 import { hash } from 'ohash'
 import type { TokenPayload, UserSession } from '~/types'
+import { getUserToken } from '~/server/utils/storage'
 
-export function useHashSecure(input: any) {
-  const appKey = useRuntimeConfig().app.key
+export function getHashSecure(input: any) {
+  const appKey = useRuntimeConfig().key
   // make an object
   return hash({ input, appKey })
 }
@@ -17,8 +18,8 @@ export async function getAuthenticatedData(event: H3Event): Promise<H3Error | ({
       message: 'Unauthorized',
     })
   }
-  const storage = await userAppStorage<TokenPayload>(session.user.userId).getItem('auth-token')
-  if (!storage) {
+  const token = await getUserToken(session.user.userId, 'login')
+  if (!token) {
     // unauthorized
     return createError({
       statusCode: 401,
@@ -26,8 +27,8 @@ export async function getAuthenticatedData(event: H3Event): Promise<H3Error | ({
     })
   }
   return {
-    sub: storage.sub,
-    tokens: storage.tokens,
+    sub: token.sub,
+    tokens: token.tokens,
     user: session.user,
     session,
   }

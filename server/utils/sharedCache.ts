@@ -1,5 +1,5 @@
 import type { GoogleSearchConsoleSite, NitroAuthData } from '~/types'
-import { fetchGoogleSearchConsoleSites } from '~/server/utils/googleSearchConsole'
+import { fetchGoogleSearchConsoleSites } from '~/server/utils/api/googleSearchConsole'
 
 export const fetchSitesCached = cachedFunction<GoogleSearchConsoleSite[], [NitroAuthData, boolean]>(
   async ({ tokens }: NitroAuthData) => {

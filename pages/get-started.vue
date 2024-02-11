@@ -10,13 +10,13 @@ useSeoMeta({
 const keyLogin = useRuntimeConfig().public.features.keyLogin
 </script>
 
-<!-- eslint-disable vue/multiline-html-element-content-newline -->
-<!-- eslint-disable vue/singleline-html-element-content-newline -->
 <template>
   <div class="px-5 py-10 flex xl:flex-row flex-col gap-10">
     <UCard class="max-w-sm w-full bg-white/75 dark:bg-white/5 backdrop-blur">
       <p class="text-2xl text-gray-900 dark:text-white font-bold flex items-center gap-2">
-        Google Account <UBadge color="blue" variant="subtle">Easy</UBadge>
+        Google Account <UBadge color="blue" variant="subtle">
+          Easy
+        </UBadge>
       </p>
       <p class="text-gray-500 dark:text-gray-400 mt-1 mb-3">
         Get up and running in less than a minute using Google.
@@ -29,7 +29,11 @@ const keyLogin = useRuntimeConfig().public.features.keyLogin
         <template #description>
           <div class="space-y-2">
             <div>userinfo.email - You may be emailed in the future.</div>
-            <div><NuxtLink to="/" class="underline">Google Search Console API</NuxtLink> (read only) - Used to query pages that are indexed.</div>
+            <div>
+              <NuxtLink to="/" class="underline">
+                Google Search Console API
+              </NuxtLink> (read only) - Used to query pages that are indexed.
+            </div>
           </div>
         </template>
       </UAlert>
@@ -41,7 +45,9 @@ const keyLogin = useRuntimeConfig().public.features.keyLogin
     <div class="gap-5 flex flex-col">
       <UCard class="max-w-sm w-full bg-white/75 dark:bg-white/5 backdrop-blur">
         <p class="text-2xl text-gray-900 dark:text-white font-bold flex items-center gap-2">
-          <UIcon name="i-heroicons-key" />Use Your Keys <UBadge variant="soft" color="gray">Hard</UBadge>
+          <UIcon name="i-heroicons-key" />Use Your Keys <UBadge variant="soft" color="gray">
+            Hard
+          </UBadge>
         </p>
         <p class="text-gray-500 dark:text-gray-400 mt-1 mb-3">
           Get a full API quota by using your own Google API keys.
@@ -51,12 +57,16 @@ const keyLogin = useRuntimeConfig().public.features.keyLogin
         </div>
         <UButton :disabled="!keyLogin" color="gray" size="lg" icon="i-heroicons-arrow-up-tray" class="flex w-full justify-center">
           <span>Upload Key</span>
-          <UBadge color="yellow" variant="subtle">Coming Soon</UBadge>
+          <UBadge color="yellow" variant="subtle">
+            Coming Soon
+          </UBadge>
         </UButton>
       </UCard>
       <UCard class="max-w-sm w-full bg-white/75 dark:bg-white/5 backdrop-blur">
         <p class="text-2xl text-gray-900 dark:text-white font-bold flex items-center gap-2">
-          <UIcon name="i-heroicons-command-line" /> Run Locally <UBadge variant="soft" color="gray">Hard</UBadge>
+          <UIcon name="i-heroicons-command-line" /> Run Locally <UBadge variant="soft" color="gray">
+            Hard
+          </UBadge>
         </p>
         <p class="text-gray-500 dark:text-gray-400 mt-1 mb-3">
           Run this site on your own server for maximum privacy and control.

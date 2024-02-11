@@ -1,5 +1,6 @@
 import { OAuth2Client } from 'googleapis-common'
-import { setUserSession, userAppStorage } from '#imports'
+import { setUserSession } from '#imports'
+import { deleteUserToken, getUserToken } from '~/server/utils/storage'
 
 export default defineEventHandler(async (event) => {
   const { user } = event.context.authenticatedData
@@ -11,8 +12,8 @@ export default defineEventHandler(async (event) => {
     })
   }
   // need to claim back the token from the pool
-  const pool = oauthPool()
-  const oAuth = await pool.get(user.indexingOAuthId)
+  const pool = createOAuthPool()
+  const oAuth = pool.get(user.indexingOAuthId)
   if (oAuth)
     await pool.release(oAuth.id, user.userId)
 
@@ -25,9 +26,8 @@ export default defineEventHandler(async (event) => {
   })
 
   // delete tokens
-  const appStorage = userAppStorage(user!.userId)
-  const tokens = await appStorage.getItem<{ access_token: string, refresh_token?: string }>('indexing-tokens')
-  await appStorage.removeItem('indexing-tokens')
+  const tokens = await getUserToken(user.userId, 'indexing')
+  await deleteUserToken(user.userId, 'indexing')
 
   if (!tokens) {
     // already deleted

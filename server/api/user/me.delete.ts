@@ -1,22 +1,27 @@
+import { OAuth2Client } from 'googleapis-common'
+import { clearUserStorage } from '~/server/utils/storage'
+
 export default defineEventHandler(async (event) => {
-  const { user } = event.context.authenticatedData
+  const { user, tokens } = event.context.authenticatedData
 
   if (user.indexingOAuthId) {
     // need to claim back the token from the pool
-    const pool = oauthPool()
-    const oAuth = await pool.get(user.indexingOAuthId!)
+    const pool = createOAuthPool()
+    const oAuth = pool.get(user.indexingOAuthId!)
     if (oAuth)
       await pool.release(oAuth.id, user.userId)
   }
 
-  // clear not working for some reason
-  const keys = await userAppStorage(user.userId).getKeys()
-  for (const key of keys)
-    await userAppStorage(user.userId).removeItem(key)
+  await incrementMetric('deletedUsers')
+
+  await clearUserStorage(user.userId)
 
   // // clear user session
   await clearUserSession(event)
 
-  // should be good to go
-  return 'ok'
+  // revoke the token with google
+  const oauth2Client = new OAuth2Client()
+  oauth2Client.setCredentials(tokens!)
+  return oauth2Client.revokeToken(tokens!.refresh_token || tokens.access_token!)
+    .then(res => res.data)
 })

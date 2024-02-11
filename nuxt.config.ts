@@ -1,6 +1,8 @@
 import { env } from 'std-env'
+import { hash } from 'ohash'
+import type { OAuthPoolToken } from '~/types'
 
-const seed: OAuthToken[] = env.NUXT_APP_INDEXING_SEED ? JSON.parse(env.NUXT_APP_INDEXING_SEED) : false
+let tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
 
 export default defineNuxtConfig({
   extends: ['@nuxt/ui-pro'],
@@ -13,8 +15,24 @@ export default defineNuxtConfig({
     '@nuxtjs/google-fonts',
     '@vueuse/nuxt',
     '@nuxtjs/seo',
+    (_, nuxt) => {
+      // seed the main tokens if there isn't a pool available
+      if (!tokens) {
+        tokens = [{
+          label: 'primary',
+          client_id: env.NUXT_OAUTH_GOOGLE_CLIENT_ID!,
+          client_secret: env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET!,
+        }]
+      }
+      nuxt.options.nitro!.virtual = nuxt.options.nitro!.virtual || {}
+      nuxt.options.nitro.virtual['#app/token-pool.mjs'] = `export const tokens = ${JSON.stringify(tokens.map((t) => {
+        t.id = t.id || hash(t)
+        return t
+      }))}`
+    },
   ],
   runtimeConfig: {
+    key: '', // .env NUXT_KEY
     session: {
       cookie: {
         maxAge: 60 * 60 * 24 * 90, // 3mo
@@ -31,13 +49,51 @@ export default defineNuxtConfig({
     },
     indexing: {
       maxUsersPerOAuth: 15, // we over provision slightly (25 over),
-      seed, // runtime seeding :)
+    },
+  },
+  nitro: {
+    devStorage: {
+      app: {
+        base: '.db',
+        driver: 'fs',
+      },
+    },
+    storage: {
+      app: {
+        driver: 'vercelKV',
+      },
     },
   },
   ui: {
     icons: ['heroicons', 'simple-icons', 'ph'],
   },
+  app: {
+    pageTransition: {
+      name: 'page',
+      mode: 'out-in',
+    },
+    seoMeta: {
+      themeColor: [
+        { content: '#18181b', media: '(prefers-color-scheme: dark)' },
+        { content: 'white', media: '(prefers-color-scheme: light)' },
+      ],
+    },
+    head: {
+      templateParams: {
+        separator: '·',
+      },
+      script: [
+        {
+          'src': 'https://cdn.usefathom.com/script.js',
+          'data-spa': 'auto',
+          'data-site': 'UHBNWPCP',
+          'defer': true,
+        },
+      ],
+    },
+  },
   site: {
+    name: 'Request Indexing',
     url: 'requestindexing.com',
   },
   // Fonts

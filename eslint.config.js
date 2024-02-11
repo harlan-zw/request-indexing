@@ -2,6 +2,8 @@ import antfu from '@antfu/eslint-config'
 
 export default antfu({
   rules: {
-    'no-use-before-define': 'off',
+    'unicorn/prefer-node-protocol': 'off',
+    'node/prefer-global': 'off',
+    'node/prefer-global/buffer': 'off',
   },
 })

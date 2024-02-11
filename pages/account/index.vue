@@ -63,7 +63,7 @@ function deleteAccount() {
           </h2>
         </div>
         <template v-if="user.indexingOAuthId">
-          <p class="text-gray-600 mb-3">
+          <p class="text-gray-600 dark:text-gray-300 mb-3">
             You have provided authenticated access to the Web Indexing API. You
             can safely revoke access at any time.
           </p>
@@ -72,7 +72,7 @@ function deleteAccount() {
           </UButton>
         </template>
         <template v-else>
-          <p class="text-gray-600 mb-3">
+          <p class="text-gray-600 dark:text-gray-300 mb-3">
             You have not provided authenticated access to the Web Indexing API. You
             can provide access when requesting indexing.
           </p>
@@ -85,10 +85,10 @@ function deleteAccount() {
             Delete Account
           </h2>
         </div>
-        <p class=" text-gray-600 mb-2">
+        <p class=" text-gray-600 dark:text-gray-300 mb-2">
           Delete all data associated with your account.
         </p>
-        <ul class="mb-3 text-sm text-gray-600 list-disc ml-5">
+        <ul class="mb-3 text-sm text-gray-600 dark:text-gray-300 list-disc ml-5">
           <li>Any cached / permanently stored data related to your account will be deleted.</li>
           <li>Your Google Account Tokens will be revoked.</li>
         </ul>

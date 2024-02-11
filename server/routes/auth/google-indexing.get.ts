@@ -8,8 +8,8 @@ import {
 import { parsePath, withQuery } from 'ufo'
 import { ofetch } from 'ofetch'
 import { hash } from 'ohash'
-import { oauthPool } from '~/server/utils/oauthPool'
-import { updateUser, userAppStorage } from '~/server/utils/storage'
+import { createOAuthPool } from '~/server/utils/oauthPool'
+import { updateUser, updateUserToken } from '~/server/utils/storage'
 import { setUserSession } from '#imports'
 import { getAuthenticatedData } from '~/server/composables/auth'
 import type { OAuthPoolToken } from '~/types'
@@ -22,29 +22,23 @@ export default defineEventHandler(async (event) => {
     return sendError(event, authData)
 
   const { sub, user, session } = authData
-  const pool = oauthPool()
+  const pool = createOAuthPool()
+  let tokenId = session.googleIndexingAuth?.indexingOAuthId || user.indexingOAuthId || user.lastIndexingOAuthId
   let token: OAuthPoolToken | undefined
-  if (!user.indexingOAuthId && !user.lastIndexingOAuthId) {
+  if (!tokenId) {
     // generate one
     token = await pool.free()
+    tokenId = token?.id
   }
   else {
-    token = await pool.get(user.indexingOAuthId || user.lastIndexingOAuthId!)
+    token = pool.get(tokenId)
   }
-  if (!token) {
-    if (!import.meta.dev) {
-      return sendError(event, createError({
-        statusCode: 500,
-        message: 'Failed to find OAuth in pool.',
-      }))
-    }
-    // fallback to main tokens
-    token = {
-      id: 'primary',
-      client_id: import.meta.env.GOOGLE_INDEXING_CLIENT_ID!,
-      client_secret: import.meta.env.GOOGLE_INDEXING_CLIENT_SECRET!,
-      users: [],
-    }
+  if (!token || !tokenId) {
+    // sent rate limted, too many users
+    return sendError(event, createError({
+      statusCode: 429,
+      statusMessage: 'Oops, looks like we have too many users right now. Please try again later.',
+    }))
   }
   const config = {
     clientId: token!.client_id,
@@ -64,8 +58,7 @@ export default defineEventHandler(async (event) => {
     // get the referrer
     const referrer = getHeader(event, 'referer')
     const data = {
-      user: { indexingOAuthId: token!.id },
-      googleIndexingAuth: { referrer, state: hash(new Date()) },
+      googleIndexingAuth: { indexingOAuthId: tokenId, referrer, state: hash(new Date()) },
     }
     await setUserSession(event, data)
 
@@ -86,7 +79,7 @@ export default defineEventHandler(async (event) => {
   }
   const authPayload = session.googleIndexingAuth! || {}
   // cross-site request forgery protection
-  if (authPayload.state !== state || !token) {
+  if (authPayload.state !== state) {
     return sendError(event, createError({
       statusCode: 401,
       message: 'Invalid state',
@@ -114,15 +107,15 @@ export default defineEventHandler(async (event) => {
   }
 
   // user has claimed spot in pool
-  await pool.claim(token.id, user.userId)
+  await pool.claim(tokenId, user.userId)
   // save the accessToken to the user (server only)
 
-  // will need to use storage
-  const appStorage = userAppStorage(user.userId)
-  await appStorage.setItem('indexing-tokens', tokens)
-  await updateUser(user.userId, { indexingOAuthId: token!.id })
+  // delete tokens
+  await updateUserToken(user.userId, 'indexing', tokens)
+  await updateUser(user.userId, { indexingOAuthId: tokenId })
+  await setUserSession(event, { user: { indexingOAuthId: tokenId } })
 
-  await setUserSession(event, { indexingOAuthId: token!.id })
+  await incrementMetric('googleIndexingAuth')
 
   return sendRedirect(event, authPayload.referrer || '/dashboard')
 })

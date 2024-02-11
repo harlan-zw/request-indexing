@@ -4,6 +4,7 @@ import { createChart } from 'lightweight-charts'
 const props = defineProps<{
   value: { time: string, value: number }[]
   value2: { time: string, value: number }[]
+  height: number
 }>()
 
 const colorMode = useColorMode()
@@ -96,7 +97,7 @@ const themesData = {
 
 onMounted(() => {
   const _chart = createChart(chart.value!, {
-    height: 100,
+    height: props.height || 100,
     autoSize: true,
     rightPriceScale: {
       visible: false,
@@ -194,8 +195,8 @@ onMounted(() => {
   <div ref="container" class="w-full h-full">
     <div ref="chart" />
     <div class="tooltip">
-      <div v-if="tooltipData.time" class="text-gray-600 text-xs">
-        <div class="text-gray-500 text-xs ">
+      <div v-if="tooltipData.time" class="dark:text-gray-200 text-gray-600 text-xs">
+        <div class="dark:text-gray-400 text-gray-500 text-xs ">
           {{ tooltipData.time }}
         </div>
         <div>Clicks {{ useHumanFriendlyNumber(tooltipData.clicks) }}</div>
@@ -214,6 +215,5 @@ onMounted(() => {
   top: 4px;
   right: 8px;
   pointer-events: none;
-  border-color: rgba(0, 150, 136, 1);
 }
 </style>

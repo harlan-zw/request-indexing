@@ -1,9 +1,9 @@
 import { defu } from 'defu'
-import { getUser, userAppStorage } from '~/server/utils/storage'
-import { googleAuthEventHandler } from '~/server/utils/googleAuthEventHandler'
-import { useUserIndexingApiQuota } from '~/server/utils/apiQuotaDb'
-import { useHashSecure } from '~/server/composables/auth'
-import type { TokenPayload, UserSession } from '~/types'
+import { getUser, getUserToken, incrementMetric, updateUserToken } from '~/server/utils/storage'
+import { googleAuthEventHandler } from '~/server/utils/auth/googleAuthEventHandler'
+import { getHashSecure } from '~/server/composables/auth'
+import type { UserSession } from '~/types'
+import { getUserQuota } from '~/server/utils/quota'
 
 export default googleAuthEventHandler({
   config: {
@@ -18,26 +18,32 @@ export default googleAuthEventHandler({
     },
   },
   async onSuccess(event, { user: _user, tokens }) {
-    const user = _user as { sub: string, picture: string }
+    const user = _user as { sub: string, picture: string, email: string }
     // sub is an openid claim that is unique to the user, we don't want to expose this to the client
-    const userId = `user-${useHashSecure(user.sub)}`
-    const quota = await useUserIndexingApiQuota(userId)
+    const userId = `user-${getHashSecure(user.sub)}`
+    if (!(await getUser(userId))) {
+      // TODO handle sign up login (emails, etc)
+      await incrementMetric('signups')
+    }
+    const quota = await getUserQuota(userId)
+    await updateUser(userId, {
+      email: user.email,
+    })
     const userPublicPersistentData = await getUser(userId)
 
     await setUserSession(event, {
       // public data only!
       user: {
+        email: user.email,
+        quota,
         userId,
         picture: user.picture,
-        indexingApiQuota: quota.value,
         analyticsPeriod: '28d',
         ...userPublicPersistentData, // contains analyticsPeriod if changed
       } satisfies UserSession['user'],
     })
-    const tokenStorage = userAppStorage<TokenPayload>(userId)
-    const { tokens: currentTokens } = (await tokenStorage.getItem('auth-token')) || {}
-    // store tokens based on user id
-    await tokenStorage.setItem('auth-token', {
+    const { tokens: currentTokens } = await getUserToken(userId, 'login') || {}
+    await updateUserToken(userId, 'login', {
       updatedAt: Date.now(),
       sub: user.sub,
       tokens: defu(tokens, currentTokens), // avoid refresh token getting deleted

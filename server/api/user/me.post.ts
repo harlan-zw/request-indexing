@@ -6,6 +6,8 @@ export default defineEventHandler(async (event) => {
 
   const { analyticsPeriod, hiddenSites } = await readBody<Partial<User>>(event)
 
+  await incrementMetric('updatedDetails')
+
   const session = await setUserSession(event, { user: { analyticsPeriod, hiddenSites } })
   await updateUser(user.userId, { analyticsPeriod, hiddenSites })
   return session

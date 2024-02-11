@@ -3,9 +3,9 @@ import { joinURL, withBase, withHttps } from 'ufo'
 import { defu } from 'defu'
 import { useTimeAgo } from '~/composables/formatting'
 import { createLogoutHandler, createSessionReloader, useAuthenticatedUser } from '~/composables/auth'
-import type { GoogleSearchConsoleSite, NonIndexedUrl } from '~/types'
+import type { GoogleSearchConsoleSite, SitePage } from '~/types'
 
-const props = defineProps<{ mock?: boolean, value: NonIndexedUrl[], site: GoogleSearchConsoleSite }>()
+const props = defineProps<{ mock?: boolean, value: SitePage[], site: GoogleSearchConsoleSite }>()
 
 const logout = createLogoutHandler()
 const user = useAuthenticatedUser()
@@ -26,9 +26,9 @@ watch(page, (page) => {
 
 const pageCount = 12
 
-const rows = computed<NonIndexedUrl[]>(() => props.value || [])
+const rows = computed<SitePage[]>(() => props.value || [])
 
-const queriedRows = computed<NonIndexedUrl[]>(() => {
+const queriedRows = computed<SitePage[]>(() => {
   if (!q.value)
     return rows.value
   return rows.value.filter((row) => {
@@ -38,7 +38,7 @@ const queriedRows = computed<NonIndexedUrl[]>(() => {
   })
 })
 
-const paginatedRows = computed<NonIndexedUrl[]>(() => {
+const paginatedRows = computed<SitePage[]>(() => {
   return queriedRows.value.slice((page.value - 1) * pageCount, (page.value) * pageCount)
 })
 
@@ -53,16 +53,21 @@ const columns = [{
 }, {
   key: 'requestIndexing',
   label: 'Request Indexing',
+}, {
+  key: 'actions',
 }]
 
 const siteUrlFriendly = useFriendlySiteUrl(props.site.siteUrl)
 const inspectionsLoading = ref([])
 const submitIndexingLoading = ref([])
 const updatedUrls = ref([])
-async function inspectUrl(row: NonIndexedUrl) {
+async function inspectUrl(row: SitePage) {
+  if (props.mock)
+    return
+
   const siteUrl = withHttps(siteUrlFriendly)
   inspectionsLoading.value = [...inspectionsLoading.value, row.url]
-  await $fetch<NonIndexedUrl>(`/api/sites/${encodeURIComponent(props.site.siteUrl)}/${encodeURIComponent(withBase(row.url, siteUrl))}`, {
+  await $fetch<SitePage>(`/api/sites/${encodeURIComponent(props.site.siteUrl)}/${encodeURIComponent(withBase(row.url, siteUrl))}`, {
     timeout: 15000,
   })
     .finally(() => {
@@ -103,15 +108,15 @@ async function inspectUrl(row: NonIndexedUrl) {
     })
 }
 
-function getUpdatedRow(row: NonIndexedUrl) {
+function getUpdatedRow(row: SitePage) {
   return updatedUrls.value.find(result => result.url === row.url) || row
 }
 
-function getUrlNotificationLatestUpdate(row: NonIndexedUrl) {
+function getUrlNotificationLatestUpdate(row: SitePage) {
   return updatedUrls.value.find(result => result.url === row.url)?.urlNotificationMetadata?.latestUpdate || row.urlNotificationMetadata?.latestUpdate
 }
 
-function pushUpdatedUrls(data: NonIndexedUrl, row: NonIndexedUrl) {
+function pushUpdatedUrls(data: SitePage, row: SitePage) {
   let updatedUrl
   updatedUrls.value = updatedUrls.value.map((result) => {
     if (result.url === row.url) {
@@ -124,10 +129,13 @@ function pushUpdatedUrls(data: NonIndexedUrl, row: NonIndexedUrl) {
     updatedUrls.value = [...updatedUrls.value, { ...defu(data, row), url: row.url }]
 }
 
-async function submitForIndexing(row: NonIndexedUrl) {
+async function submitForIndexing(row: SitePage) {
+  if (props.mock)
+    return
+
   const siteUrl = withHttps(siteUrlFriendly)
   submitIndexingLoading.value = [...submitIndexingLoading.value, row.url]
-  const { url: data, status } = await $fetch<{ status: 'already-submitted' | 'submitted', url: NonIndexedUrl }>(`/api/indexing/${encodeURIComponent(withBase(row.url, siteUrl))}`, {
+  const { url: data, status } = await $fetch<{ status: 'already-submitted' | 'submitted', url: SitePage }>(`/api/indexing/${encodeURIComponent(withBase(row.url, siteUrl))}`, {
     method: 'POST',
     query: { siteUrl },
     onResponseError({ response }) {
@@ -180,21 +188,35 @@ function hasOneHourPassed(date?: string | number) {
 
 <template>
   <div>
-    <div v-if="!mock" class=" px-3 py-3.5">
-      <div class="flex border-b border-gray-200 dark:border-gray-700">
-        <UInput v-model="q" placeholder="Search" class="w-full" />
+    <div v-if="!mock" class=" ">
+      <div class="flex items-center gap-5 mb-5">
+        <div class="flex w-1/2 dark:border-gray-700">
+          <UInput v-model="q" placeholder="Search" class="w-full" />
+        </div>
+        <!--      <div class="flex w-1/2 gap-3 dark:border-gray-700"> -->
+        <!--        <form @submit.prevent="submitNewUrl"> -->
+        <!--        <UInput v-model="submitUrl" placeholder="Submit URL for indexing" class="w-full" /> -->
+        <!--        <UButton type="submit" :loading="isSubmittingUrl">Add</UButton> -->
+        <!--        </form> -->
+        <!--      </div> -->
       </div>
+      <UDivider />
     </div>
     <UTable :loading="!rows.length" :columns="columns" :rows="paginatedRows">
       <template #url-data="{ row }">
         <div style="max-width: 400px;">
-          <NuxtLink :title="row.url" :class="mock ? ['pointer-events-none'] : []" :to="joinURL(`https://${siteUrlFriendly}`, row.url)" target="_blank" class="block text-gray-900 z-2 truncate underline w-full">
-            {{ row.url }}
-          </NuxtLink>
+          <UButton :title="row.url" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="joinURL(`https://${siteUrlFriendly}`, row.url)" target="_blank" color="gray" class="w-full">
+            <div class="max-w-[300px] truncate text-ellipsis">
+              {{ row.url }}
+            </div>
+          </UButton>
         </div>
       </template>
       <template #inspection-data="{ row }">
-        <div class="flex items-center gap-5">
+        <div class="flex items-center">
+          <UTooltip v-if="getUpdatedRow(row)?.inspectionResult?.inspectionResultLink" mode="hover" text="View Inspection Result">
+            <UButton target="_blank" :to="getUpdatedRow(row)?.inspectionResult?.inspectionResultLink" icon="i-heroicons-document-magnifying-glass" color="gray" variant="link" />
+          </UTooltip>
           <InspectionResult :value="getUpdatedRow(row)">
             <template v-if="getUrlNotificationLatestUpdate(row)?.type === 'URL_UPDATED' || getUpdatedRow(row)?.inspectionResult?.indexStatusResult?.verdict === 'NEUTRAL'">
               <UDivider class="my-3" />
@@ -217,7 +239,7 @@ function hasOneHourPassed(date?: string | number) {
             </template>
           </InspectionResult>
           <div v-if="!getUpdatedRow(row)?.lastInspected">
-            <UButton :disabled="mock" size="xs" color="gray" :loading="inspectionsLoading.includes(row.url)" @click="inspectUrl(row)">
+            <UButton size="xs" color="gray" :loading="inspectionsLoading.includes(row.url)" @click="inspectUrl(row)">
               Inspect
             </UButton>
           </div>
@@ -234,7 +256,7 @@ function hasOneHourPassed(date?: string | number) {
       <template #requestIndexing-data="{ row }">
         <div class="flex justify-end">
           <div v-if="getUrlNotificationLatestUpdate(row)?.type !== 'URL_UPDATED' && getUpdatedRow(row)?.inspectionResult?.indexStatusResult.verdict === 'NEUTRAL'" class="flex items-center gap-2">
-            <UButton :disabled="mock || !user?.indexingOAuthId || site.permissionLevel !== 'siteOwner'" size="xs" :loading="submitIndexingLoading.includes(row.url)" icon="i-heroicons-arrow-up-circle" variant="outline" @click="submitForIndexing(row)">
+            <UButton :disabled="!mock && (!user?.indexingOAuthId || site.permissionLevel !== 'siteOwner')" size="xs" :loading="submitIndexingLoading.includes(row.url)" icon="i-heroicons-arrow-up-circle" variant="outline" @click="submitForIndexing(row)">
               Request Indexing
             </UButton>
           </div>
@@ -242,16 +264,19 @@ function hasOneHourPassed(date?: string | number) {
             <div><span class="text-xs">Submitted</span><br>{{ useTimeAgo(getUrlNotificationLatestUpdate(row).notifyTime) }}</div>
           </div>
           <div v-else>
-            <div class="w-5 h-[2px] bg-gray-200" />
+            <div class="w-5 h-[2px] dark:bg-gray-800 bg-gray-200" />
           </div>
         </div>
       </template>
+      <template #actions-data="{ row }">
+        <UDropdown :items="[[{ label: 'Open URL', click: () => window.open(row.url, '_blank'), icon: 'i-heroicons-arrow-up-right' }]]">
+          <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="gray" />
+        </UDropdown>
+      </template>
     </UTable>
-    <div v-if="rows.length > pageCount" class="flex items-center justify-between">
-      <div class="flex justify-end px-3 py-3.5 border-t border-gray-200 dark:border-gray-700">
-        <UPagination v-model="page" :page-count="pageCount" :total="queriedRows.length" />
-      </div>
-      <div class="text-lg dark:text-gray-300 text-gray-600 mb-2">
+    <div v-if="!mock" class="flex items-center justify-between mt-7 px-3 py-5 border-t  border-gray-200 dark:border-gray-700">
+      <UPagination v-model="page" :page-count="pageCount" :total="queriedRows.length" />
+      <div class="text-base dark:text-gray-300 text-gray-600 mb-2">
         {{ queriedRows.length }} total
       </div>
     </div>

@@ -17,6 +17,7 @@ export interface GitHubRepo {
 const cachedGitHubRepo = cachedFunction<GitHubRepo, [string]>(
   repo => $fetch(`https://ungh.cc/repos/${repo}`).then(r => r.repo as GitHubRepo),
   {
+    base: 'app',
     maxAge: 60 * 60,
     group: 'app/cache',
     name: 'github-repo',

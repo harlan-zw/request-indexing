@@ -1,16 +1,17 @@
 import { searchconsole } from '@googleapis/searchconsole'
 import type { GaxiosError } from 'googleapis-common'
-import { getUserNonIndexedUrls } from '~/server/utils/nonIndexedUrlStorage'
-import { createGoogleOAuthClient } from '~/server/utils/googleSearchConsole'
+import { createGoogleOAuthClient } from '~/server/utils/api/googleSearchConsole'
+import { getUserSite, updateUserSite } from '~/server/utils/storage'
+import type { SitePage } from '~/types'
 
 export default defineEventHandler(async (event) => {
   const { tokens, user } = event.context.authenticatedData
 
   const { siteUrl, url } = getRouterParams(event, { decode: true })
 
-  const urlDb = await getUserNonIndexedUrls(user.userId, siteUrl)
+  const { urls } = await getUserSite(user.userId, siteUrl)
   // find for url
-  const lastInspected = urlDb.find(u => u.url === url)?.lastInspected
+  const lastInspected = urls.find(u => u.url === url)?.lastInspected
   if (lastInspected) {
     // compare with current time, if it's within 1 hour then we block them
     if (Date.now() - lastInspected < 1000 * 60 * 60) {
@@ -31,9 +32,11 @@ export default defineEventHandler(async (event) => {
       siteUrl,
     },
   })
-    .then((res) => {
+    .then(async (res) => {
+      const page: SitePage = { ...res.data, url, lastInspected: Date.now() }
+      await updateUserSite(user.userId, siteUrl, { urls: [page] })
       // only save lastInspected if it was successful
-      return updateUserNonIndexedUrl(user.userId, siteUrl, { ...res.data, url, lastInspected: Date.now() })
+      return page
     })
     .catch((e: GaxiosError) => {
       // if we have a 400 error, it means we've been unauthorized, send proper error

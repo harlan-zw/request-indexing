@@ -1,8 +1,10 @@
 import { indexing } from '@googleapis/indexing'
 import type { GaxiosError } from 'googleapis-common'
 import { OAuth2Client } from 'googleapis-common'
-import type { Credentials } from 'google-auth-library'
 import type { indexing_v3 } from '@googleapis/indexing/v3'
+import { getUserToken, updateUserSite } from '~/server/utils/storage'
+import { getUserQuotaUsage, incrementUserQuota } from '~/server/utils/quota'
+import type { SitePage, UserSession } from '~/types'
 
 export default defineEventHandler(async (event) => {
   const { user } = event.context.authenticatedData
@@ -13,13 +15,12 @@ export default defineEventHandler(async (event) => {
 
   const siteUrl = decodeURIComponent(_siteUrl as string)
 
-  const appStorage = userAppStorage(user.userId)
-  const tokens = await appStorage.getItem<Credentials>('indexing-tokens')
+  const tokens = await getUserToken(user.userId, 'indexing')
 
   const { indexing: indexingConfig } = useRuntimeConfig().public
   // increment users usage
-  const quota = await useUserIndexingApiQuota(user.userId)
-  if (quota.value >= indexingConfig.usageLimitPerUser) {
+  const quota = await getUserQuotaUsage(user.userId, 'indexingApi')
+  if (quota >= indexingConfig.usageLimitPerUser) {
     return sendError(event, createError({
       statusCode: 429,
       statusText: 'Daily API Quota exceeded. Please upgrade your plan.',
@@ -49,10 +50,12 @@ export default defineEventHandler(async (event) => {
     ? new Date(metadata.latestUpdate.notifyTime) > new Date(Date.now() - 1000 * 60 * 60 * 48)
     : false
   if (metadata.latestUpdate?.type === 'URL_UPDATED' && submittedLast48Hours) {
+    const page: SitePage = { urlNotificationMetadata: metadata, url }
     // already published, update link and return it
+    await updateUserSite(user.userId, siteUrl, { urls: [page] })
     return {
       status: 'already-submitted',
-      url: await updateUserNonIndexedUrl(user.userId, siteUrl, { urlNotificationMetadata: metadata, url }),
+      url: page,
     }
   }
 
@@ -64,13 +67,20 @@ export default defineEventHandler(async (event) => {
   })
     .then(res => res.data)
 
-  const quotaCount = await quota.increment()
-  await setUserSession(event, {
+  await setUserSession(event, <UserSession> {
     // public data only!
     user: {
-      indexingApiQuota: quotaCount,
+      quota: {
+        indexingApi: await incrementUserQuota(user.userId, 'indexingApi'),
+      },
     },
   })
 
-  return { status: 'submitted', url: await updateUserNonIndexedUrl(user.userId, siteUrl, { ...res, url }) }
+  const page: SitePage = { ...res, url }
+  await updateUserSite(user.userId, siteUrl, { urls: [page] })
+
+  return {
+    status: 'submitted',
+    url: page,
+  }
 })

@@ -3,7 +3,7 @@ import type { Credentials } from 'google-auth-library'
 import { OAuth2Client } from 'googleapis-common'
 import { searchconsole } from '@googleapis/searchconsole'
 import type { GoogleSearchConsoleSite, SiteAnalytics, User } from '~/types'
-import { normalizeSiteUrl } from '~/server/utils/formatting'
+import { normalizeSiteUrl, percentDifference } from '~/server/utils/formatting'
 
 function formatDate(date: Date = new Date()) {
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
@@ -133,9 +133,11 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
       return {
         url: parseURL(row.keys![0]).pathname,
         clicks: row.clicks!,
-        clicksPercent: (prevPeriodRow ? (row.clicks! - prevPeriodRow.clicks!) / prevPeriodRow.clicks! : 0),
+        prevClicks: prevPeriodRow ? prevPeriodRow.clicks! : 0,
+        clicksPercent: percentDifference(row.clicks!, prevPeriodRow?.clicks || 0),
         impressions: row.impressions!,
-        impressionsPercent: (prevPeriodRow ? (row.impressions! - prevPeriodRow.impressions!) / prevPeriodRow.impressions! : 0),
+        impressionsPercent: percentDifference(row.impressions!, prevPeriodRow?.impressions || 0),
+        prevImpressions: prevPeriodRow ? prevPeriodRow.impressions! : 0,
       } satisfies SiteAnalytics['period'][0]
     }),
     keywords: keywordsPeriod.map((row) => {
@@ -144,9 +146,11 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         keyword: row.keys![0],
         // position and ctr
         position: row.position!,
-        positionPercent: (prevPeriodRow ? (row.position! - prevPeriodRow.position!) / prevPeriodRow.position! : 0),
+        positionPercent: percentDifference(row.position!, prevPeriodRow?.position || 0),
+        prevPosition: prevPeriodRow ? prevPeriodRow.position! : 0,
         ctr: row.ctr!,
-        ctrPercent: (prevPeriodRow ? (row.ctr! - prevPeriodRow.ctr!) / prevPeriodRow.ctr! : 0),
+        ctrPercent: percentDifference(row.ctr!, prevPeriodRow?.ctr || 0),
+        prevCtr: prevPeriodRow ? prevPeriodRow.ctr! : 0,
         clicks: row.clicks!,
       } satisfies SiteAnalytics['keywords'][0]
     }),

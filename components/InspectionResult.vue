@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useTimeAgo } from '~/composables/formatting'
-import type { NonIndexedUrl } from '~/types'
+import type { SitePage } from '~/types'
 
 const props = defineProps<{
-  value: Required<NonIndexedUrl['inspectionResult']>
+  value: Required<SitePage>
 }>()
 
 const value = computed(() => {
@@ -13,9 +13,6 @@ const value = computed(() => {
 
 <template>
   <div v-if="value?.indexStatusResult" class="flex items-center">
-    <UTooltip mode="hover" text="View Inspection Result">
-      <UButton target="_blank" :to="value.inspectionResultLink" icon="i-heroicons-document-magnifying-glass" color="gray" variant="link" />
-    </UTooltip>
     <UPopover mode="hover">
       <template v-if="value.indexStatusResult.verdict === 'PASS'">
         <UButton :to="value.inspectionResultLink" icon="i-heroicons-check-circle" color="green" variant="link">
@@ -35,29 +32,29 @@ const value = computed(() => {
       <template #panel>
         <div class="p-4">
           <div>
-            <div class="text-gray-800 font-semibold mb-2">
+            <div class="text-gray-800 dark:text-gray-100 font-semibold mb-2">
               {{ value.indexStatusResult.coverageState }}
             </div>
             <div class="flex gap-3 justify-between mb-1">
-              <div class="text-gray-700">
+              <div class="text-gray-700 dark:text-gray-200">
                 Verdict
               </div>
               <div>{{ value.indexStatusResult.verdict }}</div>
             </div>
             <div class="flex gap-3 justify-between mb-1">
-              <div class="text-gray-700">
+              <div class="text-gray-700 dark:text-gray-200">
                 Robots.txt
               </div>
               <div>{{ value.indexStatusResult.robotsTxtState }}</div>
             </div>
             <div class="flex gap-3 justify-between mb-1">
-              <div class="text-gray-700">
+              <div class="text-gray-700 dark:text-gray-200">
                 Indexing
               </div>
               <div>{{ value.indexStatusResult.indexingState }}</div>
             </div>
             <div class="flex gap-3 justify-between mb-1">
-              <div class="text-gray-700">
+              <div class="text-gray-700 dark:text-gray-200">
                 Last Crawled
               </div>
               <div>{{ useTimeAgo(value.indexStatusResult.lastCrawlTime, true) }}</div>
