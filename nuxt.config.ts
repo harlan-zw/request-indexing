@@ -38,6 +38,9 @@ export default defineNuxtConfig({
         maxAge: 60 * 60 * 24 * 90, // 3mo
       },
     },
+    postmark: {
+      apiKey: '', // .env NUXT_POSTMARK_API_KEY
+    },
     public: {
       features: {
         keyLogin: false,

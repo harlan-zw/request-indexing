@@ -4,6 +4,7 @@ import { googleAuthEventHandler } from '~/server/utils/auth/googleAuthEventHandl
 import { getHashSecure } from '~/server/composables/auth'
 import type { UserSession } from '~/types'
 import { getUserQuota } from '~/server/utils/quota'
+import { sendWelcomeEmail } from '~/server/email/welcome'
 
 export default googleAuthEventHandler({
   config: {
@@ -24,6 +25,7 @@ export default googleAuthEventHandler({
     if (!(await getUser(userId))) {
       // TODO handle sign up login (emails, etc)
       await incrementMetric('signups')
+      await sendWelcomeEmail(event, user.email)
     }
     const quota = await getUserQuota(userId)
     await updateUser(userId, {

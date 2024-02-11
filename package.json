@@ -28,6 +28,7 @@
     "lightweight-charts": "^4.1.3",
     "nuxt": "^3.10.1",
     "nuxt-auth-utils": "^0.0.15",
+    "postmark": "^4.0.2",
     "sitemapper": "^3.2.8",
     "vue": "^3.4.18",
     "vue-router": "^4.2.5"
