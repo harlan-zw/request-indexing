@@ -9,7 +9,7 @@ Get your pages indexed on Google within 48 hours. (on average)
 <tbody>
 <td align="center">
 <img width="800" height="0" /><br>
-<i>Status:</i> <a href="https://requestindexing.com/">requestindexing.com Released 🥳/a></b> <br>
+<i></i> <a href="https://requestindexing.com/">requestindexing.com 🥳</a></b> <br>
 <sup> Please report any issues 🐛</sup><br>
 <sub>Made possible by my <a href="https://github.com/sponsors/harlan-zw">Sponsor Program 💖</a><br> Follow me <a href="https://twitter.com/harlan_zw">@harlan_zw</a> 🐦 • Join <a href="https://discord.gg/275MBUBvgP">Discord</a> for help</sub><br>
 <img width="800" height="0" />
@@ -18,11 +18,31 @@ Get your pages indexed on Google within 48 hours. (on average)
 </table>
 </p>
 
+> [!NOTE]  
+> These docs are a work in progress.
+
 ## Features
 
 - ⚡ Request indexing on new sites and pages, have them appear on Google in 48 hours.
 - 📊 Dashboard to see the search performance of all your Google Search Console sites.
 - 🌲 Keep your site data. Google Search Console data deletes site data longer than 16 months, start keeping it.
+- Built entirely with Nuxt, Nuxt UI and Google APIs.
+
+## Background
+
+Building a SaaS is quick and easy with [Nuxt](https://nuxt.com).
+
+This project is an effort to prove that and was a success. I shipped the first version in 64 hours total.
+
+Built With:
+
+- [Nuxt](https://nuxt.com)
+- [Nuxt UI Pro](https://ui.nuxt.com/pro/pricing?utm_source=github&utm_medium=doc&utm_campaign=affiliate&utm_id=requestindexing)
+- [Nuxt SEO](https://nuxtseo.com)
+- [Google APIs](https://developers.google.com/apis-explorer)
+
+Credits to [google-indexing-script](https://github.com/goenning/google-indexing-script) is the inspiration for this project.
+Learn more about how it works by reading the [Google Indexing Script](https://seogets.com/blog/google-indexing-script).
 
 ## Run Locally
 
@@ -43,9 +63,9 @@ pnpm i
 You will need to create a Google OAuth Client ID and Secret. You can do this by visiting the [Google Developer Console](https://console.developers.google.com/).
 
 The following scopes are required:
-- userinfo.email
-- webmasters.readonly
-- indexing
+- `userinfo.email`
+- `webmasters.readonly`
+- `indexing`
 
 You will need to add the redirect URL to your OAuth client. This will be `http://localhost:3000/auth/google` and `http://localhost:3000/auth/google-indexing`.
 
