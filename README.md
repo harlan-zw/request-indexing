@@ -26,7 +26,6 @@ Get your pages indexed on Google within 48 hours. (on average)
 - ⚡ Request indexing on new sites and pages, have them appear on Google in 48 hours.
 - 📊 Dashboard to see the search performance of all your Google Search Console sites.
 - 🌲 Keep your site data. Google Search Console data deletes site data longer than 16 months, start keeping it.
-- Built entirely with Nuxt, Nuxt UI and Google APIs.
 
 ## Background
 
@@ -49,16 +48,16 @@ Learn more about how it works by reading the [Google Indexing Script](https://se
 1. Git clone the project:
 
 ```bash
-git clone git
+git clone git@github.com:harlan-zw/request-indexing.git
 ```
 
-2. Install deps and run the project:
+2. Install deps:
 
 ```bash
 pnpm i
 ```
 
-3. Configure your Google OAuth Keys
+3. Configure the keys:
 
 You will need to create a Google OAuth Client ID and Secret. You can do this by visiting the [Google Developer Console](https://console.developers.google.com/).
 
@@ -79,6 +78,12 @@ You should also set a unique 32 character string for the security keys:
 ```bash
 NUXT_KEY=<mustbe32chars>
 NUXT_SESSION_PASSWORD=<secret>
+```
+
+4. Start the server:
+
+```bash
+pnpm dev
 ```
 
 That's it!
