@@ -81,7 +81,7 @@ export default defineEventHandler(async (event) => {
     ...googleSearchConsoleAnalytics,
     nonIndexedPercent: indexedUrls.length / (indexedUrls.length + [...nonIndexedUrls].length),
     nonIndexedUrls: [...nonIndexedUrls].map((url) => {
-      const entry = urls.find(u => parseURL(u.url).pathname === url)
+      const entry = urls.filter(Boolean).find(u => parseURL(u.url).pathname === url)
       return {
         ...entry,
         url,

@@ -1,5 +1,6 @@
 import { searchconsole } from '@googleapis/searchconsole'
 import type { GaxiosError } from 'googleapis-common'
+import { parseURL } from 'ufo'
 import { createGoogleOAuthClient } from '~/server/utils/api/googleSearchConsole'
 import { getUserSite, updateUserSite } from '~/server/utils/storage'
 import type { SitePage } from '~/types'
@@ -11,7 +12,7 @@ export default defineEventHandler(async (event) => {
 
   const { urls } = await getUserSite(user.userId, siteUrl)
   // find for url
-  const lastInspected = urls.find(u => u.url === url)?.lastInspected
+  const lastInspected = urls.filter(Boolean).find(u => parseURL(u.url).pathname === url)?.lastInspected
   if (lastInspected) {
     // compare with current time, if it's within 1 hour then we block them
     if (Date.now() - lastInspected < 1000 * 60 * 60) {
