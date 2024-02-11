@@ -9,7 +9,7 @@ Get your pages indexed on Google within 48 hours. (on average)
 <tbody>
 <td align="center">
 <img width="800" height="0" /><br>
-<i>Status:</i> <a href="https://requestindexing.com/">Released 🥳/a></b> <br>
+<i>Status:</i> <a href="https://requestindexing.com/">requestindexing.com Released 🥳/a></b> <br>
 <sup> Please report any issues 🐛</sup><br>
 <sub>Made possible by my <a href="https://github.com/sponsors/harlan-zw">Sponsor Program 💖</a><br> Follow me <a href="https://twitter.com/harlan_zw">@harlan_zw</a> 🐦 • Join <a href="https://discord.gg/275MBUBvgP">Discord</a> for help</sub><br>
 <img width="800" height="0" />
@@ -20,12 +20,9 @@ Get your pages indexed on Google within 48 hours. (on average)
 
 ## Features
 
-- ✨ Create an `og:image` using the built-in templates or make your own with Vue components
-- 🎨 Design and test your `og:image` in the Nuxt DevTools OG Image Playground with full HMR
-- ▲ Render using [Satori](https://github.com/vercel/satori): Tailwind / UnoCSS with your theme, Google fonts, 6 emoji families supported and more!
-- 🤖 Or prerender using the Browser: Supporting painless, complex templates
-- 📸 Feeling lazy? Just generate screenshots for every page: hide elements, wait for animations, and more
-- ⚙️ Works on the edge: Vercel Edge, Netlify Edge and Cloudflare Workers
+- ⚡ Request indexing on new sites and pages, have them appear on Google in 48 hours.
+- 📊 Dashboard to see the search performance of all your Google Search Console sites.
+- 🌲 Keep your site data. Google Search Console data deletes site data longer than 16 months, start keeping it.
 
 ## Run Locally
 
@@ -48,17 +45,23 @@ You will need to create a Google OAuth Client ID and Secret. You can do this by 
 The following scopes are required:
 - userinfo.email
 - webmasters.readonly
+- indexing
 
-You will need to add the redirect URL to your OAuth client. This will be `http://localhost:3000/auth/callback/google`.
+You will need to add the redirect URL to your OAuth client. This will be `http://localhost:3000/auth/google` and `http://localhost:3000/auth/google-indexing`.
 
 ```bash
 NUXT_OAUTH_GOOGLE_CLIENT_ID=<clientId>
 NUXT_OAUTH_GOOGLE_CLIENT_SECRET=<clientSecret>
 ```
 
-That's it!
+You should also set a unique 32 character string for the security keys:
 
-All features are enabled by default. Learn more by exploring the [documentation](https://nuxtseo.com)
+```bash
+NUXT_KEY=<mustbe32chars>
+NUXT_SESSION_PASSWORD=<secret>
+```
+
+That's it!
 
 ## Sponsors
 
