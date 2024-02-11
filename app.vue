@@ -34,8 +34,8 @@ watch(colorMode, () => {
 useSeoMeta({
   titleTemplate: '%s %separator Request Indexing',
   ogSiteName: 'Request Indexing',
-  ogTitle: 'Tell Google to index your missing pages.',
-  twitterTitle: 'Tell Google to index your missing pages.',
+  ogTitle: 'Get your pages indexed within 48 hours.',
+  twitterTitle: 'Get your pages indexed within 48 hours.',
 })
 </script>
 
@@ -90,7 +90,6 @@ pre {
 .page-leave-active {
   transition: all 0.2s;
 }
-/* create a smooth beautifal fade in keyframe animation */
 .page-enter-from,
 .page-leave-to {
   opacity: 0;
