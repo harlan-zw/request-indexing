@@ -37,6 +37,8 @@ useSeoMeta({
   ogTitle: 'Get your pages indexed within 48 hours.',
   twitterTitle: 'Get your pages indexed within 48 hours.',
 })
+
+defineOgImageComponent('Home')
 </script>
 
 <template>
