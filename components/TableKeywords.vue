@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = withDefaults(
-  defineProps<{ mock: boolean, value: KeywordList, pageCount: number }>(),
+  defineProps<{ mock?: boolean, value: KeywordList, pageCount?: number }>(),
   {
     pageCount: 12,
   },

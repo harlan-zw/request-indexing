@@ -4,7 +4,7 @@ import { createChart } from 'lightweight-charts'
 const props = defineProps<{
   value: { time: string, value: number }[]
   value2: { time: string, value: number }[]
-  height: number
+  height: number | string
 }>()
 
 const colorMode = useColorMode()
@@ -97,7 +97,7 @@ const themesData = {
 
 onMounted(() => {
   const _chart = createChart(chart.value!, {
-    height: props.height || 100,
+    height: Number(props.height) || 100,
     autoSize: true,
     rightPriceScale: {
       visible: false,

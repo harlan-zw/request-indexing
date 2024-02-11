@@ -3,7 +3,7 @@ import { joinURL } from 'ufo'
 import type { IndexedUrl } from '~/types/data'
 
 const props = withDefaults(
-  defineProps<{ mock: boolean, value?: IndexedUrl[], siteUrl: string, pending: boolean, pageCount: number }>(),
+  defineProps<{ mock?: boolean, value?: IndexedUrl[], siteUrl: string, pending?: boolean, pageCount?: number }>(),
   {
     pageCount: 12,
   },

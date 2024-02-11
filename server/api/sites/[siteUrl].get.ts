@@ -76,7 +76,6 @@ export default defineEventHandler(async (event) => {
     .forEach(url => nonIndexedUrls.add(url))
 
   const { urls } = await getUserSite(user.userId, siteUrl)
-
   return {
     ...site,
     ...googleSearchConsoleAnalytics,
