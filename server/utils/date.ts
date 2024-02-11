@@ -2,5 +2,6 @@
 export function datePST() {
   const d = new Date()
   d.setHours(d.getHours() - 7)
-  return d
+  // format it as yyyy:mm:dd
+  return d.toISOString().split('T')[0].replace(/-/g, ':')
 }

@@ -45,16 +45,16 @@ export async function getUserSite(userId: string, siteUrl: string) {
 const userSiteMerger = createDefu((data, key, value) => {
   if (key === 'urls' && Array.isArray(value)) {
     // dedupe the array based on the url
-    const urlsToAdd = [...value]
+    const urlsToAdd = [...value].filter(Boolean)
     data.urls = data.urls.map((u) => {
-      const existing = urlsToAdd.findIndex(v => v.url === u.url)
+      const existing = urlsToAdd.findIndex(v => v?.url === u.url)
       if (existing >= 0) {
         const val = urlsToAdd[existing]
         delete urlsToAdd[existing]
         return defu(u, val)
       }
       return u
-    })
+    }).filter(Boolean)
     // just append new urls
     data.urls.push(...urlsToAdd)
     return true
