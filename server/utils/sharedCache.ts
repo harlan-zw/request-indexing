@@ -9,6 +9,9 @@ export const fetchSitesCached = cachedFunction<GoogleSearchConsoleSite[], [Nitro
     maxAge: 60 * 10,
     group: 'app',
     name: 'user',
+    validate(item) {
+      return Array.isArray(item) && Boolean(item.length)
+    },
     shouldInvalidateCache(_, force?: boolean) {
       return !!force
     },

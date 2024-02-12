@@ -26,8 +26,17 @@ export default defineEventHandler(async (event) => {
       statusText: 'Daily API Quota exceeded. Please upgrade your plan.',
     }))
   }
-
-  const oauth2Client = new OAuth2Client()
+  const pool = createOAuthPool().get(user.indexingOAuthId || '')
+  if (!user.indexingOAuthId || !pool) {
+    return sendError(event, createError({
+      statusCode: 401,
+      statusText: 'Invalid Google account. Please reconnect your account.',
+    }))
+  }
+  const oauth2Client = new OAuth2Client({
+    clientId: pool.client_id,
+    clientSecret: pool.client_secret,
+  })
   oauth2Client.setCredentials(tokens!)
   const api = indexing({
     version: 'v3',

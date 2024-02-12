@@ -5,17 +5,22 @@ import { searchconsole } from '@googleapis/searchconsole'
 import type { GoogleSearchConsoleSite, SiteAnalytics, User } from '~/types'
 import { normalizeSiteUrl, percentDifference } from '~/server/utils/formatting'
 
+// @ts-expect-error untyped
+import { tokens } from '#app/token-pool.mjs'
+
 function formatDate(date: Date = new Date()) {
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
 }
 
-export function createGoogleOAuthClient(credentials: Credentials) {
-  const oauth2Client = new OAuth2Client({
+export function createGoogleOAuthClient(credentials: Credentials, token?: { client_id: string, client_secret: string }) {
+  token = token || tokens[0]
+  return new OAuth2Client({
     // tells client to use the refresh_token...
     forceRefreshOnFailure: true,
+    credentials,
+    clientId: token.client_id,
+    clientSecret: token.client_secret,
   })
-  oauth2Client.setCredentials(credentials)
-  return oauth2Client
 }
 
 export async function fetchGoogleSearchConsoleSites(credentials: Credentials): Promise<GoogleSearchConsoleSite[]> {
