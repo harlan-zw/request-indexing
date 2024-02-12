@@ -185,6 +185,10 @@ function hasOneHourPassed(date?: string | number) {
     return true
   return useDayjs()().diff(useDayjs()(date), 'hour') >= 1
 }
+
+function openUrl(url: string, target?: string) {
+  window.open(url, target)
+}
 </script>
 
 <template>
@@ -270,7 +274,7 @@ function hasOneHourPassed(date?: string | number) {
         </div>
       </template>
       <template #actions-data="{ row }">
-        <UDropdown :items="[[{ label: 'Open URL', click: () => window.open(row.url, '_blank'), icon: 'i-heroicons-arrow-up-right' }]]">
+        <UDropdown :items="[[{ label: 'Open URL', click: () => openUrl(row.url, '_blank'), icon: 'i-heroicons-arrow-up-right' }]]">
           <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="gray" />
         </UDropdown>
       </template>
