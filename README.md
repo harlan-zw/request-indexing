@@ -21,6 +21,7 @@ Get your pages indexed on Google within 48 hours. (on average)
 > [!NOTE]
 > These docs are a work in progress. Please check back soon for updates.
 
+
 ## Features
 
 - ⚡ Request indexing on new sites and pages, have them appear on Google in 48 hours.
