@@ -18,7 +18,7 @@ Get your pages indexed on Google within 48 hours. (on average)
 </table>
 </p>
 
-> [!NOTE]  
+> [!NOTE]
 > These docs are a work in progress. Please check back soon for updates.
 
 ## Features
