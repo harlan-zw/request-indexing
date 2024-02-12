@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { withHttps } from 'ufo'
+import { useFriendlySiteUrl } from '~/composables/formatting'
+
 definePageMeta({
   layout: 'account',
 })
 
 const { fetch } = useUserSession()
 const user = useAuthenticatedUser()
+const { session } = useUserSession()
 const logout = createLogoutHandler()
 
 const toast = useToast()
@@ -49,15 +53,45 @@ function deleteAccount() {
     toast.add({ title: 'Failed to delete account', description: 'Sorry about that, maybe try again later.', color: 'red' })
   })
 }
+
+async function showSite(site: string) {
+  // save it upstream
+  session.value = await $fetch('/api/user/me', {
+    method: 'POST',
+    body: JSON.stringify({
+      hiddenSites: (user.value.hiddenSites || []).filter(s => s !== site),
+    }),
+  })
+}
 </script>
 
 <template>
   <div>
     <UPageHeader title="Account" description="Update your details." :links="[]" headline="Your Account" />
     <UPageBody>
+      <div v-if="user.hiddenSites?.length">
+        <div class="mb-5">
+          <h2 class="text-lg font-bold flex items-center gap-1 mb-1">
+            <UIcon name="i-heroicons-eye-slash" class="mr-1.5" />
+            Hidden Sites
+          </h2>
+        </div>
+        <p class="text-gray-600 dark:text-gray-300 mb-3">
+          Sites you are hiding from your dashboard. You can toggle them at any time.
+        </p>
+        <ul class="ml-5 space-y-2">
+          <li v-for="(site, key) in user.hiddenSites" :key="key">
+            <img :src="`https://www.google.com/s2/favicons?domain=${withHttps(useFriendlySiteUrl(site))}`" alt="favicon" class="w-4 h-4 mr-1.5 inline-block">
+            {{ useFriendlySiteUrl(site) }}
+            <UButton variant="link" color="gray" @click="showSite(site)">
+              Unhide
+            </UButton>
+          </li>
+        </ul>
+      </div>
       <div>
         <div class="mt-10 mb-5">
-          <h2 class="text-lg font-bold mb-1">
+          <h2 class="text-lg flex items-center font-bold mb-1">
             <UIcon name="i-heroicons-lock-closed" class="mr-1.5" />
             Web Indexing API
           </h2>
@@ -80,7 +114,7 @@ function deleteAccount() {
       </div>
       <div>
         <div class="mt-10 mb-5">
-          <h2 class="text-lg font-bold mb-1">
+          <h2 class="text-lg flex items-center font-bold mb-1">
             <UIcon name="i-heroicons-trash" class="mr-1.5" />
             Delete Account
           </h2>

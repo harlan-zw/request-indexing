@@ -29,8 +29,18 @@ function userSiteAppStorage<T extends StorageValue = UserAppStorage>(userId: str
   return prefixStorage(appStorage as Storage<T>, `user:${userId}:sites:${normalizeSiteUrlForKey(siteUrl)}:${namespace ? `:${namespace}` : ''}`)
 }
 
+export const userMerger = createDefu((data, key, value) => {
+  // we want to override arrays when an empty one is provided
+  if (Array.isArray(data[key]) && Array.isArray(value)) {
+    data[key] = value
+    return true
+  }
+})
+
 export async function updateUser(userId: string, value: Partial<User>) {
-  return userAppStorage(userId).setItem('me.json', defu(value, await getUser(userId)))
+  const updated = userMerger(value, await getUser(userId))
+  await userAppStorage(userId).setItem('me.json', updated)
+  return updated
 }
 
 export function getUser(userId: string) {
