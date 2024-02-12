@@ -4,7 +4,7 @@ import { createChart } from 'lightweight-charts'
 const props = defineProps<{
   value: { time: string, value: number }[]
   value2: { time: string, value: number }[]
-  height: number | string
+  height?: number | string
 }>()
 
 const colorMode = useColorMode()

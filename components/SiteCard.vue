@@ -34,7 +34,7 @@ function refresh() {
 }
 
 async function hide() {
-  const sites = new Set([...(session.value.hiddenSites || []), props.site.siteUrl])
+  const sites = new Set([...(session.value.user.hiddenSites || []), props.site.siteUrl])
   // save it upstream
   session.value = await $fetch('/api/user/me', {
     method: 'POST',

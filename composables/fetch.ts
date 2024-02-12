@@ -56,7 +56,7 @@ export async function fetchSites() {
     async () => await fetchFn('/api/sites/list', {
       query: { force: force.value },
       async onResponseError(res) {
-        if (res.response.status === 401) {
+        if ([401, 400].includes(res.response.status)) {
           // make sure we have context
           await logout(true)
           toast.add({
@@ -66,7 +66,7 @@ export async function fetchSites() {
             color: 'red',
           })
         }
-        else { toast.add({ id: 'unauthorized-error', title: 'Error fetching sites', description: res.error.message, color: 'red' }) }
+        else { toast.add({ id: 'unauthorized-error', title: 'Error fetching sites', description: res.error?.message, color: 'red' }) }
       },
     }),
     {
