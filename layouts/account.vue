@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import DefaultLayout from './default.vue'
 
+const user = useAuthenticatedUser()
+
 const links = [
   { label: 'Profile', to: '/account', icon: 'i-heroicons-user-circle' },
   { label: 'Upgrade', to: '/account/upgrade', icon: 'i-heroicons-star' },
@@ -40,7 +42,18 @@ const supportLinks = computed(() => [
         <slot />
         <template #right>
           <UAside>
-            <UPageLinks title="Get Help" :links="supportLinks" />
+            <UPageLinks title="Get Help" :links="supportLinks" class="mb-7" />
+            <div>
+              <div class="mb-1">
+                User ID
+              </div>
+              <div class="text-gray-400 text-xs mb-1">
+                When reporting issues please provide your ID.
+              </div>
+              <div class="font-mono text-gray-500 text-sm bg-gray-50 px-2 py-1 rounded">
+                <code>{{ user.userId }}</code>
+              </div>
+            </div>
           </UAside>
         </template>
       </UPage>
