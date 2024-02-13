@@ -66,6 +66,10 @@ const siteUrlFriendly = useFriendlySiteUrl(props.siteUrl)
 const highestRowClickCount = computed(() => {
   return Math.max(...rows.value.map(row => row.clicks!))
 })
+
+function openUrl(url: string, target?: string) {
+  window.open(url, target)
+}
 </script>
 
 <template>
@@ -106,7 +110,7 @@ const highestRowClickCount = computed(() => {
         <TrendPercentage :value="row.impressions" :prev-value="row.prevImpressions" />
       </template>
       <template #actions-data="{ row }">
-        <UDropdown :items="[[{ label: 'Open URL', click: () => window.open(row.url, '_blank'), badge: { label: 'soon' } }]]">
+        <UDropdown :items="[[{ label: 'Open URL', click: () => openUrl(row.url, '_blank'), badge: { label: 'soon' } }]]">
           <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="gray" />
         </UDropdown>
       </template>
