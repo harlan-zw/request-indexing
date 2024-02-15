@@ -21,7 +21,6 @@ Get your pages indexed on Google within 48 hours. (on average)
 > [!NOTE]
 > These docs are a work in progress. Please check back soon for updates.
 
-
 ## Features
 
 - ⚡ Request indexing on new sites and pages, have them appear on Google in 48 hours.
@@ -37,7 +36,7 @@ This project is an effort to prove that and was a success. I shipped the first v
 Built With:
 
 - [Nuxt](https://nuxt.com)
-- [Nuxt UI Pro](https://ui.nuxt.com/pro/pricing?utm_source=github&utm_medium=doc&utm_campaign=affiliate&utm_id=requestindexing)
+- [Nuxt UI Pro](https://ui.nuxt.com/pro?aff=5zj9e)
 - [Nuxt SEO](https://nuxtseo.com)
 - [Google APIs](https://developers.google.com/apis-explorer)
 
@@ -85,6 +84,22 @@ NUXT_SESSION_PASSWORD=<secret>
 
 ```bash
 pnpm dev
+```
+
+5. Building your site:
+
+To build and deploy site you will need to purchase a [Nuxt UI Pro](https://ui.nuxt.com/pro?aff=5zj9e) license.
+
+Once you have your license update your `.env` file with your license key:
+
+```bash
+NUXT_UI_PRO_LICENSE_KEY=<license>
+```
+
+Then run the build command:
+
+```bash
+pnpm build
 ```
 
 That's it!
