@@ -17,22 +17,26 @@ const links = computed(
     : [],
 )
 
-const authDropdownItems: DropdownItem[][] = [
-  [
-    { label: 'Account', slot: 'account', to: '/account', icon: 'i-heroicons-user-circle' },
-  ],
-  [
-    // upgrade to pro item
-    { label: 'Upgrade', slot: 'pro', to: '/account/upgrade', icon: 'i-heroicons-star' },
-  ],
-  [
-    {
-      label: 'Logout',
-      click: () => logout(),
-      icon: 'i-heroicons-arrow-left-end-on-rectangle',
-    },
-  ],
-]
+const authDropdownItems = computed(() => {
+  return [
+    [
+      { label: 'Account', slot: 'account', to: '/account', icon: 'i-heroicons-user-circle' },
+    ],
+    user.value.access === 'pro'
+      ? false
+      : [
+          // upgrade to pro item
+          { label: 'Upgrade', slot: 'pro', to: '/account/upgrade', icon: 'i-heroicons-star' },
+        ],
+    [
+      {
+        label: 'Logout',
+        click: () => logout(),
+        icon: 'i-heroicons-arrow-left-end-on-rectangle',
+      },
+    ],
+  ].filter(Boolean)
+})
 
 async function updateAnalyticsPeriod(newPeriod: User['analyticsPeriod']) {
   session.value = await $fetch('/api/user/me', {
@@ -134,7 +138,7 @@ const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('
             </UButton>
           </UDropdown>
         </div>
-        <UDropdown mode="click" :items="authDropdownItems">
+        <UDropdown mode="click" :items="authDropdownItems" class="flex items-center">
           <template #account="{ item }">
             <div class="flex flex-col w-full">
               <div class="flex items-center gap-2">
@@ -149,9 +153,12 @@ const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('
           <template #pro="{ item }">
             <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <span class="truncate">{{ item.label }}</span>
-            <UBadge label="4 left" color="purple" variant="subtle" class="ml-0.5" />
+            <UBadge label="3 left" color="purple" variant="subtle" class="ml-0.5" />
           </template>
           <UAvatar :src="user.picture" />
+          <div class="ml-2 flex items-center">
+            <UBadge v-if="user.access === 'pro'" label="Pro" color="purple" variant="subtle" class="ml-0.5" />
+          </div>
           <UButton
             icon="i-heroicons-chevron-down"
             color="gray"
