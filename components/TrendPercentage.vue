@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 const props = defineProps<{
-  prevValue: string | number
+  prevValue?: string | number | null
   value: string | number
+  symbol?: string
+  negative?: boolean
 }>()
 
 const percentage = computed(() => {
@@ -14,11 +16,8 @@ const percentage = computed(() => {
 </script>
 
 <template>
-  <UTooltip :text="`${useHumanFriendlyNumber(Number(prevValue))} previous period`">
-    <div v-if="!prevValue">
-      0%
-    </div>
-    <div v-else-if="percentage > 0" class="text-sm items-center flex gap-1 text-green-500">
+  <UTooltip v-if="prevValue" :text="`${useHumanFriendlyNumber(Number(prevValue))}${symbol || ''} previous period`">
+    <div v-if="percentage > 0 && !negative" class="text-sm items-center flex gap-1 text-green-500">
       <UIcon name="i-heroicons-arrow-trending-up" class="w-4 h-4 opacity-70" />
       <div>{{ useHumanFriendlyNumber(Math.round(percentage * 100)) }}%</div>
     </div>

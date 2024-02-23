@@ -1,18 +1,14 @@
 import type { Credentials } from 'google-auth-library'
 import type { RequiredNonNullable } from '~/types/util'
+import type { UserData } from '~/server/app/models/User'
+import type { Model } from '~/server/app/utils/unstorageEloquent'
 
 export interface NitroAuthData {
-  tokens: TokenPayload['tokens']
-  user: User
+  tokens: Model<UserData>['loginTokens']
+  user: Model<UserData>
 }
 
 export type UserOAuthToken = RequiredNonNullable<Credentials>
-
-export interface TokenPayload {
-  updatedAt: number
-  sub: string
-  tokens: RequiredNonNullable<UserOAuthToken>
-}
 
 export interface OAuthPoolPayload {
   id: string
@@ -26,19 +22,17 @@ export interface OAuthPoolToken {
   label: string
 }
 
-export interface UserQuota {
-  indexingApi: number
-}
-
 export interface User {
   email: string
-  quota: UserQuota
   userId: string
   picture: string
   indexingOAuthId?: string
   lastIndexingOAuthId?: string
-  analyticsPeriod: string
-  hiddenSites?: string[]
+  analyticsRange?: { start: Date, end: Date }
+  analyticsPeriod?: 'all' | '30d' | string
+  // onboarding
+  selectedSites?: string[]
+  backupsEnabled?: boolean
 }
 
 export interface UserSession {

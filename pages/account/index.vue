@@ -36,7 +36,7 @@ async function revokeIndexingAuth() {
 }
 
 function deleteAccount() {
-  // /api/user/me DELETE
+  // /services/user/me DELETE
   isDeletingAccount.value = true
   $fetch('/api/user/me', {
     method: 'DELETE',
@@ -47,6 +47,7 @@ function deleteAccount() {
     setTimeout(() => {
       toast.add({ id: 'logout', title: 'Account Deleted', description: 'Your account has been deleted.', color: 'green' })
       isDeletingAccount.value = false
+      session.value = null
       logout()
     }, 500) // make sure user knows we actually did something (it's too quick)
   }).catch(() => {
@@ -63,6 +64,8 @@ async function showSite(site: string) {
     }),
   })
 }
+
+const confirmDeleteAccount = ref(false)
 </script>
 
 <template>
@@ -126,9 +129,22 @@ async function showSite(site: string) {
           <li>Any cached / permanently stored data related to your account will be deleted.</li>
           <li>Your Google Account Tokens will be revoked.</li>
         </ul>
-        <UButton color="red" variant="outline" :loading="isDeletingAccount" @click="deleteAccount">
+        <UButton color="red" variant="outline" :loading="isDeletingAccount" @click="confirmDeleteAccount = true">
           Delete Account
         </UButton>
+        <UModal v-model="confirmDeleteAccount">
+          <div class="p-4">
+            <h2 class="text-lg font-bold mb-3">
+              Are you sure?
+            </h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-3">
+              This action is irreversible. All data associated with your account will be deleted.
+            </p>
+            <UButton color="red" variant="outline" :loading="isDeletingAccount" @click="deleteAccount">
+              Delete Account
+            </UButton>
+          </div>
+        </UModal>
       </div>
     </UPageBody>
   </div>

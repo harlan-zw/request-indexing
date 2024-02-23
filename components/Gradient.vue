@@ -15,6 +15,7 @@ const dark = computed(() => colorMode.value === 'dark')
 .gradient {
   position: absolute;
   inset: 0;
+  top: -100%;
   pointer-events: none;
   background: radial-gradient(50% 50% at 50% 50%, rgb(var(--color-primary-500) / 0.25) 0, #FFF 100%);
 }

@@ -46,6 +46,11 @@ const links = [
         to: 'https://github.com/harlan-zw/request-indexing/releases',
         target: '_blank',
       },
+      {
+        label: 'Built with Nuxt UI Pro',
+        to: 'https://ui.nuxt.com/pro?aff=5zj9e',
+        target: '_blank',
+      },
     ],
   },
 ]

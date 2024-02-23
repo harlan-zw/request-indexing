@@ -8,10 +8,8 @@ import {
 import { parsePath, withQuery } from 'ufo'
 import { ofetch } from 'ofetch'
 import { hash } from 'ohash'
-import { createOAuthPool } from '~/server/utils/oauthPool'
-import { updateUser, updateUserToken } from '~/server/utils/storage'
+import { createOAuthPool } from '~/server/app/services/oauthPool'
 import { setUserSession } from '#imports'
-import { getAuthenticatedData } from '~/server/composables/auth'
 import type { OAuthPoolToken } from '~/types'
 
 // this is a copy of the googleEventHandler from nuxt-auth-utils

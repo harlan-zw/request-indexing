@@ -36,10 +36,9 @@ export function createLogoutHandler() {
     await nextTickFn(() => {
       // can't access clear API here
       $fetch('/api/_auth/session', { method: 'DELETE' })
-        .then(() => {
-          session.value = {}
+        .finally(() => {
+          session.value = { user: null }
         })
-        .catch(() => {})
     })
   }
 }

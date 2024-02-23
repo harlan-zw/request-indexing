@@ -98,4 +98,10 @@ pre {
   transform: translateY(1rem);
   filter: blur(0.2rem);
 }
+
+:root {
+  --header-height: 4rem;
+  --ui-background: transparent;
+  --ui-foreground: var(--color-gray-700);
+}
 </style>

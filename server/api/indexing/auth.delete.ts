@@ -1,6 +1,5 @@
 import { OAuth2Client } from 'googleapis-common'
 import { setUserSession } from '#imports'
-import { deleteUserToken, getUserToken } from '~/server/utils/storage'
 
 export default defineEventHandler(async (event) => {
   const { user } = event.context.authenticatedData

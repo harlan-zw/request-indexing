@@ -1,8 +1,19 @@
+import { resolve } from 'path'
 import { env } from 'std-env'
 import { hash } from 'ohash'
+import { globbySync } from 'globby'
+import NuxtMessageQueue from './lib/nuxt-ttyl/module'
 import type { OAuthPoolToken } from '~/types'
 
 let tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
+
+// read all the folders at the server/app path
+const recursiveServerAppFolders = globbySync('**/*', {
+  cwd: resolve('./server/app'),
+  onlyDirectories: true,
+  deep: 4,
+  absolute: true,
+})
 
 export default defineNuxtConfig({
   extends: ['@nuxt/ui-pro'],
@@ -10,11 +21,11 @@ export default defineNuxtConfig({
     'nuxt-auth-utils',
     'dayjs-nuxt',
     '@nuxt/image',
+    '@nuxt/fonts',
     '@nuxt/ui',
-    '@nuxtjs/fontaine',
-    '@nuxtjs/google-fonts',
     '@vueuse/nuxt',
     '@nuxtjs/seo',
+    NuxtMessageQueue,
     (_, nuxt) => {
       // seed the main tokens if there isn't a pool available
       if (!tokens) {
@@ -31,6 +42,15 @@ export default defineNuxtConfig({
       }))}`
     },
   ],
+  messageQueue: {
+    devMessageQueue: {
+      driver: 'unstorage',
+      storage: {
+        base: '.db/queue',
+        driver: 'fs',
+      },
+    },
+  },
   runtimeConfig: {
     key: '', // .env NUXT_KEY
     session: {
@@ -38,14 +58,15 @@ export default defineNuxtConfig({
         maxAge: 60 * 60 * 24 * 90, // 3mo
       },
     },
+    google: {
+      adsCustomerId: '', // .env NUXT_GOOGLE_ADS_CUSTOMER_ID
+      adsApiToken: '', // .env NUXT_GOOGLE_ADS_API_TOKEN
+      cruxApiToken: '', // .env NUXT_GOOGLE_CRUX_API_TOKEN
+    },
     postmark: {
       apiKey: '', // .env NUXT_POSTMARK_API_KEY
     },
     public: {
-      features: {
-        keyLogin: false,
-        crawler: false,
-      },
       indexing: {
         usageLimitPerUser: 15,
       },
@@ -55,20 +76,37 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
+    imports: {
+      dirs: recursiveServerAppFolders,
+    },
     devStorage: {
       app: {
         base: '.db',
         driver: 'fs',
       },
+      // pageAnalytics: {
+      //   base: '.db/pageAnalytics',
+      //   driver: 'fs',
+      // },
     },
     storage: {
+      // upstash redis
       app: {
         driver: 'vercelKV',
+        url: 'https://us1-big-honeybee-39192.upstash.io',
+        token: 'AZkYASQgYzM1NTg2Y2QtMTAwZS00Mjk3LTllZWItMTJhNjZhZjFmMmE2NGMzYWMzYTM5ODgwNDJhMmEyZjM4YTFjNzZiMWJhMWM=',
       },
+      // pageAnalytics: {
+      //   driver: 'http',
+      //   base: 'https://endless-maggot-11706-us1-rest-kafka.upstash.io/produce/page_analytics/MESSAGE',
+      //   headers: {
+      //     Authorization: `Basic ${process.env.KAFKA_REST_API_KEY}`,
+      //   },
+      // },
     },
   },
   ui: {
-    icons: ['heroicons', 'simple-icons', 'ph'],
+    icons: ['heroicons', 'carbon', 'simple-icons', 'ph', 'circle-flags'],
   },
   app: {
     pageTransition: {
@@ -99,20 +137,9 @@ export default defineNuxtConfig({
     name: 'Request Indexing',
     url: 'requestindexing.com',
   },
-  // Fonts
-  fontMetrics: {
-    fonts: ['DM Sans'],
-  },
-  googleFonts: {
-    display: 'swap',
-    download: true,
-    families: {
-      'DM+Sans': [300, 400, 500, 600, 700],
-    },
-  },
   dayjs: {
     locales: ['en'],
-    plugins: ['relativeTime', 'utc'],
+    plugins: ['relativeTime', 'utc', 'isSameOrBefore', 'advancedFormat'],
     defaultLocale: 'en',
   },
   devtools: { enabled: true },

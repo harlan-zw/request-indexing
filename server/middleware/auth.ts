@@ -1,21 +1,22 @@
-import { isError } from 'h3'
-import { getAuthenticatedData } from '~/server/composables/auth'
+import { createError, isError, sendError } from 'h3'
+import { getAuthenticatedData } from '#imports'
 
 // TODO move to route rules
 // authenticated by default
 const NonAuthenticatedPaths = [
   '/api/_auth/session',
-  '/api/github',
+  '/services/_mq', // uses its own h3
+  '/services/github',
 ]
 
 const AdminPaths = [
-  '/api/admin',
+  '/services/admin',
 ]
 
 export default defineEventHandler(async (event) => {
   if (NonAuthenticatedPaths.some(p => event.path.startsWith(p)))
     return
-  // only need to auth the context once
+  // only need to h3 the context once
   if (!event.path.startsWith('/api') || event.context.authenticatedData)
     return
   const data = await getAuthenticatedData(event)

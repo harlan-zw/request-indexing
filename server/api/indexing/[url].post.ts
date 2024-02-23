@@ -2,9 +2,8 @@ import { indexing } from '@googleapis/indexing'
 import type { GaxiosError } from 'googleapis-common'
 import { OAuth2Client } from 'googleapis-common'
 import type { indexing_v3 } from '@googleapis/indexing/v3'
-import { getUserToken, updateUserSite } from '~/server/utils/storage'
-import { getUserQuotaUsage, incrementUserQuota } from '~/server/utils/quota'
 import type { SitePage, UserSession } from '~/types'
+// import { getUserQuotaUsage, incrementUserQuota } from '~/server/app/models/user/quota'
 
 export default defineEventHandler(async (event) => {
   const { user } = event.context.authenticatedData
@@ -19,13 +18,13 @@ export default defineEventHandler(async (event) => {
 
   const { indexing: indexingConfig } = useRuntimeConfig().public
   // increment users usage
-  const quota = await getUserQuotaUsage(user.userId, 'indexingApi')
-  if (quota >= indexingConfig.usageLimitPerUser) {
-    return sendError(event, createError({
-      statusCode: 429,
-      statusText: 'Daily API Quota exceeded. Please upgrade your plan.',
-    }))
-  }
+  // const quota = await getUserQuotaUsage(user.userId, 'indexingApi')
+  // if (quota >= indexingConfig.usageLimitPerUser) {
+  //   return sendError(event, createError({
+  //     statusCode: 429,
+  //     statusText: 'Daily API Quota exceeded. Please upgrade your plan.',
+  //   }))
+  // }
   const pool = createOAuthPool().get(user.indexingOAuthId || '')
   if (!user.indexingOAuthId || !pool) {
     return sendError(event, createError({
@@ -75,15 +74,15 @@ export default defineEventHandler(async (event) => {
     },
   })
     .then(res => res.data)
-
-  await setUserSession(event, <UserSession> {
-    // public data only!
-    user: {
-      quota: {
-        indexingApi: await incrementUserQuota(user.userId, 'indexingApi'),
-      },
-    },
-  })
+  //
+  // await setUserSession(event, <UserSession> {
+  //   // public data only!
+  //   user: {
+  //     quota: {
+  //       indexingApi: await incrementUserQuota(user.userId, 'indexingApi'),
+  //     },
+  //   },
+  // })
 
   const page: SitePage = { ...res, url }
   await updateUserSite(user.userId, siteUrl, { urls: [page] })
