@@ -15,7 +15,7 @@ export function createOAuthPool() {
     get(id: string) {
       const token = tokens.find(t => t.id === id)
       if (token)
-        return tokens
+        return token
       const privateToken = privateTokens.find(t => t.id === id)
       if (privateToken)
         return privateToken
