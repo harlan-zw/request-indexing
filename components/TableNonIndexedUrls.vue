@@ -53,9 +53,11 @@ const columns = [{
 }, {
   key: 'requestIndexing',
   label: 'Request Indexing',
-}, {
-  key: 'actions',
-}]
+}, props.mock
+  ? false
+  : {
+      key: 'actions',
+    }].filter(Boolean)
 
 const siteUrlFriendly = useFriendlySiteUrl(props.site.siteUrl)
 const inspectionsLoading = ref([])
@@ -189,6 +191,25 @@ function hasOneHourPassed(date?: string | number) {
 function openUrl(url: string, target?: string) {
   window.open(url, target)
 }
+
+const { pause, resume } = useTimeoutPoll(pollForInspectUrl, 2000, { immediate: false })
+
+async function pollForInspectUrl() {
+  const row = [...paginatedRows.value]
+    .map(row => getUpdatedRow(row))
+    .filter(row => !row.inspectionResult)
+    .shift()
+  if (row)
+    await inspectUrl(row)
+  else
+    pause()
+}
+
+watch(paginatedRows, () => {
+  resume()
+}, {
+  immediate: true,
+})
 </script>
 
 <template>
@@ -209,19 +230,21 @@ function openUrl(url: string, target?: string) {
     </div>
     <UTable :loading="!rows.length" :columns="columns" :rows="paginatedRows">
       <template #url-data="{ row }">
-        <div style="max-width: 400px;">
+        <div style="max-width: 400px;" class="flex flex-col">
           <UButton :title="row.url" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="joinURL(`https://${siteUrlFriendly}`, row.url)" target="_blank" color="gray" class="w-full">
             <div class="max-w-[300px] truncate text-ellipsis">
               {{ row.url }}
             </div>
           </UButton>
+          <UTooltip v-if="getUpdatedRow(row)?.inspectionResult?.inspectionResultLink" mode="hover" text="View Inspection Result">
+            <UButton size="xs" target="_blank" :to="getUpdatedRow(row)?.inspectionResult?.inspectionResultLink" :icon="mock ? undefined : 'i-heroicons-document-magnifying-glass'" color="gray" variant="link">
+              View Inspection Report
+            </UButton>
+          </UTooltip>
         </div>
       </template>
       <template #inspection-data="{ row }">
-        <div class="flex items-center">
-          <UTooltip v-if="getUpdatedRow(row)?.inspectionResult?.inspectionResultLink" mode="hover" text="View Inspection Result">
-            <UButton target="_blank" :to="getUpdatedRow(row)?.inspectionResult?.inspectionResultLink" icon="i-heroicons-document-magnifying-glass" color="gray" variant="link" />
-          </UTooltip>
+        <div>
           <InspectionResult :value="getUpdatedRow(row)">
             <template v-if="getUrlNotificationLatestUpdate(row)?.type === 'URL_UPDATED' || getUpdatedRow(row)?.inspectionResult?.indexStatusResult?.verdict === 'NEUTRAL'">
               <UDivider class="my-3" />

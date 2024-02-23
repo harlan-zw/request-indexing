@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 const { loggedIn, user } = useUserSession()
 
+const lastInspectedBase = Date.now()
+
 const SiteCards = [
   {
     analytics: {
@@ -33,7 +35,7 @@ const SiteCards = [
           },
         },
         url: '/blog/hello-world',
-        lastInspected: 1707485818370,
+        lastInspected: lastInspectedBase - 1000 * 60,
       },
       {
         inspectionResult: {
@@ -58,13 +60,13 @@ const SiteCards = [
           },
         },
         url: '/is-this-thing-on',
-        lastInspected: 1707491214785,
+        lastInspected: lastInspectedBase - 1000 * 94,
         urlNotificationMetadata: {
           url: 'https://nuxtseo.com/nuxt-seo/migration-guide/beta-to-rc',
           latestUpdate: {
             url: 'https://nuxtseo.com/nuxt-seo/migration-guide/beta-to-rc',
             type: 'URL_UPDATED',
-            notifyTime: '2024-02-09T15:07:04.669472038Z',
+            notifyTime: lastInspectedBase - 1000 * 94,
           },
         },
       },
@@ -87,7 +89,7 @@ const SiteCards = [
           },
         },
         url: '/maybe-it-is',
-        lastInspected: 1707486608709,
+        lastInspected: lastInspectedBase - 1000 * 457,
       },
       {
         url: '/one-way-to-find-out',

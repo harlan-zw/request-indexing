@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { createLogoutHandler } from '~/composables/auth'
-import type { DropdownItem } from '#ui/types'
 import type { User } from '~/types'
 
 const { loggedIn, user, session } = useUserSession()
