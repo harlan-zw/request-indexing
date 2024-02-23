@@ -52,7 +52,7 @@ useHead({
 
 const crawlerEnabled = useRuntimeConfig().public.features.crawler
 
-const apiCallLimit = useRuntimeConfig().public.indexing.usageLimitPerUser
+const apiCallLimit = user.value.access === 'pro' ? 200 : useRuntimeConfig().public.indexing.usageLimitPerUser
 </script>
 
 <template>
@@ -213,7 +213,7 @@ const apiCallLimit = useRuntimeConfig().public.indexing.usageLimitPerUser
                         </div>
                         <UProgress :value="user.quota.indexingApi / apiCallLimit * 100" :color="user.quota.indexingApi < apiCallLimit ? 'purple' : 'red'" class="mt-1" />
                       </div>
-                      <UButton to="/account/upgrade" color="purple" size="xs" :variant="user.quota.indexingApi < apiCallLimit ? 'soft' : 'solid'">
+                      <UButton v-if="user.access !== 'pro'" to="/account/upgrade" color="purple" size="xs" :variant="user.quota.indexingApi < apiCallLimit ? 'soft' : 'solid'">
                         Upgrade
                       </UButton>
                     </div>
@@ -221,19 +221,21 @@ const apiCallLimit = useRuntimeConfig().public.indexing.usageLimitPerUser
                       <p class="mb-2">
                         You've used up all of your API calls for the day. They will reset at midnight PTD.
                       </p>
-                      <p class="mb-2">
-                        Don't feel like waiting? You can upgrade to Pro and get the following:
-                      </p>
-                      <ul class="list-disc ml-5">
-                        <li class="mb-2">
-                          200 API calls / per day
-                        </li>
-                        <li>
-                          <UBadge color="blue" variant="soft">
-                            Soon
-                          </UBadge> Automatic index requests for new pages
-                        </li>
-                      </ul>
+                      <template v-if="user.access !== 'pro'">
+                        <p class="mb-2">
+                          Don't feel like waiting? You can upgrade to Pro and get the following:
+                        </p>
+                        <ul class="list-disc ml-5">
+                          <li class="mb-2">
+                            200 API calls / per day
+                          </li>
+                          <li>
+                            <UBadge color="blue" variant="soft">
+                              Soon
+                            </UBadge> Automatic index requests for new pages
+                          </li>
+                        </ul>
+                      </template>
                     </div>
                   </div>
                 </div>

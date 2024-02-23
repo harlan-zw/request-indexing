@@ -3,6 +3,7 @@ import { hash } from 'ohash'
 import type { OAuthPoolToken } from '~/types'
 
 let tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
+const privateTokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_PRIVATE_POOL ? JSON.parse(env.NUXT_OAUTH_PRIVATE_POOL) : false
 
 export default defineNuxtConfig({
   extends: ['@nuxt/ui-pro'],
@@ -25,10 +26,17 @@ export default defineNuxtConfig({
         }]
       }
       nuxt.options.nitro!.virtual = nuxt.options.nitro!.virtual || {}
-      nuxt.options.nitro.virtual['#app/token-pool.mjs'] = `export const tokens = ${JSON.stringify(tokens.map((t) => {
+      nuxt.options.nitro.virtual['#app/token-pool.mjs']
+        = [
+          `export const tokens = ${JSON.stringify(tokens.map((t) => {
         t.id = t.id || hash(t)
         return t
-      }))}`
+      }))}`,
+          `export const privateTokens = ${JSON.stringify(privateTokens.map((t) => {
+            t.id = t.id || hash(t)
+            return t
+          }))}`,
+        ].join('\n')
     },
   ],
   runtimeConfig: {
