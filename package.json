@@ -8,7 +8,8 @@
     "lint": "eslint . --fix",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "release": "bumpp"
   },
   "dependencies": {
     "@googleapis/indexing": "^2.0.0",
