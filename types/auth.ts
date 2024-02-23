@@ -34,6 +34,7 @@ export interface User {
   email: string
   quota: UserQuota
   userId: string
+  access?: 'pro'
   picture: string
   indexingOAuthId?: string
   lastIndexingOAuthId?: string

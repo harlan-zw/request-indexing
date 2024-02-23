@@ -31,7 +31,7 @@ export async function fetchGoogleSearchConsoleSites(credentials: Credentials): P
   return api.sites.list().then(res => res.data.siteEntry! as GoogleSearchConsoleSite[])
 }
 
-export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials, periodRange: User['analyticsPeriod'], siteUrl: string): Promise<SiteAnalytics> {
+export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials, periodRange: User['analyticsPeriod'], siteUrl: string, rowLimit = 1000): Promise<SiteAnalytics> {
   const api = searchconsole({
     version: 'v1',
     auth: createGoogleOAuthClient(credentials),
@@ -63,6 +63,7 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         endDate: formatDate(),
         // keywords
         dimensions: ['query'],
+        rowLimit,
       },
     }),
     api.searchanalytics.query({
@@ -74,6 +75,7 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         endDate: formatDate(endPrevPeriod),
         // keywords
         dimensions: ['query'],
+        rowLimit,
       },
     }),
     api.searchanalytics.query({
@@ -83,6 +85,7 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         // 1 month
         startDate: formatDate(startPeriod),
         endDate: formatDate(),
+        rowLimit,
       },
     }),
     api.searchanalytics.query({
@@ -91,6 +94,7 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         ...requestBody,
         startDate: formatDate(startPrevPeriod),
         endDate: formatDate(endPrevPeriod),
+        rowLimit,
       },
     }),
     // do another query but do it based on clicks / impressions for the day
@@ -101,6 +105,7 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         startDate: formatDate(startPrevPeriod),
         endDate: formatDate(),
         dimensions: ['date'],
+        rowLimit,
       },
     }),
   ]))
