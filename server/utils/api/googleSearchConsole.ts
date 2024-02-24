@@ -144,7 +144,7 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
   }
   const normalizedSiteUrl = normalizeSiteUrl(siteUrl)
   const indexedUrls = period!
-    .map(r => r.keys![0].replace('www.', '')) // doman property using www.
+    .map(r => r.keys![0]) // doman property using www.
     // strip out subdomains, hash and query
     .filter(r => !r.includes('#') && !r.includes('?')
     // fix www.
