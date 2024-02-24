@@ -14,15 +14,14 @@ const { loggedIn, user } = useUserSession()
               <div class="">
                 <div style="letter-spacing: -3px;" class="font-title font-bold leading-tight text-gray-900 dark:text-gray-100 text-center text-6xl lg:text-left mb-5">
                   <span>The <span class="underline">Open Source</span>                    <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 24 24" class="text-yellow-500 inline"><path fill="currentColor" d="M10.917 6.575c-.155-.669-.287-1.235-.43-1.68l6.634 1.925c.044.013.158.063.315.476c.154.404.294.997.494 1.859l.12.516c.027.114.052.224.079.328l-6.012-1.666l-.304-.172c-.43-.245-.508-.302-.564-.38c-.062-.086-.099-.206-.22-.73zm3.425 3.412l5.008 1.387l.304.173c.706.403 1.183.676 1.493.924c.297.238.348.38.352.502c.005.127-.041.287-.327.573c-.294.295-.751.636-1.423 1.136l-.4.296c-.188.14-.359.266-.502.408l-6.805-1.974l.358-.266c.631-.469 1.15-.854 1.503-1.208c.367-.368.638-.783.618-1.316a1.376 1.376 0 0 0-.179-.635m-2.968 4.273l7.012 2.034c-.029.141-.052.293-.077.457l-.081.527c-.077.5-.191.947-.312 1.325c-.213.665-.268.758-.428.85c-.068.04-.133.056-.269.041c-.166-.018-.379-.078-.742-.184l-5.794-1.68c.07-.147.125-.304.171-.464c.145-.497.25-1.175.379-2.012l.075-.488c.027-.174.048-.305.066-.406" opacity=".5" /><path fill="currentColor" d="M7.406 6.073c.572-.639.964-1.074 1.28-1.338c.32-.266.425-.239.458-.23c.043.013.157.064.315.477c.154.404.293.997.494 1.858l.12.516c.093.403.17.738.364 1.008c.199.278.488.442.818.63l.064.035l.357.204c.707.403 1.183.676 1.493.924c.297.238.349.38.353.501c.005.128-.042.287-.327.574c-.294.295-.752.636-1.424 1.136l-.399.296c-.317.235-.584.433-.756.728c-.169.289-.22.627-.284 1.045l-.081.527c-.137.884-.232 1.496-.356 1.922c-.07.24-.137.373-.193.45c-.108-.04-.253-.1-.423-.181a6.454 6.454 0 0 1-1.517-1.022l-.312-.28l-.014-.013a7.193 7.193 0 0 0-.43-.37a1.437 1.437 0 0 0-.474-.25c-.324-.094-.659-.031-1.02.037l-.077.014l-.4.075c-.794.147-1.325.243-1.706.25c-.366.007-.443-.072-.484-.129c-.058-.08-.111-.236-.022-.674c.089-.436.289-1.017.58-1.857l.172-.497c.138-.4.25-.72.237-1.057c-.013-.34-.148-.646-.315-1.024l-.208-.47c-.35-.795-.591-1.343-.711-1.762c-.119-.415-.082-.583-.022-.685c.05-.085.139-.175.5-.22c.38-.047.915-.026 1.714.008l.404.017l.076.004c.367.016.703.03 1.015-.107c.303-.134.532-.39.795-.685l.055-.061z" /></svg>
-                    <span class="whitespace-nowrap"> Ahrefs alternative</span> for developers.</span>
+                    <span class="whitespace-nowrap"> full stack SEO Tool</span> for developers.</span>
                 </div>
               </div>
               <p class="text-gray-700 dark:text-gray-300 max-w-3xl text-center text-xl lg:text-left mb-5">
-                Request Indexing is a <span class="underline">free</span> and open-source SEO tool that integrates with
-                <NuxtLink to="https://search.google.com/search-console/about" class="font-semibold hover:underline">
-                  5 Google APIs
-                </NuxtLink> to let you own and use <span class="italic">your data</span> in a way that makes sense to you.
-                An alternative to Ahrefs, SEMrush and Moz for people who want to cut through the complexity and absurd pricing of SEO tools.
+                Meet <strong>Request Indexing</strong>, the SEO tool for developers that cuts the complexity and cost of growing your organic traffic.
+                Unlike Ahrefs, SEMRush and Moz, prices are kept low and transparent by relying on free <NuxtLink to="https://search.google.com/search-console/about" class="font-semibold hover:underline">
+                Google APIs
+              </NuxtLink>.
               </p>
               <div class="mb-10 flex items-center justify-center gap-3 flex-row sm:gap-6 lg:justify-start">
                 <UButton v-if="!loggedIn" icon="i-heroicons-arrow-long-right" to="/get-started" size="xl" external color="green">
@@ -37,7 +36,6 @@ const { loggedIn, user } = useUserSession()
                 <UButton size="xl" variant="link" color="black" icon="i-simple-icons-github" target="_blank" to="https://github.com/harlan-zw/request-indexing">
                   View code
                 </UButton>
-                <div>Free & Open source.</div>
               </div>
 
               <div class="space-y-7 mb-8 max-w-xl">
@@ -48,10 +46,10 @@ const { loggedIn, user } = useUserSession()
                     </div>
                     <div>
                       <div class="flex-shrink text-2xl mb-2 font-semibold font-title">
-                        All the insights you expect
+                        Keyword Insights & Research
                       </div>
                       <div class="text-gray-600">
-                        Analyze your pages and keywords with <span class="text-blue-500">content gap</span>, <span class="text-blue-500">top level</span>, <span class="text-blue-500">trending</span>, +15 more filters.
+                        Analyze your keywords with <span class="text-blue-500">content gap</span>, <span class="text-blue-500">top level</span>, <span class="text-blue-500">trending</span>, & 7 more. Use the dedicated keyword research tool to find new ways to rank.
                       </div>
                     </div>
                   </div>
@@ -66,7 +64,7 @@ const { loggedIn, user } = useUserSession()
                         Google Search Console on god mode
                       </div>
                       <div class="text-gray-600">
-                        Get new pages indexed within 48 hours, backup your data from being deleted.
+                        Get new pages indexed within 48 hours, backup your data from being deleted. Advanced metrics for growth of pages and keywords.
                       </div>
                     </div>
                   </div>
@@ -78,9 +76,9 @@ const { loggedIn, user } = useUserSession()
                     </div>
                     <div>
                       <div class="flex-shrink text-2xl font-semibold font-title">
-                        Integrates Ad Keywords, CrUX, PSI
+                        Never Miss A Performance Regression
                       </div>
-                      <div>All through public Google APIs that can be used for free.</div>
+                      <div>Continuously monitor all of your sites with a CrUX and PageSpeed Insights dashboard.</div>
                     </div>
                   </div>
                 </div>
