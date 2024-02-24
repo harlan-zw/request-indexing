@@ -7,10 +7,10 @@ import { fetchRobots, fetchSitemapUrls } from '~/server/utils/crawler/crawl'
 const fetchSite = cachedFunction<SiteAnalytics, [NitroAuthData, string, boolean]>(
   async ({ tokens, user }: NitroAuthData, siteUrl: string) => {
     const periodRange = user.analyticsPeriod || { days: 28 }
-    return await fetchGoogleSearchConsoleAnalytics(tokens, periodRange, siteUrl, user.access === 'pro' ? 20000 : 1000)
+    return await fetchGoogleSearchConsoleAnalytics(tokens, periodRange, siteUrl, user.access === 'pro' ? 100001 : 2500)
   },
   {
-    maxAge: 60 * 10,
+    maxAge: 60 * 60 * 6, // cache for 6 hours
     group: 'app',
     name: 'user',
     shouldInvalidateCache(_, force?: boolean) {
@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
   // compute the non-indexed urls
   const { indexedUrls, period, sitemaps } = googleSearchConsoleAnalytics
 
-  if (user.access !== 'pro' && period.length >= 1000) {
+  if (user.access !== 'pro' && period.length >= 2500) {
     return {
       ...site,
       ...googleSearchConsoleAnalytics,

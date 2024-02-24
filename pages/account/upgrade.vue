@@ -21,7 +21,7 @@ const user = useAuthenticatedUser()
       <UPageBody>
         <ULandingSection :ui="{ wrapper: ['py-12 sm:py-16'], container: ['px-0 lg:px-0 sm:px-0'] }" title="Features" description="More API credits, less manual work with Request Indexing Pro.">
           <div class="grid grid-cols-3 gap-5 mt-10">
-            <ULandingCard icon="i-heroicons-sparkles" color="purple" title="200 API Quota" description="Quota of 200 Request Indexing credits per day. Use sites with more than 1000 pages." />
+            <ULandingCard icon="i-heroicons-sparkles" color="purple" title="200 API Quota" description="Quota of 200 Request Indexing credits per day. Use sites with more than 2500 pages." />
             <ULandingCard class="relative" icon="i-heroicons-bug-ant" color="purple" title="Automatic Indexing" description="Set and forget, always have your latest links indexed straight away.">
               <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
                 Coming Soon

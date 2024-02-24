@@ -1,6 +1,7 @@
 import { parseURL } from 'ufo'
 import type { Credentials } from 'google-auth-library'
 import { OAuth2Client } from 'googleapis-common'
+import type { searchconsole_v1 } from '@googleapis/searchconsole'
 import { searchconsole } from '@googleapis/searchconsole'
 import type { GoogleSearchConsoleSite, SiteAnalytics, User } from '~/types'
 import { normalizeSiteUrl, percentDifference } from '~/server/utils/formatting'
@@ -31,7 +32,24 @@ export async function fetchGoogleSearchConsoleSites(credentials: Credentials): P
   return api.sites.list().then(res => res.data.siteEntry! as GoogleSearchConsoleSite[])
 }
 
-export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials, periodRange: User['analyticsPeriod'], siteUrl: string, rowLimit = 1000): Promise<SiteAnalytics> {
+async function recursiveQuery(api: searchconsole_v1.Searchconsole, query: searchconsole_v1.Params$Resource$Searchanalytics$Query, maxRows: number, page: number = 1, rows: searchconsole_v1.Schema$ApiDataRow[] = []) {
+  const rowLimit = query.requestBody?.rowLimit || maxRows
+  const res = await api.searchanalytics.query({
+    ...query,
+    requestBody: {
+      ...query.requestBody,
+      startRow: (page - 1) * rowLimit,
+    },
+  })
+  // add res rows
+  rows.push(...res.data.rows!)
+  if (res.data.rows!.length === rowLimit && res.data.rows!.length < maxRows && page <= 4)
+    await recursiveQuery(api, query, maxRows, page + 1, rows)
+
+  return { data: { rows } }
+}
+
+export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials, periodRange: User['analyticsPeriod'], siteUrl: string, maxRows = 1000): Promise<SiteAnalytics> {
   const api = searchconsole({
     version: 'v1',
     auth: createGoogleOAuthClient(credentials),
@@ -52,9 +70,11 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
     type: 'web',
     aggregationType: 'byPage',
   }
+  const rowLimit = maxRows > 25000 ? 25000 : maxRows
   const [keywordsPeriod, keywordsPrevPeriod, period, prevPeriod, graph] = (await Promise.all([
     // do a query based on keywords instead of dates
-    api.searchanalytics.query({
+    // period
+    await recursiveQuery(api, {
       siteUrl,
       requestBody: {
         ...requestBody,
@@ -65,7 +85,8 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         dimensions: ['query'],
         rowLimit,
       },
-    }),
+    }, maxRows),
+    // prev period
     api.searchanalytics.query({
       siteUrl,
       requestBody: {
@@ -78,7 +99,7 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         rowLimit,
       },
     }),
-    api.searchanalytics.query({
+    await recursiveQuery(api, {
       siteUrl,
       requestBody: {
         ...requestBody,
@@ -87,7 +108,7 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         endDate: formatDate(),
         rowLimit,
       },
-    }),
+    }, maxRows),
     api.searchanalytics.query({
       siteUrl,
       requestBody: {
