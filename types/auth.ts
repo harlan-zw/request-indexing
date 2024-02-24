@@ -25,6 +25,7 @@ export interface OAuthPoolToken {
 export interface User {
   email: string
   userId: string
+  access?: 'pro'
   picture: string
   indexingOAuthId?: string
   lastIndexingOAuthId?: string

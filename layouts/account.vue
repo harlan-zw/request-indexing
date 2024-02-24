@@ -3,7 +3,7 @@ import DefaultLayout from './default.vue'
 
 const links = [
   { label: 'Profile', to: '/account', icon: 'i-heroicons-user-circle' },
-  { label: 'Upgrade', to: '/account/upgrade', icon: 'i-heroicons-star' },
+  { label: 'Pro', to: '/account/upgrade', icon: 'i-heroicons-star' },
 ]
 
 const supportLinks = computed(() => [

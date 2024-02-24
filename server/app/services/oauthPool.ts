@@ -4,7 +4,7 @@ import type { OAuthPoolPayload, OAuthPoolToken } from '~/types'
 import { appStorage } from '~/server/app/storage'
 
 // @ts-expect-error runtime
-import { tokens as _tokens } from '#app/token-pool.mjs'
+import { tokens as _tokens, privateTokens } from '#app/token-pool.mjs'
 
 export const oAuthPoolStorage = prefixStorage(appStorage as Storage<OAuthPoolPayload>, 'auth:pool')
 
@@ -13,7 +13,12 @@ export function createOAuthPool() {
   const { maxUsersPerOAuth } = useRuntimeConfig().indexing
   return {
     get(id: string) {
-      return tokens.find(t => t.id === id)
+      const token = tokens.find(t => t.id === id)
+      if (token)
+        return token
+      const privateToken = privateTokens.find(t => t.id === id)
+      if (privateToken)
+        return privateToken
     },
     async free() {
       const available = (await Promise.all(

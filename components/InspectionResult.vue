@@ -6,13 +6,17 @@ const props = defineProps<{
   value: Required<SitePage>
 }>()
 
+const root = computed(() => {
+  return props.value
+})
+
 const value = computed(() => {
   return props.value?.inspectionResult
 })
 </script>
 
 <template>
-  <div v-if="value?.indexStatusResult" class="flex items-center">
+  <div v-if="value?.indexStatusResult" class="flex items-center gap-2">
     <UPopover mode="hover">
       <template v-if="value.indexStatusResult.verdict === 'PASS'">
         <UButton :to="value.inspectionResultLink" icon="i-heroicons-check-circle" color="green" variant="link">
@@ -64,5 +68,50 @@ const value = computed(() => {
         </div>
       </template>
     </UPopover>
+    <div>
+      <div v-if="root.lastInspected" class="text-xs mb-1">
+        Inspected {{ useTimeAgo(root.lastInspected, true) }}
+      </div>
+      <UPopover v-if="value.indexStatusResult.verdict === 'NEUTRAL' && !root.urlNotificationMetadata?.latestUpdate" mode="hover">
+        <div class="flex items-center gap-1">
+          <UIcon name="i-heroicons-question-mark-circle" size="w-5 h-5" />
+          <div class="text-xs">
+            Why am I seeing this?
+          </div>
+        </div>
+        <template #panel>
+          <div class="p-4 text-sm space-y-2">
+            <div>Google knows about your URL but has not indexed it yet.<br>Click the Request Indexing button to move it along.</div>
+          </div>
+        </template>
+      </UPopover>
+      <UPopover v-else-if="value.indexStatusResult.verdict === 'NEUTRAL'" mode="hover">
+        <div class="flex items-center gap-1">
+          <UIcon name="i-heroicons-question-mark-circle" size="w-5 h-5" />
+          <div class="text-xs">
+            Why am I seeing this?
+          </div>
+        </div>
+        <template #panel>
+          <div class="p-4 text-sm space-y-2">
+            <div>You have submitted a Request Index request.<br>We're waiting for Google to process it.</div>
+          </div>
+        </template>
+      </UPopover>
+      <UPopover v-if="value.indexStatusResult.verdict === 'PASS'" mode="hover">
+        <div class="flex items-center gap-1">
+          <UIcon name="i-heroicons-question-mark-circle" size="w-5 h-5" />
+          <div class="text-xs">
+            Why am I seeing this?
+          </div>
+        </div>
+        <template #panel>
+          <div class="p-4 text-sm space-y-2">
+            <div>Google has reported that this URL has been indexed. Congrats! <br>But it doesn't mean people can find it just yet.</div>
+            <div>We'll track this URL here until it has appeared on a<br> search page at least once, check back later.</div>
+          </div>
+        </template>
+      </UPopover>
+    </div>
   </div>
 </template>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { createLogoutHandler } from '~/composables/auth'
-import type { DropdownItem } from '#ui/types'
 import type { User } from '~/types'
 import { fetchSites } from '~/composables/fetch'
 
@@ -115,10 +114,12 @@ const authDropdownItems: DropdownItem[][] = computed(() => {
     [
       { label: 'Account', slot: 'account', to: '/account', icon: 'i-heroicons-user-circle' },
     ],
-    [
-      // upgrade to pro item
-      { label: 'Upgrade', slot: 'pro', to: '/account/upgrade', icon: 'i-heroicons-star' },
-    ],
+    user.value.access === 'pro'
+      ? false
+      : [
+        // upgrade to pro item
+        { label: 'Upgrade', slot: 'pro', to: '/account/upgrade', icon: 'i-heroicons-star' },
+      ],
     [
       {
         label: 'Logout',
@@ -126,7 +127,7 @@ const authDropdownItems: DropdownItem[][] = computed(() => {
         icon: 'i-heroicons-arrow-left-end-on-rectangle',
       },
     ],
-  ]
+  ].filter(Boolean)
 })
 
 // use user.analyticsPeriod
@@ -381,7 +382,7 @@ const calenderPickerLabel = computed(() => {
           <!--                        </UButton> -->
           <!--                      </UDropdown> -->
         </div>
-        <UDropdown :items="authDropdownItems" mode="hover">
+        <UDropdown mode="click" :items="authDropdownItems" mode="hover" class="flex items-center">
           <template #account="{ item }">
             <div class="flex flex-col w-full">
               <div class="flex items-center gap-2">
@@ -396,9 +397,12 @@ const calenderPickerLabel = computed(() => {
           <template #pro="{ item }">
             <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <span class="truncate">{{ item.label }}</span>
-            <UBadge label="4 left" color="purple" variant="subtle" class="ml-0.5" />
+            <UBadge label="3 left" color="purple" variant="subtle" class="ml-0.5" />
           </template>
           <UAvatar :src="user.picture" />
+          <div class="ml-2 flex items-center">
+            <UBadge v-if="user.access === 'pro'" label="Pro" color="purple" variant="subtle" class="ml-0.5" />
+          </div>
           <UButton
             icon="i-heroicons-chevron-down"
             color="gray"

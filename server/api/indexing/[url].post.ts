@@ -17,12 +17,13 @@ export default defineEventHandler(async (event) => {
   const tokens = await getUserToken(user.userId, 'indexing')
 
   const { indexing: indexingConfig } = useRuntimeConfig().public
+  // const quotaLimit = user.access === 'pro' ? 200 : indexingConfig.usageLimitPerUser
   // increment users usage
   // const quota = await getUserQuotaUsage(user.userId, 'indexingApi')
-  // if (quota >= indexingConfig.usageLimitPerUser) {
+  // if (quota >= quotaLimit) {
   //   return sendError(event, createError({
   //     statusCode: 429,
-  //     statusText: 'Daily API Quota exceeded. Please upgrade your plan.',
+  //     statusText: 'Daily API Quota exceeded.',
   //   }))
   // }
   const pool = createOAuthPool().get(user.indexingOAuthId || '')
