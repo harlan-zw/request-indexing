@@ -12,6 +12,23 @@ import { percentDifference } from '~/server/app/utils/formatting'
 import { tokens } from '#app/token-pool.mjs'
 import { requireEventSite } from '~/server/app/services/util'
 
+async function recursiveQuery(api: searchconsole_v1.Searchconsole, query: searchconsole_v1.Params$Resource$Searchanalytics$Query, maxRows: number, page: number = 1, rows: searchconsole_v1.Schema$ApiDataRow[] = []) {
+  const rowLimit = query.requestBody?.rowLimit || maxRows
+  const res = await api.searchanalytics.query({
+    ...query,
+    requestBody: {
+      ...query.requestBody,
+      startRow: (page - 1) * rowLimit,
+    },
+  })
+  // add res rows
+  rows.push(...res.data.rows!)
+  if (res.data.rows!.length === rowLimit && res.data.rows!.length < maxRows && page <= 4)
+    await recursiveQuery(api, query, maxRows, page + 1, rows)
+
+  return { data: { rows } }
+}
+
 export function createGoogleOAuthClient(credentials: Credentials, token?: { client_id: string, client_secret: string }) {
   token = token || tokens[0]
   return new OAuth2Client({
