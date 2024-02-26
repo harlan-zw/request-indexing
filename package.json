@@ -13,6 +13,9 @@
     "postinstall": "nuxt prepare",
     "release": "bumpp"
   },
+  "engines": {
+    "node": "^20"
+  },
   "dependencies": {
     "@googleapis/indexing": "^2.0.0",
     "@googleapis/searchconsole": "^1.0.3",

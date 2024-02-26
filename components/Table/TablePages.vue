@@ -22,7 +22,7 @@ const columns = computed(() => [
     label: 'Clicks',
     sortable: true,
   },
-  (user.value.analyticsPeriod === 'all')
+  (user.value?.analyticsPeriod === 'all')
     ? null
     : {
         key: 'clicksPercent',
@@ -34,7 +34,7 @@ const columns = computed(() => [
     label: 'Impressions',
     sortable: true,
   },
-  (user.value.analyticsPeriod === 'all')
+  (user.value?.analyticsPeriod === 'all')
     ? null
     : {
         key: 'impressionsPercent',
