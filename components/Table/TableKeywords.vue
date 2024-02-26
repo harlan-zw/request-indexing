@@ -132,7 +132,7 @@ const filters = computed(() => {
           <div class="relative group w-[225px] truncate text-ellipsis">
             <div class="flex items-center">
               <UButton class="max-w-[185px] block" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" color="gray" @click="q = row.keyword">
-                <div class="text-black max-w-[185px] truncate text-ellipsis">
+                <div class="text-black dark:text-white max-w-[185px] truncate text-ellipsis">
                   {{ row.keyword }}
                 </div>
               </UButton>
