@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { NuxtSeoKeywords, NuxtSeoPages } from '~/data/home'
+
 const { loggedIn, user } = useUserSession()
 
 const lastInspectedBase = Date.now()
@@ -982,250 +984,6 @@ const SiteCards = [
         time: '2024-02-06',
       },
     ],
-    keywords: [
-      {
-        keyword: 'nuxt seo',
-        position: 2.3571889103804,
-        positionPercent: -0.48431649577312424,
-        ctr: 0.0720681997277742,
-        ctrPercent: -0.28147734953058084,
-        clicks: 1006,
-      },
-      {
-        keyword: 'nuxt-simple-sitemap',
-        position: 2.8939267886855244,
-        positionPercent: -0.2381858596849324,
-        ctr: 0.0740432612312812,
-        ctrPercent: 0.3172535022274704,
-        clicks: 178,
-      },
-      {
-        keyword: 'nuxtseo',
-        position: 2.2145833333333336,
-        positionPercent: -0.36998922413793095,
-        ctr: 0.13020833333333334,
-        ctrPercent: -0.5042067307692308,
-        clicks: 125,
-      },
-      {
-        keyword: 'nuxt simple sitemap',
-        position: 2.861441013460016,
-        positionPercent: -0.306623618780088,
-        ctr: 0.09026128266033254,
-        ctrPercent: 1.0639746634996041,
-        clicks: 114,
-      },
-      {
-        keyword: 'nuxt seo kit',
-        position: 3.159656652360515,
-        positionPercent: -0.6830621327170684,
-        ctr: 0.096137339055794,
-        ctrPercent: 2.134077253218884,
-        clicks: 112,
-      },
-      {
-        keyword: '@nuxtseo/module',
-        position: 1.9105339105339105,
-        positionPercent: -0.6541564274428949,
-        ctr: 0.10966810966810966,
-        ctrPercent: -0.058682058682058745,
-        clicks: 76,
-      },
-      {
-        keyword: 'nuxt seo module',
-        position: 1.6607407407407409,
-        positionPercent: -0.5139295392953929,
-        ctr: 0.10518518518518519,
-        ctrPercent: -0.6493827160493827,
-        clicks: 71,
-      },
-      {
-        keyword: 'nuxt-simple-robots',
-        position: 3.3314176245210727,
-        positionPercent: 0.19753621709855118,
-        ctr: 0.1360153256704981,
-        ctrPercent: 0.3220689655172414,
-        clicks: 71,
-      },
-      {
-        keyword: 'nuxt-seo',
-        position: 2.166281755196305,
-        positionPercent: -0.31072853243753923,
-        ctr: 0.12471131639722864,
-        ctrPercent: -0.2063825320176359,
-        clicks: 54,
-      },
-      {
-        keyword: 'nuxt simple robots',
-        position: 3.046808510638298,
-        positionPercent: 0.04232922732362811,
-        ctr: 0.19574468085106383,
-        ctrPercent: 0.11329787234042547,
-        clicks: 46,
-      },
-      {
-        keyword: 'defineogimage',
-        position: 1.9061032863849765,
-        positionPercent: 0.270735524256651,
-        ctr: 0.19718309859154928,
-        ctrPercent: -0.014084507042253641,
-        clicks: 42,
-      },
-      {
-        keyword: 'nuxt sitemap',
-        position: 9.69927536231884,
-        positionPercent: -0.4629380021527698,
-        ctr: 0.024758454106280192,
-        ctrPercent: null,
-        clicks: 41,
-      },
-    ],
-    period: [
-      {
-        url: '/',
-        clicks: 1719,
-        prevClicks: 406,
-        clicksPercent: 3.2339901477832513,
-        impressions: 6526,
-        prevImpressions: 2535,
-        impressionsPercent: 1.5743589743589743,
-      },
-      {
-        url: '/sitemap/getting-started/installation',
-        clicks: 522,
-        prevClicks: 142,
-        clicksPercent: 2.676056338028169,
-        impressions: 6338,
-        prevImpressions: 2987,
-        impressionsPercent: 1.1218613993973887,
-      },
-      {
-        url: '/robots/getting-started/installation',
-        clicks: 178,
-        prevClicks: 66,
-        clicksPercent: 1.696969696969697,
-        impressions: 5094,
-        prevImpressions: 1204,
-        impressionsPercent: 3.2308970099667773,
-      },
-      {
-        url: '/experiments/guides/open-graph-images',
-        clicks: 88,
-        prevClicks: 13,
-        clicksPercent: 5.769230769230769,
-        impressions: 5326,
-        prevImpressions: 817,
-        impressionsPercent: 5.518971848225214,
-      },
-      {
-        url: '/og-image/guides/cache',
-        clicks: 88,
-        prevClicks: 0,
-        clicksPercent: null,
-        impressions: 1074,
-        prevImpressions: 10,
-        impressionsPercent: 106.4,
-      },
-      {
-        url: '/sitemap/guides/prerendering',
-        clicks: 66,
-        prevClicks: 1,
-        clicksPercent: 65,
-        impressions: 1151,
-        prevImpressions: 24,
-        impressionsPercent: 46.958333333333336,
-      },
-      {
-        url: '/site-config/getting-started/installation',
-        clicks: 64,
-        prevClicks: 38,
-        clicksPercent: 0.6842105263157895,
-        impressions: 3877,
-        prevImpressions: 633,
-        impressionsPercent: 5.124802527646129,
-      },
-      {
-        url: '/og-image/getting-started/installation',
-        clicks: 63,
-        prevClicks: 29,
-        clicksPercent: 1.1724137931034482,
-        impressions: 2646,
-        prevImpressions: 1289,
-        impressionsPercent: 1.0527540729247478,
-      },
-      {
-        url: '/schema-org/getting-started/installation',
-        clicks: 50,
-        prevClicks: 15,
-        clicksPercent: 2.3333333333333335,
-        impressions: 1860,
-        prevImpressions: 1081,
-        impressionsPercent: 0.7206290471785384,
-      },
-      {
-        url: '/sitemap/releases/v4',
-        clicks: 41,
-        prevClicks: 0,
-        clicksPercent: 0,
-        impressions: 859,
-        prevImpressions: 0,
-        impressionsPercent: 0,
-      },
-      {
-        url: '/nuxt-seo/guides/title-templates',
-        clicks: 38,
-        prevClicks: 5,
-        clicksPercent: 6.6,
-        impressions: 1313,
-        prevImpressions: 42,
-        impressionsPercent: 30.261904761904763,
-      },
-      {
-        url: '/sitemap/guides/dynamic-urls',
-        clicks: 36,
-        prevClicks: 2,
-        clicksPercent: 17,
-        impressions: 1121,
-        prevImpressions: 22,
-        impressionsPercent: 49.95454545454545,
-      },
-      {
-        url: '/og-image/getting-started/your-first-image',
-        clicks: 32,
-        prevClicks: 31,
-        clicksPercent: 0.03225806451612903,
-        impressions: 366,
-        prevImpressions: 308,
-        impressionsPercent: 0.18831168831168832,
-      },
-      {
-        url: '/sitemap/api/config',
-        clicks: 30,
-        prevClicks: 5,
-        clicksPercent: 5,
-        impressions: 483,
-        prevImpressions: 70,
-        impressionsPercent: 5.9,
-      },
-      {
-        url: '/og-image/api/define-og-image',
-        clicks: 23,
-        prevClicks: 0,
-        clicksPercent: 0,
-        impressions: 146,
-        prevImpressions: 0,
-        impressionsPercent: 0,
-      },
-      {
-        url: '/link-checker/getting-started/installation',
-        clicks: 22,
-        prevClicks: 11,
-        clicksPercent: 1,
-        impressions: 907,
-        prevImpressions: 437,
-        impressionsPercent: 1.0755148741418765,
-      },
-    ],
   },
   {
     siteUrl: 'https://unlighthouse.dev',
@@ -1356,8 +1114,8 @@ const SiteCards = [
             <div class="mt-12 max-w-3xl mx-auto">
               <UTabs
                 class="" :items="[
-                  { label: 'Indexed Pages', count: SiteCards[0].period.length },
-                  { label: 'Keywords', count: SiteCards[0].keywords.length },
+                  { label: 'Pages', count: NuxtSeoPages.length },
+                  { label: 'Keywords', count: NuxtSeoKeywords.length },
                 ]"
               >
                 <template #default="{ item, index, selected }">
@@ -1371,11 +1129,11 @@ const SiteCards = [
                 </template>
                 <template #item="{ item }">
                   <div class="my-5 shadow-lg">
-                    <UCard v-if="item.label === 'Indexed Pages'">
-                      <TableIndexedUrls :page-count="4" :value="SiteCards[0].period" site-url="nuxtseo.com" />
+                    <UCard v-if="item.label === 'Pages'">
+                      <TablePages :page-count="4" :value="NuxtSeoPages" :site="{ siteUrl: 'sc-domain:nuxtseo.com' }" />
                     </UCard>
                     <UCard v-else>
-                      <TableKeywords :page-count="4" :value="SiteCards[0].keywords" />
+                      <TableKeywords :page-count="4" :value="NuxtSeoKeywords" :site="{ siteUrl: 'sc-domain:nuxtseo.com' }" />
                     </UCard>
                   </div>
                 </template>
