@@ -61,7 +61,7 @@ const userSiteMerger = createDefu((data, key, value) => {
       if (existing >= 0) {
         const val = urlsToAdd[existing]
         delete urlsToAdd[existing]
-        return defu(u, val)
+        return defu(val, u)
       }
       return u
     }).filter(Boolean)
