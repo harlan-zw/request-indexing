@@ -183,6 +183,7 @@ export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials
         ctrPercent: percentDifference(row.ctr!, prevPeriodRow?.ctr || 0),
         prevCtr: prevPeriodRow ? prevPeriodRow.ctr! : 0,
         clicks: row.clicks!,
+        impressions: row.impressions,
       } satisfies SiteAnalytics['keywords'][0]
     }),
     graph: graph.map((row) => {
