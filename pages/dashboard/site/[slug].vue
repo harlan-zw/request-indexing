@@ -33,7 +33,7 @@ const params = useUrlSearchParams('history', {
 
 const tab = computed({
   get() {
-    return Number(params.tab) || 0
+    return 0
   },
   set(value) {
     if (value === 0 && !pending.value && data.value)
@@ -157,10 +157,10 @@ const apiCallLimit = user.value.access === 'pro' ? 200 : useRuntimeConfig().publ
                     </div>
                   </UCard>
                   <UCard v-else-if="item.label === 'Indexed Pages'">
-                    <TableIndexedUrls :value="data?.period" :site-url="slug" />
+                    <TablePages :value="data?.period" :site="site" />
                   </UCard>
                   <UCard v-else>
-                    <TableKeywords :value="data?.keywords" />
+                    <TableKeywords :value="data?.keywords" :site="site" />
                   </UCard>
                 </div>
               </template>
