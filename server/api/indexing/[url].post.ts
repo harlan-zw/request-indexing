@@ -27,8 +27,8 @@ export default defineEventHandler(async (event) => {
       statusText: 'Daily API Quota exceeded.',
     }))
   }
-  const pool = createOAuthPool().get(user.indexingOAuthId || '')
-  if (!user.indexingOAuthId || !pool) {
+  const pool = createOAuthPool().get(user.indexingOAuthIdNext || '')
+  if (!user.indexingOAuthIdNext || !pool) {
     return sendError(event, createError({
       statusCode: 401,
       statusText: 'Invalid Google account. Please reconnect your account.',

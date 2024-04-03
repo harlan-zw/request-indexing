@@ -4,10 +4,10 @@ import { clearUserStorage } from '~/server/utils/storage'
 export default defineEventHandler(async (event) => {
   const { user, tokens } = event.context.authenticatedData
 
-  if (user.indexingOAuthId) {
+  if (user.indexingOAuthIdNext) {
     // need to claim back the token from the pool
     const pool = createOAuthPool()
-    const oAuth = pool.get(user.indexingOAuthId!)
+    const oAuth = pool.get(user.indexingOAuthIdNext!)
     if (oAuth)
       await pool.release(oAuth.id, user.userId)
   }

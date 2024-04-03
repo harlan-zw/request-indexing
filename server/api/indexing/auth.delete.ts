@@ -5,7 +5,7 @@ import { deleteUserToken, getUserToken } from '~/server/utils/storage'
 export default defineEventHandler(async (event) => {
   const { user } = event.context.authenticatedData
 
-  if (!user.indexingOAuthId!) {
+  if (!user.indexingOAuthIdNext!) {
     return createError({
       statusCode: 400,
       message: 'No indexing OAuth found.',
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   }
   // need to claim back the token from the pool
   const pool = createOAuthPool()
-  const oAuth = pool.get(user.indexingOAuthId)
+  const oAuth = pool.get(user.indexingOAuthIdNext)
   if (oAuth)
     await pool.release(oAuth.id, user.userId)
 
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   await setUserSession(event, {
     user: {
       indexingOAuthId: '',
-      lastIndexingOAuthId: user.indexingOAuthId,
+      lastIndexingOAuthId: user.indexingOAuthIdNext,
     },
   })
 

@@ -36,8 +36,11 @@ export interface User {
   userId: string
   access?: 'pro'
   picture: string
+  // legacy
   indexingOAuthId?: string
+  indexingOAuthIdNext?: string
   lastIndexingOAuthId?: string
+  lastIndexingOAuthIdNext?: string
   analyticsPeriod: string
   hiddenSites?: string[]
 }
