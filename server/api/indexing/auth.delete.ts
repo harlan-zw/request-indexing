@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   // keep a reference of the last indexingOAuthId
   await setUserSession(event, {
     user: {
-      indexingOAuthId: '',
+      indexingOAuthIdNext: '',
       lastIndexingOAuthId: user.indexingOAuthIdNext,
     },
   })

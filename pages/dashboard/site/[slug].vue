@@ -192,7 +192,7 @@ const apiCallLimit = user.value.access === 'pro' ? 200 : useRuntimeConfig().publ
                   </div>
                 </div>
               </UCard>
-              <UCard v-else-if="user.indexingOAuthId">
+              <UCard v-else-if="user.indexingOAuthIdNext">
                 <template #header>
                   <h2 class="text-xl font-bold">
                     Quota
