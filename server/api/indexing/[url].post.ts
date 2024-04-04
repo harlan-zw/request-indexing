@@ -2,7 +2,7 @@ import { indexing } from '@googleapis/indexing'
 import type { GaxiosError } from 'googleapis-common'
 import { OAuth2Client } from 'googleapis-common'
 import type { indexing_v3 } from '@googleapis/indexing/v3'
-import type { SitePage, UserSession } from '~/types'
+import type { SitePage } from '~/types'
 // import { getUserQuotaUsage, incrementUserQuota } from '~/server/app/models/user/quota'
 
 export default defineEventHandler(async (event) => {

@@ -13,6 +13,6 @@ export function useStorage() {
 export function useRuntimeConfig() {
   return {
     // keymust be 32 chars long
-    key: '12345678901234567890123456789012'
+    key: '12345678901234567890123456789012',
   }
 }

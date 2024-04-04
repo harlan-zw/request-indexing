@@ -20,8 +20,8 @@ const { loggedIn, user } = useUserSession()
               <p class="text-gray-700 dark:text-gray-300 max-w-3xl text-center text-xl lg:text-left mb-5">
                 Meet <strong>Request Indexing</strong>, the SEO tool for developers that cuts the complexity and cost of growing your organic traffic.
                 Unlike Ahrefs, SEMRush and Moz, prices are kept low and transparent by relying on free <NuxtLink to="https://search.google.com/search-console/about" class="font-semibold hover:underline">
-                Google APIs
-              </NuxtLink>.
+                  Google APIs
+                </NuxtLink>.
               </p>
               <div class="mb-10 flex items-center justify-center gap-3 flex-row sm:gap-6 lg:justify-start">
                 <UButton v-if="!loggedIn" icon="i-heroicons-arrow-long-right" to="/get-started" size="xl" external color="green">

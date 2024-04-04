@@ -187,7 +187,7 @@ watch(paginatedRows, () => {
   <div>
     <TableData :columns="columns" :value="value">
       <template #url-data="{ row }">
-        <div class="flex flex-col" style="max-width: 400px;" class="flex flex-col">
+        <div class="flex flex-col" style="max-width: 400px;">
           <UButton :title="row.url" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="row.url" target="_blank" color="gray" class="w-full">
             <div class="max-w-[300px] truncate text-ellipsis">
               {{ row.url }}

@@ -1,8 +1,8 @@
-import {beforeAll, describe, expect, it} from 'vitest'
+import { resolve } from 'path'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { createStorage } from 'unstorage'
+import fsDriver from 'unstorage/drivers/fs'
 import { User } from '~/server/app/models/User'
-import {createStorage} from "unstorage";
-import fsDriver from "unstorage/drivers/fs";
-import {resolve} from "path";
 
 beforeAll(() => {
   global.useStorage = () => {
@@ -18,10 +18,9 @@ beforeAll(() => {
       key: '12345678901234567890123456789012',
     }
   }
-});
+})
 
 describe('oRM', () => {
-
   it('can augment with functions', () => {
     const instance = User.newModelInstance()
     expect(instance.foo()).toMatchInlineSnapshot(`"bar"`)

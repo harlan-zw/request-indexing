@@ -20,23 +20,23 @@ const user = useAuthenticatedUser()
       <UPageHeader title="Upgrade To Pro" icon="i-heroicons-star" description="Take your account to the next level with Request Indexing Pro." headline="Your Account" />
       <UPageBody>
         <ul>
-        <li>Track up to 60 sites with backups of GSC data.</li>
-        <li>Double your daily request indexing API limit to 30.</li>
-        <li>Access new features</li>
-      </ul>
-      <ULandingSection :ui="{ wrapper: ['py-12 sm:py-16'], container: ['px-0 lg:px-0 sm:px-0'] }" title="Pro Only Features" description="More API credits, less manual work with Request Indexing Pro.">
-        <div class="grid grid-cols-3 gap-5 mt-10">
+          <li>Track up to 60 sites with backups of GSC data.</li>
+          <li>Double your daily request indexing API limit to 30.</li>
+          <li>Access new features</li>
+        </ul>
+        <ULandingSection :ui="{ wrapper: ['py-12 sm:py-16'], container: ['px-0 lg:px-0 sm:px-0'] }" title="Pro Only Features" description="More API credits, less manual work with Request Indexing Pro.">
+          <div class="grid grid-cols-3 gap-5 mt-10">
             <ULandingCard class="relative" icon="i-heroicons-bug-ant" color="purple" title="Automatic Indexing" description="Set and forget, always have your latest links indexed straight away.">
               <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
                 Coming Soon
               </UBadge>
             </ULandingCard>
             <ULandingCard class="relative" icon="i-heroicons-bolt" color="purple" title="Daily Backlink Report" description="See the sites that are linking to your domains and see if they're trusted.">
-            <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
-              Coming Soon
-            </UBadge>
-          </ULandingCard>
-          <ULandingCard class="relative" icon="i-heroicons-bolt" color="purple" title="Keyword Research" description="See the sites that are linking to your domains and see if they're trusted.">
+              <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
+                Coming Soon
+              </UBadge>
+            </ULandingCard>
+            <ULandingCard class="relative" icon="i-heroicons-bolt" color="purple" title="Keyword Research" description="See the sites that are linking to your domains and see if they're trusted.">
               <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
                 Coming Soon
               </UBadge>

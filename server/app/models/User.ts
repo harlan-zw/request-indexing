@@ -1,9 +1,9 @@
 import dayjs from 'dayjs'
 import { parse, stringify } from 'devalue'
 import { datePST } from '../utils/formatting'
-import type { Model, ModelData } from '~/server/app/utils/unstorageEloquent'
+import type { ModelData } from '~/server/app/utils/unstorageEloquent'
 import { defineUnstorageModel } from '~/server/app/utils/unstorageEloquent'
-import type {GoogleSearchConsoleSite, UserOAuthToken} from '~/types'
+import type { GoogleSearchConsoleSite, UserOAuthToken } from '~/types'
 import { appStorage } from '~/server/app/storage'
 import { decryptToken, encryptToken } from '~/server/app/utils/crypto'
 
@@ -33,7 +33,6 @@ export interface UserData extends ModelData {
   indexingOAuthId?: string
   lastIndexingOAuthId?: string
 }
-
 
 export interface UserQuotaData extends ModelData {
   indexingApi: 0

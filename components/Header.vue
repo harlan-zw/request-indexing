@@ -45,7 +45,7 @@ const links = computed(() => {
       {
         label: 'Sites',
         icon: 'i-heroicons-queue-list',
-        children: sites.value.map(site => ({
+        children: sites.value?.map(site => ({
           label: site.domain,
           to: `/dashboard/site/${encodeURIComponent(site.domain)}`,
           icon: 'i-heroicons-globe',
@@ -118,8 +118,8 @@ const authDropdownItems: DropdownItem[][] = computed(() => {
       ? false
       : [
         // upgrade to pro item
-        { label: 'Upgrade', slot: 'pro', to: '/account/upgrade', icon: 'i-heroicons-star' },
-      ],
+          { label: 'Upgrade', slot: 'pro', to: '/account/upgrade', icon: 'i-heroicons-star' },
+        ],
     [
       {
         label: 'Logout',
@@ -382,7 +382,7 @@ const calenderPickerLabel = computed(() => {
           <!--                        </UButton> -->
           <!--                      </UDropdown> -->
         </div>
-        <UDropdown mode="click" :items="authDropdownItems" mode="hover" class="flex items-center">
+        <UDropdown :items="authDropdownItems" mode="hover" class="flex items-center">
           <template #account="{ item }">
             <div class="flex flex-col w-full">
               <div class="flex items-center gap-2">
