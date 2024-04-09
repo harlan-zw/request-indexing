@@ -4,6 +4,7 @@ import { getAuthenticatedData } from '#imports'
 // TODO move to route rules
 // authenticated by default
 const NonAuthenticatedPaths = [
+  '/api/_hub',
   '/api/_auth/session',
   '/services/_mq', // uses its own h3
   '/services/github',
