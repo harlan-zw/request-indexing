@@ -143,6 +143,10 @@ export default defineNuxtConfig({
       ],
     },
   },
+  hub: {
+    database: true,
+    kv: true,
+  },
   site: {
     name: 'Request Indexing',
     url: 'requestindexing.com',
