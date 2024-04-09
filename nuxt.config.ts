@@ -19,6 +19,7 @@ const recursiveServerAppFolders = globbySync('**/*', {
 export default defineNuxtConfig({
   extends: ['@nuxt/ui-pro'],
   modules: [
+    '@nuxthub/core',
     'nuxt-auth-utils',
     'dayjs-nuxt',
     '@nuxt/image',
@@ -83,12 +84,8 @@ export default defineNuxtConfig({
       maxUsersPerOAuth: 15, // we over provision slightly (25 over),
     },
   },
-  vercel: {
-    functions: {
-      maxDuration: 90, // second timeout for API calls
-    },
-  },
   nitro: {
+    "preset": "cloudflare-pages",
     imports: {
       dirs: recursiveServerAppFolders,
     },

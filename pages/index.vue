@@ -161,10 +161,10 @@ const { loggedIn, user } = useUserSession()
                 <template #item="{ item }">
                   <div class="my-5 shadow-lg">
                     <UCard v-if="item.label === 'Indexed Pages'">
-                      <TableIndexedUrls :page-count="4" :value="SiteCards[0].period" site-url="nuxtseo.com" />
+<!--                      <TableIndexedUrls :page-count="4" :value="SiteCards[0].period" site-url="nuxtseo.com" />-->
                     </UCard>
                     <UCard v-else>
-                      <TableKeywords :page-count="4" :value="SiteCards[0].keywords" />
+<!--                      <TableKeywords :page-count="4" :value="SiteCards[0].keywords" />-->
                     </UCard>
                   </div>
                 </template>

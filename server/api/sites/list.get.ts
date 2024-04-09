@@ -1,4 +1,3 @@
-import type { GoogleSearchConsoleSite } from '~/types'
 import { useMessageQueue } from '~/lib/nuxt-ttyl/runtime/nitro/mq'
 
 export default defineEventHandler(async (event) => {
@@ -10,16 +9,16 @@ export default defineEventHandler(async (event) => {
 
   const mq = useMessageQueue()
   if (force) {
+    user.sites = []
+    await user.save()
     await store.removeItem(`sites.json`)
     await mq.message('/api/_mq/ingest/sites', { user: { userId: user.userId, email: user.email } })
     return { sites: [], isPending: true }
   }
-
+  let sites = user.sites
   // need a way to ping the message-queue
-  if (!(await store.hasItem(`sites.json`)))
+  if (!sites)
     return { sites: [], isPending: true }
-
-  let sites = await store.getItem<GoogleSearchConsoleSite[]>(`sites.json`) || []
 
   // filter for user.selectedSites
   if (user.selectedSites && scope !== 'all')

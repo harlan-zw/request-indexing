@@ -1,7 +1,7 @@
 import type { ReceiverConfig } from '@upstash/qstash'
 import { Client, Receiver } from '@upstash/qstash'
 import type { H3Event } from 'h3'
-import { defineMessageQueueDriver } from '.'
+import { defineMessageQueueDriver } from '../'
 
 type ClientConstructorFirstArgument = ConstructorParameters<typeof Client>[0]
 

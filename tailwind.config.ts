@@ -4,8 +4,8 @@ export default <Partial<Config>>{
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Open Sans', 'Open Sans fallback', 'sans-serif'],
-        title: ['Poppins', 'Poppins fallback', 'sans-serif'],
+        sans: ['Open Sans', 'sans-serif'],
+        title: ['Poppins', 'sans-serif'],
       },
     },
   },

@@ -4,6 +4,7 @@ import { hash } from 'ohash'
 import { klona } from 'klona'
 import { createDefu } from 'defu'
 import { appStorage } from '~/server/app/storage'
+import {users} from "~/server/database/schema";
 
 export type AsInput<T extends ModelData> = Partial<T>
 
@@ -47,13 +48,12 @@ function createModel<T extends ModelData>(_attributes: T, options: OrmOptions): 
   // safe augmenting
   const attributes = klona(_attributes)
 
-  const getKey = () => {
-    const id = attributes[options.keyName] as string
-    return options.as ? `${id}:${options.as}` : id
-  }
   // assign the methods to the instance
   return new Proxy({
     _methods: [],
+    getKey() {
+      return attributes[options.keyName]
+    },
     isDirty() {
       return hash(attributes) !== hash(_attributes)
     },
@@ -71,7 +71,10 @@ function createModel<T extends ModelData>(_attributes: T, options: OrmOptions): 
         await baseStorage.removeItem(key)
     },
     async save() {
-      await baseStorage.setItem(getKey(), attributes)
+      await useDrizzle()
+        .update(users)
+        .set(attributes)
+        .where(eq(tables.users.userId, this.getKey()))
       return this
     },
     async increment(prop: keyof T, amount = 1) {
@@ -82,7 +85,6 @@ function createModel<T extends ModelData>(_attributes: T, options: OrmOptions): 
       Object.assign(attributes, changes)
       return this.save()
     },
-    getKey,
   }, {
     // handle function calls to _resolvedFns
     // we need to return the modeldata if the property is not found, we allow augmenting the data
@@ -135,7 +137,6 @@ export const userMerger = createDefu((data, key, value) => {
 export function defineUnstorageModel<T extends ModelData = ModelData>(options: OrmOptions): Orm<T> {
   const baseStorage = prefixStorage(appStorage as Storage<T>, options.tableName)
 
-  const resolveKey = (id: string) => options.as ? `${id}:${options.as}` : id
   return {
     options,
     newModelInstance() {
@@ -148,11 +149,11 @@ export function defineUnstorageModel<T extends ModelData = ModelData>(options: O
       return model
     },
     async find(id: string) {
-      const key = resolveKey(id)
-      const attributes = await baseStorage.getItem(key)
-      if (attributes)
-        return this.newModelInstance().fill(attributes as T)
-
+      const user = await useDrizzle().query.users.findFirst({
+        where: eq(tables.users.userId, id),
+      })
+      if (user)
+        return this.newModelInstance().fill(user as any as T)
       return null
     },
     async update(id: string, _changes: Partial<T>) {
@@ -166,8 +167,7 @@ export function defineUnstorageModel<T extends ModelData = ModelData>(options: O
       return model.save()
     },
     async exists(id: string) {
-      const key = resolveKey(id)
-      return await baseStorage.hasItem(key)
+      return !!(await this.find(id))
     },
     create(data: AsInput<T>) {
       const model = this.newModelInstance()
