@@ -8,6 +8,7 @@
     "db:generate": "drizzle-kit generate:sqlite",
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "tokens": "bun ./scripts/env.ts",
     "lint": "eslint . --fix",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
