@@ -6,7 +6,7 @@ import { useAsyncData } from '#imports'
 export function useSiteData(site: GoogleSearchConsoleSite) {
   const { user } = useUserSession()
   const factory = <T>(path: string, fetchOptions?: NitroFetchOptions<any>) => clientSharedAsyncData<T>(`sites:${site.domain}:${path}`, async () => {
-    return $fetch(`/api/sites/${encodeURIComponent(site.domain)}/${path}`, fetchOptions)
+    return $fetch(`/api/sites/${site.siteId}/${path}`, fetchOptions)
   }, {
     watch: [() => user.value?.analyticsPeriod],
   })
@@ -138,7 +138,7 @@ export async function fetchSites(scope: 'all' | 'selected' = 'selected') {
   const toast = useToast()
   const logout = createLogoutHandler()
   const fetchFn = useRequestFetch()
-  const res = await useAsyncData(
+  const res = useAsyncData(
     `sites:${scope}`,
     async () => await fetchFn('/api/sites/list', {
       query: { force: force.value, scope },
@@ -157,17 +157,16 @@ export async function fetchSites(scope: 'all' | 'selected' = 'selected') {
       },
     }),
     {
-      server: true,
+      // server: true,
       deep: false,
     },
   )
-  return {
-    ...res,
+  return Object.assign(res, {
     forceRefresh() {
       force.value = true
       res.refresh().then(() => {
         force.value = false
       })
     },
-  }
+  })
 }

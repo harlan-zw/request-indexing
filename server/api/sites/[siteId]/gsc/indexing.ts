@@ -1,15 +1,15 @@
 import { defineEventHandler } from 'h3'
 import { withHttps } from 'ufo'
 import { createGscClientFromEvent } from '~/server/app/services/gsc'
-import type { GscDataRow } from '~/types'
+import { useAuthenticatedUser } from '~/server/app/utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const { user } = event.context.authenticatedData
+  const user = await useAuthenticatedUser(event)
   const gsc = await createGscClientFromEvent(event)
 
   const { site } = gsc
 
-  const pages = await userGoogleSearchConsoleStorage(user.userId, site.domain).getItem<GscDataRow[]>(`pages.json`)
+  const pages = [] // await userGoogleSearchConsoleStorage(user.userId, site.domain).getItem<GscDataRow[]>(`pages.json`)
 
   const siteCacheKey = `user:${user.userId}:sites:${normalizeUrlStorageKey(site.domain)}`
   const robots = await fetchRobots({

@@ -32,18 +32,16 @@ const error = useRoute().query.error
         <GoogleSvg class="w-4 h-4" />
         <span>Sign in with Google</span>
       </UButton>
-      <UAlert title="Required Scopes" class="mt-5">
-        <template #description>
-          <div class="space-y-2">
-            <div>userinfo.email - You'll receive opt-out emails for product updates.</div>
-            <div>
-              <NuxtLink to="/" class="underline">
-                Google Search Console API
-              </NuxtLink> (read only) - Used to query pages that are indexed.
-            </div>
+      <div title="Required Scopes" class="mt-5">
+        <div class="space-y-2">
+          <div>userinfo.email - You'll receive opt-out emails for product updates.</div>
+          <div>
+            <NuxtLink to="/" class="underline">
+              Google Search Console API
+            </NuxtLink> (read only) - Used to query pages that are indexed.
           </div>
-        </template>
-      </UAlert>
+        </div>
+      </div>
       <p class="mt-5 ">
         <UIcon name="i-heroicons-shield-check" class="text-blue-500 -mb-[3px] mr-1" />
         <span>You can delete your data and revoke tokens at any time.</span>

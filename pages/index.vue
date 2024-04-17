@@ -161,10 +161,10 @@ const { loggedIn, user } = useUserSession()
                 <template #item="{ item }">
                   <div class="my-5 shadow-lg">
                     <UCard v-if="item.label === 'Indexed Pages'">
-<!--                      <TableIndexedUrls :page-count="4" :value="SiteCards[0].period" site-url="nuxtseo.com" />-->
+                      <!--                      <TableIndexedUrls :page-count="4" :value="SiteCards[0].period" site-url="nuxtseo.com" /> -->
                     </UCard>
                     <UCard v-else>
-<!--                      <TableKeywords :page-count="4" :value="SiteCards[0].keywords" />-->
+                      <!--                      <TableKeywords :page-count="4" :value="SiteCards[0].keywords" /> -->
                     </UCard>
                   </div>
                 </template>
@@ -217,24 +217,6 @@ const { loggedIn, user } = useUserSession()
               ]" :key="index" v-bind="item"
             />
           </UPageGrid>
-        </ULandingSection>
-
-        <ULandingSection>
-          <ULandingCTA title="Request Indexing on your pages today" description="Get started for free now and get your pages, find valuable insights through your GSC data and storing your GSC data older than 16 months." :links="[{ label: 'Get Started', to: '/get-started', size: 'xl' }]" class="bg-gray-100/50 dark:bg-gray-800/50">
-            <template #description>
-              <div class="text-lg max-w-xl mx-auto text-left space-y-5">
-                <p>
-                  ⚡ <a href="#" class="underline">Request indexing</a> on new sites and pages, have them appear on Google in 48 hours.
-                </p>
-                <p>
-                  📊 <a href="#dashboard" class="underline">Dashboard</a> to see the search performance of all your Google Search Console sites.
-                </p>
-                <p>
-                  🌲 <a href="#dashboard" class="underline">Keep your site data</a>. Google Search Console data deletes site data longer than 16 months, start keeping it.
-                </p>
-              </div>
-            </template>
-          </ULandingCTA>
         </ULandingSection>
       </UContainer>
     </div>

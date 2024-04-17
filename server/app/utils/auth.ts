@@ -9,37 +9,58 @@ import { parsePath, withQuery } from 'ufo'
 import { ofetch } from 'ofetch'
 import { defu } from 'defu'
 import type { OAuthGoogleConfig } from 'nuxt-auth-utils/dist/runtime/server/lib/oauth/google'
-import type { H3Error, H3Event } from 'h3'
-import { useRuntimeConfig } from '#imports'
+import type { H3Event } from 'h3'
+import { clearUserSession, useRuntimeConfig } from '#imports'
 import type { OAuthConfig } from '#auth-utils'
-import type { TokenPayload, UserSession } from '~/types'
-import { User } from '~/server/app/models/User'
+import type { UserSession } from '~/types'
+import { sessions } from '~/server/database/schema'
 
-export async function getAuthenticatedData(event: H3Event): Promise<H3Error | ({ session: UserSession, user: UserSession['user'], sub: string, tokens: TokenPayload['tokens'] })> {
+export async function useAuthenticatedUser(event: H3Event) {
   const session = (await getUserSession(event)) as UserSession
   if (!session?.user) {
     // unauthorized
-    return createError({
+    throw createError({
       statusCode: 401,
       message: 'Unauthorized',
     })
   }
 
-  const user = await User.findOrFail(session.user.userId)
+  const db = useDrizzle()
+  // session can be deleted externally and user will need to re-auth
+  const dbSession = await db.query.sessions.findFirst({
+    where: eq(sessions.sessionId, session.sessionId),
+    with: {
+      user: {
+        with: {
+          team: true,
+        },
+      },
+    },
+  })
 
-  if (!user.loginTokens) {
+  if (!dbSession || !dbSession.user) {
+    // need to clear session
+    await clearUserSession(event)
     // unauthorized
-    return createError({
+    throw createError({
       statusCode: 401,
-      message: 'Unauthorized',
+      message: 'User not found',
     })
   }
-  return {
-    tokens: user.loginTokens,
-    sub: user.sub,
-    user,
-    session,
-  }
+  // resync session data
+  // await setUserSession(event, user.getAttributes())
+  return dbSession.user
+}
+
+export interface GoogleOAuthUser {
+  sub: string
+  name: string
+  given_name: string
+  family_name: string
+  picture: string
+  email: string
+  email_verified: boolean
+  locale: string
 }
 
 // clone of oauth.googleEventHandler from nuxt-auth-utils until
@@ -48,7 +69,7 @@ export function googleAuthEventHandler({
   config,
   onSuccess,
   onError,
-}: OAuthConfig<OAuthGoogleConfig & { authorizationParams: any }>) {
+}: OAuthConfig<OAuthGoogleConfig & { authorizationParams: any }, GoogleOAuthUser>) {
   return eventHandler(async (event) => {
     config = defu(config, useRuntimeConfig(event).oauth?.google, {
       authorizationURL: 'https://accounts.google.com/o/oauth2/v2/auth',

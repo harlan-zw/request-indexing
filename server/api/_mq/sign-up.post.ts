@@ -1,5 +1,5 @@
 import { ServerClient } from 'postmark'
-import type { User } from '~/types'
+import type { UserSelect } from '~/server/database/schema'
 
 const WelcomeEmail = `Thanks for trying out Request Indexing.
 
@@ -13,7 +13,7 @@ Cheers
 Harlan`
 
 export default defineEventHandler(async (event) => {
-  const user = await readBody<User>(event)
+  const user = await readBody<UserSelect>(event)
 
   const client = new ServerClient(useRuntimeConfig(event).postmark.apiKey)
   await client.sendEmail({

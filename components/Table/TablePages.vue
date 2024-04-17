@@ -173,7 +173,7 @@ function openUrl(url: string, target?: string) {
 
 <template>
   <div>
-    <TableData :value="value" :columns="columns" :filters="filters" @update:expanded="updateExpandedData">
+    <TableData :value="value" :columns="columns" :filters="filters" expandable @update:expanded="updateExpandedData">
       <template #url-data="{ row, rows, expanded }">
         <div class="flex items-center">
           <div class="relative group w-[260px] max-w-full">

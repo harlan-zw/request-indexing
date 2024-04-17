@@ -1,5 +1,7 @@
+import { useAuthenticatedUser } from '~/server/app/utils/auth'
+
 export default defineEventHandler(async (event) => {
-  const { user } = event.context.authenticatedData
+  const user = await useAuthenticatedUser(event)
 
   const mq = useMessageQueue()
   // sync the selected sites

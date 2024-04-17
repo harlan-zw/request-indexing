@@ -3,15 +3,10 @@ import { prefixStorage } from 'unstorage'
 import { hash } from 'ohash'
 import { klona } from 'klona'
 import { createDefu } from 'defu'
-import { appStorage } from '~/server/app/storage'
-import {users} from "~/server/database/schema";
+
+type ModelData = Record<string, any>
 
 export type AsInput<T extends ModelData> = Partial<T>
-
-export interface ModelData {
-  createdAt: number
-  updatedAt: number
-}
 
 export interface ModelMethods<T extends ModelData> {
   getKey: () => string
@@ -27,12 +22,13 @@ export interface ModelMethods<T extends ModelData> {
 export type Model<T extends ModelData> = T & ModelMethods<T>
 export type ModelWithFns<T extends ModelData, M extends (instance: Model<T>) => Record<string, Function>> = T & ModelMethods<T> & ReturnType<M>
 
-export interface OrmOptions {
+export interface OrmOptions<T> {
+  schema: T
   tableName: string
   keyName: string
-  storage: Storage
-  as: string
-  encrypted?: boolean
+  // storage: Storage
+  // as: string
+  // encrypted?: boolean
 }
 
 export const defaultMerge = createDefu((data, key, value) => {
@@ -43,7 +39,7 @@ export const defaultMerge = createDefu((data, key, value) => {
   }
 })
 
-function createModel<T extends ModelData>(_attributes: T, options: OrmOptions): Model<T> {
+function createModel<T extends Record<string, any>>(_attributes: T, options: OrmOptions<T>): Model<T> {
   const baseStorage = prefixStorage(options.storage as Storage<T>, options.tableName)
   // safe augmenting
   const attributes = klona(_attributes)
@@ -51,8 +47,9 @@ function createModel<T extends ModelData>(_attributes: T, options: OrmOptions): 
   // assign the methods to the instance
   return new Proxy({
     _methods: [],
+    _new: true,
     getKey() {
-      return attributes[options.keyName]
+      return attributes[options.keyName] || _attributes[options.keyName]
     },
     isDirty() {
       return hash(attributes) !== hash(_attributes)
@@ -71,10 +68,25 @@ function createModel<T extends ModelData>(_attributes: T, options: OrmOptions): 
         await baseStorage.removeItem(key)
     },
     async save() {
-      await useDrizzle()
-        .update(users)
-        .set(attributes)
-        .where(eq(tables.users.userId, this.getKey()))
+      attributes.updatedAt = Date.now()
+      const toSave = klona(attributes)
+      // filter out undefined values
+      for (const key in toSave) {
+        if (toSave[key] === undefined || _attributes[key] === toSave[key])
+          delete toSave[key]
+      }
+      if (!this._new) {
+        await useDrizzle()
+          .update(options.schema)
+          .set(toSave)
+          .where(eq(options.keyName, this.getKey()))
+      }
+      else {
+        await useDrizzle()
+          .insert(options.schema)
+          .values(toSave)
+        this._new = false
+      }
       return this
     },
     async increment(prop: keyof T, amount = 1) {
@@ -114,9 +126,9 @@ function createModel<T extends ModelData>(_attributes: T, options: OrmOptions): 
   }) as any as Model<T>
 }
 
-interface Orm<T extends ModelData> {
-  options: OrmOptions
-  newModelInstance: () => Model<T>
+interface Orm<T extends ModelData> extends T {
+  options: OrmOptions<T>
+  newModelInstance: (attributes?: Partial<T>) => Model<T>
   findOrFail: (id: string) => Promise<Model<T>>
   find: (id: string) => Promise<Model<T> | null>
   update: (id: string, changes: Partial<T>) => Promise<Model<T>>
@@ -126,21 +138,11 @@ interface Orm<T extends ModelData> {
   withEventListeners: (listeners: Record<'saving' | 'retrieved', (instance: Model<T>) => void | Promise<void>>) => Orm<T>
 }
 
-export const userMerger = createDefu((data, key, value) => {
-  // we want to override arrays when an empty one is provided
-  if (Array.isArray(data[key]) && Array.isArray(value)) {
-    data[key] = value
-    return true
-  }
-})
-
-export function defineUnstorageModel<T extends ModelData = ModelData>(options: OrmOptions): Orm<T> {
-  const baseStorage = prefixStorage(appStorage as Storage<T>, options.tableName)
-
+export function defineModel<T extends Record<string, any>>(options: OrmOptions<T>): Orm<T> {
   return {
     options,
-    newModelInstance() {
-      return createModel({} as T, options)
+    newModelInstance(_attributes?: T) {
+      return createModel(_attributes || {} as T, options)
     },
     async findOrFail(id: string) {
       const model = await this.find(id)
@@ -149,11 +151,15 @@ export function defineUnstorageModel<T extends ModelData = ModelData>(options: O
       return model
     },
     async find(id: string) {
-      const user = await useDrizzle().query.users.findFirst({
-        where: eq(tables.users.userId, id),
-      })
-      if (user)
-        return this.newModelInstance().fill(user as any as T)
+      const attributes = await useDrizzle()
+        .select()
+        .from(options.schema)
+        .where(sql`${options.keyName} = ${id}`)
+      if (attributes[0]) {
+        const instance = this.newModelInstance(attributes as any as T)
+        instance._new = false
+        return instance
+      }
       return null
     },
     async update(id: string, _changes: Partial<T>) {

@@ -1,28 +1,27 @@
-import { useMessageQueue } from '~/lib/nuxt-ttyl/runtime/nitro/mq'
+import { useAuthenticatedUser } from '~/server/app/utils/auth'
+import { sites, teamSites, userTeamSites } from '~/server/database/schema'
 
 export default defineEventHandler(async (event) => {
-  const { user } = event.context.authenticatedData
-  const { force: _force, scope } = getQuery(event)
-  const force = String(_force) === 'true'
+  const user = await useAuthenticatedUser(event)
 
-  // const store = userAppStorage(user.userId, `sites`)
+  const db = useDrizzle()
 
-  const mq = useMessageQueue()
-  if (force) {
-    user.sites = []
-    await user.save()
-    await store.removeItem(`sites.json`)
-    await mq.message('/api/_mq/ingest/sites', { user: { userId: user.userId, email: user.email } })
-    return { sites: [], isPending: true }
-  }
-  let sites = user.sites
-  // need a way to ping the message-queue
-  if (!sites)
-    return { sites: [], isPending: true }
+  const result = await db.select({
+    siteId: sites.publicId,
+    domain: sites.domain,
+    property: sites.property,
+    sitemaps: sites.sitemaps,
+    permissionLevel: userTeamSites.permissionLevel,
+  })
+    .from(sites)
+    .leftJoin(teamSites, and(eq(sites.siteId, teamSites.siteId), eq(teamSites.teamId, user.team.teamId)))
+    .leftJoin(userTeamSites, and(eq(sites.siteId, userTeamSites.siteId), eq(userTeamSites.userId, user.userId), eq(userTeamSites.teamId, user.team.teamId)))
+    .where(and(
+      eq(teamSites.visible, true), // can be hidden at a team level
+      eq(sites.isDomainProperty, false),
+      eq(userTeamSites.visible, true), // can be hidden at user level
+    ))
+    .all()
 
-  // filter for user.selectedSites
-  if (user.selectedSites && scope !== 'all')
-    sites = sites.filter(s => user.selectedSites.includes(s.domain))
-
-  return { sites, isPending: false }
+  return { sites: result }
 })

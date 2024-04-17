@@ -26,7 +26,6 @@ export default defineNuxtModule({
     nuxt.options.nitro.virtual['#nuxt-ttyl/virtual'] = () => {
       const mqConfig = (nuxt.options.dev ? config.devMessageQueue : config.messageQueue) || {}
       const driver = mqConfig?.driver || (nuxt.options.dev ? 'sync' : 'mock')
-      console.log('got driver', driver)
       if (driver === 'unstorage') {
         const storageConfig = mqConfig.storage || {}
         let driverOptions = '{}'

@@ -63,7 +63,7 @@ useHead({
 
 const domains = computed(() => {
   // show other sites sharing the same site.siteUrl
-  const _domains = sites.value.filter(s => s.siteUrl === site.siteUrl).map(s => s.domain)
+  const _domains = sites.value.filter(s => s.property === site.property).map(s => s.domain)
   return [
     ..._domains.map((d) => {
       return {
@@ -174,7 +174,7 @@ const links = computed(() => [
             </USelectMenu>
             <div class="flex items-center gap-3">
               <div class="text-sm">
-                <template v-if="site.siteUrl.includes('sc-domain:')">
+                <template v-if="site.property.includes('sc-domain:')">
                   <div class="w-[200px] ">
                     <USelectMenu v-if="domains.length >= 2" v-model="domain" size="xs" :options="domains" variant="none">
                       <template #label>

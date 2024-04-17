@@ -30,7 +30,7 @@ const columns = [{
       key: 'actions',
     }].filter(Boolean)
 
-const siteUrlFriendly = useFriendlySiteUrl(props.site.siteUrl)
+const siteUrlFriendly = useFriendlySiteUrl(props.site.domain)
 const inspectionsLoading = ref([])
 const submitIndexingLoading = ref([])
 const updatedUrls = ref([])

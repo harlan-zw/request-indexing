@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { withoutTrailingSlash } from 'ufo'
 import { createLogoutHandler } from '~/composables/auth'
-import type { User } from '~/types'
 import { fetchSites } from '~/composables/fetch'
+import type { UserSelect } from '~/server/database/schema'
 
 const { loggedIn, user, session } = useUserSession()
 
@@ -9,7 +10,7 @@ const logout = createLogoutHandler()
 const router = useRouter()
 const color = useColorMode()
 
-const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/welcome')
+const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
 const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('/dashboard'))
 
 const sites = ref(loggedIn.value ? await fetchSites().then(res => res.data.value?.sites) : [])
@@ -46,8 +47,8 @@ const links = computed(() => {
         label: 'Sites',
         icon: 'i-heroicons-queue-list',
         children: sites.value?.map(site => ({
-          label: site.domain,
-          to: `/dashboard/site/${encodeURIComponent(site.domain)}`,
+          label: withoutTrailingSlash(site.domain.replace('https://', '')),
+          to: `/dashboard/site/${encodeURIComponent(site.siteId)}`,
           icon: 'i-heroicons-globe',
         })),
       },
@@ -152,7 +153,7 @@ const datePickerPeriod = ref(user.value?.analyticsRange || {
   end: new Date().setDate(new Date().getDate() - 1),
 })
 
-async function updateAnalyticsPeriod(newPeriod: User['analyticsPeriod']) {
+async function updateAnalyticsPeriod(newPeriod: UserSelect['analyticsPeriod']) {
   session.value = await $fetch('/api/user/me', {
     method: 'POST',
     body: JSON.stringify({
@@ -252,6 +253,7 @@ const calenderPickerLabel = computed(() => {
     return 'All time'
   if (user.value.analyticsPeriod.endsWith('d'))
     return `Last ${user.value.analyticsPeriod.replace('d', '')} days`
+  return 'Unknown'
 })
 </script>
 

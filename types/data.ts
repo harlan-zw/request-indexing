@@ -32,17 +32,10 @@ export interface ResolvedAnalyticsRange {
     start: Date
     end: Date
   }
-  prevPeriod: {
+  prevPeriod?: {
     start: Date
     end: Date
   }
-}
-
-export interface GoogleSearchConsoleSite {
-  siteUrl: string
-  domain: string
-  permissionLevel: 'siteOwner' | 'siteRestrictedUser' | 'siteFullUser'
-  sitemaps: RequiredNonNullable<searchconsole_v1.Schema$WmxSitemap>[]
 }
 
 export interface SiteAnalytics {

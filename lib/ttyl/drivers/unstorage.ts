@@ -14,10 +14,10 @@ export default (options: { debug: boolean, storage: Driver }) => {
   // create client
   return defineMessageQueueDriver({
     async message(urlOrTopic, payload) {
-      const message = { urlOrTopic, payload, createdAt: Date.now() }
+      const message: any = { urlOrTopic, payload, createdAt: Date.now() }
       message.taskId = hash(message)
-      await storage.setItem(`.queue:${message.taskId}.json`, message)
       logger.info('queued message', message.taskId, message.urlOrTopic, message.payload)
+      await storage.setItem(`.queue:${message.taskId}.json`, message)
     },
     async receive(event: H3Event) {
       const message = await readBody(event)

@@ -1,11 +1,10 @@
 import type { Credentials } from 'google-auth-library'
 import type { RequiredNonNullable } from '~/types/util'
-import type { UserData } from '~/server/app/models/User'
-import type { Model } from '~/server/app/utils/unstorageEloquent'
+import type { UserSelect } from '~/server/database/schema'
 
 export interface NitroAuthData {
-  tokens: Model<UserData>['loginTokens']
-  user: Model<UserData>
+  tokens: UserModel['loginTokens']
+  user: UserModel
 }
 
 export type UserOAuthToken = RequiredNonNullable<Credentials>
@@ -22,23 +21,24 @@ export interface OAuthPoolToken {
   label: string
 }
 
-export interface User {
-  email: string
-  userId: string
-  access?: 'pro'
-  picture: string
-  indexingOAuthId?: string
-  lastIndexingOAuthId?: string
-  analyticsRange?: { start: Date, end: Date }
-  analyticsPeriod?: 'all' | '30d' | string
-  // onboarding
-  selectedSites?: string[]
-  backupsEnabled?: boolean
-}
+// export interface User {
+//   email: string
+//   userId: string
+//   access?: 'pro'
+//   picture: string
+//   indexingOAuthId?: string
+//   lastIndexingOAuthId?: string
+//   analyticsRange?: { start: Date, end: Date }
+//   analyticsPeriod?: 'all' | '30d' | string
+//   // onboarding
+//   selectedSites?: string[]
+//   backupsEnabled?: boolean
+// }
 
 export interface UserSession {
+  sessionId: number
   sub: string
-  user: User
+  user: UserSelect
   // used when redirecting to Web Indexing API OAuth
   googleIndexingAuth?: {
     indexingOAuthId: string

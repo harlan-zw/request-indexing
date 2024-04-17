@@ -1,7 +1,9 @@
 import { OAuth2Client } from 'googleapis-common'
+import { useAuthenticatedUser } from '~/server/app/utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const { user, tokens } = event.context.authenticatedData
+  const user = await useAuthenticatedUser(event)
+  const tokens = user.loginTokens
 
   if (user.indexingOAuthId) {
     // need to claim back the token from the pool

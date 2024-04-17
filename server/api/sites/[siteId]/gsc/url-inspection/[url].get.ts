@@ -3,9 +3,11 @@ import type { GaxiosError } from 'googleapis-common'
 import { parseURL } from 'ufo'
 import { createGoogleOAuthClient } from '~/server/app/services/gsc'
 import type { SitePage } from '~/types'
+import { useAuthenticatedUser } from '~/server/app/utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const { tokens, user } = event.context.authenticatedData
+  const user = await useAuthenticatedUser(event)
+  const tokens = user.loginTokens
 
   const { url } = getRouterParams(event, { decode: true })
 

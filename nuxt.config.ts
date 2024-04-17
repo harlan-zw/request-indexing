@@ -51,8 +51,12 @@ export default defineNuxtConfig({
         ].join('\n')
     },
   ],
+  ogImage: {
+    enabled: false,
+  },
   messageQueue: {
     devMessageQueue: {
+      // driver: 'sync',
       driver: 'unstorage',
       storage: {
         base: '.db/queue',
@@ -85,7 +89,10 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
-    "preset": "cloudflare-pages",
+    preset: 'cloudflare-pages',
+    experimental: {
+      websocket: true,
+    },
     imports: {
       dirs: recursiveServerAppFolders,
     },
@@ -94,29 +101,10 @@ export default defineNuxtConfig({
         base: '.db',
         driver: 'fs',
       },
-      // pageAnalytics: {
-      //   base: '.db/pageAnalytics',
-      //   driver: 'fs',
-      // },
-    },
-    storage: {
-      // upstash redis
-      app: {
-        driver: 'vercelKV',
-        url: 'https://us1-big-honeybee-39192.upstash.io',
-        token: 'AZkYASQgYzM1NTg2Y2QtMTAwZS00Mjk3LTllZWItMTJhNjZhZjFmMmE2NGMzYWMzYTM5ODgwNDJhMmEyZjM4YTFjNzZiMWJhMWM=',
-      },
-      // pageAnalytics: {
-      //   driver: 'http',
-      //   base: 'https://endless-maggot-11706-us1-rest-kafka.upstash.io/produce/page_analytics/MESSAGE',
-      //   headers: {
-      //     Authorization: `Basic ${process.env.KAFKA_REST_API_KEY}`,
-      //   },
-      // },
     },
   },
   ui: {
-    icons: ['heroicons', 'carbon', 'simple-icons', 'ph', 'circle-flags'],
+    icons: ['heroicons', 'logos', 'carbon', 'simple-icons', 'ph', 'circle-flags'],
   },
   app: {
     pageTransition: {
@@ -143,9 +131,17 @@ export default defineNuxtConfig({
       ],
     },
   },
+  // $development: {
+  //   hub: {
+  //     remote: 'preview',
+  //   },
+  // },
   hub: {
     database: true,
     kv: true,
+    blob: true,
+    cache: true,
+    remote: false,
   },
   site: {
     name: 'Request Indexing',

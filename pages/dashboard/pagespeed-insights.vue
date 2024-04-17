@@ -22,7 +22,7 @@ const sites = computed(() => {
         </div>
       </div>
       <div class="grid 2xl:grid-cols-3 lg:grid-cols-2 gap-7">
-        <div v-for="(site) in sites" :key="site.siteUrl" />
+        <div v-for="(site) in sites" :key="site.siteId" />
       </div>
     </div>
   </UContainer>

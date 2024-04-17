@@ -55,7 +55,7 @@ const graph = computed(() => {
   if (!dates?.value?.rows?.length)
     return []
   const rows = dates.value.rows
-  const _dates = rows.map(row => row.time)
+  const _dates = rows.map(row => row.date)
   let clicks = rows.map(row => row.clicks)
   let impressions = rows.map(row => row.impressions)
   let smoothLineFn = (x: number[]) => x
@@ -170,7 +170,7 @@ const graph = computed(() => {
 
         <div class="flex items-center gap-2">
           <div class="opacity-60 text-xs">
-            <template v-if="site.siteUrl.includes('sc-domain:')">
+            <template v-if="site.property.includes('sc-domain:')">
               Domain Property
             </template>
             <template v-else>

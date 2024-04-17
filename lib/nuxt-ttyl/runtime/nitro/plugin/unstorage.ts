@@ -1,6 +1,6 @@
 import { prefixStorage } from 'unstorage'
 
-const storage = prefixStorage<{ urlOrTopic: string, payload: any, attempts: number }>(useStorage(), '.db/queue')
+const storage = prefixStorage<{ urlOrTopic: string, payload: any, attempts: number }>(useStorage(), 'app:queue')
 
 export default defineNitroPlugin((nitro) => {
   let nitroRunning = true
@@ -11,10 +11,6 @@ export default defineNitroPlugin((nitro) => {
   setTimeout(async () => {
     // eslint-disable-next-line no-unmodified-loop-condition
     while (nitroRunning) {
-      // don't work if there are too many promises pending
-      if (promises.filter(Boolean).length > 10)
-        continue
-
       const nextKey = (await storage.getKeys()).pop()
       if (nextKey) {
         const message = (await storage.getItem(nextKey))!
@@ -44,7 +40,7 @@ export default defineNitroPlugin((nitro) => {
             })
         }))
       }
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 3000))
     }
   }, 1000)
 })

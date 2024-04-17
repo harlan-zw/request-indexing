@@ -168,7 +168,7 @@ const filters = computed(() => {
 
 <template>
   <div>
-    <TableData :value="value" :columns="columns" :filters="filters" @update:expanded="updateExpandedData">
+    <TableData :value="value" :columns="columns" :filters="filters" expandable @update:expanded="updateExpandedData">
       <template #keyword-data="{ row, rows, expanded }">
         <div class="flex items-center">
           <div class="relative group w-[225px] truncate text-ellipsis">

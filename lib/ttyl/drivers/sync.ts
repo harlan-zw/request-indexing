@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
 import { createConsola } from 'consola'
-import { defineMessageQueueDriver } from '.'
+import { defineMessageQueueDriver } from '../'
 
 const messages = new Map<string, any[]>()
 
@@ -11,6 +11,7 @@ export default (options: { debug: boolean }) => {
   // create client
   return defineMessageQueueDriver({
     async message(urlOrTopic, json) {
+      logger.info('sync: queued message', { urlOrTopic, json })
       const queue = messages.get(urlOrTopic) || []
       queue.push(json)
       messages.set(urlOrTopic, queue)

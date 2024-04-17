@@ -3,10 +3,11 @@ import type { GaxiosError } from 'googleapis-common'
 import { OAuth2Client } from 'googleapis-common'
 import type { indexing_v3 } from '@googleapis/indexing/v3'
 import type { SitePage } from '~/types'
+import { useAuthenticatedUser } from '~/server/app/utils/auth'
 // import { getUserQuotaUsage, incrementUserQuota } from '~/server/app/models/user/quota'
 
 export default defineEventHandler(async (event) => {
-  const { user } = event.context.authenticatedData
+  const user = await useAuthenticatedUser(event)
 
   const { url } = getRouterParams(event, { decode: true })
 
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
   const tokens = await getUserToken(user.userId, 'indexing')
 
-  const { indexing: indexingConfig } = useRuntimeConfig().public
+  // const { indexing: } = useRuntimeConfig().public
   // const quotaLimit = user.access === 'pro' ? 200 : indexingConfig.usageLimitPerUser
   // increment users usage
   // const quota = await getUserQuotaUsage(user.userId, 'indexingApi')
