@@ -19,7 +19,7 @@ const formattedValue = computed(() => Math.round(props.value))
 
 <template>
   <UTooltip :text="`Average position of ${useHumanFriendlyNumber(value)}.`">
-    <UBadge :color="color" variant="soft" class="px-2 py-1">
+    <UBadge size="lg" :color="color" variant="soft" class="px-2 py-1">
       {{ formattedValue }}
     </UBadge>
   </UTooltip>

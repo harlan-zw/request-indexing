@@ -1,4 +1,4 @@
 export default {
   public: [],
-  private: []
+  private: [],
 }

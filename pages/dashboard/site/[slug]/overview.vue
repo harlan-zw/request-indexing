@@ -54,7 +54,7 @@ const trendingContent = computed(() => {
 
 <template>
   <div>
-    <UPageHeader headline="Your Site">
+    <UPageHeader :headline="useFriendlySiteUrl(site.domain)">
       <template #title>
         <div class="flex items-center gap-3">
           <UIcon :name="$route.meta.icon" />

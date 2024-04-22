@@ -1,5 +1,14 @@
 import dayjs from 'dayjs'
-import { siteUrlAnalytics, siteUrls, sites, teamSites, userTeamSites, users } from '~/server/database/schema'
+import {
+  siteUrlAnalytics,
+  siteUrls,
+  sites,
+  teamSites,
+  userTeamSites,
+  users,
+  SiteUrlSelect
+} from '~/server/database/schema'
+import { fetchSitemapUrls } from '~/server/app/services/crawler/crawl'
 // import { wsUsers } from '~/server/routes/_ws'
 
 export default defineEventHandler(async (event) => {
@@ -50,10 +59,10 @@ export default defineEventHandler(async (event) => {
   const end = dayjs().subtract(1, 'day').toDate()
   const pages = await fetchGSCPages(user.loginTokens, { period: { start, end } }, site)
   if (!pages.rows.length) {
-    // no pages, all okay
+    // no pages, all okay?
     return 'OK'
   }
-
+  const mq = useMessageQueue()
   if (site.isDomainProperty) {
     const distinctDomains = new Set<string>()
     pages.rows.forEach((row) => {
@@ -77,7 +86,6 @@ export default defineEventHandler(async (event) => {
       }).returning()
     }))
 
-    const mq = useMessageQueue()
     for (const _site of childSites) {
       await db.insert(userTeamSites).values({
         userId: user.userId,
@@ -94,12 +102,69 @@ export default defineEventHandler(async (event) => {
     }
   }
   else {
-    await db.batch(pages.rows.map((row) => {
-      return db.insert(siteUrls).values({
+    let sitemapUrls: SiteUrlSelect[] = []
+    if (site.sitemaps) {
+      sitemapUrls = (await fetchSitemapUrls({
+        siteUrl: site.domain,
+        sitemapPaths: site.sitemaps.map(s => s.path),
+      })).map(r => r.sites).flat().map((r) => {
+        return <SiteUrlSelect> {
+          isIndexed: false,
+          path: new URL(r).pathname,
+          siteId,
+        }
+      })
+    }
+    else {
+      // TODO manual sitemap crawl
+    }
+
+    const indexedPages = pages.rows.map((row) => {
+      return {
+        ...row,
+        isIndexed: true,
         path: new URL(row.page).pathname,
         siteId,
-      })
-    }))
+      }
+    }) as any as SiteUrlSelect[]
+
+    const urls: SiteUrlSelect[] = [
+      ...sitemapUrls,
+    ]
+    // conditionally add or update using indexed pages
+    for (const indexedPage of indexedPages) {
+      const existingIdx = urls.findIndex(u => u.path === indexedPage.path)
+      if (existingIdx !== -1)
+        // slice in existing
+        urls[existingIdx] = indexedPage
+      else
+        urls.push(indexedPage)
+    }
+
+    console.log({ sitemapUrls, indexedPages, urls })
+    // iterate over sitemap pages and indexed pages, prefer if they're indexed
+
+    await db.batch(urls.map(row => db.insert(siteUrls).values(row)))
+
+    // queue top 3 pages to have their performance scanned
+    // TODO only after they have selected it as a site
+    await Promise.all(
+      urls
+        .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
+        .slice(0, 2)
+        .map(row => [
+          mq.message('/api/_mq/ingest/site/psi', {
+            siteId: site.siteId,
+            page: row.page,
+            strategy: 'mobile',
+          }),
+          mq.message('/api/_mq/ingest/site/psi', {
+            siteId: site.siteId,
+            page: row.page,
+            strategy: 'desktop',
+          }),
+        ]).flat(),
+    )
   }
 
   const nitro = useNitroApp()

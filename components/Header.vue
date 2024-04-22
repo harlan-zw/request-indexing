@@ -18,38 +18,37 @@ const links = computed(() => {
   if (loggedIn.value && !isOnWelcome.value) {
     return [
       {
-        label: 'Dashboards',
+        label: 'Dashboard',
         icon: 'i-heroicons-window',
         to: '/dashboard',
-        children: [{
-          label: 'Clicks & Impressions',
-          icon: 'i-heroicons-cursor-arrow-rays',
-          to: '/dashboard',
-          description: 'View your sites with stats about their clicks and impressions.',
-        }, {
-          label: 'Position & CTR',
-          icon: 'i-heroicons-chart-bar',
-          to: '/dashboard/position',
-          description: 'View your sites with stats about their keyword positions and click-through-rates.',
-        }, {
-          label: 'Pagespeed Insights',
-          to: '/dashboard/pagespeed-insights',
-          icon: 'i-heroicons-rocket-launch',
-          description: 'See how all of your sites are performance cumulatively.',
-        }, {
-          label: 'CrUX',
-          icon: 'i-heroicons-users',
-          to: '/dashboard/crux',
-          description: 'View your sites with stats about their clicks and impressions.',
-        }],
+        // children: [{
+        //   label: 'Clicks & Impressions',
+        //   icon: 'i-heroicons-cursor-arrow-rays',
+        //   to: '/dashboard',
+        //   description: 'View your sites with stats about their clicks and impressions.',
+        // }, {
+        //   label: 'Position & CTR',
+        //   icon: 'i-heroicons-chart-bar',
+        //   to: '/dashboard/position',
+        //   description: 'View your sites with stats about their keyword positions and click-through-rates.',
+        // }, {
+        //   label: 'Pagespeed Insights',
+        //   to: '/dashboard/pagespeed-insights',
+        //   icon: 'i-heroicons-rocket-launch',
+        //   description: 'See how all of your sites are performance cumulatively.',
+        // }, {
+        //   label: 'CrUX',
+        //   icon: 'i-heroicons-users',
+        //   to: '/dashboard/crux',
+        //   description: 'View your sites with stats about their clicks and impressions.',
+        // }],
       },
       {
         label: 'Sites',
         icon: 'i-heroicons-queue-list',
         children: sites.value?.map(site => ({
           label: withoutTrailingSlash(site.domain.replace('https://', '')),
-          to: `/dashboard/site/${encodeURIComponent(site.siteId)}`,
-          icon: 'i-heroicons-globe',
+          to: `/dashboard/site/${encodeURIComponent(site.siteId)}/overview`,
         })),
       },
       {

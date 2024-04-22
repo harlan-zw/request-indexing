@@ -5,6 +5,8 @@ import { relations, sql } from 'drizzle-orm'
 import type { Credentials } from 'google-auth-library'
 import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
 import type { RequiredNonNullable } from '~/types/util'
+import {pagespeedonline_v5, Schema$PagespeedApiPagespeedResponseV5} from "@googleapis/pagespeedonline/v5";
+import {percentDifference} from "~/server/app/utils/formatting";
 
 const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz'
 const length = 12
@@ -114,6 +116,20 @@ export const siteUrls = sqliteTable('site_urls', {
   lastInspected: integer('last_inspected'),
   status: text('status'),
   payload: text('payload', { mode: 'json' }),
+  // indexing api
+  isIndexed: integer('is_indexed', { mode: 'boolean' }).notNull().default(false),
+  // psi api
+  psiDesktopScore: text('psi_desktop_score', { mode: 'json' }),
+  psiMobileScore: text('psi_mobile_score', { mode: 'json' }),
+  // gsc api
+  keyword: text('keyword'),
+  keywordPosition: integer('keyword_position').default(0),
+  clicks: integer('clicks').default(0),
+  prevClicks: integer('prev_clicks').default(0),
+  clicksPercent: integer('clicks_percent').default(0),
+  impressions: integer('impressions').default(0),
+  impressionsPercent: integer('impressions_percent').default(0),
+  prevImpressions: integer('prev_impressions').default(0),
 
   createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
   updatedAt: integer('updated_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
@@ -121,6 +137,8 @@ export const siteUrls = sqliteTable('site_urls', {
   pathIdx: index('path_site_url_idx').on(t.path),
   unq: unique().on(t.siteId, t.path),
 }))
+
+export type SiteUrlSelect = typeof siteUrls.$inferSelect
 
 export const siteUrlAnalytics = sqliteTable('site_url_analytics', {
   siteUrlAnalyticId: integer('site_url_analytic_id').notNull().primaryKey(),

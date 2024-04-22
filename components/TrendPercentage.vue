@@ -11,17 +11,18 @@ const percentage = computed(() => {
   const current = Number(props.value)
   if (prev === 0)
     return 1
-  return (current - prev) / ((prev + current) / 2)
+  const mod = props.negative ? -1 : 1
+  return (current - prev) / ((prev + current) / 2) * mod
 })
 </script>
 
 <template>
   <UTooltip v-if="prevValue" :text="`${useHumanFriendlyNumber(Number(prevValue))}${symbol || ''} previous period`">
-    <div v-if="percentage > 0 && !negative" class="text-sm items-center flex gap-1 text-green-500">
+    <div v-if="percentage > 0" class="text-xs items-center flex gap-1 text-green-500">
       <UIcon name="i-heroicons-arrow-trending-up" class="w-4 h-4 opacity-70" />
       <div>{{ useHumanFriendlyNumber(Math.round(percentage * 100)) }}%</div>
     </div>
-    <div v-else class="text-sm  items-center flex gap-1 text-red-500">
+    <div v-else class="text-xs  items-center flex gap-1 text-red-500">
       <UIcon name="i-heroicons-arrow-trending-down" class="w-4 h-4 opacity-70" />
       <div>{{ useHumanFriendlyNumber(Math.round(percentage * 100)) }}%</div>
     </div>

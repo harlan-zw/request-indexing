@@ -4,11 +4,11 @@ import type { GoogleSearchConsoleSite } from '~/types'
 import { useAsyncData } from '#imports'
 
 export function useSiteData(site: GoogleSearchConsoleSite) {
-  const { user } = useUserSession()
+  // const { user } = useUserSession()
   const factory = <T>(path: string, fetchOptions?: NitroFetchOptions<any>) => clientSharedAsyncData<T>(`sites:${site.domain}:${path}`, async () => {
     return $fetch(`/api/sites/${site.siteId}/${path}`, fetchOptions)
   }, {
-    watch: [() => user.value?.analyticsPeriod],
+    // watch: [() => user.value?.analyticsPeriod],
   })
   return {
     keywordResearch: () => factory<{ keyword: string, volume: number, cpc: number, competition: number }[]>('ads/keyword-history', { method: 'POST' }),
