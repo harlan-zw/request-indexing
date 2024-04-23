@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
 
   const { sub, user, session } = authData
   const pool = createOAuthPool()
-  let tokenId = session.googleIndexingAuth?.indexingOAuthId || user.indexingOAuthId || user.lastIndexingOAuthId
+  let tokenId = session.googleIndexingAuth?.indexingOAuthIdNext || user.indexingOAuthIdNext || user.lastIndexingOAuthIdNext
   let token: OAuthPoolToken | undefined
   if (!tokenId) {
     // generate one
@@ -30,6 +30,11 @@ export default defineEventHandler(async (event) => {
   }
   else {
     token = pool.get(tokenId)
+    if (!token) {
+      // claim a free one (pro user fallback)
+      token = await pool.free()
+      tokenId = token?.id
+    }
   }
   if (!token || !tokenId) {
     // sent rate limted, too many users
@@ -56,7 +61,7 @@ export default defineEventHandler(async (event) => {
     // get the referrer
     const referrer = getHeader(event, 'referer')
     const data = {
-      googleIndexingAuth: { indexingOAuthId: tokenId, referrer, state: hash(new Date()) },
+      googleIndexingAuth: { indexingOAuthIdNext: tokenId, referrer, state: hash(new Date()) },
     }
     await setUserSession(event, data)
 
@@ -110,8 +115,8 @@ export default defineEventHandler(async (event) => {
 
   // delete tokens
   await updateUserToken(user.userId, 'indexing', tokens)
-  await updateUser(user.userId, { indexingOAuthId: tokenId })
-  await setUserSession(event, { user: { indexingOAuthId: tokenId } })
+  await updateUser(user.userId, { indexingOAuthIdNext: tokenId })
+  await setUserSession(event, { user: { indexingOAuthIdNext: tokenId } })
 
   await incrementMetric('googleIndexingAuth')
 

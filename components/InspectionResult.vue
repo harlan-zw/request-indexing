@@ -108,7 +108,7 @@ const value = computed(() => {
         <template #panel>
           <div class="p-4 text-sm space-y-2">
             <div>Google has reported that this URL has been indexed. Congrats! <br>But it doesn't mean people can find it just yet.</div>
-            <div>We'll track this URL here until it has appeared on a<br> search page at least once, check back later.</div>
+            <div>We'll track this URL here until it has appeared on a<br> search page at least once. Use the "Hide Actioned" filter to hide this.</div>
           </div>
         </template>
       </UPopover>

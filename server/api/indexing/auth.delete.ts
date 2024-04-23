@@ -4,7 +4,7 @@ import { setUserSession, useAuthenticatedUser } from '#imports'
 export default defineEventHandler(async (event) => {
   const user = await useAuthenticatedUser(event)
 
-  if (!user.indexingOAuthId!) {
+  if (!user.indexingOAuthIdNext!) {
     return createError({
       statusCode: 400,
       message: 'No indexing OAuth found.',
@@ -12,15 +12,15 @@ export default defineEventHandler(async (event) => {
   }
   // need to claim back the token from the pool
   const pool = createOAuthPool()
-  const oAuth = pool.get(user.indexingOAuthId)
+  const oAuth = pool.get(user.indexingOAuthIdNext)
   if (oAuth)
     await pool.release(oAuth.id, user.userId)
 
   // keep a reference of the last indexingOAuthId
   await setUserSession(event, {
     user: {
-      indexingOAuthId: '',
-      lastIndexingOAuthId: user.indexingOAuthId,
+      indexingOAuthIdNext: '',
+      lastIndexingOAuthIdNext: user.indexingOAuthIdNext,
     },
   })
 

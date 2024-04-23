@@ -99,7 +99,7 @@ const confirmDeleteAccount = ref(false)
             Web Indexing API
           </h2>
         </div>
-        <template v-if="user.indexingOAuthId">
+        <template v-if="user.indexingOAuthIdNext">
           <p class="text-gray-600 dark:text-gray-300 mb-3">
             You have provided authenticated access to the Web Indexing API. You
             can safely revoke access at any time.

@@ -398,7 +398,7 @@ const calenderPickerLabel = computed(() => {
           <template #pro="{ item }">
             <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <span class="truncate">{{ item.label }}</span>
-            <UBadge label="3 left" color="purple" variant="subtle" class="ml-0.5" />
+            <UBadge label="0 left" color="purple" variant="subtle" class="ml-0.5" />
           </template>
           <UAvatar :src="user.picture" />
           <div class="ml-2 flex items-center">
