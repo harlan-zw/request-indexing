@@ -35,13 +35,13 @@ const user = useAuthenticatedUser()
           </div>
         </ULandingSection>
         <div class="mt-10">
-          <UPricingCard class="mt-10" title="Pro Plan" price="$30 USD" cycle="month" :button="{ to: `https://buy.stripe.com/bIY3gd9U62xjbUA001?client_reference_id=${user.userId}`, label: 'Purchase Pro Plan', color: 'purple', variant: 'solid' }" description="Unlock more API credits and new features by upgrading to pro.">
+          <UPricingCard class="mt-10" title="Pro Plan" price="$30 USD" cycle="month" :button="{ label: 'Purchase Pro Plan', color: 'purple', variant: 'solid' }" description="Unlock more API credits and new features by upgrading to pro.">
             <template #footer>
               <UBadge variant="soft" color="orange">
-                2 left
+                0 left
               </UBadge>
               <div class="text-gray-500 dark:text-gray-400 text-sm mt-1 mx-2 max-w-sm">
-                Due to the restrictions on Google's Web Indexing API there is limited availability for the Pro Plan.
+                The Pro Plan is currently sold out.
               </div>
             </template>
           </UPricingCard>
