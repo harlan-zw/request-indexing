@@ -1,3 +1,3 @@
 <template>
-  <UIcon name="i-heroicons-cursor-arrow-ripple" class="text-orange-700" />
+  <UIcon name="i-heroicons-cursor-arrow-ripple" class="text-teal-700" />
 </template>

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import {joinURL, withoutTrailingSlash} from 'ufo'
+import { joinURL, withoutTrailingSlash } from 'ufo'
 import { fetchSites } from '~/composables/fetch'
 import { createLogoutHandler } from '~/composables/auth'
-import type {GoogleSearchConsoleSite} from "~/types";
+import type { GoogleSearchConsoleSite } from '~/types'
 
 const router = useRouter()
 const { user, session } = useUserSession()
@@ -50,87 +50,181 @@ const site: GoogleSearchConsoleSite = computed(() => {
   return (sites.value || []).find(site => site.siteId === slug)
 })
 
-const siteLinks = computed(() => !site.value ? [] : [
-  [
-    {
-      label: 'Overview',
-      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'),
-      icon: 'i-heroicons-home',
+const siteLinks = computed(() => !site.value
+  ? []
+  : [
+      [
+        {
+          label: 'Overview',
+          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'),
+          icon: 'i-heroicons-home',
+        },
+      ],
+      [
+        {
+          label: 'Pages',
+          icon: 'i-heroicons-folder',
+          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
+        },
+        {
+          label: 'Keywords',
+          icon: 'i-heroicons-magnifying-glass-circle',
+          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
+        },
+      ],
+      [
+        {
+          label: 'Web Indexing',
+          icon: 'i-heroicons-check-circle',
+          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'indexing'),
+        },
+        {
+          label: 'CRuX',
+          icon: 'i-heroicons-users',
+          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'crux'),
+        },
+        {
+          label: 'Pagespeed Insights',
+          icon: 'i-heroicons-rocket-launch',
+          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights'),
+        },
+      ],
+      [
+        {
+          label: 'Backups',
+          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'backups'),
+          icon: 'i-heroicons-circle-stack',
+        },
+        {
+          label: 'Site Settings',
+          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'settings'),
+          icon: 'i-heroicons-cog',
+        },
+      ],
+    ])
+
+const teamLinks = computed(() => [
+  // members
+  {
+    label: 'Members',
+    to: '/dashboard/team/members',
+    icon: 'i-heroicons-users',
+  },
+  {
+    label: 'Settings',
+    to: '/dashboard/settings',
+    icon: 'i-heroicons-cog',
+  },
+])
+
+const onlySiteLinks = computed(() => sites.value.map((s) => {
+  return {
+    label: useFriendlySiteUrl(s.domain),
+    to: `/dashboard/site/${s.siteId}/overview`,
+    avatarClass: 'rounded-sm',
+    avatar: {
+      style: 'border-radius: 0;',
+      size: '3xs',
+      text: s.domain,
+      src: `https://www.google.com/s2/favicons?domain=${withoutTrailingSlash(s.domain)}`,
     },
-    {
-      label: 'Indexing',
-      icon: 'i-heroicons-check-circle',
-      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'indexing'),
-    },
-    {
-      label: 'Backups',
-      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'backups'),
-      icon: 'i-heroicons-circle-stack',
-    },
-  ],
-  [
-    {
-      label: 'Pages',
-      icon: 'i-heroicons-folder',
-      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
-      // badge: data?.pages?.length || 0,
-    },
-    {
-      label: 'Keywords',
-      icon: 'i-heroicons-magnifying-glass-circle',
-      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
-      // badge: data?.keywords?.length || 0,
-    },
-    {
-      label: 'Graph',
-      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'graph'),
-      icon: 'i-heroicons-chart-bar',
-    },
-  ],
-  [
-    {
-      label: 'CRuX',
-      icon: 'i-heroicons-users',
-      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'crux'),
-    },
-    {
-      label: 'Pagespeed Insights',
-      icon: 'i-heroicons-rocket-launch',
-      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights'),
-    },
-  ],
-  [
-    {
-      label: 'Keyword Research',
-      icon: 'i-heroicons-pencil',
-      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteUrl), 'keyword-research'),
-    },
-    {
-      label: 'Backlinks',
-      icon: 'i-heroicons-bolt',
-      badge: 'Soon',
-    },
-  ],
+  }
+}))
+
+const onlyDashboardLinks = computed(() => [
+  {
+    label: 'Google Search Console',
+    icon: 'i-heroicons-window',
+    to: '/dashboard',
+  },
+  {
+    label: 'Web Indexing',
+    icon: 'i-heroicons-check-circle',
+    to: '/dashboard/web-indexing',
+  },
+  {
+    label: 'PageSpeed Insights',
+    icon: 'i-heroicons-rocket-launch',
+    to: '/dashboard/pagespeed-insights',
+  },
+  {
+    label: 'CrUX',
+    icon: 'i-heroicons-users',
+    to: '/dashboard/crux',
+  },
 ])
 
 const links = computed(() => [
   {
-    label: 'Dashboard',
-    to: '/dashboard',
+    label: 'Dashboards',
+    icon: 'i-heroicons-window',
+    children: [
+      {
+        label: 'Google Search Console',
+        icon: 'i-heroicons-folder',
+        to: '/dashboard',
+      },
+      {
+        label: 'Web Indexing',
+        icon: 'i-heroicons-check-circle',
+        to: '/dashboard/web-indexing',
+      },
+      {
+        label: 'PageSpeed Insights',
+        icon: 'i-heroicons-rocket-launch',
+        to: '/dashboard/pagespeed-insights',
+      },
+      {
+        label: 'CrUX',
+        icon: 'i-heroicons-users',
+        to: '/dashboard/crux',
+      },
+    ],
   },
   {
     label: 'Sites',
-    badge: sites.value.length,
-    icon: 'i-heroicons-user-group',
+    icon: 'i-heroicons-queue-list',
     defaultOpen: true,
     children: sites.value.map((s) => {
       return {
         label: useFriendlySiteUrl(s.domain),
         to: `/dashboard/site/${s.siteId}/overview`,
+        avatarClass: 'rounded-sm',
+        avatar: {
+          style: 'border-radius: 0;',
+          size: '3xs',
+          text: s.domain,
+          src: `https://www.google.com/s2/favicons?domain=${withoutTrailingSlash(s.domain)}`,
+        },
       }
     }),
   },
+  {
+    label: 'Team Settings',
+    to: joinURL('/dashboard/settings'),
+    icon: 'i-heroicons-cog',
+  },
 ])
+
+const domains = computed(() => {
+  // show other sites sharing the same site.siteUrl
+  const _domains = sites.value.filter(s => s.property === site.value.property)
+  return [
+    ..._domains.map((d) => {
+      return {
+        label: useFriendlySiteUrl(d.domain),
+        value: d,
+        to: `/dashboard/site/${d.siteId}/overview`,
+      }
+    }),
+  ]
+})
+
+const route = useRoute()
+function changeSite(siteId) {
+  const childSegment = route.path.split('/').pop()
+  return navigateTo(`/dashboard/site/${siteId}/${childSegment}`)
+}
 
 const groups = [{
   key: 'links',
@@ -144,7 +238,7 @@ const groups = [{
     <UDashboardPanel :width="250" :resizable="{ min: 200, max: 400 }">
       <UDashboardNavbar>
         <template #center>
-          <ULink to="/" color="gray" size="xs" class="flex items-center gap-2 group mr-10">
+          <ULink to="/dashboard" color="gray" size="xs" class="flex items-center gap-2 group mr-10">
             <div class="text-black dark:text-white font-title font-semibold whitespace-nowrap text-xl" style="letter-spacing: -1.5px;">
               Request Indexing
             </div>
@@ -165,13 +259,78 @@ const groups = [{
 
       <UDashboardSidebar>
         <template v-if="site">
-        <UDashboardSidebarLinks :links="[links[0]]" />
-        <USelectMenu v-if="site" :model-value="useFriendlySiteUrl(site.domain)" :options="[...sites.map(s => ({ label: useFriendlySiteUrl(s.domain), value: s.siteId })), { label: 'Add Site', icon: 'i-heroicons-plus' }]" />
-        <UVerticalNavigation v-if="siteLinks?.length" :links="siteLinks" />
+          <UButton icon="i-chevron-left-solid" color="white" variant="ghost" size="xs" to="/dashboard">
+            Back
+          </UButton>
+          <div class="flex">
+            <USelectMenu :model-value="site" variant="none" :options="sites" value-attribute="siteId" @change="changeSite">
+              <template #option="{ option }">
+                <div class="flex w-full items-center">
+                  <div class="flex items-center gap-2">
+                    <img :src="`https://www.google.com/s2/favicons?domain=https://${useFriendlySiteUrl(option.domain)}`" alt="favicon" class="w-4 h-4 rounded-sm">
+                    <span class="truncate">{{ useFriendlySiteUrl(option.domain) }}</span>
+                  </div>
+                </div>
+              </template>
+              <template #default="{ open }">
+                <UButton color="white" variant="ghost" size="xl" class="flex items-center gap-2" :ui="{ padding: { xl: 'pl-0 -ml-7' } }">
+                  <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
+                  <img :src="`https://www.google.com/s2/favicons?domain=${withoutTrailingSlash(site.domain)}`" alt="favicon" class="w-4 h-4 rounded-sm">
+                  {{ useFriendlySiteUrl(site.domain) }}
+                </UButton>
+              </template>
+            </USelectMenu>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-sm">
+              <template v-if="site.property.includes('sc-domain:')">
+                <div class="w-[200px] ">
+                  <USelectMenu v-if="domains.length >= 2" size="xs" :options="domains" variant="none">
+                    <template #label>
+                      <span class="text-gray-700 dark:text-gray-300">{{ domains.length }} Sites In Property</span>
+                    </template>
+                    <template #option="{ option }">
+                      <img v-if="option.value" :src="`https://www.google.com/s2/favicons?domain=${option.value}`" alt="favicon" class="w-4 h-4 rounded-sm">
+                      <span class="truncate">{{ option.label }}</span>
+                    </template>
+                  </USelectMenu>
+                </div>
+              </template>
+              <template v-else>
+                Site Property
+              </template>
+              <div class="text-xs text-gray-400">
+                Created {{ useTimeAgo(site.createdAt, true) }}
+              </div>
+            </div>
+          </div>
+          <UVerticalNavigation v-if="siteLinks?.length" :links="siteLinks" />
         </template>
         <template v-else>
-        <USelectMenu v-model="session.team.name" :options="[{ label: session.team.name }, { label: 'Create Team', icon: 'i-heroicons-plus' }]" />
-        <UDashboardSidebarLinks :links="links" />
+          <USelectMenu v-model="session.team.name" :options="[{ label: session.team.name }, { label: 'Create Team', icon: 'i-heroicons-plus' }]">
+            <template #default="{ open }">
+            <UButton color="white" variant="ghost" size="sm" class="flex items-center gap-2" :ui="{ padding: { xl: 'pl-0 -ml-7' } }">
+              <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
+              {{ session.team.name}}
+            </UButton>
+            </template>
+          </USelectMenu>
+          <div class="text-sm text-gray-700 mt-3">
+            <div>Dashboards</div>
+          </div>
+          <UDivider />
+          <UDashboardSidebarLinks :links="onlyDashboardLinks" />
+          <div class="text-sm text-gray-700 mt-3">
+            <div>Sites</div>
+          </div>
+          <UDivider />
+          <UDashboardSidebarLinks :links="onlySiteLinks" />
+          <div class="flex flex-grow"></div>
+          <div class="text-sm text-gray-700 mt-3">
+            <div>Team</div>
+          </div>
+          <UDivider />
+          <UDashboardSidebarLinks :links="teamLinks" />
         </template>
         <template #footer>
           <UDropdown :items="authDropdownItems" mode="hover" class="flex items-center w-full">
@@ -214,7 +373,16 @@ const groups = [{
     </UDashboardPanel>
 
     <div class="overflow-y-auto py-8 w-full">
-      <slot />
+      <DashboardHeader />
+      <UDashboardPanelContent >
+        <DashboardPageTitle
+          v-if="$route.meta"
+          :icon="$route.meta.icon"
+          :title="$route.meta.title"
+          :description="$route.meta.description"
+        />
+          <slot />
+      </UDashboardPanelContent>
     </div>
 
     <ClientOnly>

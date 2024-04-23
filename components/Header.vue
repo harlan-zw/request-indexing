@@ -51,11 +51,6 @@ const links = computed(() => {
           to: `/dashboard/site/${encodeURIComponent(site.siteId)}/overview`,
         })),
       },
-      {
-        label: 'Keyword Research',
-        icon: 'i-heroicons-square-3-stack-3d',
-        to: `/dashboard/keyword-research`,
-      },
       // {
       //   label: 'Resources',
       //   icon: 'i-heroicons-square-3-stack-3d',

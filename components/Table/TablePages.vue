@@ -16,8 +16,8 @@ const { user, session } = useUserSession()
 
 const columns = computed(() => [
   {
-    key: 'url',
-    label: 'URL',
+    key: 'page',
+    label: 'Page',
     sortable: true,
   },
   {
@@ -92,10 +92,10 @@ const filters = [
     special: true,
     label: 'Top Level',
     filter: (_rows: GscDataRow[]) => {
-      const topLevelPaths = _rows.map(row => row.url.split('/').slice(1, 2)?.[0] || false)
+      const topLevelPaths = _rows.map(row => row.page.split('/').slice(1, 2)?.[0] || false)
       const uniqueTopLevelPaths = Array.from(new Set(topLevelPaths)).filter(Boolean)
       return uniqueTopLevelPaths.map((topLevelPath) => {
-        const rows = _rows.filter(row => withoutLeadingSlash(row.url).startsWith(topLevelPath))
+        const rows = _rows.filter(row => withoutLeadingSlash(row.page).startsWith(topLevelPath))
         const clicks = rows.reduce((acc, row) => acc + row.clicks, 0)
         const prevClicks = rows.reduce((acc, row) => acc + row.prevClicks, 0)
         const impressions = rows.reduce((acc, row) => acc + row.impressions, 0)
@@ -103,7 +103,7 @@ const filters = [
         // compute the avg keyword position
         const avgKeywordPosition = rows.reduce((acc, row) => acc + (row.keywordPosition || 0), 0) / rows.length
         return {
-          url: withLeadingSlash(topLevelPath),
+          page: withLeadingSlash(topLevelPath),
           keyword: rows[0].keyword,
           keywordPosition: avgKeywordPosition,
           clicks,
@@ -123,7 +123,7 @@ const expandedRowDataPending = ref(null)
 async function updateExpandedData(row: GscDataRow) {
   if (row) {
     await callFnSyncToggleRef(async () => {
-      expandedRowData.value = await $fetch(`/api/sites/${encodeURIComponent(props.site.domain)}/pages/${encodeURIComponent(row.url)}`)
+      expandedRowData.value = await $fetch(`/api/sites/${encodeURIComponent(props.site.domain)}/pages/${encodeURIComponent(row.page)}`)
     }, expandedRowDataPending)
   }
   else {
@@ -159,28 +159,28 @@ function highestRowClickCount(rows) {
 //
 // const selected = ref([])
 // function select(row) {
-//   const index = selected.value.findIndex(item => item.url === row.url)
+//   const index = selected.value.findIndex(item => item.page === row.page)
 //   if (index === -1)
 //     selected.value.push(row)
 //   else
 //     selected.value.splice(index, 1)
 // }
 
-function openUrl(url: string, target?: string) {
-  window.open(url, target)
+function openUrl(page: string, target?: string) {
+  window.open(page, target)
 }
 </script>
 
 <template>
   <div>
     <TableData :value="value" :columns="columns" :filters="filters" expandable @update:expanded="updateExpandedData">
-      <template #url-data="{ row, rows, expanded }">
+      <template #page-data="{ row, rows, expanded }">
         <div class="flex items-center">
           <div class="relative group w-[260px] max-w-full">
             <div class="flex items-center">
-              <UButton :title="`Open ${row.url}`" class="max-w-[260px]" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" target="_blank" color="gray" @click="q = row.url">
+              <UButton :title="`Open ${row.page}`" class="max-w-[260px]" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" target="_blank" color="gray" @click="q = row.page">
                 <div class="max-w-[220px] truncate text-ellipsis">
-                  {{ row.url }}
+                  {{ row.page }}
                 </div>
               </UButton>
               <UBadge v-if="!row.prevImpressions" size="xs" variant="subtle">
@@ -261,7 +261,7 @@ function openUrl(url: string, target?: string) {
         <TrendPercentage v-else :value="row.impressions" :prev-value="row.prevImpressions" />
       </template>
       <template #actions-data="{ row }">
-        <UDropdown :items="[[{ label: 'Open URL', click: () => openUrl(row.url, '_blank') }], [{ label: 'URL Inspections', icon: 'i-heroicons-document-magnifying-glass', disabled: true }, (row.inspectionResult?.inspectionResultLink ? { label: 'View Inspection Result' } : undefined), { label: 'Inspect Index Status' }].filter(Boolean)]">
+        <UDropdown :items="[[{ label: 'Open Page', click: () => openUrl(row.page, '_blank') }], [{ label: 'Page Inspections', icon: 'i-heroicons-document-magnifying-glass', disabled: true }, (row.inspectionResult?.inspectionResultLink ? { label: 'View Inspection Result' } : undefined), { label: 'Inspect Index Status' }].filter(Boolean)]">
           <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="gray" />
         </UDropdown>
       </template>

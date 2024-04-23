@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { joinURL } from 'ufo'
 import type { GoogleSearchConsoleSite } from '~/types'
 
 definePageMeta({
@@ -86,67 +85,69 @@ const domain = ref(site.domain)
 watch(domain, () => {
   navigateTo(domain.value.to)
 })
-
-
 </script>
 
 <template>
-  <UPage class="px-10">
-<!--    <template #left>-->
-<!--      <div class="px-10 bg-gray-50/50 h-full">-->
-<!--        <UAside>-->
-<!--          <div class="mb-7">-->
-<!--            <USelectMenu :model-value="slug" variant="none" :options="sites" value-attribute="domain" @change="changeSite">-->
-<!--              <template #option="{ option }">-->
-<!--                <div class="flex w-full items-center">-->
-<!--                  <div class="flex items-center gap-2">-->
-<!--                    <img :src="`https://www.google.com/s2/favicons?domain=https://${useFriendlySiteUrl(option.domain)}`" alt="favicon" class="w-4 h-4 rounded-sm">-->
-<!--                    <span class="truncate">{{ useFriendlySiteUrl(option.domain) }}</span>-->
-<!--                  </div>-->
-<!--                </div>-->
-<!--              </template>-->
-<!--              <template #default="{ open }">-->
-<!--                <UButton color="white" variant="ghost" size="xl" class="flex items-center gap-2" :ui="{ padding: { xl: 'pl-0 -ml-7' } }">-->
-<!--                  <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />-->
-<!--                  <img :src="`https://www.google.com/s2/favicons?domain=https://${siteUrlFriendly}`" alt="favicon" class="w-4 h-4 rounded-sm">-->
-<!--                  {{ siteUrlFriendly }}-->
-<!--                </UButton>-->
-<!--              </template>-->
-<!--            </USelectMenu>-->
-<!--            <div class="flex items-center gap-3">-->
-<!--              <div class="text-sm">-->
-<!--                <template v-if="site.property.includes('sc-domain:')">-->
-<!--                  <div class="w-[200px] ">-->
-<!--                    <USelectMenu v-if="domains.length >= 2" v-model="domain" size="xs" :options="domains" variant="none">-->
-<!--                      <template #label>-->
-<!--                        <span class="text-gray-700 dark:text-gray-300">{{ domains.length }} Sites In Property</span>-->
-<!--                      </template>-->
-<!--                      <template #option="{ option }">-->
-<!--                        <img v-if="option.value" :src="`https://www.google.com/s2/favicons?domain=${option.value}`" alt="favicon" class="w-4 h-4 rounded-sm">-->
-<!--                        <span class="truncate">{{ option.label }}</span>-->
-<!--                      </template>-->
-<!--                    </USelectMenu>-->
-<!--                  </div>-->
-<!--                </template>-->
-<!--                <template v-else>-->
-<!--                  Site Property-->
-<!--                </template>-->
-<!--                <div class="text-xs text-gray-400">-->
-<!--                  <template v-if="useTimeAgo(data?.dates?.startDate, true) === 'a year ago'">-->
-<!--                    Created over 16 months ago-->
-<!--                  </template>-->
-<!--                  <template v-else>-->
-<!--                    Created {{ useTimeAgo(data?.dates?.startDate, true) }}-->
-<!--                  </template>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </UAside>-->
-<!--      </div>-->
-<!--    </template>-->
-    <NuxtPage
-      :site="site"
-    />
-  </UPage>
+  <DashboardPageTitle
+    v-if="$route.meta"
+    :icon="$route.meta.icon"
+    :title="$route.meta.title"
+    :description="$route.meta.description"
+  />
+  <!--    <template #left> -->
+  <!--      <div class="px-10 bg-gray-50/50 h-full"> -->
+  <!--        <UAside> -->
+  <!--          <div class="mb-7"> -->
+  <!--            <USelectMenu :model-value="slug" variant="none" :options="sites" value-attribute="domain" @change="changeSite"> -->
+  <!--              <template #option="{ option }"> -->
+  <!--                <div class="flex w-full items-center"> -->
+  <!--                  <div class="flex items-center gap-2"> -->
+  <!--                    <img :src="`https://www.google.com/s2/favicons?domain=https://${useFriendlySiteUrl(option.domain)}`" alt="favicon" class="w-4 h-4 rounded-sm"> -->
+  <!--                    <span class="truncate">{{ useFriendlySiteUrl(option.domain) }}</span> -->
+  <!--                  </div> -->
+  <!--                </div> -->
+  <!--              </template> -->
+  <!--              <template #default="{ open }"> -->
+  <!--                <UButton color="white" variant="ghost" size="xl" class="flex items-center gap-2" :ui="{ padding: { xl: 'pl-0 -ml-7' } }"> -->
+  <!--                  <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" /> -->
+  <!--                  <img :src="`https://www.google.com/s2/favicons?domain=https://${siteUrlFriendly}`" alt="favicon" class="w-4 h-4 rounded-sm"> -->
+  <!--                  {{ siteUrlFriendly }} -->
+  <!--                </UButton> -->
+  <!--              </template> -->
+  <!--            </USelectMenu> -->
+  <!--            <div class="flex items-center gap-3"> -->
+  <!--              <div class="text-sm"> -->
+  <!--                <template v-if="site.property.includes('sc-domain:')"> -->
+  <!--                  <div class="w-[200px] "> -->
+  <!--                    <USelectMenu v-if="domains.length >= 2" v-model="domain" size="xs" :options="domains" variant="none"> -->
+  <!--                      <template #label> -->
+  <!--                        <span class="text-gray-700 dark:text-gray-300">{{ domains.length }} Sites In Property</span> -->
+  <!--                      </template> -->
+  <!--                      <template #option="{ option }"> -->
+  <!--                        <img v-if="option.value" :src="`https://www.google.com/s2/favicons?domain=${option.value}`" alt="favicon" class="w-4 h-4 rounded-sm"> -->
+  <!--                        <span class="truncate">{{ option.label }}</span> -->
+  <!--                      </template> -->
+  <!--                    </USelectMenu> -->
+  <!--                  </div> -->
+  <!--                </template> -->
+  <!--                <template v-else> -->
+  <!--                  Site Property -->
+  <!--                </template> -->
+  <!--                <div class="text-xs text-gray-400"> -->
+  <!--                  <template v-if="useTimeAgo(data?.dates?.startDate, true) === 'a year ago'"> -->
+  <!--                    Created over 16 months ago -->
+  <!--                  </template> -->
+  <!--                  <template v-else> -->
+  <!--                    Created {{ useTimeAgo(data?.dates?.startDate, true) }} -->
+  <!--                  </template> -->
+  <!--                </div> -->
+  <!--              </div> -->
+  <!--            </div> -->
+  <!--          </div> -->
+  <!--        </UAside> -->
+  <!--      </div> -->
+  <!--    </template> -->
+  <NuxtPage
+    :site="site"
+  />
 </template>

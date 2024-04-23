@@ -17,23 +17,12 @@ useHead({
 </script>
 
 <template>
-  <div>
-    <UPageHeader headline="Your Site">
-      <template #title>
-        <div class="flex items-center gap-3">
-          <UIcon :name="$route.meta.icon" />
-          {{ $route.meta.title }}
-        </div>
-      </template>
-      <template #links />
-    </UPageHeader>
-    <UPageBody>
-      <UCard v-if="report?.lighthouseResult">
-        <div v-for="category in report?.lighthouseResult.categories" :key="category.id">
-          <h2>{{ category.title }}</h2>
-          <p>{{ category.score }}</p>
-        </div>
-      </UCard>
-    </UPageBody>
-  </div>
+<div>
+  <UCard v-if="report?.lighthouseResult">
+    <div v-for="category in report?.lighthouseResult.categories" :key="category.id">
+      <h2>{{ category.title }}</h2>
+      <p>{{ category.score }}</p>
+    </div>
+  </UCard>
+</div>
 </template>

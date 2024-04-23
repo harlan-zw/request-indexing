@@ -17,18 +17,7 @@ useHead({
 </script>
 
 <template>
-  <div>
-    <UPageHeader headline="Your Site">
-      <template #title>
-        <div class="flex items-center gap-3">
-          <UIcon :name="$route.meta.icon" />
-          {{ $route.meta.title }}
-        </div>
-      </template>
-      <template #links />
-    </UPageHeader>
-    <UPageBody>
-      <UCard>
+  <UCard>
         <template #header>
           <h2 class="font-bold">
             Historical Origin CrUX
@@ -54,6 +43,4 @@ useHead({
           </div>
         </div>
       </UCard>
-    </UPageBody>
-  </div>
 </template>

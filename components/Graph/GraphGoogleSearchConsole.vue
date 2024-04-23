@@ -2,9 +2,13 @@
 import { createChart } from 'lightweight-charts'
 
 const props = defineProps<{
-  value?: { time: string, value: number }[]
-  value2?: { time: string, value: number }[]
+  value: { clicks: { time: string, value: number }[], impressions: { time: string, value: number }[] }
+  charts: ('clicks' | 'impressions' | 'ctr' | 'position')[]
   height?: number | string
+}>()
+
+const emits = defineEmits<{
+  tooltip: [data: { clicks: number, impressions: number, time: string } | null]
 }>()
 
 const colorMode = useColorMode()
@@ -116,36 +120,56 @@ onMounted(() => {
   })
   _chart.timeScale().fitContent()
 
-  const areaSeries = _chart.addLineSeries({
-    topColor: 'rgba(33, 150, 243, 0.56)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 1)',
-    lineWidth: 2,
-    priceLineVisible: false,
-    lastValueVisible: false,
-    priceScaleId: 'right',
-    priceFormat: {
-      type: 'volume',
-    },
-    lineType: 2,
+  props.charts.forEach((chart) => {
+    switch (chart) {
+      case 'clicks':
+        _chart.addAreaSeries({
+          topColor: 'rgba(33, 150, 243, 0.56)',
+          bottomColor: 'rgba(33, 150, 243, 0.04)',
+          lineColor: 'rgba(33, 150, 243, 1)',
+          lineWidth: 2,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          priceScaleId: 'right',
+          priceFormat: {
+            type: 'volume',
+          },
+          lineType: 2,
+        }).setData(props.value.clicks)
+        break
+      case 'impressions':
+        _chart.addAreaSeries({
+          topColor: 'rgba(156, 39, 176, 0.3)',
+          bottomColor: 'rgba(156, 39, 176, 0.04)',
+          lineColor: 'rgba(156, 39, 176, 0.4)',
+          lineWidth: 2,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          priceScaleId: 'right',
+          priceFormat: {
+            type: 'volume',
+          },
+          lineType: 2,
+        }).setData(props.value.impressions)
+        break
+      case 'position':
+        // position uses an orange colour
+        _chart.addAreaSeries({
+          topColor: 'rgba(255, 152, 0, 0.3)',
+          bottomColor: 'rgba(255, 152, 0, 0.04)',
+          lineColor: 'rgba(255, 152, 0, 0.4)',
+          lineWidth: 2,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          priceScaleId: 'right',
+          priceFormat: {
+            type: 'volume',
+          },
+          lineType: 2,
+        }).setData(props.value.position)
+        break
+    }
   })
-  if (props.value && props.value.length)
-    areaSeries.setData(props.value)
-
-  const areaSeries2 = _chart.addAreaSeries({
-    topColor: 'rgba(33, 150, 243, 0.56)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 1)',
-    lineWidth: 2,
-    priceLineVisible: false,
-    lastValueVisible: false,
-    priceFormat: {
-      type: 'volume',
-    },
-    lineType: 2,
-  })
-  if (props.value2 && props.value2.length)
-    areaSeries2.setData(props.value2)
 
   _chart.subscribeCrosshairMove((param) => {
     const _container = container.value!
@@ -167,24 +191,33 @@ onMounted(() => {
       // time will be in the same format that we supplied to setData.
       // thus it will be YYYY-MM-DD
       const dateStr = param.time
-      // toolTip.style.display = 'block'
-      const _clicks = param.seriesData.get(areaSeries)!
-      const clicks = _clicks.value !== undefined ? _clicks.value : _clicks.time
-      const _impressions = param.seriesData.get(areaSeries2)
-      const impressions = _impressions?.value !== undefined ? _impressions?.value : _impressions?.time
-
+      const clicks = props.value.clicks.find(d => d.time === dateStr).value
+      const impressions = props.value.impressions.find(d => d.time === dateStr).value
+      const position = props.value.position.find(d => d.time === dateStr).value
       tooltipData.value = {
         clicks,
         impressions,
+        position,
         time: dateStr,
       }
+      // toolTip.style.display = 'block'
+      // const _clicks = param.seriesData.get(areaSeries)!
+      // const clicks = _clicks.value !== undefined ? _clicks.value : _clicks.time
+      // const _impressions = param.seriesData.get(areaSeries2)
+      // const impressions = _impressions?.value !== undefined ? _impressions?.value : _impressions?.time
+      //
+      // tooltipData.value = {
+      //   clicks,
+      //   impressions,
+      //   time: dateStr,
+      // }
     }
   })
 
   function syncToTheme(theme) {
     _chart.applyOptions(themesData[theme].chart)
-    areaSeries.applyOptions(themesData[theme].series)
-    areaSeries2.applyOptions(themesData[theme].series2)
+    // areaSeries.applyOptions(themesData[theme].series)
+    // areaSeries2.applyOptions(themesData[theme].series2)
   }
 
   syncToTheme(colorMode.value === 'dark' ? 'Dark' : 'Light')
@@ -192,34 +225,25 @@ onMounted(() => {
     syncToTheme(newVal.value === 'dark' ? 'Dark' : 'Light')
   })
 })
+
+watch(tooltipData, (val) => {
+  emits('tooltip', val?.time === '' ? null : val)
+})
+
+const containerHovered = useElementHover(container)
+watch(containerHovered, (val) => {
+  if (!val) {
+    tooltipData.value = {
+      clicks: 0,
+      impressions: 0,
+      time: '',
+    }
+  }
+})
 </script>
 
 <template>
   <div ref="container" class="w-full h-full">
     <div ref="chart" />
-    <div class="tooltip">
-      <div v-if="tooltipData.time" class="dark:text-gray-200 text-gray-600 text-xs">
-        <div class="dark:text-gray-400 text-gray-500 text-xs ">
-          {{ tooltipData.time }}
-        </div>
-        <div>Clicks {{ useHumanFriendlyNumber(tooltipData.clicks) }}</div>
-        <div v-if="tooltipData.impressions">
-          Impressions {{ useHumanFriendlyNumber(tooltipData.impressions) }}
-        </div>
-      </div>
-    </div>
   </div>
 </template>
-
-<style scoped>
-.tooltip {
-  text-align: center;
-  position: absolute;
-  padding: 4px;
-  z-index: 20;
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-</style>

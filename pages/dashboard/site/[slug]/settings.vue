@@ -2,15 +2,17 @@
 defineProps<{ graph: any }>()
 
 definePageMeta({
-  title: 'Backups',
-  icon: 'i-heroicons-circle-stack',
+  title: 'Settings',
+  icon: 'i-heroicons-cog',
 })
 
 useHead({
-  title: 'Backups',
+  title: 'Settings',
 })
 </script>
 
 <template>
-  <div>backups</div>
+  <div>
+    <div>settings</div>
+  </div>
 </template>
