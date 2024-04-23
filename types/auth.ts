@@ -39,7 +39,6 @@ export interface User {
   // legacy
   indexingOAuthId?: string
   indexingOAuthIdNext?: string
-  lastIndexingOAuthId?: string
   lastIndexingOAuthIdNext?: string
   analyticsPeriod: string
   hiddenSites?: string[]

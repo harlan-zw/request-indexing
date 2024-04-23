@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   await setUserSession(event, {
     user: {
       indexingOAuthIdNext: '',
-      lastIndexingOAuthId: user.indexingOAuthIdNext,
+      lastIndexingOAuthIdNext: user.indexingOAuthIdNext,
     },
   })
 

@@ -32,6 +32,11 @@ export default defineEventHandler(async (event) => {
   }
   else {
     token = pool.get(tokenId)
+    if (!token) {
+      // claim a free one (pro user fallback)
+      token = await pool.free()
+      tokenId = token?.id
+    }
   }
   if (!token || !tokenId) {
     // sent rate limted, too many users
