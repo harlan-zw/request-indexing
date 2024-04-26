@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@9.0.5",
+  "packageManager": "pnpm@9.0.6",
   "scripts": {
     "db:generate": "drizzle-kit generate:sqlite",
     "build": "nuxt build",
@@ -29,10 +29,10 @@
     "@nuxt/fonts": "^0.6.1",
     "@nuxt/image": "^1.6.0",
     "@nuxt/ui-pro": "^1.1.0",
-    "@nuxthub/core": "^0.5.11",
+    "@nuxthub/core": "^0.5.13",
     "@nuxtjs/google-fonts": "^3.2.0",
     "@nuxtjs/seo": "^2.0.0-rc.10",
-    "@upstash/qstash": "^2.4.3",
+    "@upstash/qstash": "^2.5.0",
     "@vueuse/nuxt": "^10.9.0",
     "dayjs-nuxt": "^2.1.9",
     "drizzle-orm": "^0.30.9",
@@ -49,14 +49,14 @@
     "vue-router": "^4.3.2"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.15.0",
+    "@antfu/eslint-config": "^2.16.0",
     "@nuxt/test-utils": "^3.12.1",
     "bumpp": "^9.4.0",
     "drizzle-kit": "^0.20.17",
     "eslint": "^9.1.1",
     "typescript": "^5.4.5",
-    "vitest": "^1.5.1",
-    "wrangler": "^3.51.2"
+    "vitest": "^1.5.2",
+    "wrangler": "^3.52.0"
   },
   "pnpm": {
     "overrides": {
