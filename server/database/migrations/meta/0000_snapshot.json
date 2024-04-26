@@ -1,9 +1,143 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "6a162423-dcd6-486e-816a-6a107c2a0856",
+  "id": "53cf8d35-b3f5-4213-a517-f050841ddb81",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "failed_jobs": {
+      "name": "failed_jobs",
+      "columns": {
+        "failed_job_id": {
+          "name": "failed_job_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "job_id": {
+          "name": "job_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "exception": {
+          "name": "exception",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "failed_at": {
+          "name": "failed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "failed_jobs_job_id_jobs_job_id_fk": {
+          "name": "failed_jobs_job_id_jobs_job_id_fk",
+          "tableFrom": "failed_jobs",
+          "tableTo": "jobs",
+          "columnsFrom": [
+            "job_id"
+          ],
+          "columnsTo": [
+            "job_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "jobs": {
+      "name": "jobs",
+      "columns": {
+        "job_id": {
+          "name": "job_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "queue": {
+          "name": "queue",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload": {
+          "name": "payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "available_at": {
+          "name": "available_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        }
+      },
+      "indexes": {
+        "queue_idx": {
+          "name": "queue_idx",
+          "columns": [
+            "queue"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "sessions": {
       "name": "sessions",
       "columns": {
@@ -79,16 +213,9 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "site_url_analytics": {
-      "name": "site_url_analytics",
+    "site_date_analytics": {
+      "name": "site_date_analytics",
       "columns": {
-        "site_url_analytic_id": {
-          "name": "site_url_analytic_id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
         "site_id": {
           "name": "site_id",
           "type": "integer",
@@ -96,18 +223,11 @@
           "notNull": true,
           "autoincrement": false
         },
-        "page": {
-          "name": "page",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "date": {
           "name": "date",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "clicks": {
@@ -142,6 +262,22 @@
           "autoincrement": false,
           "default": 0
         },
+        "indexedPercent": {
+          "name": "indexedPercent",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "indexed": {
+          "name": "indexed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -152,25 +288,19 @@
         }
       },
       "indexes": {
-        "path_idx_analytics": {
-          "name": "path_idx_analytics",
+        "site_date_analytics_site_id_date_unique": {
+          "name": "site_date_analytics_site_id_date_unique",
           "columns": [
-            "page"
-          ],
-          "isUnique": false
-        },
-        "date_idx_analytics": {
-          "name": "date_idx_analytics",
-          "columns": [
+            "site_id",
             "date"
           ],
-          "isUnique": false
+          "isUnique": true
         }
       },
       "foreignKeys": {
-        "site_url_analytics_site_id_sites_site_id_fk": {
-          "name": "site_url_analytics_site_id_sites_site_id_fk",
-          "tableFrom": "site_url_analytics",
+        "site_date_analytics_site_id_sites_site_id_fk": {
+          "name": "site_date_analytics_site_id_sites_site_id_fk",
+          "tableFrom": "site_date_analytics",
           "tableTo": "sites",
           "columnsFrom": [
             "site_id"
@@ -230,20 +360,6 @@
           "notNull": true,
           "autoincrement": false,
           "default": false
-        },
-        "psi_mobile_payload": {
-          "name": "psi_mobile_payload",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "psi_desktop_payload": {
-          "name": "psi_desktop_payload",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
         },
         "psi_desktop_score": {
           "name": "psi_desktop_score",
@@ -398,8 +514,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "is_domain_property": {
-          "name": "is_domain_property",
+        "active": {
+          "name": "active",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -422,6 +538,20 @@
         },
         "parent_id": {
           "name": "parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_synced": {
+          "name": "last_synced",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "owner_id": {
+          "name": "owner_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -458,6 +588,19 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
+        },
+        "sites_owner_id_users_user_id_fk": {
+          "name": "sites_owner_id_users_user_id_fk",
+          "tableFrom": "sites",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -479,14 +622,6 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
-        },
-        "visible": {
-          "name": "visible",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
         }
       },
       "indexes": {
@@ -734,16 +869,9 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "user_team_sites": {
-      "name": "user_team_sites",
+    "user_sites": {
+      "name": "user_sites",
       "columns": {
-        "team_id": {
-          "name": "team_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "user_id": {
           "name": "user_id",
           "type": "integer",
@@ -758,34 +886,18 @@
           "notNull": true,
           "autoincrement": false
         },
-        "origin": {
-          "name": "origin",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "permission_level": {
           "name": "permission_level",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "visible": {
-          "name": "visible",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
         }
       },
       "indexes": {
-        "user_team_sites_team_id_user_id_site_id_unique": {
-          "name": "user_team_sites_team_id_user_id_site_id_unique",
+        "user_sites_user_id_site_id_unique": {
+          "name": "user_sites_user_id_site_id_unique",
           "columns": [
-            "team_id",
             "user_id",
             "site_id"
           ],
@@ -793,22 +905,9 @@
         }
       },
       "foreignKeys": {
-        "user_team_sites_team_id_teams_team_id_fk": {
-          "name": "user_team_sites_team_id_teams_team_id_fk",
-          "tableFrom": "user_team_sites",
-          "tableTo": "teams",
-          "columnsFrom": [
-            "team_id"
-          ],
-          "columnsTo": [
-            "team_id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "user_team_sites_user_id_users_user_id_fk": {
-          "name": "user_team_sites_user_id_users_user_id_fk",
-          "tableFrom": "user_team_sites",
+        "user_sites_user_id_users_user_id_fk": {
+          "name": "user_sites_user_id_users_user_id_fk",
+          "tableFrom": "user_sites",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
@@ -819,9 +918,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "user_team_sites_site_id_sites_site_id_fk": {
-          "name": "user_team_sites_site_id_sites_site_id_fk",
-          "tableFrom": "user_team_sites",
+        "user_sites_site_id_sites_site_id_fk": {
+          "name": "user_sites_site_id_sites_site_id_fk",
+          "tableFrom": "user_sites",
           "tableTo": "sites",
           "columnsFrom": [
             "site_id"

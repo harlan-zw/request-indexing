@@ -14,6 +14,7 @@ export default defineNitroPlugin((nitro) => {
       const nextKey = (await storage.getKeys()).pop()
       if (nextKey) {
         const message = (await storage.getItem(nextKey))!
+        console.info('Working queue message', message.taskId, message.urlOrTopic, message.payload)
         // the message should unqueue it
         // send message using a $fetch, json
         await storage.removeItem(nextKey, message)

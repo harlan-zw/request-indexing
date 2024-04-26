@@ -16,15 +16,15 @@ useHead({
 </script>
 
 <template>
-<div>
-  <UCard v-if="pages" :ui="{ body: { padding: 'px-3 py-1' } }">
-    <div class="text-2xl font-bold flex gap-2 items-center">
-      {{ useHumanFriendlyNumber(pages.periodCount) }}  <span class="font-normal text-sm">Pages</span>
-    </div>
-    <TrendPercentage :value="pages.periodCount" :prev-value="pages.prevPeriodCount" />
-  </UCard>
-  <UCard>
-    <TablePages :value="pages?.rows" :site="site" />
-  </UCard>
-</div>
+  <div>
+    <UCard v-if="pages" :ui="{ body: { padding: 'px-3 py-1' } }">
+      <div class="text-2xl font-bold flex gap-2 items-center">
+        {{ useHumanFriendlyNumber(pages.periodCount) }}  <span class="font-normal text-sm">Pages</span>
+      </div>
+      <TrendPercentage :value="pages.periodCount" :prev-value="pages.prevPeriodCount" />
+    </UCard>
+    <UCard>
+      <TablePages :value="pages?.rows" :site="site" />
+    </UCard>
+  </div>
 </template>

@@ -1,5 +1,5 @@
 import { ServerClient } from 'postmark'
-import type { UserSelect } from '~/server/database/schema'
+import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
 
 const WelcomeEmail = `Thanks for trying out Request Indexing.
 
@@ -12,16 +12,21 @@ P.s. You can find the source code for Request Indexing on GitHub: https://github
 Cheers
 Harlan`
 
-export default defineEventHandler(async (event) => {
-  const user = await readBody<UserSelect>(event)
+export default defineJobHandler(async (event) => {
+  const { userId } = await readBody<{ userId: number }>(event)
 
-  const client = new ServerClient(useRuntimeConfig(event).postmark.apiKey)
+  if (import.meta.dev) {
+    // mock
+    console.log('Sending welcome email to:', userId)
+    return { result: 'mocked' }
+  }
+  // const { email } = payload as { email: string }
+  const client = new ServerClient(useRuntimeConfig().postmark.apiKey)
   await client.sendEmail({
     From: 'harlan@harlanzw.com',
     Bcc: 'harlan@harlanzw.com',
-    To: user.email,
+    To: email,
     Subject: 'Welcome to Request Indexing',
     TextBody: WelcomeEmail,
   })
-  return 'OK'
 })

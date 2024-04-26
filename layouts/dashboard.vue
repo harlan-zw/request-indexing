@@ -12,6 +12,8 @@ const sites = computed(() => {
   return (data.value?.sites || [])
 })
 
+console.log(sites.value)
+
 const logout = createLogoutHandler()
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
 
@@ -106,13 +108,18 @@ const siteLinks = computed(() => !site.value
 const teamLinks = computed(() => [
   // members
   {
+    label: 'Google Accounts',
+    to: '/dashboard/team/accounts',
+    icon: 'i-heroicons-user-circle',
+  },
+  {
     label: 'Members',
     to: '/dashboard/team/members',
     icon: 'i-heroicons-users',
   },
   {
     label: 'Settings',
-    to: '/dashboard/settings',
+    to: '/dashboard/team/settings',
     icon: 'i-heroicons-cog',
   },
 ])
@@ -309,10 +316,10 @@ const groups = [{
         <template v-else>
           <USelectMenu v-model="session.team.name" :options="[{ label: session.team.name }, { label: 'Create Team', icon: 'i-heroicons-plus' }]">
             <template #default="{ open }">
-            <UButton color="white" variant="ghost" size="sm" class="flex items-center gap-2" :ui="{ padding: { xl: 'pl-0 -ml-7' } }">
-              <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
-              {{ session.team.name}}
-            </UButton>
+              <UButton color="white" variant="ghost" size="sm" class="flex items-center gap-2" :ui="{ padding: { xl: 'pl-0 -ml-7' } }">
+                <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
+                {{ session.team.name }}
+              </UButton>
             </template>
           </USelectMenu>
           <div class="text-sm text-gray-700 mt-3">
@@ -325,7 +332,7 @@ const groups = [{
           </div>
           <UDivider />
           <UDashboardSidebarLinks :links="onlySiteLinks" />
-          <div class="flex flex-grow"></div>
+          <div class="flex flex-grow" />
           <div class="text-sm text-gray-700 mt-3">
             <div>Team</div>
           </div>
@@ -374,15 +381,15 @@ const groups = [{
 
     <div class="overflow-y-auto py-8 w-full">
       <DashboardHeader />
-      <UDashboardPanelContent >
+      <div class="px-10">
         <DashboardPageTitle
           v-if="$route.meta"
           :icon="$route.meta.icon"
           :title="$route.meta.title"
           :description="$route.meta.description"
         />
-          <slot />
-      </UDashboardPanelContent>
+        <slot />
+      </div>
     </div>
 
     <ClientOnly>

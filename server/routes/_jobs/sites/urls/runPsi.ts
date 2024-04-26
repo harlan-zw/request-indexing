@@ -1,7 +1,8 @@
 import { pagespeedonline } from '@googleapis/pagespeedonline'
 import { siteUrls } from '~/server/database/schema'
+import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
 
-export default defineEventHandler(async (event) => {
+export default defineJobHandler(async (event) => {
   const { siteId, page, strategy } = await readBody<{ siteId: number, page: string, strategy: string }>(event)
 
   const api = pagespeedonline('v5', {
@@ -31,5 +32,6 @@ export default defineEventHandler(async (event) => {
       psiDesktopScore: Object.values(res.lighthouseResult.categories).reduce((acc, cat) => acc + cat.score, 0) / 4,
     }).where(and(eq(siteUrls.siteId, siteId), eq(siteUrls.path, path)))
   }
-  await hubBlob().put(`psi:${siteId}:${path}:${strategy}.json`, JSON.stringify(res))
+  await hubBlob().put(`psi:${siteId}:${path}:${strategy}:lighthouse.json`, JSON.stringify(res))
+  await hubBlob().put(`psi:${siteId}:${path}:${strategy}:screenshot.png`, res.lighthouseResult.audits['final-screenshot'].details.data)
 })

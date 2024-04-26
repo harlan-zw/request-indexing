@@ -17,12 +17,12 @@ useHead({
 </script>
 
 <template>
-<div>
-  <UCard v-if="report?.lighthouseResult">
-    <div v-for="category in report?.lighthouseResult.categories" :key="category.id">
-      <h2>{{ category.title }}</h2>
-      <p>{{ category.score }}</p>
-    </div>
-  </UCard>
-</div>
+  <div>
+    <UCard v-if="report?.lighthouseResult">
+      <div v-for="category in report?.lighthouseResult.categories" :key="category.id">
+        <h2>{{ category.title }}</h2>
+        <p>{{ category.score }}</p>
+      </div>
+    </UCard>
+  </div>
 </template>

@@ -40,23 +40,33 @@ export default defineNuxtConfig({
       nuxt.options.nitro!.virtual = nuxt.options.nitro!.virtual || {}
       nuxt.options.nitro.virtual['#app/token-pool.mjs']
         = [
-          `export const tokens = ${JSON.stringify(tokens.map((t) => {
-        t.id = t.id || hash(t)
-        return t
-      }))}`,
-          `export const privateTokens = ${JSON.stringify(privateTokens.map((t) => {
-            t.id = t.id || hash(t)
-            return t
-          }))}`,
+        `export const tokens = ${JSON.stringify(tokens.map((t) => {
+          t.id = t.id || hash(t)
+          return t
+        }))}`,
+        `export const privateTokens = ${JSON.stringify(privateTokens.map((t) => {
+          t.id = t.id || hash(t)
+          return t
+        }))}`,
         ].join('\n')
     },
   ],
   ogImage: {
     enabled: false,
   },
+  hooks: {
+    'nitro:config': function (config) {
+      config.typescript = config.typescript || {}
+      config.typescript.tsConfig = config.typescript.tsConfig || {}
+      config.typescript.tsConfig.include = config.typescript.tsConfig.include || []
+      config.typescript.tsConfig.include.push(resolve('./server/hooks.d.ts'))
+    },
+  },
   messageQueue: {
     devMessageQueue: {
-      // driver: 'sync',
+      // driver: 'cloudflare',
+      // queue: 'dev-queue',
+      // binding: 'DEV_QUEUE',
       driver: 'unstorage',
       storage: {
         base: '.db/queue',
@@ -92,6 +102,11 @@ export default defineNuxtConfig({
     preset: 'cloudflare-pages',
     experimental: {
       websocket: true,
+      tasks: true,
+    },
+    scheduledTasks: {
+      // Run `cms:update` task every minute
+      '0 0 * * *': ['sync.daily'],
     },
     imports: {
       dirs: recursiveServerAppFolders,

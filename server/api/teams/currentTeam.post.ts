@@ -1,12 +1,12 @@
 import { inArray } from 'drizzle-orm'
 import { useAuthenticatedUser } from '~/server/app/utils/auth'
 import type { TeamSelect } from '~/server/database/schema'
-import { teamSites, teams } from '~/server/database/schema'
+import { sites, teamSites, teams } from '~/server/database/schema'
 
 export default defineEventHandler(async (event) => {
   const _user = await useAuthenticatedUser(event)
 
-  const { onboardedStep, backupsEnabled, selectedSites } = await readBody<Partial<TeamSelect> & { selectedSites: number[] }>(event)
+  const { onboardedStep, backupsEnabled, selectedSites } = await readBody<Partial<TeamSelect> & { selectedSites: string[] }>(event)
   const hasSelectedSites = selectedSites && selectedSites.length > 0
   if (hasSelectedSites && selectedSites.length > 6) {
     return sendError(event, createError({
@@ -15,23 +15,31 @@ export default defineEventHandler(async (event) => {
     }))
   }
   const db = useDrizzle()
-  await Promise.all([
+  const realSiteIds = await db.select({ siteId: sites.siteId })
+    .from(sites)
+    .where(inArray(sites.publicId, selectedSites))
+  console.log(realSiteIds, selectedSites)
+  const [team] = await Promise.all([
     // update team
     db.update(teams).set({
       backupsEnabled,
       onboardedStep,
-    }).where(eq(teams.teamId, _user.currentTeamId)),
+    }).where(eq(teams.teamId, _user.currentTeamId))
+      .returning(),
 
-    // disable all
-    db.update(teamSites).set({
-      visible: false,
-    }).where(eq(teamSites.teamId, _user.currentTeamId)),
+    db.delete(teamSites).where(eq(teamSites.teamId, _user.currentTeamId)),
 
     // enable selected
-    db.update(teamSites).set({
-      visible: true,
-    }).where(and(inArray(teamSites.siteId, selectedSites), eq(teamSites.teamId, _user.currentTeamId))),
+    db.insert(teamSites).values(realSiteIds.map(site => ({
+      teamId: _user.currentTeamId,
+      ...site,
+    }))),
   ])
+
+  const nitroApp = useNitroApp()
+  await nitroApp.hooks.callHook('app:team:sites-selected', team[0])
+
+  return 'OK'
 
   // sync any new sites we may be adding
   // const addingSitesDiff = hasSelectedSites ? selectedSites.filter(site => !(_user.selectedSites || []).includes(site)) : []

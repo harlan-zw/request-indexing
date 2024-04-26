@@ -18,13 +18,11 @@ const selectedCharts = ref([
 ])
 
 function toggleChart(chart: string) {
-  if (selectedCharts.value.includes(chart)) {
+  if (selectedCharts.value.includes(chart))
     selectedCharts.value = selectedCharts.value.filter(c => c !== chart)
-  } else {
+  else
     selectedCharts.value.push(chart)
-  }
 }
-
 
 // const isSyncLoading = ref(false)
 // function sync() {
@@ -66,28 +64,28 @@ function toggleChart(chart: string) {
 </script>
 
 <template>
-<UPage class="mx-auto max-w-[1400px]">
-  <div>
-    <DashboardPageTitle
-      icon="i-heroicons-rocket-launch"
-      title="PageSpeed Insights"
-      description="See how your sites organic Google traffic is performing."
-    />
-    <div class="flex flex-wrap gap-5">
-      <div v-for="(site) in sites" :key="site.siteId">
-        <CardGoogleSearchConsole :site="site" :selected-charts="selectedCharts" @toggle-chart="toggleChart" />
-      </div>
-      <UCard :ui="{ body: { base: ['w-full h-full min-h-[275px]'] } }">
-        <div class="flex text-center items-center flex-col justify-center h-full">
-          <UButton to="https://search.google.com/search-console" variant="link" target="_blank" size="xl" icon="i-heroicons-plus" color="gray" class="mb-2">
-            <span>Add New Site</span>
-          </UButton>
-          <p class="text-gray-500 text-xs">
-            You will need to create a new Property in Google Search Console and then refresh.
-          </p>
+  <UPage class="mx-auto max-w-[1400px]">
+    <div>
+      <DashboardPageTitle
+        icon="i-heroicons-rocket-launch"
+        title="PageSpeed Insights"
+        description="See how your sites organic Google traffic is performing."
+      />
+      <div class="flex flex-wrap gap-5">
+        <div v-for="(site) in sites" :key="site.siteId">
+          <CardGoogleSearchConsole :site="site" :selected-charts="selectedCharts" @toggle-chart="toggleChart" />
         </div>
-      </UCard>
+        <UCard :ui="{ body: { base: ['w-full h-full min-h-[275px]'] } }">
+          <div class="flex text-center items-center flex-col justify-center h-full">
+            <UButton to="https://search.google.com/search-console" variant="link" target="_blank" size="xl" icon="i-heroicons-plus" color="gray" class="mb-2">
+              <span>Add New Site</span>
+            </UButton>
+            <p class="text-gray-500 text-xs">
+              You will need to create a new Property in Google Search Console and then refresh.
+            </p>
+          </div>
+        </UCard>
+      </div>
     </div>
-  </div>
-</UPage>
+  </UPage>
 </template>

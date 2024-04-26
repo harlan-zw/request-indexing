@@ -17,13 +17,13 @@ useHead({
 </script>
 
 <template>
-<UCard v-if="keywords" :ui="{ body: { padding: 'px-3 py-1' } }">
-  <div class="text-2xl font-bold flex gap-2 items-center">
-    {{ useHumanFriendlyNumber(keywords.periodCount) }}  <span class="font-normal text-sm">Keywords</span>
-  </div>
-  <TrendPercentage :value="keywords.periodCount" :prev-value="keywords.prevPeriodCount" />
-</UCard>
-<UCard>
-  <TableKeywords :value="keywords?.rows || []" :site="site" />
-</UCard>
+  <UCard v-if="keywords" :ui="{ body: { padding: 'px-3 py-1' } }">
+    <div class="text-2xl font-bold flex gap-2 items-center">
+      {{ useHumanFriendlyNumber(keywords.periodCount) }}  <span class="font-normal text-sm">Keywords</span>
+    </div>
+    <TrendPercentage :value="keywords.periodCount" :prev-value="keywords.prevPeriodCount" />
+  </UCard>
+  <UCard>
+    <TableKeywords :value="keywords?.rows || []" :site="site" />
+  </UCard>
 </template>

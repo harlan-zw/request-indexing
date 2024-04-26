@@ -5,8 +5,6 @@ import { relations, sql } from 'drizzle-orm'
 import type { Credentials } from 'google-auth-library'
 import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
 import type { RequiredNonNullable } from '~/types/util'
-import {pagespeedonline_v5, Schema$PagespeedApiPagespeedResponseV5} from "@googleapis/pagespeedonline/v5";
-import {percentDifference} from "~/server/app/utils/formatting";
 
 const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz'
 const length = 12
@@ -90,8 +88,10 @@ export type UserSelect = typeof users.$inferSelect
 export const sites = sqliteTable('sites', {
   siteId: integer('site_id').notNull().primaryKey(),
   publicId: text('public_id').notNull().$defaultFn(nanoid),
-  property: text('property').notNull(), // must have a gsc property linked to it
-  isDomainProperty: integer('is_domain_property', { mode: 'boolean' }).notNull().default(false),
+  property: text('property').notNull(),
+  // hides domain properties which we've split into multiple sites
+  active: integer('active', { mode: 'boolean' }).notNull().default(false),
+  // isDomainProperty: integer('is_domain_property', { mode: 'boolean' }).notNull().default(false),
   sitemaps: text('sitemaps', { mode: 'json' }).$type<RequiredNonNullable<searchconsole_v1.Schema$WmxSitemap>[]>(),
 
   // for split domain properties
@@ -104,10 +104,14 @@ export const sites = sqliteTable('sites', {
   // siteSettings: text('site_settings', { mode: 'json' }),
   // searchConsolePayload: text('search_console_payload', { mode: 'json' }),
 
+  lastSynced: integer('last_synced'),
+  ownerId: integer('owner_id').references((): AnySQLiteColumn => users.userId),
+
   createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
   updatedAt: integer('updated_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
 })
 
+export type SiteInsert = typeof sites.$inferInsert
 export type SiteSelect = typeof sites.$inferSelect
 
 export const siteUrls = sqliteTable('site_urls', {
@@ -140,41 +144,76 @@ export const siteUrls = sqliteTable('site_urls', {
 
 export type SiteUrlSelect = typeof siteUrls.$inferSelect
 
-export const siteUrlAnalytics = sqliteTable('site_url_analytics', {
-  siteUrlAnalyticId: integer('site_url_analytic_id').notNull().primaryKey(),
+export const siteDateAnalytics = sqliteTable('site_date_analytics', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),
-  page: text('page'), // all data for a day
-  date: text('date'), // all data for a path
+  date: text('date').notNull(), // all data for a path
+
+  // google search console
   clicks: integer('clicks').default(0),
   impressions: integer('impressions').default(0),
   ctr: integer('ctr').default(0),
   position: integer('position').default(0),
+  // web indexing
+  indexedPercent: integer('indexedPercent').default(0),
+  pagesCount: integer('indexed').default(0),
 
   createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
 }, t => ({
-  pageIdx: index('path_idx_analytics').on(t.page),
-  dateIdx: index('date_idx_analytics').on(t.date),
+  unq: unique().on(t.siteId, t.date),
 }))
 
-export const userTeamSites = sqliteTable('user_team_sites', {
-  teamId: integer('team_id').notNull().references(() => teams.teamId),
+// allow users to hide sites within a team dashboard, also track their permission level to a site
+export const userSites = sqliteTable('user_sites', {
   userId: integer('user_id').notNull().references(() => users.userId),
   siteId: integer('site_id').notNull().references(() => sites.siteId),
-  origin: text('origin'),
   permissionLevel: text('permission_level'),
-  visible: integer('visible', { mode: 'boolean' }).notNull().default(true),
 }, t => ({
-  unq: unique().on(t.teamId, t.userId, t.siteId),
+  unq: unique().on(t.userId, t.siteId),
 }))
+
+export type UserSitesSelect = typeof userSites.$inferSelect
+export type UserSitesInsert = typeof userSites.$inferInsert
 
 // multiple users and access a single site
 export const teamSites = sqliteTable('team_sites', {
   teamId: integer('team_id').notNull().references(() => teams.teamId),
   siteId: integer('site_id').notNull().references(() => sites.siteId),
-  visible: integer('visible', { mode: 'boolean' }).notNull().default(true),
+  // site can be linked to a team but may not be enabled due to
+  // free tier can only have 6 active, need to manually be enabled
+  // active: integer('active', { mode: 'boolean' }).notNull().default(false),
 }, t => ({
   unq: unique().on(t.teamId, t.siteId),
 }))
+
+export type TeamSitesSelect = typeof teamSites.$inferSelect
+export type TeamSitesInsert = typeof teamSites.$inferInsert
+
+export const jobs = sqliteTable('jobs', {
+  jobId: integer('job_id').notNull().primaryKey(),
+  queue: text('queue').notNull(),
+  // as json
+  entityId: integer('entity_id'),
+  entityType: text('entity_type'),
+  name: text('name').notNull(),
+  payload: text('payload', { mode: 'json' }).notNull(),
+  // default 0
+  attempts: integer('attempts').notNull().default(0),
+  // reservedAt: integer('reserved_at'),
+  availableAt: integer('available_at'),
+  createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
+}, t => ({
+  queueIdx: index('queue_idx').on(t.queue),
+}))
+
+export type JobInsert = typeof jobs.$inferSelect
+export type JobSelect = typeof jobs.$inferSelect
+
+export const failedJobs = sqliteTable('failed_jobs', {
+  failedJobId: integer('failed_job_id').notNull().primaryKey(),
+  jobId: integer('job_id').notNull().references(() => jobs.jobId),
+  exception: text('exception', { mode: 'json' }).notNull(),
+  failedAt: integer('failed_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
+})
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, {
@@ -183,10 +222,19 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   }),
 }))
 
-export const sitesRelations = relations(sites, ({ many }) => ({
+export const sitesRelations = relations(sites, ({ one, many }) => ({
   teams: many(teams),
-  urlAnalytics: many(siteUrlAnalytics),
-  userTeamSites: many(userTeamSites, { relationName: 'sites_users' }),
+  urlAnalytics: many(siteDateAnalytics),
+  userSites: many(userSites, { relationName: 'sites_users' }),
+  teamSites: many(teamSites),
+  owner: one(users, {
+    fields: [sites.ownerId],
+    references: [users.userId],
+  }),
+  ownerPermissions: one(userSites, {
+    fields: [sites.ownerId, sites.siteId],
+    references: [userSites.userId, userSites.siteId],
+  }),
 }))
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -195,28 +243,31 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [teams.teamId],
   }),
   sessions: many(sessions),
-  userTeamSites: many(userTeamSites),
+  userSites: many(userSites),
 }))
 
-export const userTeamSitesRelations = relations(userTeamSites, ({ one, many }) => ({
+export const teamUserRelations = relations(teamUser, ({ one }) => ({
+  team: one(teams, {
+    fields: [teamUser.teamId],
+    references: [teams.teamId],
+  }),
   user: one(users, {
-    fields: [userTeamSites.userId],
+    fields: [teamUser.userId],
+    references: [users.userId],
+  }),
+}))
+
+export const userSitesRelations = relations(userSites, ({ one, many }) => ({
+  user: one(users, {
+    fields: [userSites.userId],
     references: [users.userId],
   }),
   site: one(sites, {
-    fields: [userTeamSites.siteId],
+    fields: [userSites.siteId],
     references: [sites.siteId],
     relationName: 'sites_users',
   }),
   sites: many(sites),
-  team: one(teams, {
-    fields: [userTeamSites.teamId],
-    references: [teams.teamId],
-  }),
-  teamSite: one(teamSites, {
-    fields: [userTeamSites.teamId, userTeamSites.siteId],
-    references: [teamSites.teamId, teamSites.siteId],
-  }),
 }))
 
 export const teamSitesRelations = relations(teamSites, ({ one }) => ({

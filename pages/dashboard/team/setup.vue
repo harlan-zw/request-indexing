@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { klona } from 'klona'
-import { parseURL, withoutTrailingSlash } from 'ufo'
-import { useFriendlySiteUrl, useHumanFriendlyNumber } from '~/composables/formatting'
+import { withoutTrailingSlash } from 'ufo'
+import { useFriendlySiteUrl } from '~/composables/formatting'
 import type { SiteSelect } from '~/server/database/schema'
 
 // const { data, pending, refresh, forceRefresh } = fetchSites('all')
@@ -9,7 +8,11 @@ const data = ref([])
 const pending = ref(true)
 async function refresh() {
   // TODO avoid duplicate fetches
-  data.value = await $fetch('/api/sites/preview')
+  data.value = await $fetch('/api/sites/preview', {
+    // query: {
+    //   force: 'true',
+    // },
+  })
     .finally(() => {
       pending.value = false
     })
@@ -20,25 +23,10 @@ const { user, fetch } = useUserSession()
 const isPending = computed(() => pending.value || data.value?.isPending)
 
 const backups = ref(true)
-const selected = ref<SiteSelect[]>([])
+const selectedSites = ref<string[]>([])
 const maxSites = 6
 
 const toast = useToast()
-function select(row: SiteSelect) {
-  const _selected = klona(selected.value)
-  const index = selected.value.findIndex(item => item.siteId === row.siteId)
-  if (index === -1 && selected.value.length < maxSites) {
-    selected.value = [...selected.value, row]
-  }
-  else if (index !== -1) {
-    _selected.splice(index, 1)
-    selected.value = _selected
-  }
-  else { toast.add({ title: `You can only select up to ${maxSites} sites.`, color: 'red' }) }
-}
-
-const sitePage = ref(1)
-const pageCount = 6
 
 const siteRows = computed<SiteSelect[]>(() => {
   if (!data.value)
@@ -61,16 +49,12 @@ const siteRows = computed<SiteSelect[]>(() => {
     .sort((a, b) => b.pageCount30Day - a.pageCount30Day)
 })
 
-const paginatedSites = computed<SiteSelect[]>(() => {
-  return siteRows.value.slice((sitePage.value - 1) * pageCount, (sitePage.value) * pageCount)
-})
-
 const submitError = ref('')
 const isSubmitting = ref(false)
 
 async function onSubmit() {
   // Do something with data
-  if (selected.value.length === 0) {
+  if (selectedSites.value.length === 0) {
     toast.add({ title: 'You must select at least one site.', color: 'red' })
     submitError.value = 'You must select at least one site.'
     return
@@ -81,7 +65,7 @@ async function onSubmit() {
     method: 'POST',
     body: JSON.stringify({
       onboardedStep: 'sites-and-backup', // maybe we change onboarding in future and they need to repeat it
-      selectedSites: selected.value.map(s => s.siteId),
+      selectedSites: selectedSites.value,
       backupsEnabled: backups.value,
     }),
   }).then(async () => {
@@ -95,9 +79,9 @@ async function onSubmit() {
   })
 }
 
-function sync() {
-  forceRefresh()
-}
+// function sync() {
+//   forceRefresh()
+// }
 
 let ws: WebSocket | undefined
 
@@ -123,15 +107,6 @@ async function connect() {
 
 onMounted(() => {
   refresh()
-
-  watch(isPending, () => {
-    if (!isPending.value && siteRows.value.length) {
-      // if (user.value.selectedSites)
-      //   selected.value = siteRows.value.filter(s => user.value.selectedSites.includes(s.siteId))
-      // else
-      selected.value = klona(siteRows.value).slice(0, Math.min(siteRows.value.length, maxSites))
-    }
-  })
   connect()
 })
 </script>
@@ -188,103 +163,8 @@ onMounted(() => {
                   <UIcon name="i-heroicons-check" class="w-5 h-5" /> Connect up to {{ maxSites }} sites on the free plan, update them at any time.
                 </li>
               </ul>
-              <div>
-                <div v-if="siteRows.length">
-                  <h3 class="text-lg mb-3 font-bold flex items-center gap-2">
-                    Site Properties
-                  </h3>
-                  <p class="dark:text-gray-400 text-gray-600 text-sm mb-5">
-                    These properties come from your Google Search Console account. If you don't see your site, please
-                    check it exists within <a class="underline" href="https://search.google.com/search-console" target="_blank">Google Search Console</a>.
-                  </p>
-                  <div class="mb-5">
-                    <UTable
-                      v-model="selected" :rows="paginatedSites" :columns="[
-                        { key: 'property', label: 'Property', sortable: true },
-                        { key: 'type', label: 'Property Type' },
-                        { key: 'pages', label: 'Pages' },
-                      ]" @select="select"
-                    >
-                      <template #pages-data="{ row: site }">
-                        <div class="text-right">
-                          {{ useHumanFriendlyNumber(site.pageCount30Day) }}
-                        </div>
-                      </template>
-                      <template #type-data="{ row: site }">
-                        <div class="flex items-center gap-2">
-                          <UTooltip v-if="site.userTeamSites[0]?.permissionLevel !== 'siteOwner'" :text="`You have limited capabilities to this property as a '${site.userTeamSites[0]?.permissionLevel}'.`">
-                            <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-yellow-500" />
-                          </UTooltip>
-                          <UTooltip v-else text="You have full permissions to this property.">
-                            <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-green-500" />
-                          </UTooltip>
-                          <div class="font-semibold">
-                            {{ site.isDomainProperty ? 'Domain' : 'URL' }}
-                          </div>
-                        </div>
-                      </template>
-                      <template #property-data="{ row: site }">
-                        <div class="flex items-center gap-3 text-lg" :class="selected.some(s => s.domain === site.domain) ? '' : 'opacity-70'">
-                          <img :src="`https://www.google.com/s2/favicons?domain=${site.domain || site.property.replace('sc-domain:', 'https://')}`" alt="favicon" class="w-4 h-4">
-                          <div>
-                            <div class="font-bold text-gray-800 dark:text-gray-100">
-                              {{ useFriendlySiteUrl(site.domain || site.property) }}
-                            </div>
-                          </div>
-                        </div>
-                        <div v-if="!site.sitemaps.length" class="flex items-center gap-1 mt-2">
-                          <UTooltip text="no sitemap">
-                            <UIcon name="i-heroicons-exclamation-triangle" class="w-4 h-4 text-yellow-500" />
-                          </UTooltip>
-                          <span>Sitemap has not be submitted.</span>
-                        </div>
-                        <div v-else-if="site.sitemaps[0] && site.sitemapWarningsCount > 0" class="flex items-center gap-1 mt-2">
-                          <UTooltip text="no sitemap">
-                            <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-yellow-500" />
-                          </UTooltip>
-                          <a :href="site.sitemaps[0].path" target="_blank" class="underline">{{ parseURL(site.sitemaps[0].path).pathname }}</a> Has Warnings
-                        </div>
-                      </template>
-                    </UTable>
-                    <div v-if="siteRows.length > pageCount" class="flex items-center justify-between mt-7 px-3 py-5 border-t  border-gray-200 dark:border-gray-700">
-                      <UPagination v-model="sitePage" :page-count="pageCount" :total="siteRows.length" />
-                      <div class="text-base dark:text-gray-300 text-gray-600 mb-2">
-                        {{ siteRows.length }} total
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <div class="mb-5 flex flex-col md:flex-row md:justify-around md:items-center gap-7">
-                    <div class="flex justify-around items-center gap-7">
-                      <div class="w-2xl">
-                        <div>
-                          <div class="text-sm">
-                            Selected Sites
-                          </div>
-                          <div class="text-lg font-bold">
-                            {{ selected.length }}/{{ maxSites }}
-                          </div>
-                          <UProgress :value="selected.length / maxSites * 100" :color="selected.length < maxSites ? 'purple' : 'red'" class="mt-1" />
-                        </div>
-                      </div>
-                      <div class="max-w-[200px] text-gray-500 dark:text-gray-400 text-sm">
-                        <UIcon name="i-heroicons-information-circle" class="w-4 h-4 -mb-1" />
-                        You can upgrade your account later to support more sites.
-                      </div>
-                    </div>
-                    <div class="max-w-[200px]">
-                      <UButton class="mb-1" icon="i-heroicons-arrow-path" @click="sync">
-                        Resync
-                      </UButton>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">
-                        Made changes to Google Search Console? Resync your data.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-if="!isPending && selected.filter(s => s.isLosingData).length" class="mt-12">
+              <TeamSiteSelector v-model="selectedSites" />
+              <div v-if="!isPending && selectedSites.filter(s => s.isLosingData).length" class="mt-12">
                 <UDivider class="my-12" />
                 <div class="mb-7">
                   <h2 class="text-xl mb-2 font-bold flex items-center gap-3">
@@ -312,7 +192,7 @@ onMounted(() => {
                     Google Search Console is <strong>currently deleting</strong> data for the below domains because they were created 16 months ago.
                   </p>
                   <ul class="list-disc md:ml-7 text-center space-y-3 flex flex-col mb-7">
-                    <li v-for="(s, key) in selected.filter(s => s.isLosingData)" :key="key" class="flex items-center gap-2 text-lg">
+                    <li v-for="(s, key) in selectedSites.filter(s => s.isLosingData)" :key="key" class="flex items-center gap-2 text-lg">
                       <UIcon v-if="!backups" name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-yellow-500" />
                       <img :src="`https://www.google.com/s2/favicons?domain=${s.domain || s.property.replace('sc-domain:', 'https://')}`" alt="favicon" class="w-4 h-4">
                       <h3 class="font-bold">
@@ -326,12 +206,12 @@ onMounted(() => {
           </div>
           <template #footer>
             <div class="flex flex-col md:flex-row items-center gap-3">
-              <UButton :loading="isSubmitting" type="submit" size="xl" :disabled="isPending || !selected.length">
+              <UButton :loading="isSubmitting" type="submit" size="xl" :disabled="isPending || !selectedSites.length">
                 Continue to Dashboard
               </UButton>
               <div v-if="!isPending" class="text-gray-600 dark:text-gray-300 text-sm">
-                <template v-if="selected.length">
-                  You have selected {{ selected.length }} sites with backups {{ backups ? 'enabled' : 'disabled' }}.
+                <template v-if="selectedSites.length">
+                  You have selected {{ selectedSites.length }} sites with backups {{ backups ? 'enabled' : 'disabled' }}.
                 </template>
                 <template v-else>
                   Please select at least one site.

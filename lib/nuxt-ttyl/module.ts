@@ -1,4 +1,6 @@
+import { readFile, writeFile } from 'node:fs/promises'
 import { addServerImports, addServerPlugin, createResolver, defineNuxtModule } from '@nuxt/kit'
+import { join } from 'pathe'
 import type { MessageQueueDrivers } from '../ttyl'
 
 export interface ModuleOptions {
@@ -17,7 +19,7 @@ export default defineNuxtModule({
     name: 'nuxt-ttyl',
     configKey: 'messageQueue',
   },
-  setup(config, nuxt) {
+  async setup(config, nuxt) {
     const { resolve } = createResolver(import.meta.url)
     nuxt.options.alias = nuxt.options.alias || {}
     nuxt.options.alias.mq = resolve('../ttyl')
@@ -72,6 +74,26 @@ export default defineNuxtModule({
         driver: 'fs',
         base: '.queue',
       }
+    }
+
+    // TODO & is using nuxt hub
+    if (nuxt.options.dev && config.devMessageQueue.driver === 'cloudflare') {
+      // nuxt.hooks.hook('modules:done', async () => {
+      // we need to patch .data wrangler.toml to include our queue config
+      const path = join(nuxt.options.rootDir, './.data/hub/wrangler.toml')
+      // read file and append to end of it
+      const data = await readFile(path, { encoding: 'utf-8' })
+      // remove any queue data
+      const newData = data.replace(/queues\..* = .*/g, '')
+      await writeFile(path, `${newData}
+queues.producers = [
+  { queue = "${config.devMessageQueue.queue}", binding = "${config.devMessageQueue.binding}" }
+]
+queues.consumers = [
+  { queue = "${config.devMessageQueue.queue}" }
+]
+`)
+      // })
     }
   },
 })

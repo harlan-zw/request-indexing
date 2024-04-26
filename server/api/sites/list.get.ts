@@ -1,5 +1,5 @@
 import { useAuthenticatedUser } from '~/server/app/utils/auth'
-import { siteUrls, sites, teamSites, userTeamSites } from '~/server/database/schema'
+import { siteUrls, sites, teamSites } from '~/server/database/schema'
 
 export default defineEventHandler(async (event) => {
   const user = await useAuthenticatedUser(event)
@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     domain: sites.domain,
     property: sites.property,
     sitemaps: sites.sitemaps,
-    permissionLevel: userTeamSites.permissionLevel,
+    // permissionLevel: userSites.permissionLevel,
     pageCount: sql`(SELECT COUNT(*) FROM ${siteUrls} WHERE ${siteUrls.siteId} = ${sites.siteId})`,
     pageCountIndexed: sql`(SELECT COUNT(*) FROM ${siteUrls} WHERE ${siteUrls.siteId} = ${sites.siteId} AND ${siteUrls.isIndexed} = 1)`,
     psiAverageDesktopScore: sql`(SELECT AVG(${siteUrls.psiDesktopScore}) FROM ${siteUrls} WHERE ${siteUrls.siteId} = ${sites.siteId})`,
@@ -19,15 +19,12 @@ export default defineEventHandler(async (event) => {
   })
     .from(sites)
     .leftJoin(teamSites, and(eq(sites.siteId, teamSites.siteId), eq(teamSites.teamId, user.team.teamId)))
-    .leftJoin(userTeamSites, and(eq(sites.siteId, userTeamSites.siteId), eq(userTeamSites.userId, user.userId), eq(userTeamSites.teamId, user.team.teamId)))
+    // .leftJoin(userSites, and(eq(sites.siteId, userSites.siteId), eq(userSites.userId, user.userId)))
     .where(and(
-      eq(teamSites.visible, true), // can be hidden at a team level
-      eq(sites.isDomainProperty, false),
-      eq(userTeamSites.visible, true), // can be hidden at user level
+      eq(sites.active, true),
+      eq(teamSites.teamId, user.team.teamId),
     ))
     .all()
-
-  console.log(result)
 
   return { sites: result }
 })

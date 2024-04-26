@@ -1,5 +1,4 @@
 import { googleAuthEventHandler } from '~/server/app/utils/auth'
-import { useMessageQueue } from '~/lib/nuxt-ttyl/runtime/nitro/mq'
 import { createGoogleOAuthClient } from '~/server/app/services/gsc'
 import type { TeamModel } from '~/server/app/models/Team'
 import { sessions, teamUser, teams, users } from '~/server/database/schema'
@@ -29,18 +28,19 @@ export default googleAuthEventHandler({
       return sendRedirect(event, '/get-started?error=missing-scope')
     }
 
+    const db = useDrizzle()
     // sub is an openid claim that is unique to the user, we don't want to expose this to the client
-    let user = await useDrizzle().query.users.findFirst({
+    let user = await db.query.users.findFirst({
       where: eq(users.sub, oauth.sub),
     })
     let currentTeam: TeamModel
     if (!user) {
-      currentTeam = (await useDrizzle().insert(teams)
+      currentTeam = (await db.insert(teams)
         .values({
           personalTeam: true,
           name: `${oauth.given_name}'s Personal Team`,
         }).returning())[0]!
-      user = (await useDrizzle().insert(users)
+      user = (await db.insert(users)
         .values({
           name: oauth.name,
           avatar: oauth.picture,
@@ -52,15 +52,17 @@ export default googleAuthEventHandler({
           currentTeamId: currentTeam.teamId,
         })
         .returning())[0]!
-      await useDrizzle().insert(teamUser).values({
+      await db.insert(teamUser).values({
         teamId: currentTeam.teamId,
         userId: user.userId,
         role: 'owner',
       })
-      !import.meta.dev && await useMessageQueue().message('/services/_mq/signUp', { userId: user.userId })
+
+      const nitro = useNitroApp()
+      await nitro.hooks.callHook('app:user:created', { userId: user.userId })
     }
     else {
-      user = (await useDrizzle().update(users)
+      user = (await db.update(users)
         .set({
           lastLogin: Date.now(),
           loginTokens: tokens,
@@ -68,20 +70,25 @@ export default googleAuthEventHandler({
         })
         .where(eq(users.sub, oauth.sub))
         .returning())![0]
-      currentTeam = await useDrizzle().query.teams.findFirst({
+      currentTeam = await db.query.teams.findFirst({
         where: eq(teams.teamId, user.currentTeamId),
       })
     }
 
     // create a new session
-    const session = (await useDrizzle().insert(sessions).values({
-      userId: user.userId,
-      ipAddress: getRequestIP(event, { xForwardedFor: true }),
-      userAgent: getHeader(event, 'user-agent'),
-      lastActivity: Date.now(),
-    })
-      .onConflictDoUpdate({ target: sessions.sessionId, set: { lastActivity: Date.now() } })
-      .returning())[0]
+    const session = (await db
+      .insert(sessions)
+      .values({
+        userId: user.userId,
+        ipAddress: getRequestIP(event, { xForwardedFor: true }),
+        userAgent: getHeader(event, 'user-agent'),
+        lastActivity: Date.now(),
+      }).onConflictDoUpdate({
+        target: [sessions.userId, sessions.ipAddress, sessions.userAgent],
+        set: { lastActivity: Date.now() },
+      })
+      .returning()
+    )[0]
 
     await setUserSession(event, {
       // we can force expire the session using this id record
@@ -100,11 +107,7 @@ export default googleAuthEventHandler({
       },
     })
 
-    if (currentTeam.onboardedStep !== 'sites-and-backup') {
-      await useMessageQueue().message('/api/_mq/ingest/sites', { userId: user.userId })
-      return sendRedirect(event, '/dashboard/team/setup')
-    }
-    return sendRedirect(event, '/dashboard')
+    return sendRedirect(event, currentTeam.onboardedStep !== 'sites-and-backup' ? '/dashboard/team/setup' : '/dashboard')
   },
   // Optional, will return a json error and 401 status code by default
   onError(event, error) {

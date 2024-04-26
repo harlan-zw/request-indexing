@@ -180,33 +180,33 @@ const calenderPickerLabel = computed(() => {
         </UPopover>
       </div>
       <UDropdown :items="authDropdownItems" mode="hover" class="flex items-center">
-      <template #account="{ item }">
-        <div class="flex flex-col w-full">
-          <div class="flex items-center gap-2">
-            <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
-            <span class="truncate">{{ item.label }}</span>
+        <template #account="{ item }">
+          <div class="flex flex-col w-full">
+            <div class="flex items-center gap-2">
+              <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <span class="truncate">{{ item.label }}</span>
+            </div>
+            <div class="text-gray-400 text-xs">
+              {{ user.email }}
+            </div>
           </div>
-          <div class="text-gray-400 text-xs">
-            {{ user.email }}
-          </div>
+        </template>
+        <template #pro="{ item }">
+          <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
+          <span class="truncate">{{ item.label }}</span>
+          <UBadge label="0 left" color="purple" variant="subtle" class="ml-0.5" />
+        </template>
+        <UAvatar :src="user.picture" />
+        <div class="ml-2 flex items-center">
+          <UBadge v-if="user.access === 'pro'" label="Pro" color="purple" variant="subtle" class="ml-0.5" />
         </div>
-      </template>
-      <template #pro="{ item }">
-        <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
-        <span class="truncate">{{ item.label }}</span>
-        <UBadge label="0 left" color="purple" variant="subtle" class="ml-0.5" />
-      </template>
-      <UAvatar :src="user.picture" />
-      <div class="ml-2 flex items-center">
-        <UBadge v-if="user.access === 'pro'" label="Pro" color="purple" variant="subtle" class="ml-0.5" />
-      </div>
-      <UButton
-        icon="i-heroicons-chevron-down"
-        color="gray"
-        size="xs"
-        variant="ghost"
-      />
-    </UDropdown>
+        <UButton
+          icon="i-heroicons-chevron-down"
+          color="gray"
+          size="xs"
+          variant="ghost"
+        />
+      </UDropdown>
     </div>
   </div>
 </template>

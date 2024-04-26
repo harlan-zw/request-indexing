@@ -16,7 +16,7 @@ export default (options: { debug: boolean, storage: Driver }) => {
     async message(urlOrTopic, payload) {
       const message: any = { urlOrTopic, payload, createdAt: Date.now() }
       message.taskId = hash(message)
-      logger.info('queued message', message.taskId, message.urlOrTopic, message.payload)
+      logger.info('Queued message', message.taskId, message.urlOrTopic, message.payload)
       await storage.setItem(`.queue:${message.taskId}.json`, message)
     },
     async receive(event: H3Event) {

@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 definePageMeta({
   layout: 'dashboard',
-  title: 'Members',
-  icon: 'i-heroicons-users',
-  description: 'Manage your team members.',
+  title: 'Google Accounts',
+  icon: 'i-heroicons-user-circle',
+  description: 'Manage the Google Accounts linked to this team.',
 })
 
 const { data: members } = useFetch('/api/teams/members')
