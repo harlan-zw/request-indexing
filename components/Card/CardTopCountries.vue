@@ -36,30 +36,26 @@ const rows = computed(() => {
 </script>
 
 <template>
-  <UCard>
-    <template #header>
-      <div class="font-bold flex items-center gap-2">
-        <UIcon name="i-heroicons-globe-americas" /> Countries
-      </div>
-    </template>
-    <div class="space-y-5">
-      <TableData :value="rows" :columns="[{ label: 'Country', key: 'country' }, { label: 'Clicks', sortable: true, key: 'clicksPercent' }, { label: '%', key: 'percent', sortable: true }, { label: 'Keywords', key: 'keywords' }]">
-        <template #country-data="{ row }">
-          <ProgressPercent :value="row.clicks" :total="clicksSum">
-            <div class="flex items-center gap-2">
-              <Icon :name="`circle-flags:${row.countryCode.toLowerCase()}`" />
-              <span class=" capitalize">{{ row.country }}</span>
-              <div>{{ useHumanFriendlyNumber(row.clicks / clicksSum * 100) }}%</div>
-            </div>
-          </ProgressPercent>
-        </template>
-        <template #clicksPercent-data="{ row }">
-          {{ useHumanFriendlyNumber(row.clicksPercent) }}%
-        </template>
-        <template #percent-data="{ row }">
-          <TrendPercentage symbol="%" :value="row.clicksPercent" :prev-value="row.prevPeriodClicksPercent" />
-        </template>
-      </TableData>
+  <div>
+    <div class="font-bold flex items-center gap-1 mb-2">
+      <UIcon name="i-heroicons-globe-americas" /> Traffic by location
     </div>
-  </UCard>
+    <TableData :searchable="false" :value="rows" :columns="[{ label: 'Country', key: 'country' }, { label: 'Clicks', sortable: true, key: 'clicksPercent' }, { label: '%', key: 'percent', sortable: true }, { label: 'Keywords', key: 'keywords' }]">
+      <template #country-data="{ row }">
+        <ProgressPercent :value="row.clicks" :total="clicksSum">
+          <div class="flex items-center gap-2">
+            <Icon :name="`circle-flags:${row.countryCode.toLowerCase()}`" />
+            <span class=" capitalize">{{ row.country }}</span>
+            <div>{{ useHumanFriendlyNumber(row.clicks / clicksSum * 100) }}%</div>
+          </div>
+        </ProgressPercent>
+      </template>
+      <template #clicksPercent-data="{ row }">
+        {{ useHumanFriendlyNumber(row.clicksPercent) }}%
+      </template>
+      <template #percent-data="{ row }">
+        <TrendPercentage symbol="%" :value="row.clicksPercent" :prev-value="row.prevPeriodClicksPercent" />
+      </template>
+    </TableData>
+  </div>
 </template>

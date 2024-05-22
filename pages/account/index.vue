@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { withHttps } from 'ufo'
 import { useFriendlySiteUrl } from '~/composables/formatting'
 
 definePageMeta({
-  layout: 'account',
+  layout: 'user-dashboard',
+  title: 'Accounts',
+  icon: 'i-ph-user-circle-duotone',
+  description: 'Manage the Google Accounts linked to this team.',
 })
 
 const { fetch } = useUserSession()
@@ -70,82 +72,79 @@ const confirmDeleteAccount = ref(false)
 
 <template>
   <div>
-    <UPageHeader title="Account" description="Update your details." :links="[]" headline="Your Account" />
-    <UPageBody>
-      <div v-if="user.hiddenSites?.length">
-        <div class="mb-5">
-          <h2 class="text-lg font-bold flex items-center gap-1 mb-1">
-            <UIcon name="i-heroicons-eye-slash" class="mr-1.5" />
-            Hidden Sites
-          </h2>
-        </div>
-        <p class="text-gray-600 dark:text-gray-300 mb-3">
-          Sites you are hiding from your dashboard. You can toggle them at any time.
-        </p>
-        <ul class="ml-5 space-y-2">
-          <li v-for="(site, key) in user.hiddenSites" :key="key">
-            <img :src="`https://www.google.com/s2/favicons?domain=${withHttps(useFriendlySiteUrl(site))}`" alt="favicon" class="w-4 h-4 mr-1.5 inline-block">
-            {{ useFriendlySiteUrl(site) }}
-            <UButton variant="link" color="gray" @click="showSite(site)">
-              Unhide
-            </UButton>
-          </li>
-        </ul>
+    <div v-if="user.hiddenSites?.length">
+      <div class="mb-5">
+        <h2 class="text-lg font-bold flex items-center gap-1 mb-1">
+          <UIcon name="i-heroicons-eye-slash" class="mr-1.5" />
+          Hidden Sites
+        </h2>
       </div>
-      <div>
-        <div class="mt-10 mb-5">
-          <h2 class="text-lg flex items-center font-bold mb-1">
-            <UIcon name="i-heroicons-lock-closed" class="mr-1.5" />
-            Web Indexing API
-          </h2>
-        </div>
-        <template v-if="user.indexingOAuthIdNext">
-          <p class="text-gray-600 dark:text-gray-300 mb-3">
-            You have provided authenticated access to the Web Indexing API. You
-            can safely revoke access at any time.
-          </p>
-          <UButton color="red" variant="soft" :loading="isRevokingIndexingAuth" @click="revokeIndexingAuth">
-            Revoke Tokens
+      <p class="text-gray-600 dark:text-gray-300 mb-3">
+        Sites you are hiding from your dashboard. You can toggle them at any time.
+      </p>
+      <ul class="ml-5 space-y-2">
+        <li v-for="(site, key) in user.hiddenSites" :key="key">
+          <SiteFavicon :site="site" class="mr-1.5 inline-block" />
+          {{ useFriendlySiteUrl(site) }}
+          <UButton variant="link" color="gray" @click="showSite(site)">
+            Unhide
           </UButton>
-        </template>
-        <template v-else>
-          <p class="text-gray-600 dark:text-gray-300 mb-3">
-            You have not provided authenticated access to the Web Indexing API. You
-            can provide access when requesting indexing.
-          </p>
-        </template>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <div class="mt-10 mb-5">
+        <h2 class="text-lg flex items-center font-bold mb-1">
+          <UIcon name="i-heroicons-lock-closed" class="mr-1.5" />
+          Web Indexing API
+        </h2>
       </div>
-      <div>
-        <div class="mt-10 mb-5">
-          <h2 class="text-lg flex items-center font-bold mb-1">
-            <UIcon name="i-heroicons-trash" class="mr-1.5" />
-            Delete Account
-          </h2>
-        </div>
-        <p class=" text-gray-600 dark:text-gray-300 mb-2">
-          Delete all data associated with your account.
+      <template v-if="user.indexingOAuthIdNext">
+        <p class="text-gray-600 dark:text-gray-300 mb-3">
+          You have provided authenticated access to the Web Indexing API. You
+          can safely revoke access at any time.
         </p>
-        <ul class="mb-3 text-sm text-gray-600 dark:text-gray-300 list-disc ml-5">
-          <li>Any cached / permanently stored data related to your account will be deleted.</li>
-          <li>Your Google Account Tokens will be revoked.</li>
-        </ul>
-        <UButton color="red" variant="outline" :loading="isDeletingAccount" @click="confirmDeleteAccount = true">
-          Delete Account
+        <UButton color="red" variant="soft" :loading="isRevokingIndexingAuth" @click="revokeIndexingAuth">
+          Revoke Tokens
         </UButton>
-        <UModal v-model="confirmDeleteAccount">
-          <div class="p-4">
-            <h2 class="text-lg font-bold mb-3">
-              Are you sure?
-            </h2>
-            <p class="text-gray-600 dark:text-gray-300 mb-3">
-              This action is irreversible. All data associated with your account will be deleted.
-            </p>
-            <UButton color="red" variant="outline" :loading="isDeletingAccount" @click="deleteAccount">
-              Delete Account
-            </UButton>
-          </div>
-        </UModal>
+      </template>
+      <template v-else>
+        <p class="text-gray-600 dark:text-gray-300 mb-3">
+          You have not provided authenticated access to the Web Indexing API. You
+          can provide access when requesting indexing.
+        </p>
+      </template>
+    </div>
+    <div>
+      <div class="mt-10 mb-5">
+        <h2 class="text-lg flex items-center font-bold mb-1">
+          <UIcon name="i-heroicons-trash" class="mr-1.5" />
+          Delete Account
+        </h2>
       </div>
-    </UPageBody>
+      <p class=" text-gray-600 dark:text-gray-300 mb-2">
+        Delete all data associated with your account.
+      </p>
+      <ul class="mb-3 text-sm text-gray-600 dark:text-gray-300 list-disc ml-5">
+        <li>Any cached / permanently stored data related to your account will be deleted.</li>
+        <li>Your Google Account Tokens will be revoked.</li>
+      </ul>
+      <UButton color="red" variant="outline" :loading="isDeletingAccount" @click="confirmDeleteAccount = true">
+        Delete Account
+      </UButton>
+      <UModal v-model="confirmDeleteAccount">
+        <div class="p-4">
+          <h2 class="text-lg font-bold mb-3">
+            Are you sure?
+          </h2>
+          <p class="text-gray-600 dark:text-gray-300 mb-3">
+            This action is irreversible. All data associated with your account will be deleted.
+          </p>
+          <UButton color="red" variant="outline" :loading="isDeletingAccount" @click="deleteAccount">
+            Delete Account
+          </UButton>
+        </div>
+      </UModal>
+    </div>
   </div>
 </template>

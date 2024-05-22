@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useHumanFriendlyNumber } from '../../../../composables/formatting'
 import { useSiteData } from '~/composables/fetch'
 import CardTopCountries from '~/components/Card/CardTopCountries.vue'
 
@@ -13,27 +14,26 @@ definePageMeta({
 
 const siteData = useSiteData(props.site)
 // const { data: dates } = siteData.dates()
-const { data: pages } = siteData.pages()
-const { data: analytics } = siteData.analytics()
+const { data: pages } = siteData.pages({
+  query: {
+    rowLimit: 5,
+  },
+})
+// const { data: analytics } = siteData.analytics()
 const { data: devices } = siteData.devices()
 const { data: countries } = siteData.countries()
+const { data: dates } = siteData.dateAnalytics()
 
-const deviceClicksSum = computed(() => {
-  if (!devices.value?.period)
-    return 0
-  return devices.value.period.reduce((acc, device) => acc + device.clicks, 0)
+const topTrafficPages = computed(() => {
+  if (!pages?.value?.rows)
+    return []
+  return pages.value.rows.sort((a, b) => b.clicks - a.clicks).slice(0, 5)
 })
-const devicePrevClicksSum = computed(() => {
-  if (!devices.value?.prevPeriod)
-    return 0
-  return devices.value.prevPeriod.reduce((acc, device) => acc + device.clicks || 0, 0)
-})
-
 // 1. Trending Content: Identify content that is gaining popularity or showing significant improvement in performance.
 // 2. Top Performing Pages: List the top 5 pages with the most clicks or highest growth in traffic.
 // 3. Top Queries: Show the top 5 search queries driving traffic to the site.
 const trendingContent = computed(() => {
-  if (!pages.value?.rows)
+  if (!pages?.value?.rows)
     return []
   // we figure out the % change in clicks and only return top % change
   const rows = pages.value.rows
@@ -50,6 +50,52 @@ const trendingContent = computed(() => {
     .filter(row => row.percent > 0)
   return rows.sort((a, b) => b.percent - a.percent).slice(0, 5)
 })
+
+function pageUrlToPath(url: string) {
+  try {
+    return new URL(url).pathname
+  }
+  catch {
+    return url
+  }
+}
+
+const filters = [
+  {
+    key: 'top',
+    label: 'Top Traffic',
+    filter: (rows: T[]) => {
+      return rows.sort((a, b) => b.clicks - a.clicks)
+    },
+  },
+  {
+    key: 'trending',
+    label: 'Trending',
+    filter: (rows: T[]) => {
+      // we figure out the % change in clicks and only return top % change
+      return rows
+        .filter(row => row.prevClicks > 10) // avoid showing pages with very low clicks
+        .map((row) => {
+          const prev = Number(row.prevClicks)
+          const current = Number(row.clicks)
+          const percent = prev === 0 ? 0 : (current - prev) / ((prev + current) / 2) * 100
+          return {
+            ...row,
+            percent,
+          }
+        })
+        .filter(row => row.percent > 0)
+        .sort((a, b) => b.percent - a.percent)
+    },
+  },
+  {
+    key: 'new',
+    label: 'New & Lost',
+    filter: (rows: T[]) => {
+      return rows.filter(row => !row.prevImpressions || row.lost)
+    },
+  },
+]
 </script>
 
 <template>
@@ -83,56 +129,71 @@ const trendingContent = computed(() => {
     <!--      </template> -->
     <!--    </UPageHeader> -->
     <!--    <UPageBody> -->
-    <div class="relative z-3 ">
-      <div class="flex items-center justify-between gap-10 mb-5 md:mb-12">
-        <div class="flex items-center gap-7">
-          <div class="lg:flex items-center gap-3 hidden ">
-            <MetricGuage v-if="data?.requiresActionPercent" :score="data.requiresActionPercent">
-              <div class="text-xl">
-                {{ data.requiresActionPercent === -1 ? '?' : Math.round(data.requiresActionPercent * 100) }}
+    <div />
+
+    <div class="grid grid-cols-12 gap-14 ">
+      <div class="space-y-10 col-span-8">
+        <CardGoogleSearchConsole v-if="dates" :key="site.siteId" fill :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['clicks', 'impressions']" @toggle-chart="toggleChart" />
+        <div>
+          <TableData :searchable="false" :filters="filters" :value="pages?.rows || []" :columns="[{ key: 'page', label: 'Page' }, { key: 'keyword', label: 'Top Keyword' }, { key: 'clicks', label: 'Clicks' }]">
+            <template #header>
+              <div class="font-bold flex items-center justify-between gap-2">
+                <div>
+                  Pages
+                  <NuxtLink :to="`/dashboard/site/${site.siteId}/pages`" class="underline text-sm font-normal ml-3">
+                    View All
+                  </NuxtLink>
+                </div>
               </div>
-            </MetricGuage>
-            <div class="text-sm text-gray-500">
-              % Pages Indexed
-            </div>
-          </div>
+            </template>
+            <template #page-data="{ row }">
+              <div class="flex items-center">
+                <div class="relative group w-[260px] max-w-full">
+                  <div class="flex items-center gap-2">
+                    <NuxtLink :title="`Open ${row.page}`" class="max-w-[260px] text-xs" target="_blank" color="gray">
+                      <div class="max-w-[260px] truncate text-ellipsis">
+                        {{ pageUrlToPath(row.page) }}
+                      </div>
+                    </NuxtLink>
+                    <UBadge v-if="!row.prevImpressions" size="xs" variant="subtle">
+                      <span class="text-[10px]">New</span>
+                    </UBadge>
+                    <UBadge v-else-if="row.lost" size="xs" color="red" variant="subtle">
+                      <span class="text-[10px]">Lost</span>
+                    </UBadge>
+                  </div>
+                  <UTooltip :text="`${Math.round((row.clicks / dates?.period.clicks) * 100)}% of clicks`" class="w-full block">
+                    <UProgress :value="Math.round((row.clicks / dates?.period.clicks) * 100)" color="blue" size="xs" class="opacity-75 group-hover:opacity-100 transition py-1" />
+                  </UTooltip>
+                </div>
+              </div>
+            </template>
+            <template #clicks-data="{ row }">
+              <div class="flex items-center gap-1">
+                <UTooltip :text="`${row.clicks} estimated clicks`">
+                  <IconClicks />
+                </UTooltip>
+                <div>{{ useHumanFriendlyNumber(row.clicks) }}</div>
+                <TrendPercentage :value="row.clicks" :prev-value="row.prevClicks" />
+              </div>
+            </template>
+            <template #keyword-data="{ row }">
+              <div class="flex items-center gap-1">
+                <PositionMetric :value="row.keywordPosition" />
+                <UTooltip :text="row.keyword">
+                  <div class="truncate max-w-[200px] text-xs">
+                    {{ row.keyword }}
+                  </div>
+                </UTooltip>
+              </div>
+            </template>
+          </TableData>
         </div>
       </div>
-    </div>
-    <div class="grid grid-cols-2 gap-10 ">
-      <div class="space-y-10">
-        <UCard v-if="devices">
-          <template #header>
-            Devices
-          </template>
-          <div class="space-y-5">
-            <div v-for="(device, i) in devices.period" :key="i" class="">
-              <ProgressPercent :value="device.clicks" :total="deviceClicksSum">
-                <div class="mb-3 flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <UIcon v-if="device.device === 'TABLET'" name="i-heroicons-device-tablet" class="w-5 h-5" />
-                    <UIcon v-else :name="device.device === 'DESKTOP' ? 'i-heroicons-computer-desktop' : 'i-heroicons-device-phone-mobile' " class="w-5 h-5" />
-                    <span class="text-lg text-gray-600 capitalize">{{ device.device.toLowerCase() }}</span>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-2">
-                      <div class="text-sm text-gray-500">
-                        {{ useHumanFriendlyNumber(device.clicks / deviceClicksSum * 100) }}%
-                      </div>
-                      <TrendPercentage symbol="%" :value="device.clicks / deviceClicksSum * 100" :prev-value="(devices.prevPeriod?.[i]?.clicks || 0) / devicePrevClicksSum * 100" />
-                    </div>
-                  </div>
-                </div>
-              </ProgressPercent>
-            </div>
-          </div>
-        </UCard>
-        <CardTrendingContent :trending-content="trendingContent" />
-      </div>
-      <div class="space-y-10">
+      <div class="col-span-4 space-y-5">
         <CardTopCountries v-if="countries" :countries="countries" />
+        <CardDevices v-if="devices" :devices="devices" />
       </div>
     </div>
-    <!--    </UPageBody> -->
   </div>
 </template>

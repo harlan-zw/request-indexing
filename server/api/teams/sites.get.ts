@@ -1,8 +1,8 @@
-import { useAuthenticatedUser } from '~/server/app/utils/auth'
+import { authenticateUser } from '~/server/app/utils/auth'
 import { sites, teamSites } from '~/server/database/schema'
 
 export default defineEventHandler(async (event) => {
-  const user = await useAuthenticatedUser(event)
+  const user = await authenticateUser(event)
 
   const db = useDrizzle()
 

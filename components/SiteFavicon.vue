@@ -7,5 +7,5 @@ defineProps<{
 </script>
 
 <template>
-  <img :src="`https://www.google.com/s2/favicons?domain=${site.domain}`" alt="favicon" class="w-4 h-4">
+  <img :src="`/_favicon?domain=${site.domain}`" :alt="`${site.domain} logo`" class="w-4 h-4">
 </template>

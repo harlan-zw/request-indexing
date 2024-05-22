@@ -34,6 +34,16 @@ const columns = computed(() => {
     label: 'Keyword',
     sortable: true,
   }, {
+    key: 'clicks',
+    label: 'Clicks',
+    sortable: true,
+  },
+    {
+    key: 'impressions',
+    label: 'Impressions',
+      sortable: true,
+    },
+    {
     key: 'page',
     label: 'Top Page',
     sortable: true,

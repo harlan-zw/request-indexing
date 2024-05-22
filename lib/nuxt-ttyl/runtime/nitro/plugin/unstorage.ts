@@ -41,7 +41,7 @@ export default defineNitroPlugin((nitro) => {
             })
         }))
       }
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      await new Promise(resolve => setTimeout(resolve, 100))
     }
-  }, 1000)
+  }, 5000)
 })

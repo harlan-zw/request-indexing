@@ -20,11 +20,6 @@ const columns = computed(() => [
     label: 'Page',
     sortable: true,
   },
-  {
-    key: 'keywordPosition',
-    label: 'Top Keyword',
-    sortable: true,
-  },
   user.value.disabledMetrics?.includes('clicks')
     ? null
     : {
@@ -53,6 +48,11 @@ const columns = computed(() => [
         label: '%',
         sortable: true,
       },
+  {
+    key: 'keywordPosition',
+    label: 'Keywords',
+    sortable: true,
+  },
   {
     key: 'actions',
   },
@@ -169,6 +169,10 @@ function highestRowClickCount(rows) {
 function openUrl(page: string, target?: string) {
   window.open(page, target)
 }
+
+function pageUrlToPath(url: string) {
+  return new URL(url).pathname
+}
 </script>
 
 <template>
@@ -177,21 +181,21 @@ function openUrl(page: string, target?: string) {
       <template #page-data="{ row, rows, expanded }">
         <div class="flex items-center">
           <div class="relative group w-[260px] max-w-full">
-            <div class="flex items-center">
-              <UButton :title="`Open ${row.page}`" class="max-w-[260px]" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" target="_blank" color="gray" @click="q = row.page">
-                <div class="max-w-[220px] truncate text-ellipsis">
-                  {{ row.page }}
+            <div class="flex items-center gap-2">
+              <NuxtLink :title="`Open ${row.page}`" class="max-w-[260px] text-xs" :class="mock ? ['pointer-events-none'] : []" target="_blank" color="gray" @click="q = row.page">
+                <div class="max-w-[260px] truncate text-ellipsis">
+                  {{ pageUrlToPath(row.page) }}
                 </div>
-              </UButton>
+              </NuxtLink>
               <UBadge v-if="!row.prevImpressions" size="xs" variant="subtle">
-                New
+                <span class="text-[10px]">New</span>
               </UBadge>
               <UBadge v-else-if="row.lost" size="xs" color="red" variant="subtle">
-                Lost
+                <span class="text-[10px]">Lost</span>
               </UBadge>
             </div>
             <UTooltip :text="`${Math.round((row.clicks / highestRowClickCount(rows)) * 100)}% of clicks`" class="w-full block">
-              <UProgress :value="Math.round((row.clicks / highestRowClickCount(rows)) * 100)" color="blue" size="xs" class="ml-2 opacity-75 group-hover:opacity-100 transition py-1" />
+              <UProgress :value="Math.round((row.clicks / highestRowClickCount(rows)) * 100)" color="blue" size="xs" class="opacity-75 group-hover:opacity-100 transition py-1" />
             </UTooltip>
             <!--            <div v-if="row.inspectionResult" class="text-xs text-gray-500 flex items-center"> -->
             <!--              <UTooltip v-if="row.inspectionResult?.inspectionResultLink" mode="hover" text="View Inspection Result" size="xs"> -->

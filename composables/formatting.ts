@@ -4,8 +4,11 @@ import { withoutTrailingSlash } from 'ufo'
 
 function useHumanFriendlyNumber(number: Ref<number>, decimals?: number): ComputedRef<string>
 function useHumanFriendlyNumber(number: number, decimals?: number): string
-export function useHumanFriendlyNumber(number: MaybeRef<number>, decimals?: number) {
-  const format = (number: number) => {
+export function useHumanFriendlyNumber(number: MaybeRef<number | null | undefined>, decimals?: number) {
+  const format = (number: number | null | undefined) => {
+    // if not a number
+    if (!['number', 'string'].includes(typeof number))
+      return '-'
     // apply decimals if defined
     if (typeof decimals !== 'undefined')
       number = Number.parseFloat(number.toFixed(decimals))
@@ -45,8 +48,9 @@ export function useFriendlySiteUrl(url: MaybeRef<string>) {
 export function useTimeAgo(date: string, absAgo?: boolean): string
 export function useTimeAgo(date: MaybeRef<string>, absAgo?: boolean): string {
   const format = (_d: string) => {
-    const d = useDayjs()(_d)
-    const hourDiff = useDayjs()().diff(d, 'hour')
+    const dayjsGmt = useDayjs().utc
+    const d = dayjsGmt(_d)
+    const hourDiff = dayjsGmt().diff(d, 'hour')
     if (hourDiff < 1 || absAgo)
       return d.fromNow()
     return `${hourDiff} hours ago`

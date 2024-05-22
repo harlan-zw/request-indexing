@@ -1,37 +1,36 @@
-import type { Storage } from 'unstorage'
-import { prefixStorage } from 'unstorage'
-import type { OAuthPoolPayload, OAuthPoolToken } from '~/types'
-import { appStorage } from '~/server/app/storage'
+import { lt } from 'drizzle-orm'
+import type { OAuthPoolPayload } from '~/types'
+import { googleAccounts, googleOAuthClients } from '~/server/database/schema'
+// import { tokens as _tokens, privateTokens } from '#app/token-pool.mjs'
 
-// @ts-expect-error runtime
-import { tokens as _tokens, privateTokens } from '#app/token-pool.mjs'
-
-export const oAuthPoolStorage = prefixStorage(appStorage as Storage<OAuthPoolPayload>, 'auth:pool')
+// export const oAuthPoolStorage = prefixStorage(appStorage as Storage<OAuthPoolPayload>, 'auth:pool')
 
 export function createOAuthPool() {
-  const tokens = _tokens as OAuthPoolToken[]
+  const db = useDrizzle()
+  // const tokens = _tokens as OAuthPoolToken[]
   const { maxUsersPerOAuth } = useRuntimeConfig().indexing
   return {
-    get(id: string) {
-      const token = tokens.find(t => t.id === id)
-      if (token)
-        return token
-      const privateToken = privateTokens.find(t => t.id === id)
-      if (privateToken)
-        return privateToken
+    get(id: number) {
+      return db.query.googleOAuthClients.findFirst({ where: eq(googleOAuthClients.googleOAuthClientId, id) })
     },
     async free() {
-      const available = (await Promise.all(
-        tokens.map(async (k) => {
-          const payload = await oAuthPoolStorage.getItem(k.id) || { id: k.id, users: [] } satisfies OAuthPoolPayload
-          return payload!.users.length < maxUsersPerOAuth ? k : null
-        }),
-      )).filter(Boolean) as OAuthPoolToken[]
-      // get random available token
-      if (available.length)
-        return available[Math.floor(Math.random() * available.length)]
+      return db.select({
+        googleOAuthClientId: googleOAuthClients.googleOAuthClientId,
+        clientId: googleOAuthClients.clientId,
+        clientSecret: googleOAuthClients.clientSecret,
+        count: sql<number>`count(${googleAccounts.googleOAuthClientId})`,
+        label: googleOAuthClients.label,
+      }).from(googleOAuthClients)
+        // make sure it's not reserved
+        .where(eq(googleOAuthClients.reserved, false))
+        .leftJoin(googleAccounts, eq(googleOAuthClients.googleOAuthClientId, googleAccounts.googleOAuthClientId))
+        .groupBy(googleOAuthClients.googleOAuthClientId)
+        .having(lt(sql<number>`count(${googleAccounts.googleOAuthClientId})`, maxUsersPerOAuth))
+        .orderBy(sql<number>`count(${googleAccounts.googleOAuthClientId})`)
+        .limit(1)
+        .then(rows => rows?.[0] || null)
     },
-    async claim(id: string, userId: string) {
+    async claim(id: number, user: UserSelect) {
       const token = tokens.find(t => t.id === id)
       if (token) {
         const payload = await oAuthPoolStorage.getItem(token.id) || { id: token.id, users: [] } satisfies OAuthPoolPayload
@@ -40,24 +39,23 @@ export function createOAuthPool() {
       }
     },
     async release(id: string, userId: string) {
-      const token = tokens.find(t => t.id === id)
-      if (token) {
-        const payload = await oAuthPoolStorage.getItem(token.id) || { id: token.id, users: [] } satisfies OAuthPoolPayload
-        payload.users = payload.users.filter(u => u !== userId)
-        await oAuthPoolStorage.setItem(token.id, payload)
-      }
+      //   const token = tokens.find(t => t.id === id)
+      //   if (token) {
+      //     const payload = await oAuthPoolStorage.getItem(token.id) || { id: token.id, users: [] } satisfies OAuthPoolPayload
+      //     payload.users = payload.users.filter(u => u !== userId)
+      //     await oAuthPoolStorage.setItem(token.id, payload)
+      //   }
     },
     async usage() {
-      // iterate tokens, fetch payload, count users
-      const usage = await Promise.all(tokens.map(async (t) => {
-        const payload = await oAuthPoolStorage.getItem(t.id) || { id: t.id, users: [] } satisfies OAuthPoolPayload
-        return payload.users.length
-      }))
-      // want to return how many have been used and how many are free
-      return {
-        used: usage.reduce((a, b) => a + b, 0),
-        free: usage.length * maxUsersPerOAuth - usage.reduce((a, b) => a + b, 0),
-      }
+      return await db.select({
+        label: googleOAuthClients.label,
+        reserved: googleOAuthClients.reserved,
+        googleOAuthClientId: googleOAuthClients.googleOAuthClientId,
+        count: sql<number>`count(${googleAccounts.googleAccountId})`,
+      })
+        .from(googleOAuthClients)
+        .leftJoin(googleAccounts, eq(googleOAuthClients.googleOAuthClientId, googleAccounts.googleOAuthClientId))
+        .groupBy(googleOAuthClients.googleOAuthClientId)
     },
   }
 }

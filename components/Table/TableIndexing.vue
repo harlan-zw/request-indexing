@@ -13,22 +13,42 @@ const reloadSession = createSessionReloader()
 
 const toast = useToast()
 
-const columns = [{
-  key: 'url',
-  label: 'URL',
-  sortable: true,
-}, {
-  key: 'inspection',
-  label: 'URL Inspection',
-  icon: 'i-heroicons-magnifying-glass',
-}, {
-  key: 'requestIndexing',
-  label: 'Request Indexing',
-}, props.mock
-  ? false
-  : {
-      key: 'actions',
-    }].filter(Boolean)
+const columns = [
+  {
+    key: 'url',
+    label: 'URL',
+    sortable: true,
+  },
+  {
+    key: 'verdict',
+    label: 'Indexing Verdict',
+    sortable: true,
+  },
+  {
+    key: 'inspection',
+    label: 'URL Inspection',
+    icon: 'i-heroicons-magnifying-glass',
+  },
+  {
+    key: 'requestIndexing',
+    label: 'Request Indexing',
+  },
+  props.mock
+    ? false
+    : {
+        key: 'actions',
+      },
+].filter(Boolean)
+
+const filters = [
+  {
+    key: 'notIndexed',
+    label: 'Pending Inspection',
+    filter: (rows: T[]) => {
+      return rows.filter(row => !row.isIndexed && !row.indexingVerdict)
+    },
+  },
+]
 
 const siteUrlFriendly = useFriendlySiteUrl(props.site.domain)
 const inspectionsLoading = ref([])
@@ -38,20 +58,23 @@ async function inspectUrl(row: SitePage) {
   if (props.mock)
     return
 
-  const siteUrl = withHttps(siteUrlFriendly)
-  inspectionsLoading.value = [...inspectionsLoading.value, row.url]
-  await $fetch<SitePage>(`/api/sites/${encodeURIComponent(props.site.domain)}/url-inspection/${encodeURIComponent(withBase(row.url, siteUrl))}`, {
+  inspectionsLoading.value = [...inspectionsLoading.value, row.path]
+  await $fetch<SitePage>(`/api/sites/${encodeURIComponent(props.site.siteId)}/gsc/url-inspection`, {
     timeout: 90000, // 90 seconds
+    method: 'POST',
+    body: {
+      path: row.path,
+    },
   })
     .finally(() => {
-      inspectionsLoading.value = inspectionsLoading.value.filter(url => url !== row.url)
+      inspectionsLoading.value = inspectionsLoading.value.filter(url => url !== row.path)
     }).then((data) => {
       toast.add({
         color: 'green',
         title: `Inspected URL Successfully`,
-        description: `Received a verdict of ${data.inspectionResult?.indexStatusResult.verdict}.`,
+        description: `Received a verdict of ${data.inspection.inspectionResult?.indexStatusResult.verdict}.`,
       })
-      pushUpdatedUrls(data, row)
+      pushUpdatedUrls(data.inspection, row)
     })
     .catch(async (err) => {
       if (err.status === 401) {
@@ -82,24 +105,24 @@ async function inspectUrl(row: SitePage) {
 }
 
 function getUpdatedRow(row: SitePage) {
-  return updatedUrls.value.find(result => result.url === row.url) || row
+  return updatedUrls.value.find(result => result.url === row.path) || row
 }
 
 function getUrlNotificationLatestUpdate(row: SitePage) {
-  return updatedUrls.value.find(result => result.url === row.url)?.urlNotificationMetadata?.latestUpdate || row.urlNotificationMetadata?.latestUpdate
+  return updatedUrls.value.find(result => result.url === row.path)?.urlNotificationMetadata?.latestUpdate || row.pathNotificationMetadata?.latestUpdate
 }
 
 function pushUpdatedUrls(data: SitePage, row: SitePage) {
   let updatedUrl
   updatedUrls.value = updatedUrls.value.map((result) => {
-    if (result.url === row.url) {
+    if (result.url === row.path) {
       updatedUrl = true
-      return { ...defu(data, result, row), url: row.url }
+      return { ...defu(data, result, row), url: row.path }
     }
     return result
   })
   if (!updatedUrl)
-    updatedUrls.value = [...updatedUrls.value, { ...defu(data, row), url: row.url }]
+    updatedUrls.value = [...updatedUrls.value, { ...defu(data, row), url: row.path }]
 }
 
 async function submitForIndexing(row: SitePage) {
@@ -107,8 +130,8 @@ async function submitForIndexing(row: SitePage) {
     return
 
   const siteUrl = withHttps(siteUrlFriendly)
-  submitIndexingLoading.value = [...submitIndexingLoading.value, row.url]
-  const { url: data, status } = await $fetch<{ status: 'already-submitted' | 'submitted', url: SitePage }>(`/api/indexing/${encodeURIComponent(withBase(row.url, siteUrl))}`, {
+  submitIndexingLoading.value = [...submitIndexingLoading.value, row.path]
+  const { url: data, status } = await $fetch<{ status: 'already-submitted' | 'submitted', url: SitePage }>(`/api/indexing/${encodeURIComponent(withBase(row.path, siteUrl))}`, {
     method: 'POST',
     timeout: 90000, // 90 seconds
     query: { siteUrl },
@@ -130,7 +153,7 @@ async function submitForIndexing(row: SitePage) {
       }
     },
   }).catch((e) => {
-    submitIndexingLoading.value = submitIndexingLoading.value.filter(url => url !== row.url)
+    submitIndexingLoading.value = submitIndexingLoading.value.filter(url => url !== row.path)
     throw e
   })
   if (status === 'already-submitted') {
@@ -150,7 +173,7 @@ async function submitForIndexing(row: SitePage) {
     await reloadSession()
   }
   pushUpdatedUrls(data, row)
-  submitIndexingLoading.value = submitIndexingLoading.value.filter(url => url !== row.url)
+  submitIndexingLoading.value = submitIndexingLoading.value.filter(url => url !== row.path)
 }
 
 function hasOneHourPassed(date?: string | number) {
@@ -176,37 +199,44 @@ async function pollForInspectUrl() {
     pause()
 }
 
-watch(paginatedRows, () => {
-  resume()
-}, {
-  immediate: true,
-})
+// watch(paginatedRows, () => {
+//   resume()
+// }, {
+//   immediate: true,
+// })
 </script>
 
 <template>
   <div>
-    <TableData :columns="columns" :value="value">
+    <TableData :columns="columns" :value="value" :filters="filters">
       <template #url-data="{ row }">
         <div class="flex flex-col" style="max-width: 400px;">
-          <UButton :title="row.url" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="row.url" target="_blank" color="gray" class="w-full">
+          <UButton :title="row.path" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="row.path" target="_blank" color="gray" class="w-full">
             <div class="max-w-[300px] truncate text-ellipsis">
-              {{ row.url }}
+              {{ row.path }}
             </div>
           </UButton>
           <UButton v-if="row.sitemap" size="xs" variant="link" :to="row.sitemap" class="text-xs text-gray-400">
             {{ row.sitemap.replace('https://', '') }}
           </UButton>
-          <UTooltip v-if="getUpdatedRow(row)?.inspectionResult?.inspectionResultLink" mode="hover" text="View Inspection Result">
-            <UButton size="xs" target="_blank" :to="getUpdatedRow(row)?.inspectionResult?.inspectionResultLink" :icon="mock ? undefined : 'i-heroicons-document-magnifying-glass'" color="gray" variant="link">
+          <UTooltip v-if="getUpdatedRow(row)?.inspectionPayload?.inspectionResultLink" mode="hover" text="View Inspection Result">
+            <UButton size="xs" target="_blank" :to="getUpdatedRow(row)?.inspectionPayload?.inspectionResultLink" :icon="mock ? undefined : 'i-heroicons-document-magnifying-glass'" color="gray" variant="link">
               View Inspection Report
             </UButton>
           </UTooltip>
         </div>
       </template>
+      <template #verdict-data="{ row }">
+        {{ row.indexingVerdict }}
+      </template>
       <template #inspection-data="{ row }">
         <div>
+          <div v-if="getUpdatedRow(row).lastInspected" class="text-gray-600">
+            <span class="text-sm">Inspected</span><br>
+            {{ $dayjs(getUpdatedRow(row)?.lastInspected).fromNow() }}
+          </div>
           <InspectionResult :value="getUpdatedRow(row)">
-            <template v-if="getUrlNotificationLatestUpdate(row)?.type === 'URL_UPDATED' || getUpdatedRow(row)?.inspectionResult?.indexStatusResult?.verdict === 'NEUTRAL'">
+            <template v-if="getUrlNotificationLatestUpdate(row)?.type === 'URL_UPDATED' || getUpdatedRow(row)?.inspectionPayload?.indexStatusResult?.verdict === 'NEUTRAL'">
               <UDivider class="my-3" />
               <div class="flex items-center justify-between">
                 <div class="text-gray-600">
@@ -214,12 +244,12 @@ watch(paginatedRows, () => {
                   {{ $dayjs(getUpdatedRow(row)?.lastInspected).fromNow() }}
                 </div>
                 <div v-if="getUpdatedRow(row)?.lastInspected && !hasOneHourPassed(row?.lastInspected)">
-                  <UButton :disabled="mock" color="gray" size="xs" class="mt-2" icon="i-heroicons-arrow-path" :loading="inspectionsLoading.includes(row.url)" @click="inspectUrl(row)">
+                  <UButton :disabled="mock" color="gray" size="xs" class="mt-2" icon="i-heroicons-arrow-path" :loading="inspectionsLoading.includes(row.path)" @click="inspectUrl(row)">
                     Inspect Again
                   </UButton>
                 </div>
                 <div v-else>
-                  <UButton :disabled="mock" color="gray" size="xs" class="mt-2" icon="i-heroicons-arrow-path" :loading="inspectionsLoading.includes(row.url)" @click="inspectUrl(row)">
+                  <UButton :disabled="mock" color="gray" size="xs" class="mt-2" icon="i-heroicons-arrow-path" :loading="inspectionsLoading.includes(row.path)" @click="inspectUrl(row)">
                     Inspect Again
                   </UButton>
                 </div>
@@ -227,7 +257,7 @@ watch(paginatedRows, () => {
             </template>
           </InspectionResult>
           <div v-if="!getUpdatedRow(row)?.lastInspected">
-            <UButton size="xs" color="gray" :loading="inspectionsLoading.includes(row.url)" @click="inspectUrl(row)">
+            <UButton size="xs" color="gray" :loading="inspectionsLoading.includes(row.path)" @click="inspectUrl(row)">
               Inspect
             </UButton>
           </div>
@@ -244,7 +274,7 @@ watch(paginatedRows, () => {
       <template #requestIndexing-data="{ row }">
         <div class="flex justify-end">
           <div v-if="getUrlNotificationLatestUpdate(row)?.type !== 'URL_UPDATED' && getUpdatedRow(row)?.inspectionResult?.indexStatusResult.verdict === 'NEUTRAL'" class="flex items-center gap-2">
-            <UButton :disabled="!mock && (!user?.indexingOAuthId || site.permissionLevel !== 'siteOwner')" size="xs" :loading="submitIndexingLoading.includes(row.url)" icon="i-heroicons-arrow-up-circle" variant="outline" @click="submitForIndexing(row)">
+            <UButton :disabled="!mock && (!user?.indexingOAuthId || site.permissionLevel !== 'siteOwner')" size="xs" :loading="submitIndexingLoading.includes(row.path)" icon="i-heroicons-arrow-up-circle" variant="outline" @click="submitForIndexing(row)">
               Request Indexing
             </UButton>
           </div>
@@ -257,7 +287,7 @@ watch(paginatedRows, () => {
         </div>
       </template>
       <template #actions-data="{ row }">
-        <UDropdown :items="[[{ label: 'Open URL', click: () => openUrl(row.url, '_blank'), icon: 'i-heroicons-arrow-up-right' }]]">
+        <UDropdown :items="[[{ label: 'Open URL', click: () => openUrl(row.path, '_blank'), icon: 'i-heroicons-arrow-up-right' }]]">
           <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="gray" />
         </UDropdown>
       </template>

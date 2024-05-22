@@ -1,8 +1,8 @@
 import { OAuth2Client } from 'googleapis-common'
-import { setUserSession, useAuthenticatedUser } from '#imports'
+import { authenticateUser, setUserSession } from '#imports'
 
 export default defineEventHandler(async (event) => {
-  const user = await useAuthenticatedUser(event)
+  const user = await authenticateUser(event)
 
   if (!user.indexingOAuthIdNext!) {
     return createError({

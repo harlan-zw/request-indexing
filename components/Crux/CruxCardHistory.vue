@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { withHttps } from 'ufo'
 import { useFriendlySiteUrl } from '~/composables/formatting'
 import type { GoogleSearchConsoleSite, SiteExpanded } from '~/types'
 import { useSiteData } from '~/composables/fetch'
@@ -40,7 +39,7 @@ async function hide() {
     <template #header>
       <div class="flex justify-between">
         <NuxtLink :to="link" class="flex items-center gap-2">
-          <img :src="`https://www.google.com/s2/favicons?domain=${withHttps(siteId)}`" alt="favicon" class="w-4 h-4">
+          <SiteFavicon :site="site" />
           <div>
             <h3 class="font-bold">
               {{ useFriendlySiteUrl(siteId) }}

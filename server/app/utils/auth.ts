@@ -10,12 +10,23 @@ import { ofetch } from 'ofetch'
 import { defu } from 'defu'
 import type { OAuthGoogleConfig } from 'nuxt-auth-utils/dist/runtime/server/lib/oauth/google'
 import type { H3Event } from 'h3'
-import { clearUserSession, useRuntimeConfig } from '#imports'
+import { clearUserSession, createOAuthPool, useRuntimeConfig } from '#imports'
 import type { OAuthConfig } from '#auth-utils'
 import type { UserSession } from '~/types'
-import { sessions } from '~/server/database/schema'
+import {sessions, UserSelect} from '~/server/database/schema'
 
-export async function useAuthenticatedUser(event: H3Event) {
+export async function authenticateAdmin(event: H3Event) {
+  const user = await authenticateUser(event)
+  if (user.email !== 'harlan@harlanzw.com') {
+    throw createError({
+      statusCode: 401,
+      message: 'Unauthorized',
+    })
+  }
+  return user
+}
+
+export async function authenticateUser(event: H3Event): Promise<UserSelect> {
   const session = (await getUserSession(event)) as UserSession
   if (!session?.user) {
     // unauthorized
@@ -33,6 +44,7 @@ export async function useAuthenticatedUser(event: H3Event) {
       user: {
         with: {
           team: true,
+          googleAccounts: true,
         },
       },
     },
@@ -76,18 +88,18 @@ export function googleAuthEventHandler({
       tokenURL: 'https://oauth2.googleapis.com/token',
     })
     const { code } = getQuery(event)
-    if (!config.clientId) {
-      const error = createError({
-        statusCode: 500,
-        message: 'Missing NUXT_OAUTH_GOOGLE_CLIENT_ID env variables.',
-      })
-      if (!onError)
-        throw error
-      return onError(event, error)
-    }
     const redirectUrl = getRequestURL(event).href
     if (!code) {
-      config.scope = config.scope || ['email', 'profile']
+      // let's query the oauth pools
+      const pool = createOAuthPool()
+      const oauth = await pool.free()
+      console.log('USING CLIENT', oauth.label)
+      config.clientId = oauth.clientId
+      config.clientSecret = oauth.clientSecret
+      await setUserSession(event, {
+        oauthClientId: oauth.googleOAuthClientId,
+      })
+      // initial request
       return sendRedirect(
         event,
         withQuery(config.authorizationURL, {
@@ -99,11 +111,25 @@ export function googleAuthEventHandler({
         }),
       )
     }
+
+    const oauth = (await getUserSession(event)).oauthClientId
+    const pool = createOAuthPool()
+    const client = await pool.get(oauth)
+    if (!client || !oauth) {
+      const error = createError({
+        statusCode: 401,
+        message: 'Google login failed: OAuth client not found',
+      })
+      if (!onError)
+        throw error
+      return onError(event, error)
+    }
+
     const body = {
       grant_type: 'authorization_code',
       redirect_uri: parsePath(redirectUrl).pathname,
-      client_id: config.clientId,
-      client_secret: config.clientSecret,
+      client_id: client.clientId,
+      client_secret: client.clientSecret,
       code,
     }
 
@@ -123,6 +149,7 @@ export function googleAuthEventHandler({
         throw error
       return onError(event, error)
     }
+
     const user = await ofetch(
       'https://www.googleapis.com/oauth2/v3/userinfo',
       {
@@ -134,6 +161,7 @@ export function googleAuthEventHandler({
     return onSuccess(event, {
       tokens,
       user,
+      client,
     })
   })
 }

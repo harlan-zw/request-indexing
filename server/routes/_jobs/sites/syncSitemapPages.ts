@@ -1,18 +1,19 @@
 import dayjs from 'dayjs'
 import type {
-  SiteUrlSelect,
+  SitePathSelect,
 } from '~/server/database/schema'
 import {
   siteDateAnalytics,
-  siteUrls,
+  sitePaths,
   sites,
 } from '~/server/database/schema'
 import { fetchSitemapUrls } from '~/server/app/services/crawler/crawl'
+import type { TaskMap } from '~/server/plugins/eventServiceProvider'
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
 // import { wsUsers } from '~/server/routes/_ws'
 
 export default defineJobHandler(async (event) => {
-  const { siteId } = await readBody<{ siteId: number }>(event)
+  const { siteId } = await readBody<TaskMap['sites/syncSitemapPages']>(event)
 
   const db = useDrizzle()
   const site = await db.query.sites.findFirst({
@@ -29,49 +30,45 @@ export default defineJobHandler(async (event) => {
     })
   }
 
-  const sitemapUrls: SiteUrlSelect[] = (await fetchSitemapUrls({
+  const sitemapUrls: SitePathSelect[][] = (await fetchSitemapUrls({
     siteUrl: site.domain,
     sitemapPaths: site.sitemaps?.map(s => s.path),
   }))
     .map(r => r.sites)
     .flat()
     .map((r) => {
-      return <SiteUrlSelect> {
+      return <SitePathSelect> {
         isIndexed: false,
         path: new URL(r).pathname,
         siteId,
       }
     })
-  // TODO queue
-  if (sitemapUrls.length > 0)
-    await db.batch(sitemapUrls.map(row => db.insert(siteUrls).values(row).onConflictDoNothing()))
+  // chunk into 200 blocks
+    .reduce((acc, row, i) => {
+      const index = Math.floor(i / 200)
+      acc[index] = acc[index] || []
+      acc[index].push(row)
+      return acc
+    }, [] as SitePathSelect[][])
+
+  for (const chunk of sitemapUrls)
+    await db.batch(chunk.map(row => db.insert(sitePaths).values(row).onConflictDoNothing()))
+
+  const totalPagesCount = sitemapUrls.flat().length
+  console.log('got sitemap urls', sitemapUrls.length, site.domain, site.sitemaps?.map(s => s.path))
 
   await db.insert(siteDateAnalytics).values({
     siteId,
     date: dayjs().format('YYYY-MM-DD'), // gcs format
-    pagesCount: sitemapUrls.length,
+    totalPagesCount,
   }).onConflictDoUpdate({
     target: [siteDateAnalytics.siteId, siteDateAnalytics.date],
-    set: { pagesCount: sitemapUrls.length },
+    set: { totalPagesCount },
   })
 
-  // queue top 3 pages to have their performance scanned
-  // TODO only after they have selected it as a site
-  // await Promise.all(
-  //   urls
-  //     .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
-  //     .slice(0, 2)
-  //     .map(row => ['mobile', 'desktop'].map((strategy) => {
-  //       return mq.message('/api/_mq/cron/daily/site/psi', {
-  //         siteId: site.siteId,
-  //         page: row.path,
-  //         strategy,
-  //       })
-  //     }))
-  //     .flat(),
-  // )
-
   return {
-    res: 'OK',
+    broadcastTo: site.owner.publicId,
+    siteId: site.publicId,
+    totalPagesCount,
   }
 })

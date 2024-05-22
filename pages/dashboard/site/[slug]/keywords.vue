@@ -10,6 +10,7 @@ definePageMeta({
 
 const siteData = useSiteData(props.site)
 const { data: keywords } = siteData.keywords()
+const { data: keywords2 } = siteData.keywordsDb()
 
 useHead({
   title: 'Keywords',
@@ -25,5 +26,6 @@ useHead({
   </UCard>
   <UCard>
     <TableKeywords :value="keywords?.rows || []" :site="site" />
+    <TableKeywords :value="keywords2 || []" :site="site" />
   </UCard>
 </template>

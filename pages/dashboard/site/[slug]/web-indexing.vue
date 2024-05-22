@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { GoogleSearchConsoleSite } from '~/types'
 import { useSiteData } from '~/composables/fetch'
+import type { SiteSelect } from '~/server/database/schema'
 
-const props = defineProps<{ site: GoogleSearchConsoleSite }>()
+const props = defineProps<{ site: SiteSelect }>()
 
 definePageMeta({
   title: 'Web Indexing',
@@ -15,11 +15,78 @@ useHead({
 
 const siteData = useSiteData(props.site)
 const { data } = siteData.indexing()
+const { data: dateAnalytics } = siteData.dateAnalytics()
+
+const graph = computed(
+  () => (dateAnalytics.value?.dates || []).map(((row, i) => {
+    return {
+      indexedPagesCount: row.indexedPagesCount,
+      indexedPercent: Math.round(row.indexedPagesCount / (row.totalPagesCount || 1) * 100),
+      totalPagesCount: row.totalPagesCount,
+    }
+  })),
+)
+
+const lastEntry = computed(() => {
+  if (!graph?.value?.length) {
+    return {
+      totalPagesCount: 0,
+      indexedPagesCount: 0,
+      indexedPercent: 0,
+    }
+  }
+  return graph.value[graph.value.length - 1]
+})
+
+const buttons = computed(() => [
+  {
+    key: 'totalPagesCount',
+    icon: 'i-ph-list-magnifying-glass',
+    label: 'Total Pages',
+    value: lastEntry.value?.totalPagesCount,
+    color: 'purple',
+  },
+  {
+    key: 'indexedPagesCount',
+    icon: 'i-ph-list-check',
+    label: 'Indexed Pages',
+    value: lastEntry.value?.indexedPagesCount,
+    color: 'blue',
+  },
+  {
+    key: 'indexedPercent',
+    icon: 'i-carbon-bot',
+    label: 'Indexed %',
+    value: lastEntry.value?.indexedPercent,
+    color: 'orange',
+  },
+])
+
+const columns = [
+  'totalPagesCount',
+  'indexedPagesCount',
+  {
+    key: 'indexedPercent',
+    type: 'line',
+    priceScaleId: 'left',
+    priceFormat: {
+      type: 'percent',
+    },
+  },
+]
 </script>
 
 <template>
   <div>
     <div class="text-sm text-gray-500 ">
+      <div class="flex flex-col">
+        <GraphButtonGroup :buttons="buttons" :model-value="['pages']">
+          <template #indexedPagesCount-trend>
+            <TrendPercentage :value="lastEntry?.indexedPagesCount" :prev-value="dateAnalytics.prevPeriod?.indexedPagesCount" />
+          </template>
+        </GraphButtonGroup>
+      </div>
+      <GraphData v-if="dateAnalytics?.dates?.length" :labels="true" :height="300" :columns="columns" :value="dateAnalytics.dates" />
       <TableIndexing :value="data" :site="site" />
     </div>
   </div>

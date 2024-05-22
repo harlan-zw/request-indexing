@@ -13,19 +13,27 @@ export default defineJobHandler(async (event) => {
   const db = useDrizzle()
   const site = await db.query.sites.findFirst({
     with: {
-      owner: true,
+      owner: {
+        with: {
+          googleAccounts: {
+            with: {
+              googleOAuthClient: true,
+            },
+          },
+        },
+      },
     },
     where: eq(sites.siteId, siteId),
   })
 
-  if (!site || !site.owner) {
+  if (!site || !site.owner || !site.owner.googleAccounts[0]) {
     throw createError({
       statusCode: 404,
       message: 'Site or User not found',
     })
   }
 
-  const dates = await fetchGSCDates(site.owner.loginTokens, {
+  const dates = await fetchGSCDates(site.owner.googleAccounts[0], {
     period: {
       start: dayjs().subtract(500, 'days').toDate(),
       end: dayjs().subtract(499, 'days').toDate(),
@@ -36,14 +44,17 @@ export default defineJobHandler(async (event) => {
   // insert the rows
   if (rows.length) {
     await db.batch(rows.map((row) => {
+      console.log(row)
       return db.insert(siteDateAnalytics).values({
         ...row,
         siteId,
-      })
+      }).onConflictDoNothing()
     }))
   }
 
   return {
-    res: startDate,
+    broadcastTo: site.owner.publicId,
+    siteId: site.siteId,
+    startDate,
   }
 })

@@ -1,63 +1,75 @@
-import { inArray } from 'drizzle-orm'
-import { useAuthenticatedUser } from '~/server/app/utils/auth'
-import { siteDateAnalytics, siteUrls, sites, userSites } from '~/server/database/schema'
+import { count, inArray } from 'drizzle-orm'
+import { authenticateUser } from '~/server/app/utils/auth'
+import { siteDateAnalytics, sitePaths, sites, userSites } from '~/server/database/schema'
 import { queueJob } from '~/server/plugins/eventServiceProvider'
 
 export default defineEventHandler(async (event) => {
-  const user = await useAuthenticatedUser(event)
+  const user = await authenticateUser(event)
 
   const { force: _force } = getQuery(event)
   const force = String(_force) === 'true'
 
-  // const store = userAppStorage(user.userId, `sites`)
-
-  // const mq = useMessageQueue()
   if (force) {
-    await queueJob('users/syncGscSites', user)
+    await queueJob('users/syncGscSites', {
+      userId: user.userId,
+    })
     // await mq.message('/api/_mq/ingest/sites', { userId: user.userId })
     return { sites: [], isPending: true }
   }
-  // let sites = Site.where({
-  //   // userId: user.
-  // })
 
   const db = useDrizzle()
   const whereQuery = and(
     eq(userSites.userId, user.userId),
   )
-  const result = await db.query.sites.findMany({
-    with: {
-      userSites: {
-        where: whereQuery,
-      },
-    },
-    where: and(
-      inArray(sites.siteId, db.select({ siteId: userSites.siteId })
-        .from(userSites)
-        .where(whereQuery)),
-      eq(sites.active, true),
-    ),
-  })
 
-  if (!result.length)
-    return { sites: [], isPending: true }
+  const mySitesQuery = db.select({ siteId: userSites.siteId })
+    .from(userSites)
+    .where(whereQuery)
 
-  const distinctOrigins = await db.select({
-    siteId: siteUrls.siteId,
-    pageCount30Day: sql<number>`COUNT(*)`,
+  const sq = db.select({
+    siteId: sitePaths.siteId,
+    pageCount30Day: count().as('pageCount30Day'),
   })
-    .from(siteUrls)
-    .groupBy(siteUrls.siteId)
-    .where(inArray(siteUrls.siteId, result.map(s => s.siteId)))
-  //
-  const analytics = await db.select({
+    .from(sitePaths)
+    .groupBy(sitePaths.siteId)
+    .where(and(
+      inArray(sitePaths.siteId, mySitesQuery),
+    ))
+    .as('sq')
+  const sq2 = db.select({
     siteId: siteDateAnalytics.siteId,
-    startOfData: sql<Date>`MIN(date)`,
-    isLosingData: sql<boolean>`julianday('now') - julianday(MIN(date)) >= 500`,
+    startOfData: sql<Date>`MIN(date)`.as('startOfData'),
+    isLosingData: sql<boolean>`julianday('now') - julianday(MIN(date)) >= 500`.as('isLosingData'),
   })
     .from(siteDateAnalytics)
     .groupBy(siteDateAnalytics.siteId)
-    .where(inArray(siteDateAnalytics.siteId, result.map(s => s.siteId)))
-
-  return { sites: result, distinctOrigins, analytics, isPending: false }
+    .where(inArray(siteDateAnalytics.siteId, mySitesQuery))
+    .as('sq2')
+  // sq3 is for the user site permission
+  const sq3 = db.select({
+    siteId: userSites.siteId,
+    permissionLevel: userSites.permissionLevel,
+  })
+    .from(userSites)
+    .where(whereQuery)
+    .as('sq3')
+  return await db.select({
+    property: sites.property,
+    sitemaps: sites.sitemaps,
+    siteId: sites.publicId,
+    domain: sites.domain,
+    lastSynced: sites.lastSynced,
+    pageCount30Day: sq.pageCount30Day,
+    startOfData: sq2.startOfData,
+    isLosingData: sq2.isLosingData,
+    permissionLevel: sq3.permissionLevel,
+  })
+    .from(sites)
+    .where(and(
+      inArray(sites.siteId, mySitesQuery),
+      eq(sites.active, true),
+    ))
+    .leftJoin(sq, eq(sites.siteId, sq.siteId))
+    .leftJoin(sq2, eq(sites.siteId, sq2.siteId))
+    .leftJoin(sq3, eq(sites.siteId, sq3.siteId))
 })

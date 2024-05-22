@@ -2,7 +2,7 @@
 definePageMeta({
   layout: 'dashboard',
   title: 'Google Accounts',
-  icon: 'i-heroicons-user-circle',
+  icon: 'i-ph-user-circle-duotone',
   description: 'Manage the Google Accounts linked to this team.',
 })
 
@@ -21,7 +21,7 @@ const rows = computed(() => {
 <template>
   <div class="max-w-3xl">
     <h2 class="mb-4 font-bold text-xl">
-      Team Members
+      Google Accounts
     </h2>
     <UTable :rows="rows">
       <template #user-data="{ index }">

@@ -103,63 +103,53 @@ export async function processPage(options: { robots: ParsedRobotsTxt, url: strin
   return { indexable: true, links }
 }
 
-export async function fetchRobots(options: { cacheKey: string, siteUrl: string }) {
-  const fetchRobotsCached = cachedFunction<string>(async () => {
-    return await $fetch('/robots.txt', {
-      baseURL: options.siteUrl,
-    }).catch(() => `User-agent: *\nDisallow:`) // allow everything by default
-  }, {
-    group: 'app',
-    maxAge: 60 * 60, // 1 hour
-    name: options.cacheKey,
-    getKey: () => 'robots',
-  })
-
-  return parseRobotsTxt(await fetchRobotsCached())
+export async function fetchRobots(options: { siteUrl: string }) {
+  const robotsTxt = await $fetch('/robots.txt', {
+    baseURL: options.siteUrl,
+  }).catch(() => `User-agent: *\nDisallow:`) // allow everything by default
+  return parseRobotsTxt(robotsTxt)
 }
 
 /**
  * Fetches routes from a sitemap file.
  */
-export async function fetchSitemapUrls(options: { cacheKey: string, siteUrl: string, sitemapPaths: string[], robots?: ParsedRobotsTxt }) {
+export async function fetchSitemapUrls(options: { siteUrl: string, sitemapPaths: string[], robots?: ParsedRobotsTxt }) {
   const sitemaps = options.sitemapPaths || options.robots?.sitemaps || []
   // make sure we're working from the host name
-  const sitemap = new Sitemapper({
+  const sitemapper = new Sitemapper({
     timeout: 15000, // 15 seconds
   })
-  return cachedFunction<SitemapperResponse[]>(async () => {
-    return (await Promise.all([...(new Set(sitemaps))]
-      .map(async (url) => {
-        const isTxt = url.endsWith('.txt')
-        if (isTxt) {
-          return await $fetch<SitemapperResponse>(url)
-            .then((text) => {
-              return {
-                url,
-                sites: text.trim().split('\n'),
-              }
-            })
-            .catch((err) => {
-              return {
-                url,
-                sites: [],
-                errors: [
-                  { type: err.message, url },
-                ],
-              }
-            })
-        }
-        return await sitemap.fetch(url)
-      })))
-      .filter(Boolean)
-      .flat()
-  }, {
-    shouldBypassCache() {
-      return Boolean(import.meta.dev)
-    },
-    name: options.cacheKey,
-    group: 'app',
-    getKey: () => 'sitemap',
-    maxAge: 60 * 60, // 1 hour
-  })()
+  // if it's empty then the user hasn't submitted there sitemap, but they may still have one
+  if (!sitemaps.length) {
+    const robots = options.robots || await fetchRobots(options)
+    sitemaps.push(...robots.sitemaps)
+  }
+  if (!sitemaps.length)
+    sitemaps.push(withBase('/sitemap.xml', options.siteUrl))
+  console.log('final sitemaps', sitemaps)
+  return (await Promise.all([...(new Set(sitemaps))]
+    .map(async (url) => {
+      const isTxt = url.endsWith('.txt')
+      if (isTxt) {
+        return await $fetch<SitemapperResponse>(url)
+          .then((text) => {
+            return {
+              url,
+              sites: text.trim().split('\n'),
+            }
+          })
+          .catch((err) => {
+            return {
+              url,
+              sites: [],
+              errors: [
+                { type: err.message, url },
+              ],
+            }
+          })
+      }
+      return await sitemapper.fetch(url)
+    })))
+    .filter(Boolean)
+    .flat()
 }

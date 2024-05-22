@@ -3,11 +3,11 @@ import type { GaxiosError } from 'googleapis-common'
 import { OAuth2Client } from 'googleapis-common'
 import type { indexing_v3 } from '@googleapis/indexing/v3'
 import type { SitePage } from '~/types'
-import { useAuthenticatedUser } from '~/server/app/utils/auth'
+import { authenticateUser } from '~/server/app/utils/auth'
 // import { getUserQuotaUsage, incrementUserQuota } from '~/server/app/models/user/quota'
 
 export default defineEventHandler(async (event) => {
-  const user = await useAuthenticatedUser(event)
+  const user = await authenticateUser(event)
 
   const { url } = getRouterParams(event, { decode: true })
 

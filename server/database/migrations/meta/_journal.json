@@ -1,12 +1,12 @@
 {
-  "version": "5",
+  "version": "6",
   "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
-      "version": "5",
-      "when": 1714130271539,
-      "tag": "0000_common_bastion",
+      "version": "6",
+      "when": 1716298747249,
+      "tag": "0000_stiff_mathemanic",
       "breakpoints": true
     }
   ]

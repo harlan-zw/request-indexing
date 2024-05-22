@@ -1,12 +1,10 @@
 import { resolve } from 'path'
 import { env } from 'std-env'
-import { hash } from 'ohash'
 import { globbySync } from 'globby'
 import NuxtMessageQueue from './lib/nuxt-ttyl/module'
 import type { OAuthPoolToken } from '~/types'
 
-let tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
-const privateTokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_PRIVATE_POOL ? JSON.parse(env.NUXT_OAUTH_PRIVATE_POOL) : false
+const tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
 
 // read all the folders at the server/app path
 const recursiveServerAppFolders = globbySync('**/*', {
@@ -29,26 +27,8 @@ export default defineNuxtConfig({
     '@nuxtjs/seo',
     NuxtMessageQueue,
     (_, nuxt) => {
-      // seed the main tokens if there isn't a pool available
-      if (!tokens) {
-        tokens = [{
-          label: 'primary',
-          client_id: env.NUXT_OAUTH_GOOGLE_CLIENT_ID!,
-          client_secret: env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET!,
-        }]
-      }
       nuxt.options.nitro!.virtual = nuxt.options.nitro!.virtual || {}
-      nuxt.options.nitro.virtual['#app/token-pool.mjs']
-        = [
-        `export const tokens = ${JSON.stringify(tokens.map((t) => {
-          t.id = t.id || hash(t)
-          return t
-        }))}`,
-        `export const privateTokens = ${JSON.stringify(privateTokens.map((t) => {
-          t.id = t.id || hash(t)
-          return t
-        }))}`,
-        ].join('\n')
+      nuxt.options.nitro.virtual['#app/token-pool.mjs'] = `export const tokens = ${JSON.stringify(tokens)}`
     },
   ],
   ogImage: {

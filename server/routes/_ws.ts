@@ -13,8 +13,11 @@ export default defineWebSocketHandler({
     })
 
     const nitro = useNitroApp()
-    wsHooks.set(userId, nitro.hooks.hook(`ws:message:${user.userId}`, (message) => {
-      peer.send(JSON.stringify(message))
+    console.log('NEW WS CONNECTION', `ws:message:${user.publicId}`)
+    wsHooks.set(userId, nitro.hooks.hook(`ws:message:${user.publicId}`, (message) => {
+      console.log('Sending broadcast message to', peer, peer.readyState)
+      const res = peer.send(JSON.stringify(message))
+      console.log(res)
     }))
   },
 
@@ -25,8 +28,10 @@ export default defineWebSocketHandler({
 
   close(peer) {
     const userId = getUserId(peer)
-    wsHooks.get(userId)!()
-    wsHooks.delete(userId)
+    if (wsHooks.has(userId)) {
+      wsHooks.get(userId)?.()
+      wsHooks.delete(userId)
+    }
   },
 
   // error(peer, error) {

@@ -1,37 +1,48 @@
-import type { NitroFetchOptions } from 'nitropack'
+import { defu } from 'defu'
+import type { FetchOptions } from 'ofetch'
+import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
 import { createLogoutHandler } from '~/composables/auth'
-import type { GoogleSearchConsoleSite } from '~/types'
 import { useAsyncData } from '#imports'
+import type { type SiteDateAnalyticsSelect, type SiteSelect, SiteUrlDateAnalyticsSelect } from '~/server/database/schema'
+import type {Ref} from "@vue/reactivity";
 
-export function useSiteData(site: GoogleSearchConsoleSite) {
-  // const { user } = useUserSession()
-  const factory = <T>(path: string, fetchOptions?: NitroFetchOptions<any>) => clientSharedAsyncData<T>(`sites:${site.domain}:${path}`, async () => {
-    return $fetch(`/api/sites/${site.siteId}/${path}`, fetchOptions)
+export function useSiteData(site: SiteSelect) {
+  const { user } = useUserSession()
+  const factory = <T>(path: string, fetchOptions?: FetchOptions<any>) => sharedAsyncData<T>(`sites:${site.siteId}:${path}`, async () => {
+    return $fetch<T>(`/api/sites/${site.siteId}/${path}`, defu(fetchOptions, {
+      query: {
+        teamId: user.value?.teamId,
+      },
+    }))
   }, {
     // watch: [() => user.value?.analyticsPeriod],
   })
+
   return {
     keywordResearch: () => factory<{ keyword: string, volume: number, cpc: number, competition: number }[]>('ads/keyword-history', { method: 'POST' }),
     psiRun: () => factory<{ page: string, data: any }>('psi/run', { method: 'POST' }),
+    psiDates: () => factory<SiteUrlDateAnalyticsSelect[]>('psi/dates'),
     crux: () => factory<{ dates: number[], cls: { value: number, time: number }[], inp: { value: number, time: number }[], lcp: { value: number, time: number }[] }>('crux/origin'),
-    indexing: () => factory<{ nonIndexedUrls: Set<string> }>('gsc/indexing'),
+    indexing: () => factory<{ nonIndexedUrls: Set<string> }>('alt/indexing'),
+    dateAnalytics: () => factory<{ period: SiteDateAnalyticsSelect, prevPeriod: SiteDateAnalyticsSelect, dates: SiteDateAnalyticsSelect[] }>('alt/date-analytics'),
     keywords: () => factory<{ periodCount: number, prevPeriodCount: number, rows: { keyword: string, clicks: number, impressions: number }[] }>('gsc/keywords'),
-    pages: () => factory<{ periodCount: number, prevPeriodCount: number, rows: { page: string, clicks: number, impressions: number }[] }>('gsc/pages'),
-    dates: () => factory<{ rows: { date: string, clicks: number, impressions: number }[], startDate: number, endDate: number }>('gsc/dates'),
+    keywordsDb: () => factory<{ periodCount: number, prevPeriodCount: number, rows: { keyword: string, clicks: number, impressions: number }[] }>('keywords'),
+    pages: (options?: { query: { limit?: number } }) => factory<{ periodCount: number, prevPeriodCount: number, rows: { page: string, clicks: number, impressions: number }[] }>('gsc/pages', options),
+    dates: () => factory<{ startDate?: string, endDate?: string, rows: (Omit<searchconsole_v1.Schema$ApiDataRow, 'keys'> & { date: string })[] }>('gsc/dates'),
     analytics: () => factory<{ period: { clicks: number, impressions: number }, prevPeriod: { clicks: number, impressions: number } }>('gsc/analytics'),
     devices: () => factory<{ period: { device: string, clicks: number, impressions: number }, prevPeriod: { device: string, clicks: number, impressions: number } }>('gsc/devices'),
     countries: () => factory<{ period: { country: string, clicks: number, impressions: number }, prevPeriod: { country: string, clicks: number, impressions: number } }>('gsc/countries'),
   }
 }
 
-export function clientSharedAsyncData(key: string, _handler: () => Promise<any>, options?: { watch: any[] }) {
+export function sharedAsyncData<T>(key: string, _handler: () => Promise<T>, options?: { watch: any[], allowServer?: boolean }): { data: Ref<T | undefined>, refresh: () => void, pending: Ref<boolean>, status: Ref<'pending' | 'success' | 'error'> } {
   // need to copy some logic from asyncData
   const nuxt = useNuxtApp()
 
   // client only
-  if (import.meta.server) {
+  if (!options?.allowServer && import.meta.server) {
     return {
-      data: null,
+      data: shallowRef(null),
       pending: true,
       status: 'pending',
     }
@@ -81,6 +92,7 @@ export function clientSharedAsyncData(key: string, _handler: () => Promise<any>,
   res.data = nuxt._asyncData[key]!.data
   res.pending = nuxt._asyncData[key]!.pending
   res.status = nuxt._asyncData[key]!.status
+  res.refresh = refresh
   return res
 }
 
@@ -133,15 +145,16 @@ export async function fetchSite(site: GoogleSearchConsoleSite, scope?: 'mock' | 
   }
 }
 
-export async function fetchSites(scope: 'all' | 'selected' = 'selected') {
-  const force = ref()
+export async function fetchSites() {
   const toast = useToast()
+  const { user } = useUserSession()
   const logout = createLogoutHandler()
   const fetchFn = useRequestFetch()
-  const res = useAsyncData(
-    `sites:${scope}`,
-    async () => await fetchFn('/api/sites/list', {
-      query: { force: force.value, scope },
+  return useAsyncData<{ sites: SiteSelect[] }>(`sites`, async () => {
+    return fetchFn(`/api/sites/list`, {
+      query: {
+        teamId: user.value?.teamId,
+      },
       async onResponseError(res) {
         if ([401].includes(res.response.status)) {
           // make sure we have context
@@ -155,18 +168,14 @@ export async function fetchSites(scope: 'all' | 'selected' = 'selected') {
         }
         else { toast.add({ id: 'unauthorized-error', title: 'Error fetching sites', description: res.error?.message, color: 'red' }) }
       },
-    }),
-    {
-      // server: true,
-      deep: false,
-    },
-  )
-  return Object.assign(res, {
-    forceRefresh() {
-      force.value = true
-      res.refresh().then(() => {
-        force.value = false
-      })
-    },
+    })
   })
+  // return Object.assign(res, {
+  //   forceRefresh() {
+  //     force.value = true
+  //     res.refresh().then(() => {
+  //       force.value = false
+  //     })
+  //   },
+  // })
 }

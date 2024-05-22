@@ -29,8 +29,8 @@ export interface UserSite {
 
 export interface ResolvedAnalyticsRange {
   period: {
-    start: Date
-    end: Date
+    start: Date | string
+    end: Date | string
   }
   prevPeriod?: {
     start: Date
@@ -82,3 +82,14 @@ export interface SiteExpanded extends SiteAnalytics, GoogleSearchConsoleSite {
   requiresActionPercent: number
   nonIndexedUrls: SitePage[]
 }
+
+export interface SitePreview {
+  sitemaps: searchconsole_v1.Schema$WmxSitemap[]
+  siteId: string
+  domain: string
+  pageCount30Day: number
+  startOfData: string
+  isLosingData: boolean
+}
+
+export type SitesPreview = SitePreview[]

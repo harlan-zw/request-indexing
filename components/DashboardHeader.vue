@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import countries from '../server/data/countries'
 import { createLogoutHandler } from '~/composables/auth'
 import { fetchSites } from '~/composables/fetch'
 import type { UserSelect } from '~/server/database/schema'
@@ -143,70 +144,114 @@ const calenderPickerLabel = computed(() => {
     return `Last ${user.value.analyticsPeriod.replace('d', '')} days`
   return 'Unknown'
 })
+
+const allCountries = countries.map(country => ({
+  label: country.name,
+  value: country['alpha-3'],
+  icon: `i-circle-flags-${country['alpha-2'].toLowerCase()}`,
+}))
 </script>
 
 <template>
-  <div class="absolute w-full h-[50px] top-0 left-0 z-5 items-center">
-    <div class="px-10 py-5 items-center flex justify-end">
-      <div class="items-center gap-4 mr-5 hidden md:flex ">
-        <UPopover mode="hover" :popper="{ placement: 'bottom-end' }">
-          <template #default="{ open }">
-            <UButton color="gray" icon="i-heroicons-calendar-days" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
-              {{ calenderPickerLabel }}
-            </UButton>
-          </template>
+  <UDashboardNavbar>
+    <template #title>
+      <slot />
+      <DashboardPageTitle
+        v-if="$route.meta"
+        :icon="$route.meta.icon"
+        :title="$route.meta.title"
+        :description="$route.meta.description"
+      />
+    </template>
+    <template #right>
+      <div class="flex items-center">
+        <div class="items-center gap-4 mr-5 hidden md:flex ">
+          <!--          <UPopover mode="hover" :popper="{ placement: 'bottom-start' }"> -->
+          <!--            <template #default="{ open }"> -->
+          <!--            <UButton color="gray" icon="i-heroicons-chart-bar-square" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down"> -->
+          <!--              Customize -->
+          <!--            </UButton> -->
+          <!--            </template> -->
+          <!--            <template #panel> -->
+          <!--            <div class="p-5 flex flex-col gap-3"> -->
+          <!--              <div class="flex items-center gap-1"> -->
+          <!--                <label class="text-xs hover:opacity-100 opacity-70 flex items-center gap-1 cursor-pointer">Lines -->
+          <!--                  <USelect model-value="ema" size="xs" :options="[{ label: 'Default', value: '' }, { label: 'EMA', value: 'ema' }, { label: 'SMA', value: 'sma' }]" /> -->
+          <!--                </label> -->
+          <!--              </div> -->
+          <!--            </div> -->
+          <!--            </template> -->
+          <!--          </UPopover> -->
+          <USelectMenu searchable searchable-placeholder="Search a location..." size="xs" :options="allCountries">
+            <template #default="{ open }">
+              <UButton color="gray" icon="i-ph-globe-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid" @click="open">
+                All locations
+              </UButton>
+            </template>
+            <template #option="{ option: country }">
+              <Icon :name="country.icon" class="w-4 h-4" />
+              <span class="truncate">{{ country.label }}</span>
+            </template>
+          </USelectMenu>
+          <UPopover mode="hover" :popper="{ placement: 'bottom-end' }">
+            <template #default="{ open }">
+              <UButton color="gray" icon="i-ph-calendar-dots-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
+                {{ calenderPickerLabel }}
+              </UButton>
+            </template>
 
-          <template #panel="{ close }">
-            <div class="flex items-center divide-x divide-gray-200 dark:divide-gray-800">
-              <DatePicker :model-value="datePickerPeriod" @update:model-value="updateAnalyticsRange" @close="close" />
-              <div class="flex flex-col py-4">
-                <div class="ml-6 font-bold">
-                  Period
+            <template #panel="{ close }">
+              <div class="flex items-center divide-x divide-gray-200 dark:divide-gray-800">
+                <DatePicker :model-value="datePickerPeriod" @update:model-value="updateAnalyticsRange" @close="close" />
+                <div class="flex flex-col py-4">
+                  <div class="ml-6 font-bold">
+                    Period
+                  </div>
+                  <UButton
+                    v-for="(range, index) in periodItems.flat()"
+                    :key="index"
+                    :label="range.label"
+                    color="gray"
+                    variant="ghost"
+                    class="rounded-none px-6"
+                    :trailing-icon="range.value === user?.analyticsPeriod ? 'i-heroicons-check-circle' : ''"
+                    :class="[range.value === user?.analyticsPeriod ? 'bg-gray-100 dark:bg-gray-800' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50']"
+                    @click="updateAnalyticsPeriod(range.value)"
+                  />
                 </div>
-                <UButton
-                  v-for="(range, index) in periodItems.flat()"
-                  :key="index"
-                  :label="range.label"
-                  color="gray"
-                  variant="ghost"
-                  class="rounded-none px-6"
-                  :trailing-icon="range.value === user?.analyticsPeriod ? 'i-heroicons-check-circle' : ''"
-                  :class="[range.value === user?.analyticsPeriod ? 'bg-gray-100 dark:bg-gray-800' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50']"
-                  @click="updateAnalyticsPeriod(range.value)"
-                />
+              </div>
+            </template>
+          </UPopover>
+        </div>
+        <UDropdown :items="authDropdownItems" mode="hover" class="flex items-center">
+          <template #account="{ item }">
+            <div class="flex flex-col w-full">
+              <div class="flex items-center gap-2">
+                <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <span class="truncate">{{ item.label }}</span>
+              </div>
+              <div class="text-gray-400 text-xs">
+                {{ user.email }}
               </div>
             </div>
           </template>
-        </UPopover>
-      </div>
-      <UDropdown :items="authDropdownItems" mode="hover" class="flex items-center">
-        <template #account="{ item }">
-          <div class="flex flex-col w-full">
-            <div class="flex items-center gap-2">
-              <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
-              <span class="truncate">{{ item.label }}</span>
-            </div>
-            <div class="text-gray-400 text-xs">
-              {{ user.email }}
-            </div>
+          <template #pro="{ item }">
+            <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
+            <span class="truncate">{{ item.label }}</span>
+            <UBadge label="0 left" color="purple" variant="subtle" class="ml-0.5" />
+          </template>
+          <UAvatar :src="user.picture" />
+          <div class="ml-2 flex items-center">
+            <UBadge v-if="user.access === 'pro'" label="Pro" color="purple" variant="subtle" class="ml-0.5" />
           </div>
-        </template>
-        <template #pro="{ item }">
-          <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
-          <span class="truncate">{{ item.label }}</span>
-          <UBadge label="0 left" color="purple" variant="subtle" class="ml-0.5" />
-        </template>
-        <UAvatar :src="user.picture" />
-        <div class="ml-2 flex items-center">
-          <UBadge v-if="user.access === 'pro'" label="Pro" color="purple" variant="subtle" class="ml-0.5" />
-        </div>
-        <UButton
-          icon="i-heroicons-chevron-down"
-          color="gray"
-          size="xs"
-          variant="ghost"
-        />
-      </UDropdown>
-    </div>
-  </div>
+          <UButton
+            icon="i-heroicons-chevron-down"
+            color="gray"
+            size="xs"
+            variant="ghost"
+          />
+        </UDropdown>
+      </div>
+    </template>
+  </UDashboardNavbar>
 </template>

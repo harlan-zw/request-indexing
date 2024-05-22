@@ -1,10 +1,10 @@
 import { inArray } from 'drizzle-orm'
-import { useAuthenticatedUser } from '~/server/app/utils/auth'
+import { authenticateUser } from '~/server/app/utils/auth'
 import type { TeamSelect } from '~/server/database/schema'
 import { sites, teamSites, teams } from '~/server/database/schema'
 
 export default defineEventHandler(async (event) => {
-  const _user = await useAuthenticatedUser(event)
+  const _user = await authenticateUser(event)
 
   const { onboardedStep, backupsEnabled, selectedSites } = await readBody<Partial<TeamSelect> & { selectedSites: string[] }>(event)
   const hasSelectedSites = selectedSites && selectedSites.length > 0
@@ -18,7 +18,6 @@ export default defineEventHandler(async (event) => {
   const realSiteIds = await db.select({ siteId: sites.siteId })
     .from(sites)
     .where(inArray(sites.publicId, selectedSites))
-  console.log(realSiteIds, selectedSites)
   const [team] = await Promise.all([
     // update team
     db.update(teams).set({
@@ -33,8 +32,16 @@ export default defineEventHandler(async (event) => {
     db.insert(teamSites).values(realSiteIds.map(site => ({
       teamId: _user.currentTeamId,
       ...site,
+      googleAccountId: _user.googleAccounts[0].googleAccountId,
     }))),
   ])
+
+  // need to sync session
+  await setUserSession(event, {
+    team: {
+      onboardedStep,
+    },
+  })
 
   const nitroApp = useNitroApp()
   await nitroApp.hooks.callHook('app:team:sites-selected', team[0])

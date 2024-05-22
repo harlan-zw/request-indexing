@@ -1,12 +1,11 @@
 import type { H3Event } from 'h3'
-
-// @ts-expect-error untyped
 import { pagespeedonline } from '@googleapis/pagespeedonline'
 import { withBase, withHttps } from 'ufo'
 import { requireEventSite } from '~/server/app/services/util'
 
 function runPsi(url: string) {
-  const api = pagespeedonline('v5', {
+  const api = pagespeedonline({
+    version: 'v5',
     auth: useRuntimeConfig().google.pagespeedApiToken,
   })
   return api.pagespeedapi.runpagespeed({

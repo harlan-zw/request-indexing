@@ -1,15 +1,18 @@
 <script lang="ts" setup>
 import { fetchSites } from '~/composables/fetch'
+import { useJobListener } from '~/composables/events'
 
 definePageMeta({
   layout: 'dashboard',
-  title: 'Google Search Console',
+  title: 'Dashboard',
   description: 'See how your sites organic Google traffic is performing.',
-  icon: 'i-heroicons-window',
+  icon: 'i-ph-app-window-duotone',
 })
 
-const { data } = await fetchSites()
+const { data, refresh } = await fetchSites()
 const sites = computed(() => (data.value?.sites || []))
+
+useJobListener('sites/syncFinished', refresh)
 
 const selectedCharts = ref([
   'clicks',
@@ -25,19 +28,7 @@ function toggleChart(chart: string) {
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-5">
-    <div v-for="(site) in sites" :key="site.siteId">
-      <CardGoogleSearchConsole :site="site" :selected-charts="selectedCharts" @toggle-chart="toggleChart" />
-    </div>
-    <UCard :ui="{ body: { base: ['w-full h-full min-h-[275px]'] } }">
-      <div class="flex text-center items-center flex-col justify-center h-full">
-        <UButton to="https://search.google.com/search-console" variant="link" target="_blank" size="xl" icon="i-heroicons-plus" color="gray" class="mb-2">
-          <span>Add New Site</span>
-        </UButton>
-        <p class="text-gray-500 text-xs">
-          You will need to create a new Property in Google Search Console and then refresh.
-        </p>
-      </div>
-    </UCard>
+  <div class="flex flex-wrap items-center gap-5 ">
+    <CardSite v-for="(site) in sites" :key="site.siteId" :site="site" :selected-charts="selectedCharts" class="w-[500px]" />
   </div>
 </template>

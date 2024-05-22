@@ -9,7 +9,7 @@ definePageMeta({
 })
 
 const siteData = useSiteData(props.site)
-const { data: report } = siteData.psiRun()
+const { data: report } = siteData.psiDates()
 
 useHead({
   title: 'PageSpeed Insights',
@@ -18,11 +18,8 @@ useHead({
 
 <template>
   <div>
-    <UCard v-if="report?.lighthouseResult">
-      <div v-for="category in report?.lighthouseResult.categories" :key="category.id">
-        <h2>{{ category.title }}</h2>
-        <p>{{ category.score }}</p>
-      </div>
+    <UCard>
+      {{ report }}
     </UCard>
   </div>
 </template>

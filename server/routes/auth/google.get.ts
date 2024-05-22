@@ -1,7 +1,9 @@
+import type { CredentialRequest } from 'google-auth-library/build/src/auth/credentials'
 import { googleAuthEventHandler } from '~/server/app/utils/auth'
 import { createGoogleOAuthClient } from '~/server/app/services/gsc'
-import type { TeamModel } from '~/server/app/models/Team'
-import { sessions, teamUser, teams, users } from '~/server/database/schema'
+import type { GoogleOAuthClientsSelect } from '~/server/database/schema'
+import { googleAccounts, sessions, teamUser, teams, users } from '~/server/database/schema'
+import type { RequiredNonNullable } from '~/types/util'
 
 export default googleAuthEventHandler({
   config: {
@@ -17,9 +19,19 @@ export default googleAuthEventHandler({
     },
   },
   async onSuccess(event, payload) {
-    const { tokens, user: oauth } = payload
+    const { tokens, user: oauth, client: _client } = payload as any as {
+      client: GoogleOAuthClientsSelect
+      tokens: RequiredNonNullable<CredentialRequest>
+      user: {
+        sub: string
+        name: string
+        email: string
+        picture: string
+        given_name: string
+      }
+    }
     // use the google services to see what scopes the user has
-    const client = createGoogleOAuthClient(tokens)
+    const client = createGoogleOAuthClient({ ...tokens, googleOAuthClient: _client })
     const tokenInfo = await client.getTokenInfo(tokens.access_token)
     if (!tokenInfo.scopes.includes('https://www.googleapis.com/auth/webmasters.readonly')) {
       await setUserSession(event, {
@@ -33,7 +45,7 @@ export default googleAuthEventHandler({
     let user = await db.query.users.findFirst({
       where: eq(users.sub, oauth.sub),
     })
-    let currentTeam: TeamModel
+    let currentTeam
     if (!user) {
       currentTeam = (await db.insert(teams)
         .values({
@@ -47,11 +59,20 @@ export default googleAuthEventHandler({
           sub: oauth.sub,
           email: oauth.email,
           lastLogin: Date.now(),
-          loginTokens: tokens,
-          authPayload: oauth,
+          // loginTokens: tokens,
+          // authPayload: oauth,
           currentTeamId: currentTeam.teamId,
         })
         .returning())[0]!
+      // create google account
+      await db.insert(googleAccounts).values({
+        tokens,
+        userId: user.userId,
+        payload: oauth,
+        type: 'auth',
+        tokenInfo,
+        googleOAuthClientId: _client.googleOAuthClientId,
+      })
       await db.insert(teamUser).values({
         teamId: currentTeam.teamId,
         userId: user.userId,

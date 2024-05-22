@@ -3,12 +3,10 @@ defineProps<{ trendingContent: { clicks: number, url: string, keyword: string }[
 </script>
 
 <template>
-  <UCard>
-    <template #header>
-      <div class="font-bold flex items-center gap-2">
-        <UIcon name="i-heroicons-presentation-chart-line" /> Trending Pages
-      </div>
-    </template>
+  <div>
+    <div class="font-bold flex items-center gap-2">
+      <UIcon name="i-heroicons-presentation-chart-line" /> Trending Pages
+    </div>
     <div class="space-y-5">
       <div v-for="(row, i) in trendingContent" :key="i">
         <div class="flex items-center justify-between gap-3">
@@ -31,5 +29,5 @@ defineProps<{ trendingContent: { clicks: number, url: string, keyword: string }[
         <UDivider v-if="i !== trendingContent.length - 1" class="mt-3" />
       </div>
     </div>
-  </UCard>
+  </div>
 </template>

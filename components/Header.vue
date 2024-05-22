@@ -13,7 +13,7 @@ const color = useColorMode()
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
 const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('/dashboard'))
 
-const sites = ref(loggedIn.value ? await fetchSites().then(res => res.data.value?.sites) : [])
+const sites = ref((loggedIn.value && !isOnWelcome.value) ? await fetchSites().then(res => res.data.value?.sites) : [])
 const links = computed(() => {
   if (loggedIn.value && !isOnWelcome.value) {
     return [
@@ -285,7 +285,7 @@ const calenderPickerLabel = computed(() => {
         </UButton>
       </div>
       <template v-else>
-        <div v-if="user && isOnDashboard && !isOnWelcome" class="items-center gap-4 mr-5 hidden md:flex">
+        <div class="items-center gap-4 mr-5 hidden md:flex">
           <UPopover mode="hover" :popper="{ placement: 'bottom-start' }">
             <template #default="{ open }">
               <UButton color="gray" icon="i-heroicons-chart-bar-square" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down">
@@ -395,6 +395,7 @@ const calenderPickerLabel = computed(() => {
             <span class="truncate">{{ item.label }}</span>
             <UBadge label="0 left" color="purple" variant="subtle" class="ml-0.5" />
           </template>
+          <UColorModeButton size="sm" class="mx-5" />
           <UAvatar :src="user.picture" />
           <div class="ml-2 flex items-center">
             <UBadge v-if="user.access === 'pro'" label="Pro" color="purple" variant="subtle" class="ml-0.5" />

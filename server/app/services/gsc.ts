@@ -1,5 +1,4 @@
 import { withBase, withHttps, withoutBase, withoutProtocol, withoutTrailingSlash } from 'ufo'
-import type { Credentials } from 'google-auth-library'
 import { OAuth2Client } from 'googleapis-common'
 import { searchconsole } from '@googleapis/searchconsole'
 import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
@@ -7,17 +6,22 @@ import type { H3Event } from 'h3'
 import countries from '../../data/countries'
 import type { ResolvedAnalyticsRange, SiteAnalytics } from '~/types'
 import { percentDifference } from '~/server/app/utils/formatting'
-
-// @ts-expect-error untyped
-import { tokens } from '#app/token-pool.mjs'
 import { requireEventSite } from '~/server/app/services/util'
-import { useAuthenticatedUser } from '~/server/app/utils/auth'
-import type { SiteSelect } from '~/server/database/schema'
+import { authenticateUser } from '~/server/app/utils/auth'
+import {
+  GoogleAccountsSelect,
+  GoogleOAuthClientsSelect,
+  siteDateAnalytics,
+  sitePaths,
+  SiteSelect
+} from '~/server/database/schema'
 import type { RequiredNonNullable } from '~/types/util'
 import { userPeriodRange } from '~/server/app/models/User'
+import {count} from "drizzle-orm";
+import dayjs from "dayjs";
 
-export async function recursiveQuery(api: searchconsole_v1.Searchconsole, query: searchconsole_v1.Params$Resource$Searchanalytics$Query, maxRows: number, page: number = 1, rows: searchconsole_v1.Schema$ApiDataRow[] = []) {
-  const rowLimit = query.requestBody?.rowLimit || maxRows
+export async function recursiveQuery(api: searchconsole_v1.Searchconsole, query: searchconsole_v1.Params$Resource$Searchanalytics$Query, page: number = 1, rows: searchconsole_v1.Schema$ApiDataRow[] = []) {
+  const rowLimit = query.requestBody?.rowLimit || 25_000 // 25k hard limit
   const res = await api.searchanalytics.query({
     ...query,
     requestBody: {
@@ -25,29 +29,31 @@ export async function recursiveQuery(api: searchconsole_v1.Searchconsole, query:
       startRow: (page - 1) * rowLimit,
     },
   })
+  const _rows = res.data?.rows || []
+  const rowsLength = _rows.length || 0
   // add res rows
-  rows.push(...res.data.rows!)
-  if (res.data.rows!.length === rowLimit && res.data.rows!.length < maxRows && page <= 4)
-    await recursiveQuery(api, query, maxRows, page + 1, rows)
+  rows.push(..._rows)
+  if (rowsLength === rowLimit)
+    await recursiveQuery(api, query, page + 1, rows)
 
-  return { data: { rows } }
+  return { data: { rows }, pages: page }
 }
 
-export function createGoogleOAuthClient(credentials: Credentials, token?: { client_id: string, client_secret: string }) {
-  token = token || tokens[0]
+export function createGoogleOAuthClient(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }) {
+  // token = token || tokens[0]
   return new OAuth2Client({
     // tells client to use the refresh_token...
     forceRefreshOnFailure: true,
-    credentials,
-    clientId: token.client_id,
-    clientSecret: token.client_secret,
+    credentials: account.tokens,
+    clientId: account.googleOAuthClient.clientId,
+    clientSecret: account.googleOAuthClient.clientSecret,
   })
 }
 
-// export async function fetchGoogleSearchConsoleDates(credentials: Credentials, siteUrl: string, options: Schema$SearchAnalyticsQueryRequest = {}): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
+// export async function fetchGoogleSearchConsoleDates(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, siteUrl: string, options: Schema$SearchAnalyticsQueryRequest = {}): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
 //   const services = searchconsole({
 //     version: 'v1',
-//     h3: createGoogleOAuthClient(credentials),
+//     h3: createGoogleOAuthClient(account),
 //   })
 //   // we need accurate data, use last 6 weeks
 //   const startPeriod = new Date()
@@ -68,10 +74,10 @@ export function createGoogleOAuthClient(credentials: Credentials, token?: { clie
 //   }).then(res => (res.data.rows || []))
 // }
 
-// export async function fetchGoogleSearchConsolePages(credentials: Credentials, siteUrl: string, options: Schema$SearchAnalyticsQueryRequest = {}): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
+// export async function fetchGoogleSearchConsolePages(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, siteUrl: string, options: Schema$SearchAnalyticsQueryRequest = {}): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
 //   const services = searchconsole({
 //     version: 'v1',
-//     h3: createGoogleOAuthClient(credentials),
+//     h3: createGoogleOAuthClient(account),
 //   })
 //   // we need accurate data, use last 6 weeks
 //   const startPeriod = new Date()
@@ -93,26 +99,93 @@ export function createGoogleOAuthClient(credentials: Credentials, token?: { clie
 //   }).then(res => (res.data.rows || []))
 // }
 
-export async function fetchGscSitesWithSitemaps(credentials: Credentials): Promise<(RequiredNonNullable<searchconsole_v1.Schema$WmxSite> & { sitemaps: RequiredNonNullable<searchconsole_v1.Schema$WmxSitemap>[] })[]> {
+export async function inspectGscUrl(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, site: SiteSelect, path: string) {
+  const gscApi = searchconsole({
+    version: 'v1',
+    auth: createGoogleOAuthClient(account),
+  })
+  const inspection = await gscApi.urlInspection.index.inspect({
+    requestBody: {
+      inspectionUrl: withHttps(withBase(path, site.domain!)),
+      siteUrl: site.property,
+    },
+  }).then(r => r.data)
+  const isIndexed = inspection.inspectionResult?.indexStatusResult?.verdict === 'PASS'
+  // save inspection to siteUrls
+  const siteUrlUpdated = await useDrizzle().update(sitePaths).set({
+    lastInspected: Date.now(),
+    isIndexed,
+    inspectionPayload: inspection.inspectionResult,
+    indexingVerdict: inspection.inspectionResult?.indexStatusResult?.verdict,
+  }).where(and(eq(sitePaths.siteId, site.siteId), eq(sitePaths.path, path)))
+    .returning()
+
+  if (isIndexed) {
+    const indexedPages = await useDrizzle().select({ count: count() })
+      .from(sitePaths)
+      .where(and(eq(sitePaths.siteId, site.siteId), eq(sitePaths.isIndexed, true)))
+    const nonIndexedPages = await useDrizzle().select({ count: count() })
+      .from(sitePaths)
+      .where(and(eq(sitePaths.siteId, site.siteId), eq(sitePaths.isIndexed, false)))
+    console.log(indexedPages, nonIndexedPages)
+    // we need to update the site's indexed pages for the day
+    await useDrizzle().update(siteDateAnalytics).set({
+      // do a count of all indexed pages for the day
+      indexedPagesCount: indexedPages[0].count,
+      totalPagesCount: indexedPages[0].count + nonIndexedPages[0].count,
+    }).where(and(eq(siteDateAnalytics.siteId, site.siteId), eq(siteDateAnalytics.date, dayjs().format('YYYY-MM-DD'))))
+  }
+
+  return {
+    inspection,
+    siteUrl: siteUrlUpdated,
+  }
+}
+
+export async function fetchGscSites(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }): Promise<(RequiredNonNullable<searchconsole_v1.Schema$WmxSite>)[]> {
   const api = searchconsole({
     version: 'v1',
-    auth: createGoogleOAuthClient(credentials),
+    auth: createGoogleOAuthClient(account),
   })
-  const sites = await api.sites.list().then(res => (res.data.siteEntry || []))
+  return api.sites.list().then(res => res.data?.siteEntry || [])
+  // return Promise.all(sites.map(async (site) => {
+  //   console.log(site.siteUrl, site.permissionLevel)
+  //   return {
+  //     sitemaps: site.permissionLevel === 'owner'
+  //       ? await api.sitemaps.list({
+  //         siteUrl: site.siteUrl!,
+  //       }).then(res => res.data.sitemap || [])
+  //       : [],
+  //     ...site as RequiredNonNullable<searchconsole_v1.Schema$WmxSite>,
+  //   }
+  // }))
+}
+
+export async function fetchGscSitesWithSitemaps(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }): Promise<(RequiredNonNullable<searchconsole_v1.Schema$WmxSite> & { sitemaps: RequiredNonNullable<searchconsole_v1.Schema$WmxSitemap>[] })[]> {
+  const api = searchconsole({
+    version: 'v1',
+    auth: createGoogleOAuthClient(account),
+  })
+  const sites = (await api.sites.list().then(res => (res.data.siteEntry || []))).filter((s) => {
+    return s.permissionLevel !== 'siteUnverifiedUser'
+  })
   return Promise.all(sites.map(async (site) => {
+    console.log(site.siteUrl, site.permissionLevel)
     return {
-      sitemaps: await api.sitemaps.list({
-        siteUrl: site.siteUrl!,
-      }).then(res => res.data.sitemap || []),
+      sitemaps: site.permissionLevel === 'owner'
+        ? await api.sitemaps.list({
+          siteUrl: site.siteUrl!,
+        }).then(res => res.data.sitemap || [])
+        : [],
       ...site as RequiredNonNullable<searchconsole_v1.Schema$WmxSite>,
     }
   }))
 }
 
-// export async function fetchGoogleSearchConsoleAnalytics(credentials: Credentials, periodRange: ResolvedAnalyticsRange, site: SiteSelect): Promise<SiteAnalytics> {
+// export async function fetchGoogleSearchConsoleAnalytics(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, periodRange: ResolvedAnalyticsRange, site: SiteSelect): Promise<SiteAnalytics> {
 //   const services = searchconsole({
 //     version: 'v1',
-//     h3: createGoogleOAuthClient(credentials),
+//     h3: createGoogleOAuthClient(account),
 //   })
 //
 //   const [dates] = await Promise.all([
@@ -246,10 +319,10 @@ export async function fetchGscSitesWithSitemaps(credentials: Credentials): Promi
 //   }
 // }
 
-export async function fetchGSCDates(credentials: Credentials, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<{ startDate?: string, endDate?: string, rows: (Omit<searchconsole_v1.Schema$ApiDataRow, 'keys'> & { date: string })[] }> {
+export async function fetchGSCDates(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<{ startDate?: string, endDate?: string, rows: (Omit<searchconsole_v1.Schema$ApiDataRow, 'keys'> & { date: string })[] }> {
   const api = searchconsole({
     version: 'v1',
-    auth: createGoogleOAuthClient(credentials),
+    auth: createGoogleOAuthClient(account),
   })
   const dates = await api.searchanalytics.query({
     siteUrl: site.property,
@@ -280,10 +353,10 @@ export async function fetchGSCDates(credentials: Credentials, range: ResolvedAna
   }
 }
 
-export async function fetchGSCDevices(credentials: Credentials, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
+export async function fetchGSCDevices(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
   const api = searchconsole({
     version: 'v1',
-    auth: createGoogleOAuthClient(credentials),
+    auth: createGoogleOAuthClient(account),
   })
   const [period, prevPeriod] = await Promise.all([
     api.searchanalytics.query({
@@ -321,10 +394,10 @@ export async function fetchGSCDevices(credentials: Credentials, range: ResolvedA
   return { period, prevPeriod }
 }
 
-export async function fetchGSCCountries(credentials: Credentials, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
+export async function fetchGSCCountries(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
   const api = searchconsole({
     version: 'v1',
-    auth: createGoogleOAuthClient(credentials),
+    auth: createGoogleOAuthClient(account),
   })
   function fixCountryRows(res) {
     return (res.data.rows || []).map((row) => {
@@ -389,12 +462,12 @@ export async function fetchGSCCountries(credentials: Credentials, range: Resolve
   return { period, prevPeriod, keywords }
 }
 
-export async function fetchGSCAnalytics(credentials: Credentials, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
+export async function fetchGSCAnalytics(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<searchconsole_v1.Schema$ApiDataRow[]> {
   const api = searchconsole({
     version: 'v1',
-    auth: createGoogleOAuthClient(credentials),
+    auth: createGoogleOAuthClient(account),
   })
-  const [period, prevPeriod] = await Promise.all([
+  const [period, prevPeriod, keywordsPeriod, keywordsPrevPeriod] = await Promise.all([
     api.searchanalytics.query({
       siteUrl: site.property,
       requestBody: {
@@ -411,15 +484,56 @@ export async function fetchGSCAnalytics(credentials: Credentials, range: Resolve
     }).then((res) => {
       return (res.data.rows || [])[0]
     }),
+    // also check keywords
+    api.searchanalytics.query({
+      siteUrl: site.property,
+      requestBody: {
+        ...generateDefaultQueryBody(site, range.period),
+        dimensions: ['date', 'query'],
+      },
+    }).then((res) => {
+      return (res.data.rows || [])
+    }),
+    api.searchanalytics.query({
+      siteUrl: site.property,
+      requestBody: {
+        ...generateDefaultQueryBody(site, range.prevPeriod),
+        dimensions: ['date', 'query'],
+      },
+    }).then((res) => {
+      return (res.data.rows || [])
+    }),
   ])
 
-  return { period, prevPeriod }
+  return { period, prevPeriod, keywordsPeriod, keywordsPrevPeriod }
 }
 
-export async function fetchGSCPages(credentials: Credentials, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<{ rows: SiteAnalytics[], periodCount: number, prevPeriodCount: number }> {
+export type GscPage = (Omit<searchconsole_v1.Schema$ApiDataRow, 'keys'> & { page: string })
+
+export async function fetchGSCPages(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<GscPage[]> {
   const api = searchconsole({
     version: 'v1',
-    auth: createGoogleOAuthClient(credentials),
+    auth: createGoogleOAuthClient(account),
+  })
+  const period = await recursiveQuery(api, {
+    siteUrl: site.property,
+    requestBody: {
+      ...generateDefaultQueryBody(site, range.period),
+      dimensions: ['page'],
+    },
+  }).then(d => d.data.rows)
+  return period.map((row) => {
+    return {
+      ...row,
+      page: row.keys![0]!,
+    }
+  })
+}
+
+export async function fetchGSCPagesWithKeywords(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect, options?: {}): Promise<{ rows: SiteAnalytics[], periodCount: number, prevPeriodCount: number }> {
+  const api = searchconsole({
+    version: 'v1',
+    auth: createGoogleOAuthClient(account),
   })
 
   const [period, prevPeriod, keywords] = (await Promise.all([
@@ -427,6 +541,7 @@ export async function fetchGSCPages(credentials: Credentials, range: ResolvedAna
       siteUrl: site.property,
       requestBody: {
         ...generateDefaultQueryBody(site, range.period),
+        ...options,
         dimensions: ['page'],
       },
     }).then(res => res.data.rows || []),
@@ -435,6 +550,7 @@ export async function fetchGSCPages(credentials: Credentials, range: ResolvedAna
         siteUrl: site.property,
         requestBody: {
           ...generateDefaultQueryBody(site, range.prevPeriod),
+          ...options,
           dimensions: ['page'],
         },
       }).then(res => res.data.rows || [])
@@ -444,6 +560,7 @@ export async function fetchGSCPages(credentials: Credentials, range: ResolvedAna
       siteUrl: site.property,
       requestBody: {
         ...generateDefaultQueryBody(site, range.period),
+        ...options,
         dimensions: ['query', 'page'],
       },
     }).then(res => res.data.rows || []),
@@ -489,10 +606,10 @@ export async function fetchGSCPages(credentials: Credentials, range: ResolvedAna
   }
 }
 
-export async function fetchGSCKeywords(credentials: Credentials, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<SiteAnalytics> {
+export async function fetchGSCKeywords(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect): Promise<SiteAnalytics> {
   const api = searchconsole({
     version: 'v1',
-    auth: createGoogleOAuthClient(credentials),
+    auth: createGoogleOAuthClient(account),
   })
 
   const [period, prevPeriod, pages] = (await Promise.all([
@@ -565,10 +682,10 @@ export async function fetchGSCKeywords(credentials: Credentials, range: Resolved
   }
 }
 
-export async function fetchGSCKeyword(credentials: Credentials, range: ResolvedAnalyticsRange, site: SiteSelect, keyword: string): Promise<SiteAnalytics> {
+export async function fetchGSCKeyword(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect, keyword: string): Promise<SiteAnalytics> {
   const api = searchconsole({
     version: 'v1',
-    auth: createGoogleOAuthClient(credentials),
+    auth: createGoogleOAuthClient(account),
   })
 
   const [dates, pages] = await Promise.all([
@@ -619,10 +736,10 @@ export async function fetchGSCKeyword(credentials: Credentials, range: ResolvedA
   return { dates, pages }
 }
 
-export async function fetchGSCPage(credentials: Credentials, range: ResolvedAnalyticsRange, site: SiteSelect, url: string): Promise<SiteAnalytics> {
+export async function fetchGSCPage(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect, url: string): Promise<SiteAnalytics> {
   const api = searchconsole({
     version: 'v1',
-    auth: createGoogleOAuthClient(credentials),
+    auth: createGoogleOAuthClient(account),
   })
 
   const [dates, keywords] = await Promise.all([
@@ -687,7 +804,7 @@ function normalizePageForGsc(page: string, domain: string) {
   return withHttps(p)
 }
 
-function generateDefaultQueryBody(site: SiteSelect, range: ResolvedAnalyticsRange[keyof ResolvedAnalyticsRange], filters: searchconsole_v1.Schema$ApiDimensionFilterGroup['filters'][] = []): searchconsole_v1.Schema$SearchAnalyticsQueryRequest {
+export function generateDefaultQueryBody(site: SiteSelect, range: ResolvedAnalyticsRange[keyof ResolvedAnalyticsRange], filters: searchconsole_v1.Schema$ApiDimensionFilterGroup['filters'][] = []): searchconsole_v1.Schema$SearchAnalyticsQueryRequest {
   filters.unshift({
     dimension: 'page',
     operator: 'excludingRegex',
@@ -706,7 +823,7 @@ function generateDefaultQueryBody(site: SiteSelect, range: ResolvedAnalyticsRang
     dataState: 'all',
     startDate: formatDateGsc(range.start),
     endDate: formatDateGsc(range.end),
-    rowLimit: 3000, // pay for more?
+    rowLimit: 25_000, // pay for more?
     dimensionFilterGroups: [
       {
         filters,
@@ -716,20 +833,20 @@ function generateDefaultQueryBody(site: SiteSelect, range: ResolvedAnalyticsRang
 }
 
 export async function createGscClientFromEvent(event: H3Event) {
-  const user = await useAuthenticatedUser(event)
-  const site = await requireEventSite(event)
+  const user = await authenticateUser(event)
+  const { site, googleAccount } = await requireEventSite(event, user)
   // TODO validate user can see this site
 
   const range = userPeriodRange(user)
   return {
     site,
-    countries: () => fetchGSCCountries(user.loginTokens, range, site),
-    devices: () => fetchGSCDevices(user.loginTokens, range, site),
-    analytics: () => fetchGSCAnalytics(user.loginTokens, range, site),
-    dates: () => fetchGSCDates(user.loginTokens, range, site),
-    pages: () => fetchGSCPages(user.loginTokens, range, site),
-    keywords: () => fetchGSCKeywords(user.loginTokens, range, site),
-    keyword: (keyword: string) => fetchGSCKeyword(user.loginTokens, range, site, keyword),
-    page: (page: string) => fetchGSCPage(user.loginTokens, range, site, page),
+    countries: () => fetchGSCCountries(googleAccount, range, site),
+    devices: () => fetchGSCDevices(googleAccount, range, site),
+    analytics: () => fetchGSCAnalytics(googleAccount, range, site),
+    dates: () => fetchGSCDates(googleAccount, range, site),
+    pages: options => fetchGSCPagesWithKeywords(googleAccount, range, site, options),
+    keywords: () => fetchGSCKeywords(googleAccount, range, site),
+    keyword: (keyword: string) => fetchGSCKeyword(googleAccount, range, site, keyword),
+    page: (page: string) => fetchGSCPage(googleAccount, range, site, page),
   }
 }

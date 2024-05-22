@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { GoogleSearchConsoleSite } from '~/types'
-
 definePageMeta({
   title: 'Overview',
   icon: 'i-heroicons-home',
@@ -13,14 +11,16 @@ const { data: sitesData } = await fetchSites()
 
 const sites = computed(() => sitesData.value?.sites || [])
 
-const site: GoogleSearchConsoleSite = (sites.value || []).find(site => site.siteId === slug)
+const site = (sites.value || []).find(site => site.siteId === slug)
 
-if (!sites.value || !site) {
-  throw createError({
-    statusCode: 404,
-    statusMessage: 'Site Not Found',
-  })
-}
+console.log(sites.value)
+
+// if (!sites.value || !site) {
+//   throw createError({
+//     statusCode: 404,
+//     statusMessage: 'Site Not Found',
+//   })
+// }
 const route = useRoute()
 
 // const siteLoader = await fetchSite(site)
@@ -88,12 +88,6 @@ watch(domain, () => {
 </script>
 
 <template>
-  <DashboardPageTitle
-    v-if="$route.meta"
-    :icon="$route.meta.icon"
-    :title="$route.meta.title"
-    :description="$route.meta.description"
-  />
   <!--    <template #left> -->
   <!--      <div class="px-10 bg-gray-50/50 h-full"> -->
   <!--        <UAside> -->
