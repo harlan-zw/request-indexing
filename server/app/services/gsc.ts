@@ -3,22 +3,24 @@ import { OAuth2Client } from 'googleapis-common'
 import { searchconsole } from '@googleapis/searchconsole'
 import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
 import type { H3Event } from 'h3'
+import { count } from 'drizzle-orm'
+import dayjs from 'dayjs'
 import countries from '../../data/countries'
 import type { ResolvedAnalyticsRange, SiteAnalytics } from '~/types'
 import { percentDifference } from '~/server/app/utils/formatting'
 import { requireEventSite } from '~/server/app/services/util'
 import { authenticateUser } from '~/server/app/utils/auth'
-import {
+import type {
   GoogleAccountsSelect,
   GoogleOAuthClientsSelect,
+  SiteSelect,
+} from '~/server/database/schema'
+import {
   siteDateAnalytics,
   sitePaths,
-  SiteSelect
 } from '~/server/database/schema'
 import type { RequiredNonNullable } from '~/types/util'
 import { userPeriodRange } from '~/server/app/models/User'
-import {count} from "drizzle-orm";
-import dayjs from "dayjs";
 
 export async function recursiveQuery(api: searchconsole_v1.Searchconsole, query: searchconsole_v1.Params$Resource$Searchanalytics$Query, page: number = 1, rows: searchconsole_v1.Schema$ApiDataRow[] = []) {
   const rowLimit = query.requestBody?.rowLimit || 25_000 // 25k hard limit

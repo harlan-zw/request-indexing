@@ -1,7 +1,8 @@
 import { searchconsole } from '@googleapis/searchconsole'
 import {
   siteDateAnalytics,
-  siteKeywordDateAnalytics, siteKeywordDatePathAnalytics,
+  siteKeywordDateAnalytics,
+  siteKeywordDatePathAnalytics,
   sitePathDateAnalytics,
   sitePaths,
   sites,
@@ -108,7 +109,8 @@ export default defineJobHandler(async (event) => {
         keyword: key,
         pages: [row.keys?.[0]],
       }
-    } else {
+    }
+    else {
       acc[key].clicks += row.clicks
       acc[key].impressions += row.impressions
       // acc[key].ctr += row.ctr
@@ -203,7 +205,6 @@ export default defineJobHandler(async (event) => {
     }
   }
 
-
   if (keywordsAndPages.length) {
     const keywordPathInserts = keywordsAndPages.map(row => db.insert(siteKeywordDatePathAnalytics)
       .values({
@@ -232,7 +233,6 @@ export default defineJobHandler(async (event) => {
       console.log('did chunk', chunk)
     }
   }
-
 
   const totalPageClicks = pages.reduce((acc, row) => acc + row.clicks, 0)
   const totalPageImpressions = pages.reduce((acc, row) => acc + row.impressions, 0)

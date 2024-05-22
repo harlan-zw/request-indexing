@@ -1,5 +1,4 @@
 import { joinURL } from 'ufo'
-import type { FetchOptions } from 'ofetch'
 import type { JobBatchInsert, JobBatchSelect } from '~/server/database/schema'
 import { failedJobs, jobBatches, jobs } from '~/server/database/schema'
 import { useMessageQueue } from '~/lib/nuxt-ttyl/runtime/nitro/mq'

@@ -28,7 +28,7 @@ function toggleChart(chart: string) {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center gap-5 ">
-    <CardSite v-for="(site) in sites" :key="site.siteId" :site="site" :selected-charts="selectedCharts" class="w-[500px]" />
+  <div class="flex flex-wrap items-center gap-5">
+    <CardSite v-for="(site) in sites" :key="site.siteId" :site="site" :selected-charts="selectedCharts" />
   </div>
 </template>

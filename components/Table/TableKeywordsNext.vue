@@ -176,7 +176,7 @@ const filters = computed(() => {
 
 <template>
   <div>
-    <TableData :value="value" :columns="columns" :filters="filters" expandable @update:expanded="updateExpandedData">
+    <TableAsyncData :path="`/api/sites/${site.siteId}/keywords`" :columns="columns" :filters="filters" expandable @update:expanded="updateExpandedData">
       <template #keyword-data="{ row, rows, expanded }">
         <div class="flex items-center">
           <div class="relative group w-[225px] truncate text-ellipsis">
@@ -291,6 +291,6 @@ const filters = computed(() => {
           <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="gray" />
         </UDropdown>
       </template>
-    </TableData>
+    </TableAsyncData>
   </div>
 </template>

@@ -95,10 +95,10 @@ function retry(row: JobSelect) {
         <pre>{{ JSON.stringify(row.payload, null, 2).replace('{', '').replace('}', '').split('\n').map(s => s.trim()).join('\n').trim() }}</pre>
       </template>
       <template #response-data="{ row }">
-      <div v-if="row.response">
-      <div>{{ JSON.parse(row.response).status }}</div>
-      <pre>{{ JSON.parse(row.response).body }}</pre>
-      </div>
+        <div v-if="row.response">
+          <div>{{ JSON.parse(row.response).status }}</div>
+          <pre>{{ JSON.parse(row.response).body }}</pre>
+        </div>
       </template>
       <template #exceptions-data="{ row }">
         <div v-for="fail in row.failedJobs" :key="fail.id">

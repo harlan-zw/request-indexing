@@ -11,6 +11,8 @@ definePageMeta({
 
 const siteData = useSiteData(props.site)
 const { data: pages } = siteData.pages()
+const { data: pagesDb } = siteData.pagesDb()
+
 useHead({
   title: 'Pages',
 })
@@ -26,6 +28,9 @@ useHead({
     </div>
     <div class="grid grid-cols-4">
       <TablePages class="col-span-3" :value="pages?.rows" :site="site" />
+    </div>
+    <div v-if="pagesDb" class="grid grid-cols-4">
+      <TablePagesNext class="col-span-3" :value="pagesDb?.rows" :site="site" />
     </div>
   </div>
 </template>

@@ -1,10 +1,10 @@
 import { defu } from 'defu'
 import type { FetchOptions } from 'ofetch'
 import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
+import type { Ref } from '@vue/reactivity'
 import { createLogoutHandler } from '~/composables/auth'
 import { useAsyncData } from '#imports'
 import type { type SiteDateAnalyticsSelect, type SiteSelect, SiteUrlDateAnalyticsSelect } from '~/server/database/schema'
-import type {Ref} from "@vue/reactivity";
 
 export function useSiteData(site: SiteSelect) {
   const { user } = useUserSession()
@@ -28,6 +28,7 @@ export function useSiteData(site: SiteSelect) {
     keywords: () => factory<{ periodCount: number, prevPeriodCount: number, rows: { keyword: string, clicks: number, impressions: number }[] }>('gsc/keywords'),
     keywordsDb: () => factory<{ periodCount: number, prevPeriodCount: number, rows: { keyword: string, clicks: number, impressions: number }[] }>('keywords'),
     pages: (options?: { query: { limit?: number } }) => factory<{ periodCount: number, prevPeriodCount: number, rows: { page: string, clicks: number, impressions: number }[] }>('gsc/pages', options),
+    pagesDb: (options?: { query: { limit?: number } }) => factory<{ periodCount: number, prevPeriodCount: number, rows: { page: string, clicks: number, impressions: number }[] }>('pages', options),
     dates: () => factory<{ startDate?: string, endDate?: string, rows: (Omit<searchconsole_v1.Schema$ApiDataRow, 'keys'> & { date: string })[] }>('gsc/dates'),
     analytics: () => factory<{ period: { clicks: number, impressions: number }, prevPeriod: { clicks: number, impressions: number } }>('gsc/analytics'),
     devices: () => factory<{ period: { device: string, clicks: number, impressions: number }, prevPeriod: { device: string, clicks: number, impressions: number } }>('gsc/devices'),

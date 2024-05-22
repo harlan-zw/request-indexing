@@ -329,10 +329,8 @@ export const jobs = sqliteTable('jobs', {
   statusIdx: index('status_idx').on(t.status),
 }))
 
-
 export type JobInsert = typeof jobs.$inferSelect
 export type JobSelect = typeof jobs.$inferSelect
-
 
 export const failedJobs = sqliteTable('failed_jobs', {
   failedJobId: integer('failed_job_id').notNull().primaryKey(),

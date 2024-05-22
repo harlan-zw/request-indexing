@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { withLeadingSlash, withoutLeadingSlash } from 'ufo'
-import type { GscDataRow, SiteSelect } from '~/types/data'
+import type { GscDataRow } from '~/types/data'
 import { exponentialMovingAverage } from '~/lib/time-smoothing/exponentialMovingAverage'
 import { simpleMovingAverage } from '~/lib/time-smoothing/simpleMovingAverage'
 import { callFnSyncToggleRef } from '~/composables/loader'
+import { useSiteData } from '~/composables/fetch'
+import type { SiteSelect } from '~/server/database/schema'
 
 const props = withDefaults(
   defineProps<{ mock?: boolean, value?: GscDataRow[], site: SiteSelect, pending?: boolean, pageCount?: number }>(),
@@ -11,6 +13,14 @@ const props = withDefaults(
     pageCount: 8,
   },
 )
+
+const page = ref(1)
+const siteData = useSiteData(props.site)
+const pagesDb = siteData.pagesDb({
+  query: {
+    limit: props.pageCount,
+  },
+})
 
 const { user, session } = useUserSession()
 
@@ -41,7 +51,7 @@ const columns = computed(() => [
     sortable: true,
   },
   {
-    key: 'keywordPosition',
+    key: 'keyword',
     label: 'Keywords',
     sortable: true,
   },
@@ -84,10 +94,10 @@ const filters = [
     special: true,
     label: 'Top Level',
     filter: (_rows: GscDataRow[]) => {
-      const topLevelPaths = _rows.map(row => row.page.split('/').slice(1, 2)?.[0] || false)
+      const topLevelPaths = _rows.map(row => row.path.split('/').slice(1, 2)?.[0] || false)
       const uniqueTopLevelPaths = Array.from(new Set(topLevelPaths)).filter(Boolean)
       return uniqueTopLevelPaths.map((topLevelPath) => {
-        const rows = _rows.filter(row => withoutLeadingSlash(row.page).startsWith(topLevelPath))
+        const rows = _rows.filter(row => withoutLeadingSlash(row.path).startsWith(topLevelPath))
         const clicks = rows.reduce((acc, row) => acc + row.clicks, 0)
         const prevClicks = rows.reduce((acc, row) => acc + row.prevClicks, 0)
         const impressions = rows.reduce((acc, row) => acc + row.impressions, 0)
@@ -115,7 +125,7 @@ const expandedRowDataPending = ref(null)
 async function updateExpandedData(row: GscDataRow) {
   if (row) {
     await callFnSyncToggleRef(async () => {
-      expandedRowData.value = await $fetch(`/api/sites/${encodeURIComponent(props.site.domain)}/pages/${encodeURIComponent(row.page)}`)
+      expandedRowData.value = await $fetch(`/api/sites/${encodeURIComponent(props.site.domain)}/pages/${encodeURIComponent(row.path)}`)
     }, expandedRowDataPending)
   }
   else {
@@ -151,7 +161,7 @@ function highestRowClickCount(rows) {
 //
 // const selected = ref([])
 // function select(row) {
-//   const index = selected.value.findIndex(item => item.page === row.page)
+//   const index = selected.value.findIndex(item => item.path === row.path)
 //   if (index === -1)
 //     selected.value.push(row)
 //   else
@@ -163,20 +173,21 @@ function openUrl(page: string, target?: string) {
 }
 
 function pageUrlToPath(url: string) {
-  return new URL(url).pathname
+  return url
+  // return new URL(url).pathname
 }
 </script>
 
 <template>
   <div>
-    <TableData :value="value" :columns="columns" :filters="filters" expandable @update:expanded="updateExpandedData">
+    <TableAsyncData :path="`/api/sites/${site.siteId}/pages`" :columns="columns" :filters="filters" expandable @page-change="p => page = p" @update:expanded="updateExpandedData">
       <template #page-data="{ row, rows, expanded }">
         <div class="flex items-center">
           <div class="relative group w-[260px] max-w-full">
             <div class="flex items-center gap-2">
-              <NuxtLink :title="`Open ${row.page}`" class="max-w-[260px] text-xs" :class="mock ? ['pointer-events-none'] : []" target="_blank" color="gray" @click="q = row.page">
+              <NuxtLink :title="`Open ${row.path}`" class="max-w-[260px] text-xs" :class="mock ? ['pointer-events-none'] : []" target="_blank" color="gray" @click="q = row.path">
                 <div class="max-w-[260px] truncate text-ellipsis">
-                  {{ pageUrlToPath(row.page) }}
+                  {{ pageUrlToPath(row.path) }}
                 </div>
               </NuxtLink>
               <UBadge v-if="!row.prevImpressions" size="xs" variant="subtle">
@@ -206,18 +217,18 @@ function pageUrlToPath(url: string) {
           </div>
         </div>
       </template>
-      <template #keywordPosition-data="{ row, expanded }">
+      <template #keyword-data="{ row, expanded }">
         <div v-if="!expanded" class="flex items-center">
-          <UButton :title="row.keyword" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="`/dashboard/site/${site.domain}/keywords?q=${encodeURIComponent(row.keyword)}`" color="gray">
+          <UButton v-if="row.keywords.length" :title="row.keywords[0].keyword" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="`/dashboard/site/${site.domain}/keywords?q=${encodeURIComponent(row.keywords[0].keyword)}`" color="gray">
             <div class="max-w-[150px] truncate text-ellipsis">
-              <PositionMetric :value="row.keywordPosition" />
-              {{ row.keyword }}
+              <PositionMetric :value="row.keywords[0].position" />
+              {{ row.keywords[0].keyword }}
             </div>
           </UButton>
         </div>
         <div v-else>
           <ul>
-            <li v-for="(keyword, i) in expandedRowData?.keywords || []" :key="i">
+            <li v-for="(keyword, i) in row.keyword || []" :key="i">
               <UButton variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="`/dashboard/site/${site.domain}/keywords?q=${encodeURIComponent(keyword.keyword)}`" target="_blank" color="gray">
                 <div>
                   <div class="max-w-[250px] truncate text-ellipsis">
@@ -257,10 +268,10 @@ function pageUrlToPath(url: string) {
         <TrendPercentage v-else :value="row.impressions" :prev-value="row.prevImpressions" />
       </template>
       <template #actions-data="{ row }">
-        <UDropdown :items="[[{ label: 'Open Page', click: () => openUrl(row.page, '_blank') }], [{ label: 'Page Inspections', icon: 'i-heroicons-document-magnifying-glass', disabled: true }, (row.inspectionResult?.inspectionResultLink ? { label: 'View Inspection Result' } : undefined), { label: 'Inspect Index Status' }].filter(Boolean)]">
+        <UDropdown :items="[[{ label: 'Open Page', click: () => openUrl(row.path, '_blank') }], [{ label: 'Page Inspections', icon: 'i-heroicons-document-magnifying-glass', disabled: true }, (row.inspectionResult?.inspectionResultLink ? { label: 'View Inspection Result' } : undefined), { label: 'Inspect Index Status' }].filter(Boolean)]">
           <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="gray" />
         </UDropdown>
       </template>
-    </TableData>
+    </TableAsyncData>
   </div>
 </template>

@@ -1,5 +1,3 @@
-import { GoogleAdsApi } from 'google-ads-api'
-
 export async function fetchKeywordHistorialData() {
   // const { adsApiToken: developer_token } = useRuntimeConfig().google
   // const client = new GoogleAdsApi({

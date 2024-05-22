@@ -13,7 +13,8 @@ import type { H3Event } from 'h3'
 import { clearUserSession, createOAuthPool, useRuntimeConfig } from '#imports'
 import type { OAuthConfig } from '#auth-utils'
 import type { UserSession } from '~/types'
-import {sessions, UserSelect} from '~/server/database/schema'
+import type { UserSelect } from '~/server/database/schema'
+import { sessions } from '~/server/database/schema'
 
 export async function authenticateAdmin(event: H3Event) {
   const user = await authenticateUser(event)

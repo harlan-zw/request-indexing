@@ -2,7 +2,6 @@ import { avg, between, count, desc, inArray, like, sum } from 'drizzle-orm'
 import { getQuery } from 'h3'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
-  siteKeywordDateAnalytics,
   siteKeywordDatePathAnalytics,
   sitePathDateAnalytics,
   sites,
@@ -28,40 +27,40 @@ export default defineEventHandler(async (e) => {
   })
   const sq = useDrizzle()
     .select({
-      clicks: sum(siteKeywordDateAnalytics.clicks).as('clicks'),
-      ctr: avg(siteKeywordDateAnalytics.ctr).as('ctr'),
+      clicks: sum(sitePathDateAnalytics.clicks).as('clicks'),
+      ctr: avg(sitePathDateAnalytics.ctr).as('ctr'),
       // ctrPercent:
-      impressions: sum(siteKeywordDateAnalytics.impressions).as('impressions'),
-      keyword: siteKeywordDateAnalytics.keyword,
+      impressions: sum(sitePathDateAnalytics.impressions).as('impressions'),
+      path: sitePathDateAnalytics.path,
       // page:
-      position: avg(siteKeywordDateAnalytics.position).as('position'),
+      position: avg(sitePathDateAnalytics.position).as('position'),
       // positionPercent:
       // prevCtr:
       // prevPosition:
     })
-    .from(siteKeywordDateAnalytics)
+    .from(sitePathDateAnalytics)
     .where(and(
-      eq(siteKeywordDateAnalytics.siteId, site.siteId),
-      between(siteKeywordDateAnalytics.date, range.period.startDate, range.period.endDate),
+      eq(sitePathDateAnalytics.siteId, site.siteId),
+      between(sitePathDateAnalytics.date, range.period.startDate, range.period.endDate),
     ))
-    .groupBy(siteKeywordDateAnalytics.keyword)
+    .groupBy(sitePathDateAnalytics.path)
     .as('sq')
 
   // we're going to get previous period data so we can join it and compute differences
   const sq2 = useDrizzle()
     .select({
-      clicks: sum(siteKeywordDateAnalytics.clicks).as('prevClicks'),
-      ctr: avg(siteKeywordDateAnalytics.ctr).as('prevCtr'),
-      impressions: sum(siteKeywordDateAnalytics.impressions).as('prevImpressions'),
-      keyword: siteKeywordDateAnalytics.keyword,
-      position: avg(siteKeywordDateAnalytics.position).as('prevPosition'),
+      clicks: sum(sitePathDateAnalytics.clicks).as('prevClicks'),
+      ctr: avg(sitePathDateAnalytics.ctr).as('prevCtr'),
+      impressions: sum(sitePathDateAnalytics.impressions).as('prevImpressions'),
+      path: sitePathDateAnalytics.path,
+      position: avg(sitePathDateAnalytics.position).as('prevPosition'),
     })
-    .from(siteKeywordDateAnalytics)
+    .from(sitePathDateAnalytics)
     .where(and(
-      eq(siteKeywordDateAnalytics.siteId, site.siteId),
-      between(siteKeywordDateAnalytics.date, range.prevPeriod.startDate, range.prevPeriod.endDate),
+      eq(sitePathDateAnalytics.siteId, site.siteId),
+      between(sitePathDateAnalytics.date, range.prevPeriod.startDate, range.prevPeriod.endDate),
     ))
-    .groupBy(siteKeywordDateAnalytics.keyword)
+    .groupBy(sitePathDateAnalytics.path)
     .as('sq2')
 
   // we want to get the top pages, we need to join with siteKeywordDatePathAnalytics
@@ -79,12 +78,13 @@ export default defineEventHandler(async (e) => {
   //   .groupBy(siteKeywordDatePathAnalytics.keyword)
   //   .as('sq3')
   const offset = ((query?.page || 1) - 1) * 10
+  console.log({ offset })
 
-  const keywords = await useDrizzle().select({
+  const pages = await useDrizzle().select({
     clicks: sq.clicks,
     ctr: sq.ctr,
     impressions: sq.impressions,
-    keyword: sq.keyword,
+    path: sq.path,
     position: sq.position,
     prevClicks: sq2.clicks,
     prevCtr: sq2.ctr,
@@ -93,18 +93,23 @@ export default defineEventHandler(async (e) => {
     // pages: sq3.path,
   })
     .from(sq)
-    .leftJoin(sq2, eq(sq.keyword, sq2.keyword))
+    .leftJoin(sq2, eq(sq.path, sq2.path))
     // .leftJoin(sq3, eq(sq.keyword, sq3.keyword))
     // .groupBy(sq.keyword)
-    .where(like(sq.keyword, `%${query.q || ''}%`))
+    .where(like(sq.path, `%${query.q || ''}%`))
     .orderBy(desc(sq.clicks))
     .offset(offset)
     .limit(10)
 
-  if (keywords.length) {
+  console.log(pages)
+
+  if (pages.length) {
     // for each keyword find the top pages
-    const pages = await useDrizzle().select({
+    const keywords = await useDrizzle().select({
       clicks: sum(siteKeywordDatePathAnalytics.clicks).as('clicks'),
+      position: avg(siteKeywordDatePathAnalytics.position).as('position'),
+      ctr: avg(siteKeywordDatePathAnalytics.ctr).as('ctr'),
+      impressions: sum(siteKeywordDatePathAnalytics.impressions).as('impressions'),
       keyword: siteKeywordDatePathAnalytics.keyword,
       path: siteKeywordDatePathAnalytics.path,
     })
@@ -113,17 +118,17 @@ export default defineEventHandler(async (e) => {
         eq(siteKeywordDatePathAnalytics.siteId, site.siteId),
         between(siteKeywordDatePathAnalytics.date, range.period.startDate, range.period.endDate),
         // filter for keywords
-        inArray(siteKeywordDatePathAnalytics.keyword, keywords.map(row => row.keyword)),
+        inArray(siteKeywordDatePathAnalytics.path, pages.map(row => row.path)),
       ))
       .groupBy(siteKeywordDatePathAnalytics.keyword, siteKeywordDatePathAnalytics.path)
       .orderBy(desc(sum(siteKeywordDatePathAnalytics.clicks)))
 
     // apply keywords to pages
-    for (const keyword of keywords)
-      keyword.pages = pages.filter(row => row.keyword === keyword.keyword)
+    for (const page of pages)
+      page.keywords = keywords.filter(row => row.path === page.path)
   }
 
-  const totalKeywords = await useDrizzle().select({
+  const totalPages = await useDrizzle().select({
     count: count().as('total'),
   })
     .from(sitePathDateAnalytics)
@@ -133,7 +138,7 @@ export default defineEventHandler(async (e) => {
       between(sitePathDateAnalytics.date, range.period.startDate, range.period.endDate),
     ))
   return {
-    rows: keywords,
-    total: totalKeywords[0].count,
+    rows: pages,
+    total: totalPages[0].count,
   }
 })

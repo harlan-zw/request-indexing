@@ -12,7 +12,6 @@ const props = defineProps<{
 const siteData = useSiteData(props.site)
 const { data: _dates } = siteData.dateAnalytics()
 
-
 const dates = computed(() => {
   if (!_dates.value)
     return null
@@ -43,7 +42,7 @@ function indexingPercentColor(perc: number) {
 
 const gscDataSynced = ref(60 - props.site.ingestingGsc)
 const psiSynced = ref(2 - props.site.ingestingPsi)
-const sitemapSynced = ref(1- props.site.ingestingSitemap)
+const sitemapSynced = ref(1 - props.site.ingestingSitemap)
 const isSynced = ref(props.site.isSynced)
 useJobListener('sites/syncGscDate', (ctx) => {
   if (ctx.siteId === props.site.siteId) {
@@ -72,7 +71,7 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
         </h2>
       </div>
     </NuxtLink>
-    <div class="grid grid-cols-4 gap-3 border border-gray-500/20 shadow-sm rounded h-[174px]">
+    <div class="grid grid-cols-4 gap-3 border border-gray-500/20 shadow-sm rounded h-[174px] w-[475px]">
       <div v-if="!isSynced" class="flex w-full col-span-4 p-5">
         <div>
           <div class="text-sm flex items-center mb-2 font-semibold text-gray-600">
@@ -100,32 +99,32 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
       <template v-else>
         <div class="flex flex-col h-full">
           <UPopover mode="hover" :popper="{ placement: 'left' }">
-          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition group hover:bg-gray-50 rounded flex items-center h-1/3 px-2">
-            <div>
-              <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
-                Indexed %
+            <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition group hover:bg-gray-50 rounded flex items-center h-1/3 px-2">
+              <div>
+                <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
+                  Indexed %
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xl font-semibold" :class="indexingPercentColor(dates?.period.indexedPercent)">
+                    {{ useHumanFriendlyNumber(dates?.period.indexedPercent) }}
+                  </span>
+                  <UIcon v-if="dates?.period.indexedPercent >= 50 && dates?.period.indexedPercent < 100" name="i-ph-info-duotone" class="w-4 h-4 text-yellow-500" />
+                  <UIcon v-else-if="dates?.period.indexedPercent < 50" name="i-ph-warning-duotone" class="w-4 h-4 text-red-500" />
+                </div>
               </div>
-              <div class="flex items-center gap-1">
-                <span class="text-xl font-semibold" :class="indexingPercentColor(dates?.period.indexedPercent)">
-                  {{ useHumanFriendlyNumber(dates?.period.indexedPercent) }}
-                </span>
-                <UIcon v-if="dates?.period.indexedPercent >= 50 && dates?.period.indexedPercent < 100" name="i-ph-info-duotone" class="w-4 h-4 text-yellow-500" />
-                <UIcon v-else-if="dates?.period.indexedPercent < 50" name="i-ph-warning-duotone" class="w-4 h-4 text-red-500" />
-              </div>
-            </div>
-          </NuxtLink>
+            </NuxtLink>
             <template #panel>
-            <div class="p-4 text-sm">
+              <div class="p-4 text-sm">
                 <div>
                   <div class="text-gray-800 dark:text-gray-100 font-semibold mb-2">
                     {{ dates?.period.indexedPercent }}% Pages Indexed
                   </div>
-<!--                  <div class="flex gap-3 justify-between mb-1">-->
-<!--                    <div class="text-gray-700 dark:text-gray-200">-->
-<!--                      Verdict-->
-<!--                    </div>-->
-<!--                    <div>{{ dates?.period.indexedPercent >= 50 ? 'Good' : 'Bad' }}</div>-->
-<!--                  </div>-->
+                  <!--                  <div class="flex gap-3 justify-between mb-1"> -->
+                  <!--                    <div class="text-gray-700 dark:text-gray-200"> -->
+                  <!--                      Verdict -->
+                  <!--                    </div> -->
+                  <!--                    <div>{{ dates?.period.indexedPercent >= 50 ? 'Good' : 'Bad' }}</div> -->
+                  <!--                  </div> -->
                   <div class="flex gap-3 justify-between mb-1">
                     <div class="text-gray-700 dark:text-gray-200">
                       Indexed Pages

@@ -3,7 +3,7 @@ import { useUrlSearchParams } from '@vueuse/core'
 import { get } from '#ui/utils'
 
 const props = withDefaults(defineProps<{
-  value: T[]
+  path: T[]
   columns: any[]
   filters?: { key: string, label: string, filter: (rows: T[]) => T[] }[]
   expandable?: boolean
@@ -17,6 +17,8 @@ const emit = defineEmits<{
   'pageChange': [page: number]
 }>()
 
+const value = ref<T[]>([])
+
 const params = useUrlSearchParams('history', {
   removeNullishValues: true,
   removeFalsyValues: false,
@@ -26,8 +28,24 @@ const sort = ref()
 const q = ref(params.q || '')
 const page = ref(params.page || 1)
 const filter = ref(params.filter || 'default')
-const rows = computed<T>(() => props.value || [])
+const rows = computed<T>(() => value.value?.rows || [])
+const totalPages = computed(() => Math.ceil(value.value?.total / 10))
 const expandedRow = ref(null)
+
+async function refresh() {
+  value.value = await $fetch(props.path, {
+    query: {
+      q: q.value,
+      page: page.value,
+      filter: filter.value,
+      sort: sort.value,
+    },
+  })
+}
+
+onMounted(() => {
+  refresh()
+})
 
 function toggleExpandedRow(index: number) {
   if (expandedRow.value === index)
@@ -38,6 +56,7 @@ function toggleExpandedRow(index: number) {
 
 watch([q, filter, page, sort], () => {
   expandedRow.value = null
+  refresh()
 })
 
 // order: sort, query, paginate
@@ -96,14 +115,10 @@ function toggleFilter(_filter: string) {
   else
     filter.value = _filter
 }
-const pageCount = props.pageCount || 8
-const paginatedRows = computed<T[]>(() => {
-  return queriedRows.value.slice((page.value - 1) * pageCount, (page.value) * pageCount)
-})
-
-watch(page, () => {
-  emit('pageChange', page.value)
-})
+const pageCount = props.pageCount || 10
+// const paginatedRows = computed<T[]>(() => {
+//   return queriedRows.value.slice((page.value - 1) * pageCount, (page.value) * pageCount)
+// })
 
 function updateSort(_sort: any) {
   if (_sort.column === null) {
@@ -179,19 +194,19 @@ const tableUi = {
       </div>
     </div>
     <UDivider />
-    <UTable :loading="!value" :rows="paginatedRows" :columns="columns" :ui="tableUi" @update:sort="updateSort">
+    <UTable :loading="!value" :rows="rows" :columns="columns" :ui="tableUi" @update:sort="updateSort">
       <template #expand-data="{ index }">
         <UButton :icon="expandedRow === index ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'" color="gray" size="xs" variant="ghost" @click="toggleExpandedRow(index)" />
       </template>
       <!-- we need to re-implement the slots i think  -->
       <template v-for="column in columns.filter(c => c.key !== 'expand')" #[column.slotName]="data">
-        <slot :name="column.slotName" v-bind="data" :rows="paginatedRows" :expanded="expandedRow === data.index" />
+        <slot :name="column.slotName" v-bind="data" :rows="rows" :expanded="expandedRow === data.index" />
       </template>
     </UTable>
     <div v-if="queriedRows.length > 8" class="flex items-center justify-between mt-7 px-3 py-5 border-t border-gray-200 dark:border-gray-700">
-      <UPagination v-model="page" :page-count="pageCount" :total="queriedRows.length" />
+      <UPagination v-model="page" :page-count="pageCount" :total="totalPages" />
       <div class="text-base dark:text-gray-300 text-gray-600 mb-2">
-        {{ queriedRows.length }} total
+        {{ totalPages }} total
       </div>
     </div>
   </div>

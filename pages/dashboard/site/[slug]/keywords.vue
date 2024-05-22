@@ -26,6 +26,6 @@ useHead({
   </UCard>
   <UCard>
     <TableKeywords :value="keywords?.rows || []" :site="site" />
-    <TableKeywords :value="keywords2 || []" :site="site" />
+    <TableKeywordsNext :site="site" />
   </UCard>
 </template>

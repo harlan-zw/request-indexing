@@ -1,6 +1,6 @@
 import { count, inArray } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
-import { jobs, sitePaths, sites, teamSites, userSites } from '~/server/database/schema'
+import { jobs, sitePaths, sites, teamSites } from '~/server/database/schema'
 import type { TaskMap } from '~/server/plugins/eventServiceProvider'
 
 export default defineEventHandler(async (event) => {

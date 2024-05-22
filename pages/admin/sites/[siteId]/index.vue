@@ -66,7 +66,9 @@ const columns: { key: keyof JobSelect, label: string }[] = [
       </h2>
       <div>Non-Indexed pages: {{ data.pageCount[0]?.count || 0 }}</div>
       <div>Indexed pages: {{ data.pageCount[1]?.count || 0 }}</div>
-      <div v-if="data.pageCount[1]">Percent: {{ useHumanFriendlyNumber(data.pageCount[1].count / data.pageCount[0].count * 100) }}%</div>
+      <div v-if="data.pageCount[1]">
+        Percent: {{ useHumanFriendlyNumber(data.pageCount[1].count / data.pageCount[0].count * 100) }}%
+      </div>
     </div>
     <h2 class="mb-3 font-bold">
       Jobs

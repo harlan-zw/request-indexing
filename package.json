@@ -32,7 +32,7 @@
     "@nuxthub/core": "^0.5.17",
     "@nuxtjs/google-fonts": "^3.2.0",
     "@nuxtjs/seo": "^2.0.0-rc.10",
-    "@upstash/qstash": "^2.5.2",
+    "@upstash/qstash": "^2.5.3",
     "@vueuse/nuxt": "^10.9.0",
     "dayjs-nuxt": "^2.1.9",
     "devalue": "^5.0.0",
@@ -57,7 +57,7 @@
     "eslint": "^9.3.0",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0",
-    "wrangler": "^3.57.0"
+    "wrangler": "^3.57.1"
   },
   "pnpm": {
     "overrides": {
