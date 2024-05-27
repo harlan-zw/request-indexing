@@ -5,7 +5,7 @@ const props = defineProps<{
 }>()
 
 const percentage = computed(() => {
-  return (props.value / props.total) * 100
+  return (Number(props.value) / Number(props.total)) * 100
 })
 </script>
 

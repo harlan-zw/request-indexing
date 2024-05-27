@@ -155,7 +155,7 @@ const graph = computed(() => {
           </div>
         </div>
         <div v-if="graph" class="h-[100px] max-w-full overflow-hidden">
-          <GraphClicks :key="graph.key" :value="!(user?.disabledMetrics || []).includes('clicks') ? graph.clicks : []" :value2="!(user?.disabledMetrics || []).includes('impressions') ? graph.impressions : []" />
+          graph
         </div>
       </div>
     </div>

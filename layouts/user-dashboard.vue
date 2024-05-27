@@ -350,7 +350,9 @@ const supportLinks = computed(() => [
       <UDashboardPanel grow>
         <DashboardHeader />
         <UPage class="px-10">
-          <slot />
+          <div>
+            <slot />
+          </div>
           <template #right>
             <UAside>
               <UPageLinks title="Get Help" :links="supportLinks" class="mb-7" />

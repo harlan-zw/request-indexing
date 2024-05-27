@@ -2,25 +2,25 @@ import type { Ref } from '@vue/reactivity'
 import type { type ComputedRef, MaybeRef } from 'vue'
 import { withoutTrailingSlash } from 'ufo'
 
-function useHumanFriendlyNumber(number: Ref<number>, decimals?: number): ComputedRef<string>
-function useHumanFriendlyNumber(number: number, decimals?: number): string
-export function useHumanFriendlyNumber(number: MaybeRef<number | null | undefined>, decimals?: number) {
+function useHumanFriendlyNumber(number: Ref<string | number>, decimals?: number): ComputedRef<string>
+function useHumanFriendlyNumber(number: string | number, decimals?: number): string
+export function useHumanFriendlyNumber(number: MaybeRef<string | number | null | undefined>, decimals?: number) {
   const format = (number: number | null | undefined) => {
     // if not a number
     if (!['number', 'string'].includes(typeof number))
       return '-'
     // apply decimals if defined
     if (typeof decimals !== 'undefined')
-      number = Number.parseFloat(number.toFixed(decimals))
-    return new Intl.NumberFormat('en', { notation: 'compact' }).format(number)
+      number = Number.parseFloat(Number(number).toFixed(decimals))
+    return new Intl.NumberFormat('en', { notation: 'compact' }).format(Number(number))
   }
   if (isRef(number)) {
     return computed(() => {
-      return format(number.value)
+      return format(Number(number.value))
     })
   }
   // use intl to format the number, should have `k` or `m` suffix if needed
-  return format(number)
+  return format(Number(number))
 }
 
 export function useHumanMs(ms: number): string {

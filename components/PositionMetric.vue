@@ -1,19 +1,20 @@
 <script lang="ts" setup>
-const props = defineProps<{ value: number }>()
+const props = defineProps<{ value: number | string }>()
+
+const val = Number(props.value)
 // we're showing the Position metric from Google Search Console, we want to
 // alter the colour depending on the position of the keyword
 const color = computed(() => {
-  if (props.value < 10)
+  if (val < 10)
     return 'green'
-  if (props.value < 20)
+  if (val < 20)
     return 'amber'
-  if (props.value < 30)
+  if (val < 30)
     return 'orange'
   return 'red'
 })
 // we should show the value without decimals
-const formattedValue = computed(() => Math.round(props.value))
-
+const formattedValue = computed(() => Math.round(val))
 // it should be shown in a badge with minimal padding
 </script>
 

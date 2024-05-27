@@ -168,8 +168,8 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
             </div>
           </NuxtLink>
         </div>
-        <CardGoogleSearchConsole :key="site.siteId" class="col-span-2" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" @toggle-chart="toggleChart" />
-        <CardPageSpeedInsights :key="site.siteId" :site="site" :selected-charts="selectedCharts" @toggle-chart="toggleChart" />
+        <CardGoogleSearchConsole :key="site.siteId" class="col-span-2" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" />
+        <CardPageSpeedInsights :key="site.siteId" :site="site" :selected-charts="selectedCharts" />
       </template>
     </div>
   </div>

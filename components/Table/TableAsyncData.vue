@@ -1,9 +1,8 @@
 <script lang="ts" setup generic="T extends Record<string, any>">
 import { useUrlSearchParams } from '@vueuse/core'
-import { get } from '#ui/utils'
 
 const props = withDefaults(defineProps<{
-  path: T[]
+  path: string
   columns: any[]
   filters?: { key: string, label: string, filter: (rows: T[]) => T[] }[]
   expandable?: boolean
@@ -29,10 +28,11 @@ const q = ref(params.q || '')
 const page = ref(params.page || 1)
 const filter = ref(params.filter || 'default')
 const rows = computed<T>(() => value.value?.rows || [])
-const totalPages = computed(() => Math.ceil(value.value?.total / 10))
 const expandedRow = ref(null)
+const isLoading = ref(true)
 
 async function refresh() {
+  isLoading.value = true
   value.value = await $fetch(props.path, {
     query: {
       q: q.value,
@@ -40,6 +40,8 @@ async function refresh() {
       filter: filter.value,
       sort: sort.value,
     },
+  }).finally(() => {
+    isLoading.value = false
   })
 }
 
@@ -59,29 +61,6 @@ watch([q, filter, page, sort], () => {
   refresh()
 })
 
-// order: sort, query, paginate
-
-function defaultSort(a, b, direction) {
-  if (a === b)
-    return 0
-
-  if (direction === 'asc')
-    return a < b ? -1 : 1
-  else
-    return a > b ? -1 : 1
-}
-
-const sortedRows = computed(() => {
-  if (!sort.value)
-    return rows.value
-  const { column, direction } = sort.value
-  return rows.value.slice().sort((a, b) => {
-    const aValue = get(a, column)
-    const bValue = get(b, column)
-    return defaultSort(aValue, bValue, direction)
-  })
-})
-
 const filters = computed(() => {
   return [
     {
@@ -93,20 +72,6 @@ const filters = computed(() => {
     },
     ...props.filters || [],
   ].filter(Boolean)
-})
-
-const queriedRows = computed<T[]>(() => {
-  const queried = q.value
-    ? sortedRows.value.filter((row) => {
-      return Object.values(row).some((value) => {
-        return String(value).toLowerCase().includes(q.value.toLowerCase())
-      })
-    })
-    : sortedRows.value
-  const applyFilter = filters.value.find(f => f.key === filter.value)
-  if (applyFilter)
-    return applyFilter.filter(queried)
-  return queried
 })
 
 function toggleFilter(_filter: string) {
@@ -183,30 +148,30 @@ const tableUi = {
         <UBadge v-for="_filter in filters.filter(f => f.special)" :key="_filter.key" class="cursor-pointer" :ui="{ rounded: 'rounded-full' }" :color="filter === _filter.key ? 'green' : 'gray'" :variant="filter === _filter.key ? 'subtle' : 'soft'" @click="toggleFilter(_filter.key)">
           <UTooltip :text="_filter.description || ''" class="flex gap-1 items-center">
             <UIcon name="i-heroicons-sparkles" class="w-4 h-4" />
-            {{ _filter.label }} <span v-if="_filter.key === filter"> - {{ queriedRows.length }}</span>
+            {{ _filter.label }} <span v-if="_filter.key === filter" />
           </UTooltip>
         </UBadge>
         <UBadge v-for="_filter in filters.filter(f => !f.special)" :key="_filter.key" class="cursor-pointer" :ui="{ rounded: 'rounded-full' }" :color="filter === _filter.key ? 'green' : 'gray'" :variant="filter === _filter.key ? 'subtle' : 'soft'" @click="toggleFilter(_filter.key)">
           <UTooltip :text="_filter.description || ''" class="flex gap-1 items-center">
-            {{ _filter.label }} <span v-if="_filter.key === filter"> - {{ queriedRows.length }}</span>
+            {{ _filter.label }} <span v-if="_filter.key === filter" />
           </UTooltip>
         </UBadge>
       </div>
     </div>
     <UDivider />
-    <UTable :loading="!value" :rows="rows" :columns="columns" :ui="tableUi" @update:sort="updateSort">
+    <UTable :loading="isLoading" :rows="rows" :columns="columns" :ui="tableUi" @update:sort="updateSort">
       <template #expand-data="{ index }">
         <UButton :icon="expandedRow === index ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'" color="gray" size="xs" variant="ghost" @click="toggleExpandedRow(index)" />
       </template>
       <!-- we need to re-implement the slots i think  -->
       <template v-for="column in columns.filter(c => c.key !== 'expand')" #[column.slotName]="data">
-        <slot :name="column.slotName" v-bind="data" :rows="rows" :expanded="expandedRow === data.index" />
+        <slot :name="column.slotName" v-bind="data" :value="value" :rows="rows" :expanded="expandedRow === data.index" />
       </template>
     </UTable>
-    <div v-if="queriedRows.length > 8" class="flex items-center justify-between mt-7 px-3 py-5 border-t border-gray-200 dark:border-gray-700">
-      <UPagination v-model="page" :page-count="pageCount" :total="totalPages" />
+    <div v-if="value?.total > 10" class="flex items-center justify-between mt-7 px-3 py-5 border-t border-gray-200 dark:border-gray-700">
+      <UPagination v-model="page" :page-count="pageCount" :total="value?.total" />
       <div class="text-base dark:text-gray-300 text-gray-600 mb-2">
-        {{ totalPages }} total
+        {{ value?.total }} total
       </div>
     </div>
   </div>

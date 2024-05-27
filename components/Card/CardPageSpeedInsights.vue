@@ -64,7 +64,7 @@ const tooltipEntry = computed(() => {
           <div class="text-xl font-semibold">
             {{ useHumanFriendlyNumber(typeof tooltipEntry?.psiDesktopScore !== 'undefined' ? tooltipEntry.psiDesktopScore : lastEntry?.psiDesktopScore) }}
           </div>
-          <GraphData height="50" :value="graph!" :columns="['psiDesktopScore']" :colors="graphColours" @tooltip="e => tooltipData = e" />
+          <GraphData height="50" :value="graph!" :columns="['psiDesktopScore']" @tooltip="e => tooltipData = e" />
         </div>
       </div>
     </NuxtLink>

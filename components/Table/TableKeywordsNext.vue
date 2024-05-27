@@ -11,7 +11,7 @@ const props = withDefaults(
   },
 )
 
-const { user, session } = useUserSession()
+const { session } = useUserSession()
 
 const columns = computed(() => {
   // if (filter.value === 'lost') {
@@ -49,23 +49,19 @@ const columns = computed(() => {
     key: 'position',
     label: 'Position',
     sortable: true,
-  }, user.value.analyticsPeriod === 'all'
-    ? null
-    : {
-        key: 'positionPercent',
-        label: '%',
-        sortable: true,
-      }, {
+  }, {
+    key: 'positionPercent',
+    label: '%',
+    sortable: true,
+  }, {
     key: 'ctr',
     label: 'CTR',
     sortable: true,
-  }, user.value.analyticsPeriod === 'all'
-    ? null
-    : {
-        key: 'ctrPercent',
-        label: '%',
-        sortable: true,
-      }, {
+  }, {
+    key: 'ctrPercent',
+    label: '%',
+    sortable: true,
+  }, {
     key: 'actions',
   }].filter(Boolean)
 })
@@ -107,9 +103,9 @@ const graph = computed(() => {
   }
 })
 
-function highestRowClickCount(rows) {
-  return rows.reduce((acc, row) => acc + row.clicks, 0)
-}
+// function highestRowClickCount(rows) {
+//   return rows.reduce((acc, row) => acc + row.clicks, 0)
+// }
 //
 // const selected = ref([])
 // function select(row) {
@@ -161,7 +157,7 @@ const filters = computed(() => {
       label: 'Content Gap',
       special: true,
       filter: (rows: GscDataRow[]) => {
-      // compute avg. impressions and avg ctr
+        // compute avg. impressions and avg ctr
         const avgImpressions = rows.filter(row => row.impressions >= 0).reduce((acc, row) => acc + (row.impressions || 0), 0) / rows.length
         const avgCtr = rows.filter(row => row.ctr >= 0).reduce((acc, row) => acc + (row.ctr || 0), 0) / rows.length
         const thresholdImpressions = Math.max(avgImpressions * 0.5, 50)
@@ -177,23 +173,22 @@ const filters = computed(() => {
 <template>
   <div>
     <TableAsyncData :path="`/api/sites/${site.siteId}/keywords`" :columns="columns" :filters="filters" expandable @update:expanded="updateExpandedData">
-      <template #keyword-data="{ row, rows, expanded }">
+      <template #keyword-data="{ row, value: totals, expanded }">
         <div class="flex items-center">
           <div class="relative group w-[225px] truncate text-ellipsis">
-            <div class="flex items-center">
-              <UButton class="max-w-[185px] block" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" color="gray" @click="q = row.keyword">
+            <ProgressPercent class="" :value="row.clicks" :total="totals?.totalClicks">
+              <div class="text-xs font-semibold max-w-[185px] block" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" color="gray" @click="q = row.keyword">
                 <div class="text-black max-w-[185px] truncate text-ellipsis">
                   {{ row.keyword }}
                 </div>
-              </UButton>
+              </div>
               <UBadge v-if="!row.prevPosition" size="xs" variant="subtle">
                 New
               </UBadge>
               <UBadge v-else-if="row.lost" size="xs" color="red" variant="subtle">
                 Lost
               </UBadge>
-            </div>
-            <UProgress :value="Math.round((row.clicks / highestRowClickCount(rows)) * 100)" color="blue" size="xs" class="ml-2 opacity-75 group-hover:opacity-100 transition" />
+            </ProgressPercent>
           </div>
         </div>
         <div v-if="expanded" class="relative w-[225px] h-[200px]">
@@ -203,19 +198,20 @@ const filters = computed(() => {
 
       <template #page-data="{ row, expanded }">
         <div v-if="!expanded" class="flex items-center">
-          <UButton :title="row.page" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="`/dashboard/site/${site.domain}/pages?q=${encodeURIComponent(row.page)}`" color="gray">
+          <UButton v-if="row.pages?.[0]" :title="row.pages[0].path" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="`/dashboard/site/${site.domain}/pages?q=${encodeURIComponent(row.pages[0].path)}`" color="gray">
             <div class="max-w-[150px] truncate text-ellipsis">
-              {{ row.page }}
+              {{ row.pages[0].path }}
             </div>
+            <PositionMetric :value="row.pages[0].position" />
           </UButton>
         </div>
         <div v-else>
           <ul class="space-y-2">
             <li v-for="(p, key) in expandedRowData?.pages || []" :key="key">
-              <UButton :title="p.page" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="`/dashboard/site/${site.domain}/pages?q=${encodeURIComponent(p.page)}`" color="gray">
+              <UButton :title="p.path" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="`/dashboard/site/${site.domain}/pages?q=${encodeURIComponent(p.path)}`" color="gray">
                 <div>
                   <div class="max-w-[150px] truncate text-ellipsis">
-                    {{ p.page }}
+                    {{ p.path }}
                   </div>
                 </div>
               </UButton>
@@ -227,6 +223,24 @@ const filters = computed(() => {
           </ul>
         </div>
       </template>
+      <template #clicks-data="{ row }">
+        <div class="text-center">
+          <UDivider v-if="row.lostKeyword" />
+          <div v-else class="flex gap-1">
+            <UTooltip :text="`${row.clicks} clicks this period`" class="flex items-center justify-center gap-1">
+              <IconClicks />
+              {{ useHumanFriendlyNumber(row.clicks) }}
+            </UTooltip>
+            <TrendPercentage :value="row.clicks" :prev-value="row.prevClicks" />
+          </div>
+        </div>
+      </template>
+      <template #impressions-data="{ row }">
+        <UTooltip :text="`${row.impressions} impressions this period`" class="flex items-center justify-center gap-1">
+          <IconImpressions />
+          {{ useHumanFriendlyNumber(row.impressions) }}
+        </UTooltip>
+      </template>
       <template #position-data="{ row }">
         <div class="text-center">
           <UDivider v-if="row.lostKeyword" />
@@ -234,12 +248,6 @@ const filters = computed(() => {
             <div>
               <PositionMetric :value="row.position" />
             </div>
-            <UTooltip :text="`${row.impressions} impressions`">
-              <div class="text-xs flex items-center gap-1">
-                {{ useHumanFriendlyNumber(row.impressions) }}
-                <IconImpressions />
-              </div>
-            </UTooltip>
           </template>
         </div>
       </template>
@@ -262,12 +270,6 @@ const filters = computed(() => {
       <template #ctr-data="{ row }">
         <div class="text-center">
           <div>{{ useHumanFriendlyNumber(row.ctr * 100, 1) }}%</div>
-          <UTooltip :text="`${row.clicks} impressions`">
-            <div class="text-xs flex items-center gap-1">
-              {{ useHumanFriendlyNumber(row.clicks) }}
-              <IconClicks />
-            </div>
-          </UTooltip>
         </div>
       </template>
       <template #prevCtr-data="{ row }">

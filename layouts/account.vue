@@ -37,7 +37,9 @@ const supportLinks = computed(() => [
             <UNavigationTree title="test" :links="links" />
           </UAside>
         </template>
-        <slot />
+        <div>
+          <slot />
+        </div>
         <template #right>
           <UAside>
             <UPageLinks title="Get Help" :links="supportLinks" class="mb-7" />
