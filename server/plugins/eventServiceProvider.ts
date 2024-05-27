@@ -1,8 +1,16 @@
 import type { NitroRuntimeHooks } from 'nitropack'
 import type { H3Event } from 'h3'
+import { createConsola } from 'consola'
 import { useMessageQueue } from '#imports'
 import type { JobBatchInsert, JobInsert } from '~/server/database/schema'
 import { jobBatches, jobs } from '~/server/database/schema'
+
+const logger = createConsola({
+  level: import.meta.dev ? 5 : 3,
+  defaults: {
+    tag: 'jobs',
+  },
+})
 
 export async function batchJobs(batchOptions: JobBatchInsert, _jobs: Partial<JobInsert>[]) {
   if (!_jobs.length)
@@ -24,7 +32,9 @@ export async function batchJobs(batchOptions: JobBatchInsert, _jobs: Partial<Job
     },
     ...j,
   } as JobInsert))
-  const createdJobs = await db.batch(_jobs.map(job => db.insert(jobs).values(job).returning()))
+  const createdJobs = await db.batch(_jobs.map((job) => {
+    return db.insert(jobs).values(job).returning()
+  }))
   const mq = useMessageQueue()
   return Promise.all(createdJobs.map(job => mq.message(`/_jobs/run`, { jobId: job[0].jobId })))
 }
@@ -63,7 +73,7 @@ export function defineJobHandler(handler: (event: H3Event) => Promise<void | { b
       return handler(event)
     }
     catch (e) {
-      console.log('caught exception! returning error', e)
+      logger.warn('Job handler failed', e)
       throw e
     }
   })
@@ -129,7 +139,6 @@ export default defineNitroPlugin(async (nitro) => {
       // ['sites/setup'],
       ['sites/setup', ctx => ctx.permissionLevel !== 'siteUnverifiedUser'],
     ], (ctx) => {
-      console.log('listener app:site:created', ctx)
       return {
         payload: {
           siteId: ctx.siteId,

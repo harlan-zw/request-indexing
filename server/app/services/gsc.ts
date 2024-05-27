@@ -129,7 +129,6 @@ export async function inspectGscUrl(account: GoogleAccountsSelect & { googleOAut
     const nonIndexedPages = await useDrizzle().select({ count: count() })
       .from(sitePaths)
       .where(and(eq(sitePaths.siteId, site.siteId), eq(sitePaths.isIndexed, false)))
-    console.log(indexedPages, nonIndexedPages)
     // we need to update the site's indexed pages for the day
     await useDrizzle().update(siteDateAnalytics).set({
       // do a count of all indexed pages for the day
@@ -172,7 +171,6 @@ export async function fetchGscSitesWithSitemaps(account: GoogleAccountsSelect & 
     return s.permissionLevel !== 'siteUnverifiedUser'
   })
   return Promise.all(sites.map(async (site) => {
-    console.log(site.siteUrl, site.permissionLevel)
     return {
       sitemaps: site.permissionLevel === 'owner'
         ? await api.sitemaps.list({
@@ -532,7 +530,7 @@ export async function fetchGSCPages(account: GoogleAccountsSelect & { googleOAut
   })
 }
 
-export async function fetchGSCPagesWithKeywords(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect, options?: {}): Promise<{ rows: SiteAnalytics[], periodCount: number, prevPeriodCount: number }> {
+export async function fetchGSCPagesWithKeywords(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }, range: ResolvedAnalyticsRange, site: SiteSelect, options?: searchconsole_v1.Schema$SearchAnalyticsQueryRequest): Promise<{ rows: SiteAnalytics[], periodCount: number, prevPeriodCount: number }> {
   const api = searchconsole({
     version: 'v1',
     auth: createGoogleOAuthClient(account),

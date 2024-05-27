@@ -12,7 +12,6 @@ definePageMeta({
 const data = ref<SitePreview[]>([])
 
 const { data: siteData } = await fetchSites()
-console.log(siteData)
 // watch(siteData, () => {
 //   data.value = siteData || []
 // }, {
@@ -89,7 +88,6 @@ let ws: WebSocket | undefined
 
 async function connect() {
   const isSecure = location.protocol === 'https:'
-  console.log('wss connect', user.value!.userId)
   const url = `${(isSecure ? 'wss://' : 'ws://') + location.host}/_ws?userId=${user.value!.userId}`
   ws && ws.close()
 
@@ -98,7 +96,6 @@ async function connect() {
   ws.addEventListener('message', ({ data }) => {
     const job = JSON.parse(data) as { name: keyof TaskMap, payload: any }
     const payload = JSON.parse(job.payload)
-    console.log('ws message', job.name, payload)
     if (job.name === 'users/syncGscSites') {
       totalSites.value = payload.sites.length
       isSetup.value = true
@@ -125,9 +122,9 @@ onMounted(() => {
   connect()
 })
 
-function setSelectedSites(val) {
-  selectedSites.value = val
-}
+// function setSelectedSites(val) {
+//   selectedSites.value = val
+// }
 </script>
 
 <template>

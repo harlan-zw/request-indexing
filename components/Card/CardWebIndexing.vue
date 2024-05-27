@@ -9,9 +9,9 @@ const props = defineProps<{
   prevPeriod: SiteDateAnalyticsSelect
 }>()
 
-const emits = defineEmits<{
-  toggleChart: [chart: string]
-}>()
+// const emits = defineEmits<{
+//   toggleChart: [chart: string]
+// }>()
 
 const graph = computed(
   () => (props.dates || []).map(((row, i) => {
@@ -54,22 +54,22 @@ const buttons = computed(() => [
   },
 ])
 
-const columns = [
-  'indexedPagesCount',
-  {
-    key: 'indexedPercent',
-    type: 'line',
-    priceScaleId: 'left',
-    priceFormat: {
-      type: 'percent',
-    },
-  },
-]
+// const columns = [
+//   'indexedPagesCount',
+//   {
+//     key: 'indexedPercent',
+//     type: 'line',
+//     priceScaleId: 'left',
+//     priceFormat: {
+//       type: 'percent',
+//     },
+//   },
+// ]
 </script>
 
 <template>
   <div class="flex flex-col">
-    <GraphButtonGroup :buttons="buttons" :model-value="selectedCharts" @update:model-value="e => $emit('toggleChart', e)">
+    <GraphButtonGroup :buttons="buttons" :model-value="selectedCharts">
       <template #indexedPagesCount-trend>
         <TrendPercentage :value="lastEntry?.indexedPagesCount" :prev-value="props.prevPeriod?.indexedPagesCount" />
       </template>

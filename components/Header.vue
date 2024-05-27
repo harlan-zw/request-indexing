@@ -11,7 +11,7 @@ const router = useRouter()
 const color = useColorMode()
 
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
-const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('/dashboard'))
+// const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('/dashboard'))
 
 const sites = ref((loggedIn.value && !isOnWelcome.value) ? await fetchSites().then(res => res.data.value?.sites) : [])
 const links = computed(() => {

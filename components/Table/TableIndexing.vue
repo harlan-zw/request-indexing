@@ -186,7 +186,7 @@ function openUrl(url: string, target?: string) {
   window.open(url, target)
 }
 
-const { pause, resume } = useTimeoutPoll(pollForInspectUrl, 2000, { immediate: false })
+const { pause } = useTimeoutPoll(pollForInspectUrl, 2000, { immediate: false })
 
 async function pollForInspectUrl() {
   const row = [...paginatedRows.value]

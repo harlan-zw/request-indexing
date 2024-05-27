@@ -1,15 +1,13 @@
 <script lang="ts" setup>
-import { fetchSites } from '~/composables/fetch'
 import { createLogoutHandler } from '~/composables/auth'
-import type { GoogleSearchConsoleSite } from '~/types'
 
 const router = useRouter()
 const { user, session, loggedIn } = useUserSession()
 
-const { data } = await fetchSites()
-const sites = computed(() => {
-  return (data.value?.sites || [])
-})
+// const { data } = await fetchSites()
+// const sites = computed(() => {
+//   return (data.value?.sites || [])
+// })
 
 const logout = createLogoutHandler()
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
@@ -55,10 +53,10 @@ const authDropdownItems: DropdownItem[][] = computed(() => {
   ].filter(Boolean)
 })
 
-const site: GoogleSearchConsoleSite = computed(() => {
-  const slug = useRoute().params.slug
-  return (sites.value || []).find(site => site.siteId === slug)
-})
+// const site: GoogleSearchConsoleSite = computed(() => {
+//   const slug = useRoute().params.slug
+//   return (sites.value || []).find(site => site.siteId === slug)
+// })
 
 const onlyDashboardLinks = computed(() => [
   {
@@ -88,25 +86,25 @@ const onlyDashboardLinks = computed(() => [
   },
 ])
 
-const domains = computed(() => {
-  // show other sites sharing the same site.siteUrl
-  const _domains = sites.value.filter(s => s.property === site.value.property)
-  return [
-    ..._domains.map((d) => {
-      return {
-        label: useFriendlySiteUrl(d.domain),
-        value: d,
-        to: `/dashboard/site/${d.siteId}/overview`,
-      }
-    }),
-  ]
-})
+// const domains = computed(() => {
+//   // show other sites sharing the same site.siteUrl
+//   const _domains = sites.value.filter(s => s.property === site.value.property)
+//   return [
+//     ..._domains.map((d) => {
+//       return {
+//         label: useFriendlySiteUrl(d.domain),
+//         value: d,
+//         to: `/dashboard/site/${d.siteId}/overview`,
+//       }
+//     }),
+//   ]
+// })
 
-const route = useRoute()
-function changeSite(siteId) {
-  const childSegment = route.path.split('/').pop()
-  return navigateTo(`/dashboard/site/${siteId}/${childSegment}`)
-}
+// const route = useRoute()
+// function changeSite(siteId) {
+//   const childSegment = route.path.split('/').pop()
+//   return navigateTo(`/dashboard/site/${siteId}/${childSegment}`)
+// }
 
 const groups = [{
   key: 'links',

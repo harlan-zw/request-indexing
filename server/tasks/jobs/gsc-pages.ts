@@ -6,7 +6,7 @@ export default defineTask({
     name: 'gsc:pages',
     description: 'Sync GSC pages',
   },
-  async run({ payload, context }) {
+  async run({ payload }) {
     if (!import.meta.dev)
       return
 

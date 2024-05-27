@@ -94,7 +94,6 @@ export function googleAuthEventHandler({
       // let's query the oauth pools
       const pool = createOAuthPool()
       const oauth = await pool.free()
-      console.log('USING CLIENT', oauth.label)
       config.clientId = oauth.clientId
       config.clientSecret = oauth.clientSecret
       await setUserSession(event, {

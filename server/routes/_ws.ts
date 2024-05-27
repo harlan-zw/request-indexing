@@ -13,11 +13,8 @@ export default defineWebSocketHandler({
     })
 
     const nitro = useNitroApp()
-    console.log('NEW WS CONNECTION', `ws:message:${user.publicId}`)
     wsHooks.set(userId, nitro.hooks.hook(`ws:message:${user.publicId}`, (message) => {
-      console.log('Sending broadcast message to', peer, peer.readyState)
-      const res = peer.send(JSON.stringify(message))
-      console.log(res)
+      peer.send(JSON.stringify(message))
     }))
   },
 

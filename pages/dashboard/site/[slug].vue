@@ -13,15 +13,13 @@ const sites = computed(() => sitesData.value?.sites || [])
 
 const site = (sites.value || []).find(site => site.siteId === slug)
 
-console.log(sites.value)
-
 // if (!sites.value || !site) {
 //   throw createError({
 //     statusCode: 404,
 //     statusMessage: 'Site Not Found',
 //   })
 // }
-const route = useRoute()
+// const route = useRoute()
 
 // const siteLoader = await fetchSite(site)
 // const { data, pending, refresh } = siteLoader
@@ -37,7 +35,7 @@ useHead({
 
 // const analytics = computed(() => (data.value?.analytics || { period: { totalClicks: 0 }, prevPeriod: { totalClicks: 0 } }))
 
-const siteUrlFriendly = useFriendlySiteUrl(site.domain)
+// const siteUrlFriendly = useFriendlySiteUrl(site.domain)
 
 // const tab = computed({
 //   get() {
@@ -62,24 +60,24 @@ const siteUrlFriendly = useFriendlySiteUrl(site.domain)
 //
 // const apiCallLimit = useRuntimeConfig().public.indexing.usageLimitPerUser
 
-const domains = computed(() => {
-  // show other sites sharing the same site.siteUrl
-  const _domains = sites.value.filter(s => s.property === site.property).map(s => s.domain)
-  return [
-    ..._domains.map((d) => {
-      return {
-        label: d.replace('https://', ''),
-        value: d,
-        to: `/dashboard/site/${encodeURIComponent(d)}`,
-      }
-    }),
-  ]
-})
+// const domains = computed(() => {
+//   // show other sites sharing the same site.siteUrl
+//   const _domains = sites.value.filter(s => s.property === site.property).map(s => s.domain)
+//   return [
+//     ..._domains.map((d) => {
+//       return {
+//         label: d.replace('https://', ''),
+//         value: d,
+//         to: `/dashboard/site/${encodeURIComponent(d)}`,
+//       }
+//     }),
+//   ]
+// })
 
-function changeSite(siteUrl) {
-  const childSegment = route.path.split('/').pop()
-  return navigateTo(`/dashboard/site/${encodeURIComponent(siteUrl)}/${childSegment}`)
-}
+// function changeSite(siteUrl) {
+//   const childSegment = route.path.split('/').pop()
+//   return navigateTo(`/dashboard/site/${encodeURIComponent(siteUrl)}/${childSegment}`)
+// }
 
 const domain = ref(site.domain)
 watch(domain, () => {

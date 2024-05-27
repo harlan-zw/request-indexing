@@ -137,7 +137,6 @@ onMounted(() => {
           },
           lineType: 2,
         }).setData(props.value.performance)
-        console.log('added performance', props.value.performance)
         break
       case 'accessibility':
         // green

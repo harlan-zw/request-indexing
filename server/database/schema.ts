@@ -394,7 +394,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   googleAccounts: many(googleAccounts),
 }))
 
-export const googleAccountsRelations = relations(googleAccounts, ({ one, many }) => ({
+export const googleAccountsRelations = relations(googleAccounts, ({ one }) => ({
   user: one(users, {
     fields: [googleAccounts.userId],
     references: [users.userId],

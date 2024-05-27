@@ -126,7 +126,6 @@ export async function fetchSitemapUrls(options: { siteUrl: string, sitemapPaths:
   }
   if (!sitemaps.length)
     sitemaps.push(withBase('/sitemap.xml', options.siteUrl))
-  console.log('final sitemaps', sitemaps)
   return (await Promise.all([...(new Set(sitemaps))]
     .map(async (url) => {
       const isTxt = url.endsWith('.txt')

@@ -19,12 +19,12 @@ const selectedCharts = ref([
   'impressions',
 ])
 
-function toggleChart(chart: string) {
-  if (selectedCharts.value.includes(chart))
-    selectedCharts.value = selectedCharts.value.filter(c => c !== chart)
-  else
-    selectedCharts.value.push(chart)
-}
+// function toggleChart(chart: string) {
+//   if (selectedCharts.value.includes(chart))
+//     selectedCharts.value = selectedCharts.value.filter(c => c !== chart)
+//   else
+//     selectedCharts.value.push(chart)
+// }
 </script>
 
 <template>

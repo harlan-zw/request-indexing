@@ -50,10 +50,9 @@ export default defineJobHandler(async (event) => {
     strategy,
   })
     .then(res => res.data)
-    .catch((err) => {
+    .catch(() => {
       return false
     })
-  console.log(res)
   if (typeof res === 'boolean') {
     return {
       error: 'Failed to fetch PSI',

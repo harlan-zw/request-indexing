@@ -22,7 +22,6 @@ export default defineEventHandler(async (event) => {
       where: eq(jobBatches.jobBatchId, job.jobBatchId),
     })
   }
-  console.log(`Running job ${job.jobId}`, job.name, job.payload)
   const nitro = useNitroApp()
   const now = Date.now()
   const res = await nitro.localFetch(joinURL('/_jobs', job.name), {
@@ -45,7 +44,6 @@ export default defineEventHandler(async (event) => {
   }).where(eq(jobs.jobId, jobId))
   if (res.status >= 400) {
     // failed
-    console.log(`Job error ${job.jobId}`, job.name)
     await db.insert(failedJobs).values({
       jobId,
       exception: JSON.stringify(body),
@@ -78,7 +76,6 @@ export default defineEventHandler(async (event) => {
       timeTaken: Date.now() - now,
       status: 'completed',
     }).where(eq(jobs.jobId, jobId))
-    console.log('Job response', job.name, body)
     if (batch) {
       const updatedBatch = await db.update(jobBatches)
         .set({
@@ -86,7 +83,6 @@ export default defineEventHandler(async (event) => {
         })
         .where(eq(jobBatches.jobBatchId, batch.jobBatchId))
         .returning({ pendingJobs: jobBatches.pendingJobs })
-      console.log({ updatedBatch })
       // job can run separately and inherit broadcasting
       if (updatedBatch?.[0]?.pendingJobs === 0) {
         // save finishedAt
@@ -101,7 +97,6 @@ export default defineEventHandler(async (event) => {
     if (broadcastTo) {
       (Array.isArray(broadcastTo) ? broadcastTo : [broadcastTo])
         .forEach(async (to) => {
-          console.log('Calling ws nitro hook', `ws:message:${to}`)
           // success we can trigger broadcasting
           nitro.hooks.callHook(`ws:message:${to}`, {
             name: job.name,

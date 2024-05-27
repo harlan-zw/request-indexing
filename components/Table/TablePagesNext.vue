@@ -4,7 +4,6 @@ import type { GscDataRow } from '~/types/data'
 import { exponentialMovingAverage } from '~/lib/time-smoothing/exponentialMovingAverage'
 import { simpleMovingAverage } from '~/lib/time-smoothing/simpleMovingAverage'
 import { callFnSyncToggleRef } from '~/composables/loader'
-import { useSiteData } from '~/composables/fetch'
 import type { SiteSelect } from '~/server/database/schema'
 
 const props = withDefaults(
@@ -15,14 +14,14 @@ const props = withDefaults(
 )
 
 const page = ref(1)
-const siteData = useSiteData(props.site)
-const pagesDb = siteData.pagesDb({
-  query: {
-    limit: props.pageCount,
-  },
-})
+// const siteData = useSiteData(props.site)
+// const pagesDb = siteData.pagesDb({
+//   query: {
+//     limit: props.pageCount,
+//   },
+// })
 
-const { user, session } = useUserSession()
+const { session } = useUserSession()
 
 const columns = computed(() => [
   {

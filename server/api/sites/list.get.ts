@@ -53,7 +53,6 @@ export default defineEventHandler(async (event) => {
       ),
     )
     .groupBy(jobs.entityId, jobs.name)
-  console.log('jobs', siteJobs, user.userId, mySitesQuery.map(s => s.siteId))
 
   const result = await db.select({
     _id: sites.siteId,

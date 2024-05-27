@@ -10,6 +10,7 @@ import {
 import { fetchSitemapUrls } from '~/server/app/services/crawler/crawl'
 import type { TaskMap } from '~/server/plugins/eventServiceProvider'
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
+import { chunkedBatch } from '~/server/utils/drizzle'
 // import { wsUsers } from '~/server/routes/_ws'
 
 export default defineJobHandler(async (event) => {
@@ -52,11 +53,9 @@ export default defineJobHandler(async (event) => {
     }, [] as SitePathSelect[][])
 
   for (const chunk of sitemapUrls)
-    await db.batch(chunk.map(row => db.insert(sitePaths).values(row).onConflictDoNothing()))
+    await chunkedBatch(chunk.map(row => db.insert(sitePaths).values(row).onConflictDoNothing()))
 
   const totalPagesCount = sitemapUrls.flat().length
-  console.log('got sitemap urls', sitemapUrls.length, site.domain, site.sitemaps?.map(s => s.path))
-
   await db.insert(siteDateAnalytics).values({
     siteId,
     date: dayjs().format('YYYY-MM-DD'), // gcs format

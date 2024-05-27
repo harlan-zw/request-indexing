@@ -23,6 +23,7 @@ export default defineJobHandler(async (event) => {
   }
   await db.update(sites).set({
     isSynced: true,
+    lastSynced: Date.now(),
   }).where(eq(sites.siteId, siteId))
 
   // we need to get all non-indexed site paths

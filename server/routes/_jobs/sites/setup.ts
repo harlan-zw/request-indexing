@@ -5,6 +5,7 @@ import { siteDateAnalytics, sitePaths, sites } from '~/server/database/schema'
 import { createSites, fetchGSCPages } from '#imports'
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
 import type { GscPage } from '~/server/app/services/gsc'
+import { chunkedBatch } from '~/server/utils/drizzle'
 
 export default defineJobHandler(async (event) => {
   const { siteId } = await readBody<{ siteId: number }>(event)
@@ -27,9 +28,6 @@ export default defineJobHandler(async (event) => {
   })
 
   const user = site?.owner
-
-  console.log(site?.ownerPermissions.permissionLevel === 'siteUnverifiedUser')
-
   if (!site || !user) {
     throw createError({
       statusCode: 404,
@@ -63,7 +61,6 @@ export default defineJobHandler(async (event) => {
         .catch(() => {
           return null
         })
-      console.log('fetch', key, res?.status)
       // just avoid redirect domains for now
       if (!res?._data || (res.status >= 300 && !res.headers.get('location')?.includes(key)))
         return null
@@ -93,7 +90,7 @@ export default defineJobHandler(async (event) => {
       const pages = domains[site.domain!]
       if (!pages?.size)
         return
-      const indexedPages = Object.entries(pages).map(([path, row]) => {
+      const indexedPages = Object.entries(pages).map(([_, row]) => {
         return {
           ...row,
           isIndexed: true,
@@ -102,7 +99,7 @@ export default defineJobHandler(async (event) => {
         }
       }) as any as SitePathSelect[]
 
-      await db.batch(indexedPages.map(row => db.insert(sitePaths).values(row).onConflictDoUpdate({
+      await chunkedBatch(indexedPages.map(row => db.insert(sitePaths).values(row).onConflictDoUpdate({
         target: [sitePaths.siteId, sitePaths.path],
         set: row,
       })))
@@ -128,7 +125,7 @@ export default defineJobHandler(async (event) => {
     }) as any as SitePathSelect[]
 
     if (indexedPages.length) {
-      await db.batch(indexedPages.map(row => db.insert(sitePaths).values(row).onConflictDoUpdate({
+      await chunkedBatch(indexedPages.map(row => db.insert(sitePaths).values(row).onConflictDoUpdate({
         target: [sitePaths.siteId, sitePaths.path],
         set: {
           isIndexed: true,

@@ -1,16 +1,13 @@
 <script lang="ts" setup>
-import { joinURL, withoutTrailingSlash } from 'ufo'
-import { fetchSites } from '~/composables/fetch'
 import { createLogoutHandler } from '~/composables/auth'
-import type { GoogleSearchConsoleSite } from '~/types'
 
 const router = useRouter()
 const { user, session } = useUserSession()
 
-const { data } = await fetchSites()
-const sites = computed(() => {
-  return (data.value?.sites || [])
-})
+// const { data } = await fetchSites()
+// const sites = computed(() => {
+//   return (data.value?.sites || [])
+// })
 
 const logout = createLogoutHandler()
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
@@ -56,106 +53,106 @@ const authDropdownItems: DropdownItem[][] = computed(() => {
     ],
   ].filter(Boolean)
 })
+//
+// const site: GoogleSearchConsoleSite = computed(() => {
+//   const slug = useRoute().params.slug
+//   return (sites.value || []).find(site => site.siteId === slug)
+// })
 
-const site: GoogleSearchConsoleSite = computed(() => {
-  const slug = useRoute().params.slug
-  return (sites.value || []).find(site => site.siteId === slug)
-})
+// const siteLinks = computed(() => !site.value
+//   ? []
+//   : [
+//       [
+//         {
+//           label: 'Overview',
+//           to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'),
+//           icon: 'i-heroicons-home',
+//         },
+//       ],
+//       [
+//         {
+//           label: 'Pages',
+//           icon: 'i-heroicons-folder',
+//           to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
+//         },
+//         {
+//           label: 'Keywords',
+//           icon: 'i-heroicons-magnifying-glass-circle',
+//           to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
+//         },
+//       ],
+//       [
+//         {
+//           label: 'Web Indexing',
+//           icon: 'i-ph-check-circle-duotone',
+//           to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'web-indexing'),
+//         },
+//         // {
+//         //   label: 'CRuX',
+//         //   icon: 'i-heroicons-users',
+//         //   to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'crux'),
+//         // },
+//         {
+//           label: 'Pagespeed Insights',
+//           icon: 'i-heroicons-rocket-launch',
+//           to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights'),
+//         },
+//       ],
+//       [
+//         {
+//           label: 'Backups',
+//           to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'backups'),
+//           icon: 'i-heroicons-circle-stack',
+//         },
+//         {
+//           label: 'Site Settings',
+//           to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'settings'),
+//           icon: 'i-heroicons-cog',
+//         },
+//       ],
+//     ])
 
-const siteLinks = computed(() => !site.value
-  ? []
-  : [
-      [
-        {
-          label: 'Overview',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'),
-          icon: 'i-heroicons-home',
-        },
-      ],
-      [
-        {
-          label: 'Pages',
-          icon: 'i-heroicons-folder',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
-        },
-        {
-          label: 'Keywords',
-          icon: 'i-heroicons-magnifying-glass-circle',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
-        },
-      ],
-      [
-        {
-          label: 'Web Indexing',
-          icon: 'i-ph-check-circle-duotone',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'web-indexing'),
-        },
-        // {
-        //   label: 'CRuX',
-        //   icon: 'i-heroicons-users',
-        //   to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'crux'),
-        // },
-        {
-          label: 'Pagespeed Insights',
-          icon: 'i-heroicons-rocket-launch',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights'),
-        },
-      ],
-      [
-        {
-          label: 'Backups',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'backups'),
-          icon: 'i-heroicons-circle-stack',
-        },
-        {
-          label: 'Site Settings',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'settings'),
-          icon: 'i-heroicons-cog',
-        },
-      ],
-    ])
+// const teamLinks = computed(() => [
+//   // members
+//   // {
+//   //   label: 'Google Accounts',
+//   //   to: '/dashboard/team/accounts',
+//   //   icon: 'i-heroicons-user-circle',
+//   // },
+//   {
+//     label: 'Members',
+//     to: '/dashboard/team/members',
+//     icon: 'i-heroicons-users',
+//   },
+//   {
+//     label: 'Settings',
+//     to: '/dashboard/team/settings',
+//     icon: 'i-heroicons-cog',
+//   },
+// ])
 
-const teamLinks = computed(() => [
-  // members
-  // {
-  //   label: 'Google Accounts',
-  //   to: '/dashboard/team/accounts',
-  //   icon: 'i-heroicons-user-circle',
-  // },
-  {
-    label: 'Members',
-    to: '/dashboard/team/members',
-    icon: 'i-heroicons-users',
-  },
-  {
-    label: 'Settings',
-    to: '/dashboard/team/settings',
-    icon: 'i-heroicons-cog',
-  },
-])
-
-const onlySiteLinks = computed(() => {
-  return [
-    ...sites.value.map((s) => {
-      return {
-        label: useFriendlySiteUrl(s.domain),
-        to: `/dashboard/site/${s.siteId}/overview`,
-        avatarClass: 'rounded-sm',
-        avatar: {
-          style: 'border-radius: 0;',
-          size: '3xs',
-          text: s.domain,
-          src: `/_favicon?domain=${withoutTrailingSlash(s.domain)}`,
-        },
-      }
-    }),
-    {
-      label: 'Add Site',
-      icon: 'i-heroicons-plus',
-      to: '/dashboard/sites/add',
-    },
-  ]
-})
+// const onlySiteLinks = computed(() => {
+//   return [
+//     ...sites.value.map((s) => {
+//       return {
+//         label: useFriendlySiteUrl(s.domain),
+//         to: `/dashboard/site/${s.siteId}/overview`,
+//         avatarClass: 'rounded-sm',
+//         avatar: {
+//           style: 'border-radius: 0;',
+//           size: '3xs',
+//           text: s.domain,
+//           src: `/_favicon?domain=${withoutTrailingSlash(s.domain)}`,
+//         },
+//       }
+//     }),
+//     {
+//       label: 'Add Site',
+//       icon: 'i-heroicons-plus',
+//       to: '/dashboard/sites/add',
+//     },
+//   ]
+// })
 
 const onlyDashboardLinks = computed(() => [
   { label: 'Profile', to: '/account', icon: 'i-heroicons-user-circle' },
@@ -236,25 +233,25 @@ const onlyDashboardLinks = computed(() => [
 //   },
 // ])
 
-const domains = computed(() => {
-  // show other sites sharing the same site.siteUrl
-  const _domains = sites.value.filter(s => s.property === site.value.property)
-  return [
-    ..._domains.map((d) => {
-      return {
-        label: useFriendlySiteUrl(d.domain),
-        value: d,
-        to: `/dashboard/site/${d.siteId}/overview`,
-      }
-    }),
-  ]
-})
-
-const route = useRoute()
-function changeSite(siteId) {
-  const childSegment = route.path.split('/').pop()
-  return navigateTo(`/dashboard/site/${siteId}/${childSegment}`)
-}
+// const domains = computed(() => {
+//   // show other sites sharing the same site.siteUrl
+//   const _domains = sites.value.filter(s => s.property === site.value.property)
+//   return [
+//     ..._domains.map((d) => {
+//       return {
+//         label: useFriendlySiteUrl(d.domain),
+//         value: d,
+//         to: `/dashboard/site/${d.siteId}/overview`,
+//       }
+//     }),
+//   ]
+// })
+//
+// const route = useRoute()
+// function changeSite(siteId) {
+//   const childSegment = route.path.split('/').pop()
+//   return navigateTo(`/dashboard/site/${siteId}/${childSegment}`)
+// }
 
 const groups = [{
   key: 'links',

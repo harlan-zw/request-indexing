@@ -18,7 +18,7 @@ const { data } = siteData.indexing()
 const { data: dateAnalytics } = siteData.dateAnalytics()
 
 const graph = computed(
-  () => (dateAnalytics.value?.dates || []).map(((row, i) => {
+  () => (dateAnalytics.value?.dates || []).map(((row) => {
     return {
       indexedPagesCount: row.indexedPagesCount,
       indexedPercent: Math.round(row.indexedPagesCount / (row.totalPagesCount || 1) * 100),

@@ -7,9 +7,9 @@ const props = defineProps<{
   selectedCharts: string[]
 }>()
 
-const emits = defineEmits<{
-  toggleChart: [chart: string]
-}>()
+// const emits = defineEmits<{
+//   toggleChart: [chart: string]
+// }>()
 
 const siteData = useSiteData(props.site)
 const { data: dates } = siteData.psiDates()

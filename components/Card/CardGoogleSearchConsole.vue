@@ -10,12 +10,12 @@ const props = defineProps<{
   prevPeriod: SiteDateAnalyticsSelect
   fill?: boolean
 }>()
-
-const emits = defineEmits<{
-  toggleChart: [chart: string]
-}>()
-
-const { site } = toRefs(props)
+//
+// const emits = defineEmits<{
+//   toggleChart: [chart: string]
+// }>()
+//
+// const { site } = toRefs(props)
 
 // const siteData = useSiteData(props.site)
 // const { data: analytics } = siteData.analytics()
@@ -35,12 +35,11 @@ const tooltipEntry = computed(() => {
   return graph.value.find(row => row.date === tooltipData.value.time)
 })
 
-function toggleChart(chart: string) {
-  emits('toggleChart', chart)
-}
+// function toggleChart(chart: string) {
+//   emits('toggleChart', chart)
+// }
 
-const expanded = ref(false)
-console.log(site)
+// const expanded = ref(false)
 // const indexedPercent = computed(() => {
 //   return Math.round(props.site.pageCountIndexed / props.site.pageCount * 100)
 // })
@@ -86,7 +85,7 @@ const buttons = computed<GraphButton[]>(() => [
 
 <template>
   <div class="flex flex-col items-center justify-center">
-    <GraphButtonGroup :buttons="buttons" :model-value="selectedCharts" @update:model-value="e => $emit('toggleChart', e)">
+    <GraphButtonGroup :buttons="buttons" :model-value="selectedCharts">
       <template #clicks-icon>
         <IconClicks class="w-4 h-4 opacity-80" />
       </template>

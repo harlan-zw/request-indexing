@@ -5,6 +5,7 @@ import {
   sites,
 } from '~/server/database/schema'
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
+import { chunkedBatch } from '~/server/utils/drizzle'
 // import { wsUsers } from '~/server/routes/_ws'
 
 export default defineJobHandler(async (event) => {
@@ -43,8 +44,7 @@ export default defineJobHandler(async (event) => {
   const { rows, startDate } = dates
   // insert the rows
   if (rows.length) {
-    await db.batch(rows.map((row) => {
-      console.log(row)
+    await chunkedBatch(rows.map((row) => {
       return db.insert(siteDateAnalytics).values({
         ...row,
         siteId,

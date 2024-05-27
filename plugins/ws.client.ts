@@ -21,7 +21,6 @@ export default defineNuxtPlugin((nuxtApp) => {
       const job = JSON.parse(data) as { name: keyof TaskMap, payload: any }
       const payload = JSON.parse(job.payload)
       const hookName = `app:${job.name.replace('/', ':')}`
-      console.log('ws message', hookName, payload)
       nuxtApp.hooks.callHook(hookName, payload)
       // console.log('ws message', job.name, payload)
       // if (job.name === 'users/syncGscSites') {
@@ -46,6 +45,5 @@ export default defineNuxtPlugin((nuxtApp) => {
     })
 
     await new Promise(resolve => ws!.addEventListener('open', resolve))
-    console.log('wss connected', user.userId)
   }
 })

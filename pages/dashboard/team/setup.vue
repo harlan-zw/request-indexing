@@ -26,7 +26,7 @@ async function refresh() {
   key.value++
 }
 
-const { user, fetch } = useUserSession()
+const { fetch } = useUserSession()
 
 const isPending = computed(() => pending.value)
 const backups = ref(true)

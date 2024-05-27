@@ -12,7 +12,7 @@ const props = withDefaults(
   },
 )
 
-const { user, session } = useUserSession()
+const { session } = useUserSession()
 
 const columns = computed(() => [
   {

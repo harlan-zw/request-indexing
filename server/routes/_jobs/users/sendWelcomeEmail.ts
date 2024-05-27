@@ -1,5 +1,6 @@
 import { ServerClient } from 'postmark'
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
+import { users } from '~/server/database/schema'
 
 const WelcomeEmail = `Thanks for trying out Request Indexing.
 
@@ -17,16 +18,20 @@ export default defineJobHandler(async (event) => {
 
   if (import.meta.dev) {
     // mock
-    console.log('Sending welcome email to:', userId)
     return { result: 'mocked' }
   }
+  // get user
+  const user = await useDrizzle().query.users.findFirst({
+    where: eq(users.userId, userId),
+  })
   // const { email } = payload as { email: string }
   const client = new ServerClient(useRuntimeConfig().postmark.apiKey)
   await client.sendEmail({
     From: 'harlan@harlanzw.com',
     Bcc: 'harlan@harlanzw.com',
-    To: email,
+    To: user!.email,
     Subject: 'Welcome to Request Indexing',
     TextBody: WelcomeEmail,
   })
+  return 'OK'
 })

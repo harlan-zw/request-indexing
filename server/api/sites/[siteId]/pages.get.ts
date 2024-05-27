@@ -78,7 +78,6 @@ export default defineEventHandler(async (e) => {
   //   .groupBy(siteKeywordDatePathAnalytics.keyword)
   //   .as('sq3')
   const offset = ((query?.page || 1) - 1) * 10
-  console.log({ offset })
 
   const pages = await useDrizzle().select({
     clicks: sq.clicks,
@@ -100,8 +99,6 @@ export default defineEventHandler(async (e) => {
     .orderBy(desc(sq.clicks))
     .offset(offset)
     .limit(10)
-
-  console.log(pages)
 
   if (pages.length) {
     // for each keyword find the top pages

@@ -13,7 +13,7 @@ const emits = defineEmits<{
 }>()
 
 const data = ref<SitesPreview>(props.sites)
-const { user, fetch } = useUserSession()
+// const { user, fetch } = useUserSession()
 
 // const isPending = computed(() => !props.sites.length)
 
@@ -70,9 +70,9 @@ onMounted(() => {
     selected.value = siteRows.value.filter(s => props.modelValue.includes(s.siteId))
 })
 
-const tableSelectedRows = computed(() => {
-  return selected.value.map(id => siteRows.value.find(s => s.siteId === id))
-})
+// const tableSelectedRows = computed(() => {
+//   return selected.value.map(id => siteRows.value.find(s => s.siteId === id))
+// })
 
 const isSyncing = ref(false)
 const nuxtApp = useNuxtApp()
@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
       <slot />
       <div class="mb-5">
         <div class="grid grid-cols-2 max-w-xl mx-auto gap-3">
-          <UButton v-for="site in paginatedSites" variant="ghost" color="gray" class="flex items-center gap-2" :class="selected.some(s => s === site.siteId) ? 'bg-blue-50' : 'opacity-80'" @click="select(site)">
+          <UButton v-for="(site, key) in paginatedSites" :key="key" variant="ghost" color="gray" class="flex items-center gap-2" :class="selected.some(s => s === site.siteId) ? 'bg-blue-50' : 'opacity-80'" @click="select(site)">
             <UCheckbox color="blue" :model-value="selected.some(s => s === site.siteId)" @update:model-value="select(site)" />
             <div>
               <div class="flex items-center gap-2 mb-1">

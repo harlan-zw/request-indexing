@@ -1,19 +1,20 @@
 <script setup lang="ts">
+import type { DropdownItem } from '@nuxt/ui/dist/runtime/types'
 import countries from '../server/data/countries'
 import { createLogoutHandler } from '~/composables/auth'
 import { fetchSites } from '~/composables/fetch'
 import type { UserSelect } from '~/server/database/schema'
 
-const { loggedIn, user, session } = useUserSession()
+const { user, session } = useUserSession()
 
 const logout = createLogoutHandler()
 const router = useRouter()
-const color = useColorMode()
+// const color = useColorMode()
 
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
-const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('/dashboard'))
+// const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('/dashboard'))
 
-const sites = ref(loggedIn.value ? await fetchSites().then(res => res.data.value?.sites) : [])
+// const sites = ref(loggedIn.value ? await fetchSites().then(res => res.data.value?.sites) : [])
 
 const authDropdownItems: DropdownItem[][] = computed(() => {
   if (isOnWelcome.value) {

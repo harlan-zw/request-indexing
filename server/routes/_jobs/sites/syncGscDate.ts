@@ -10,6 +10,7 @@ import {
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
 import { createGoogleOAuthClient } from '#imports'
 import { generateDefaultQueryBody } from '~/server/app/services/gsc'
+import { chunkedBatch } from '~/server/utils/drizzle'
 
 export default defineJobHandler(async (event) => {
   const { siteId, date } = await readBody<{ siteId: number, date: string }>(event)
@@ -50,11 +51,11 @@ export default defineJobHandler(async (event) => {
     ),
   })
 
-  // if (existing) {
-  //   return {
-  //     res: 'Already run',
-  //   }
-  // }
+  if (existing?.clicks) {
+    return {
+      res: 'Already run',
+    }
+  }
 
   const api = searchconsole({
     version: 'v1',
@@ -124,11 +125,9 @@ export default defineJobHandler(async (event) => {
     return acc
   }, {}))
 
-  console.log({ keywords })
-
   if (pages.length) {
     // update top level pages so we know which ones are indexed
-    await db.batch(
+    await chunkedBatch(
       pages.map(row => db.insert(sitePaths)
         .values({
           siteId,
@@ -161,21 +160,7 @@ export default defineJobHandler(async (event) => {
         },
       }),
     )
-      // chunk into 1000 rows
-      .reduce((acc, row) => {
-        if (acc.length === 0 || acc[acc.length - 1].length >= 200)
-          acc.push([])
-
-        acc[acc.length - 1].push(row)
-        return acc
-      }, [])
-
-    console.log('chunks', pageInserts.length)
-
-    for (const chunk in pageInserts) {
-      await db.batch(pageInserts[chunk])
-      console.log('did chunk', chunk)
-    }
+    await chunkedBatch(pageInserts)
   }
 
   if (keywords.length) {
@@ -190,19 +175,7 @@ export default defineJobHandler(async (event) => {
         set: row,
       }),
     )
-      // chunk into 1000 rows
-      .reduce((acc, row) => {
-        if (acc.length === 0 || acc[acc.length - 1].length >= 100)
-          acc.push([])
-
-        acc[acc.length - 1].push(row)
-        return acc
-      }, [])
-
-    for (const chunk in keywordInserts) {
-      await db.batch(keywordInserts[chunk])
-      console.log('did chunk', chunk)
-    }
+    await chunkedBatch(keywordInserts)
   }
 
   if (keywordsAndPages.length) {
@@ -219,19 +192,7 @@ export default defineJobHandler(async (event) => {
         set: row,
       }),
     )
-      // chunk into 1000 rows
-      .reduce((acc, row) => {
-        if (acc.length === 0 || acc[acc.length - 1].length >= 100)
-          acc.push([])
-
-        acc[acc.length - 1].push(row)
-        return acc
-      }, [])
-
-    for (const chunk in keywordPathInserts) {
-      await db.batch(keywordPathInserts[chunk])
-      console.log('did chunk', chunk)
-    }
+    await chunkedBatch(keywordPathInserts)
   }
 
   const totalPageClicks = pages.reduce((acc, row) => acc + row.clicks, 0)

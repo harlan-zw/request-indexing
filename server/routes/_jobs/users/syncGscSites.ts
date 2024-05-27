@@ -76,7 +76,6 @@ export default defineJobHandler(async (event) => {
       sitesToCreate.push(site)
   }
 
-  console.log({ sitesToCreate, sitesToSync })
   // let createdSites: typeof currentSites = []
   if (sitesToCreate.length) {
     await createSites({

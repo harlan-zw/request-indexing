@@ -124,7 +124,6 @@ onMounted(() => {
   let indexedPagesCount: ReturnType<typeof _chart.addAreaSeries>
   let indexedPercent: ReturnType<typeof _chart.addAreaSeries>
   watch(() => props.value, (charts) => {
-    console.log('updating chats value', charts)
     Object.entries(charts).forEach(([chart, data]) => {
       switch (chart) {
         case 'totalPagesCount':
@@ -142,7 +141,6 @@ onMounted(() => {
             lineType: 2,
           })
           totalPagesCountChart.setData(data)
-          console.log('added totalPagesCount', data)
           break
         case 'indexedPagesCount':
           indexedPagesCount = indexedPagesCount || _chart.addAreaSeries({

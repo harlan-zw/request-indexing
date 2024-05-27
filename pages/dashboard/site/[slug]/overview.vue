@@ -5,7 +5,7 @@ import CardTopCountries from '~/components/Card/CardTopCountries.vue'
 
 const props = defineProps<{ data: any, site: any }>()
 
-const { user } = useUserSession()
+// const { user } = useUserSession()
 
 definePageMeta({
   title: 'Overview',
@@ -23,33 +23,33 @@ const { data: pages } = siteData.pages({
 const { data: devices } = siteData.devices()
 const { data: countries } = siteData.countries()
 const { data: dates } = siteData.dateAnalytics()
-
-const topTrafficPages = computed(() => {
-  if (!pages?.value?.rows)
-    return []
-  return pages.value.rows.sort((a, b) => b.clicks - a.clicks).slice(0, 5)
-})
+//
+// const topTrafficPages = computed(() => {
+//   if (!pages?.value?.rows)
+//     return []
+//   return pages.value.rows.sort((a, b) => b.clicks - a.clicks).slice(0, 5)
+// })
 // 1. Trending Content: Identify content that is gaining popularity or showing significant improvement in performance.
 // 2. Top Performing Pages: List the top 5 pages with the most clicks or highest growth in traffic.
 // 3. Top Queries: Show the top 5 search queries driving traffic to the site.
-const trendingContent = computed(() => {
-  if (!pages?.value?.rows)
-    return []
-  // we figure out the % change in clicks and only return top % change
-  const rows = pages.value.rows
-    .filter(row => row.prevClicks > 10) // avoid showing pages with very low clicks
-    .map((row) => {
-      const prev = Number(row.prevClicks)
-      const current = Number(row.clicks)
-      const percent = prev === 0 ? 0 : (current - prev) / ((prev + current) / 2) * 100
-      return {
-        ...row,
-        percent,
-      }
-    })
-    .filter(row => row.percent > 0)
-  return rows.sort((a, b) => b.percent - a.percent).slice(0, 5)
-})
+// const trendingContent = computed(() => {
+//   if (!pages?.value?.rows)
+//     return []
+//   // we figure out the % change in clicks and only return top % change
+//   const rows = pages.value.rows
+//     .filter(row => row.prevClicks > 10) // avoid showing pages with very low clicks
+//     .map((row) => {
+//       const prev = Number(row.prevClicks)
+//       const current = Number(row.clicks)
+//       const percent = prev === 0 ? 0 : (current - prev) / ((prev + current) / 2) * 100
+//       return {
+//         ...row,
+//         percent,
+//       }
+//     })
+//     .filter(row => row.percent > 0)
+//   return rows.sort((a, b) => b.percent - a.percent).slice(0, 5)
+// })
 
 function pageUrlToPath(url: string) {
   try {

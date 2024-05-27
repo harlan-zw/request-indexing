@@ -8,7 +8,7 @@ export default defineTask({
     name: 'site:crawl',
     description: 'Crawl Site pages',
   },
-  async run({ payload, context }) {
+  async run({ payload }) {
     if (!import.meta.dev)
       return
 
