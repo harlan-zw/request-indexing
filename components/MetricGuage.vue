@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 const props = defineProps<{
-  score?: number
+  score: number
 }>()
 
 const { score } = toRefs(props)
@@ -26,8 +26,9 @@ const guageArcStyle = computed(() => {
   const n = 2 * Math.PI * r
   const rotationOffset = 0.25 * 8 / n
 
-  let o = score.value * n - r / 2
-  if (score.value === 1)
+  const v = (score.value / 100)
+  let o = v * n - r / 2
+  if (v === 1)
     o = n
 
   return {

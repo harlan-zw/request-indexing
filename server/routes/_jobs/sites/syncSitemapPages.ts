@@ -1,7 +1,4 @@
 import dayjs from 'dayjs'
-import type {
-  SitePathSelect,
-} from '~/server/database/schema'
 import {
   siteDateAnalytics,
   sitePaths,
@@ -31,29 +28,21 @@ export default defineJobHandler(async (event) => {
     })
   }
 
-  const sitemapUrls: SitePathSelect[][] = (await fetchSitemapUrls({
+  const sitemapUrls = (await fetchSitemapUrls({
     siteUrl: site.domain,
     sitemapPaths: site.sitemaps?.map(s => s.path),
   }))
     .map(r => r.sites)
     .flat()
     .map((r) => {
-      return <SitePathSelect> {
+      return db.insert(sitePaths).values({
         isIndexed: false,
         path: new URL(r).pathname,
         siteId,
-      }
+      }).onConflictDoNothing()
     })
-  // chunk into 200 blocks
-    .reduce((acc, row, i) => {
-      const index = Math.floor(i / 200)
-      acc[index] = acc[index] || []
-      acc[index].push(row)
-      return acc
-    }, [] as SitePathSelect[][])
 
-  for (const chunk of sitemapUrls)
-    await chunkedBatch(chunk.map(row => db.insert(sitePaths).values(row).onConflictDoNothing()))
+  await chunkedBatch(sitemapUrls)
 
   const totalPagesCount = sitemapUrls.flat().length
   await db.insert(siteDateAnalytics).values({

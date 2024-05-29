@@ -106,5 +106,6 @@ const buttons = computed<GraphButton[]>(() => [
       </template>
     </GraphButtonGroup>
     <GraphData :labels="fill" :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" />
+    <CardPageSpeedInsights :key="site.siteId" :site="site" :selected-charts="selectedCharts" />
   </div>
 </template>

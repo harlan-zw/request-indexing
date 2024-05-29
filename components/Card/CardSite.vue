@@ -71,7 +71,7 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
         </h2>
       </div>
     </NuxtLink>
-    <div class="grid grid-cols-4 gap-3 border border-gray-500/20 shadow-sm rounded h-[174px] w-[475px]">
+    <div class="grid grid-cols-4 gap-3 border border-gray-500/20 shadow-sm rounded w-[400px]">
       <div v-if="!isSynced" class="flex w-full col-span-4 p-5">
         <div>
           <div class="text-sm flex items-center mb-2 font-semibold text-gray-600">
@@ -98,8 +98,8 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
       </div>
       <template v-else>
         <div class="flex flex-col h-full">
-          <UPopover mode="hover" :popper="{ placement: 'left' }">
-            <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition group hover:bg-gray-50 rounded flex items-center h-1/3 px-2">
+          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition group hover:bg-gray-50 rounded flex items-center h-1/3 px-2">
+            <UPopover mode="hover" :popper="{ placement: 'left' }">
               <div>
                 <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
                   Indexed %
@@ -112,35 +112,35 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
                   <UIcon v-else-if="dates?.period.indexedPercent < 50" name="i-ph-warning-duotone" class="w-4 h-4 text-red-500" />
                 </div>
               </div>
-            </NuxtLink>
-            <template #panel>
-              <div class="p-4 text-sm">
-                <div>
-                  <div class="text-gray-800 dark:text-gray-100 font-semibold mb-2">
-                    {{ dates?.period.indexedPercent }}% Pages Indexed
-                  </div>
-                  <!--                  <div class="flex gap-3 justify-between mb-1"> -->
-                  <!--                    <div class="text-gray-700 dark:text-gray-200"> -->
-                  <!--                      Verdict -->
-                  <!--                    </div> -->
-                  <!--                    <div>{{ dates?.period.indexedPercent >= 50 ? 'Good' : 'Bad' }}</div> -->
-                  <!--                  </div> -->
-                  <div class="flex gap-3 justify-between mb-1">
-                    <div class="text-gray-700 dark:text-gray-200">
-                      Indexed Pages
+              <template #panel>
+                <div class="p-4 text-sm">
+                  <div>
+                    <div class="text-gray-800 dark:text-gray-100 font-semibold mb-2">
+                      {{ dates?.period.indexedPercent }}% Pages Indexed
                     </div>
-                    <div>{{ dates?.period.indexedPagesCount }}</div>
-                  </div>
-                  <div class="flex gap-3 justify-between mb-1">
-                    <div class="text-gray-700 dark:text-gray-200">
-                      Total Pages
+                    <!--                  <div class="flex gap-3 justify-between mb-1"> -->
+                    <!--                    <div class="text-gray-700 dark:text-gray-200"> -->
+                    <!--                      Verdict -->
+                    <!--                    </div> -->
+                    <!--                    <div>{{ dates?.period.indexedPercent >= 50 ? 'Good' : 'Bad' }}</div> -->
+                    <!--                  </div> -->
+                    <div class="flex gap-3 justify-between mb-1">
+                      <div class="text-gray-700 dark:text-gray-200">
+                        Indexed Pages
+                      </div>
+                      <div>{{ dates?.period.indexedPagesCount }}</div>
                     </div>
-                    <div>{{ dates?.period.totalPagesCount }}</div>
+                    <div class="flex gap-3 justify-between mb-1">
+                      <div class="text-gray-700 dark:text-gray-200">
+                        Total Pages
+                      </div>
+                      <div>{{ dates?.period.totalPagesCount }}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </template>
-          </UPopover>
+              </template>
+            </UPopover>
+          </NuxtLink>
           <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pages`" class="transition group hover:bg-gray-50 rounded flex items-center h-1/3 px-2">
             <div>
               <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
@@ -168,8 +168,7 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
             </div>
           </NuxtLink>
         </div>
-        <CardGoogleSearchConsole :key="site.siteId" class="col-span-2" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" />
-        <CardPageSpeedInsights :key="site.siteId" :site="site" :selected-charts="selectedCharts" />
+        <CardGoogleSearchConsole :key="site.siteId" class="col-span-3 py-2" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" />
       </template>
     </div>
   </div>

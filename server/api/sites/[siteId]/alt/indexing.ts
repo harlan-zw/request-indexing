@@ -12,9 +12,11 @@ export default defineEventHandler(async (event) => {
   //   includeToday: true,
   // })
 
+  // TODO pagination / filters / etc
+
   // find siteUrls that are not indexed
   return useDrizzle().query.sitePaths.findMany({
-    where: and(eq(sitePaths.siteId, site.siteId), eq(sitePaths.isIndexed, false)),
+    where: and(eq(sitePaths.siteId, site.siteId)),
     orderBy: [asc(sitePaths.createdAt)],
   })
   // const gsc = await createGscClientFromEvent(event)

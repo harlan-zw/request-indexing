@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-defineProps<{ site: any }>()
+import type { SiteSelect } from '~/server/database/schema'
+
+defineProps<{ site: SiteSelect }>()
 
 definePageMeta({
   title: 'Pages',

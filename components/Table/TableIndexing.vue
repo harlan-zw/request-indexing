@@ -230,7 +230,13 @@ async function pollForInspectUrl() {
         {{ row.indexingVerdict }}
       </template>
       <template #inspection-data="{ row }">
-        <div>
+        <div v-if="row.isIndexed">
+          <div class="text-gray-600">
+            <span class="text-sm">Indexed</span><br>
+            {{ $dayjs(row.firstSeenIndexed).fromNow() }}
+          </div>
+        </div>
+        <div v-else>
           <div v-if="getUpdatedRow(row).lastInspected" class="text-gray-600">
             <span class="text-sm">Inspected</span><br>
             {{ $dayjs(getUpdatedRow(row)?.lastInspected).fromNow() }}

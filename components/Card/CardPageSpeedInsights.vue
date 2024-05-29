@@ -34,38 +34,29 @@ const tooltipEntry = computed(() => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col w-full">
-    <NuxtLink to="/" class="transition group hover:bg-gray-50 rounded flex items-center h-1/2 px-2">
-      <div>
-        <div class="flex gap-1">
-          <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-          <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
-            Mobile
-          </div>
+  <div class="flex gap-3 mt-2 transition group hover:bg-gray-50 rounded flex text-[11px] flex items-center gap-1 text-gray-500/80 gap-2 items-end">
+    PageSpeed Insights
+    <NuxtLink to="/" class="transition group hover:bg-gray-50 rounded flex text-[11px] flex items-center gap-1 text-gray-500/80 gap-2 items-end ">
+      <div class="flex gap-1">
+        <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+        <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
+          Mobile
         </div>
-        <div class="flex items-center gap-1">
-          <div class="text-xl font-semibold">
-            {{ useHumanFriendlyNumber(typeof tooltipEntry?.psiMobileScore !== 'undefined' ? tooltipEntry.psiMobileScore : lastEntry?.psiMobileScore) }}
-          </div>
-          <GraphData height="50" :value="graph!" :columns="['psiMobileScore']" @tooltip="e => tooltipData = e" />
-        </div>
+      </div>
+      <div class="flex items-center gap-1">
+        {{ useHumanFriendlyNumber(typeof tooltipEntry?.psiMobileScore !== 'undefined' ? tooltipEntry.psiMobileScore : lastEntry?.psiMobileScore) }}
       </div>
     </NuxtLink>
 
-    <NuxtLink to="/" class="transition group hover:bg-gray-50 rounded flex items-center h-1/2 px-2">
-      <div>
-        <div class="flex gap-1">
-          <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-          <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
-            Desktop
-          </div>
+    <NuxtLink to="/" class="transition group hover:bg-gray-50 rounded flex text-[11px] flex items-center gap-1 text-gray-500/80 gap-2 items-end ">
+      <div class="flex gap-1">
+        <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+        <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
+          Desktop
         </div>
-        <div class="flex items-center gap-1">
-          <div class="text-xl font-semibold">
-            {{ useHumanFriendlyNumber(typeof tooltipEntry?.psiDesktopScore !== 'undefined' ? tooltipEntry.psiDesktopScore : lastEntry?.psiDesktopScore) }}
-          </div>
-          <GraphData height="50" :value="graph!" :columns="['psiDesktopScore']" @tooltip="e => tooltipData = e" />
-        </div>
+      </div>
+      <div class="flex items-center gap-1">
+        {{ useHumanFriendlyNumber(typeof tooltipEntry?.psiDesktopScore !== 'undefined' ? tooltipEntry.psiDesktopScore : lastEntry?.psiDesktopScore) }}
       </div>
     </NuxtLink>
   </div>

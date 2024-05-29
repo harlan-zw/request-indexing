@@ -15,11 +15,11 @@ export function useDrizzle() {
  */
 export function chunkedBatch<T extends any[]>(arr: T, chunkSize: number = 100): Promise<any[]> {
   const db = useDrizzle()
-  const chunks: T[][] = arr.reduce((acc: any[], _, row) => {
+  const chunks: T[][] = arr.reduce((acc: any[], val) => {
     if (acc.length === 0 || acc[acc.length - 1].length >= chunkSize)
       acc.push([])
 
-    acc[acc.length - 1].push(row)
+    acc[acc.length - 1].push(val)
     return acc
   }, [])
   // batch them
