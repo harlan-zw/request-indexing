@@ -113,6 +113,21 @@ CREATE TABLE `site_keyword_date_path_analytics` (
 	FOREIGN KEY (`site_id`) REFERENCES `sites`(`site_id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE `site_pagespeed_insight_scans` (
+	`site_pagespeed_insight_scan_id` integer PRIMARY KEY NOT NULL,
+	`site_id` integer NOT NULL,
+	`path` text NOT NULL,
+	`strategy` text NOT NULL,
+	`performance` integer,
+	`seo` integer,
+	`accessibility` integer,
+	`best_practices` integer,
+	`report_path` text,
+	`report_screenshot_path` text,
+	`created_at` integer DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	FOREIGN KEY (`site_id`) REFERENCES `sites`(`site_id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `site_path_date_analytics` (
 	`site_id` integer NOT NULL,
 	`date` text NOT NULL,
@@ -127,6 +142,16 @@ CREATE TABLE `site_path_date_analytics` (
 	`psi_mobile_best_practices` integer,
 	`psi_desktop_score` integer,
 	`psi_mobile_score` integer,
+	`psi_desktop_lcp` integer,
+	`psi_mobile_lcp` integer,
+	`psi_desktop_fcp` integer,
+	`psi_mobile_fcp` integer,
+	`psi_desktop_si` integer,
+	`psi_mobile_si` integer,
+	`psi_desktop_tbt` integer,
+	`psi_mobile_tbt` integer,
+	`psi_desktop_cls` integer,
+	`psi_mobile_cls` integer,
 	`clicks` integer DEFAULT 0,
 	`impressions` integer DEFAULT 0,
 	`ctr` integer DEFAULT 0,
@@ -237,6 +262,8 @@ CREATE UNIQUE INDEX `sessions_user_id_ip_address_user_agent_unique` ON `sessions
 CREATE UNIQUE INDEX `site_date_analytics_site_id_date_unique` ON `site_date_analytics` (`site_id`,`date`);--> statement-breakpoint
 CREATE UNIQUE INDEX `site_keyword_date_analytics_site_id_date_keyword_unique` ON `site_keyword_date_analytics` (`site_id`,`date`,`keyword`);--> statement-breakpoint
 CREATE UNIQUE INDEX `site_keyword_date_path_analytics_site_id_date_keyword_path_unique` ON `site_keyword_date_path_analytics` (`site_id`,`date`,`keyword`,`path`);--> statement-breakpoint
+CREATE INDEX `path_idx` ON `site_pagespeed_insight_scans` (`path`);--> statement-breakpoint
+CREATE INDEX `strategy_idx` ON `site_pagespeed_insight_scans` (`strategy`);--> statement-breakpoint
 CREATE UNIQUE INDEX `site_path_date_analytics_site_id_date_path_unique` ON `site_path_date_analytics` (`site_id`,`date`,`path`);--> statement-breakpoint
 CREATE INDEX `path_site_url_idx` ON `site_paths` (`path`);--> statement-breakpoint
 CREATE UNIQUE INDEX `site_paths_site_id_path_unique` ON `site_paths` (`site_id`,`path`);--> statement-breakpoint

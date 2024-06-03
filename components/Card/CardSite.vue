@@ -9,6 +9,9 @@ const props = defineProps<{
   selectedCharts: string[]
 }>()
 
+const emits = defineEmits<{
+  hide: []
+}>()
 const siteData = useSiteData(props.site)
 const { data: _dates } = siteData.dateAnalytics()
 
@@ -59,20 +62,46 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
     sitemapSynced.value++
   }
 })
+
+function hide() {
+  emits('hide')
+}
+
+const dropdownItems = [
+  [
+    {
+      label: 'View',
+      icon: 'i-ph-link-simple-break-duotone',
+      click: () => `/dashboard/site/${encodeURIComponent(props.site.siteId)}/overview`,
+    },
+    {
+      label: 'Stop tracking',
+      icon: 'i-ph-trash-duotone',
+      click: hide,
+    },
+  ],
+]
 </script>
 
 <template>
   <div>
-    <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/overview`" class="text-sm flex items-center gap-1 mb-3">
-      <SiteFavicon :site="site" />
+    <div class="flex items-center justify-between">
+      <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/overview`" class="text-sm flex items-center gap-1 mb-3">
+        <SiteFavicon :site="site" />
+        <div>
+          <h2 class="font-bold">
+            {{ useFriendlySiteUrl(site.domain) }}
+          </h2>
+        </div>
+      </NuxtLink>
       <div>
-        <h2 class="font-bold">
-          {{ useFriendlySiteUrl(site.domain) }}
-        </h2>
+        <UDropdown :items="dropdownItems" :popper="{ offsetDistance: 0, placement: 'right-start' }">
+          <UButton color="white" label="" variant="ghost" trailing-icon="i-ph-dots-three" />
+        </UDropdown>
       </div>
-    </NuxtLink>
-    <div class="grid grid-cols-4 gap-3 border border-gray-500/20 shadow-sm rounded w-[400px]">
-      <div v-if="!isSynced" class="flex w-full col-span-4 p-5">
+    </div>
+    <div class="flex gap-2 h-[190px] w-[400px]">
+      <div v-if="!isSynced" class="flex w-full p-5">
         <div>
           <div class="text-sm flex items-center mb-2 font-semibold text-gray-600">
             Syncing site data...
@@ -97,8 +126,16 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
         <UIcon name="i-ph-spinner-gap-duotone" class="w-12 h-12 animate-spin" />
       </div>
       <template v-else>
-        <div class="flex flex-col h-full">
-          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition group hover:bg-gray-50 rounded flex items-center h-1/3 px-2">
+        <div class="space-y-1 flex-grow w-full">
+          <div class="border border-gray-500/20 shadow-sm rounded py-2">
+            <CardGoogleSearchConsole :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" />
+          </div>
+          <div class="">
+            <CardPageSpeedInsights :key="site.siteId" :site="site" :selected-charts="selectedCharts" />
+          </div>
+        </div>
+        <div class="flex flex-col h-full space-y-2 min-w-[75px]">
+          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition group hover:bg-gray-50 rounded flex items-center">
             <UPopover mode="hover" :popper="{ placement: 'left' }">
               <div>
                 <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
@@ -141,7 +178,7 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
               </template>
             </UPopover>
           </NuxtLink>
-          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pages`" class="transition group hover:bg-gray-50 rounded flex items-center h-1/3 px-2">
+          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pages`" class="transition group hover:bg-gray-50 rounded flex items-center">
             <div>
               <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
                 Pages
@@ -154,7 +191,7 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
               </div>
             </div>
           </NuxtLink>
-          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/keywords`" class="transition group hover:bg-gray-50 rounded flex items-center h-1/3 px-2">
+          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/keywords`" class="transition group hover:bg-gray-50 rounded flex items-center">
             <div>
               <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
                 Keywords
@@ -168,7 +205,6 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
             </div>
           </NuxtLink>
         </div>
-        <CardGoogleSearchConsole :key="site.siteId" class="col-span-3 py-2" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" />
       </template>
     </div>
   </div>

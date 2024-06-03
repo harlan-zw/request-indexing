@@ -9,6 +9,8 @@ export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)
   const { site } = await requireEventSite(event, user)
 
+  // const query = getQuery(event)
+
   const range = userPeriodRange(user, {
     includeToday: true,
   })

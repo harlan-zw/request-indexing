@@ -21,7 +21,7 @@ export function useSiteData(site: SiteSelect) {
   return {
     keywordResearch: () => factory<{ keyword: string, volume: number, cpc: number, competition: number }[]>('ads/keyword-history', { method: 'POST' }),
     psiRun: () => factory<{ page: string, data: any }>('psi/run', { method: 'POST' }),
-    psiDates: () => factory<SiteUrlDateAnalyticsSelect[]>('psi/dates'),
+    psiDates: (options?: { device: 'mobile' | 'desktop', query: { limit?: number } }) => factory<SiteUrlDateAnalyticsSelect[]>('psi/dates', options),
     crux: () => factory<{ dates: number[], cls: { value: number, time: number }[], inp: { value: number, time: number }[], lcp: { value: number, time: number }[] }>('crux/origin'),
     indexing: () => factory<{ nonIndexedUrls: Set<string> }>('alt/indexing'),
     dateAnalytics: () => factory<{ period: SiteDateAnalyticsSelect, prevPeriod: SiteDateAnalyticsSelect, dates: SiteDateAnalyticsSelect[] }>('alt/date-analytics'),

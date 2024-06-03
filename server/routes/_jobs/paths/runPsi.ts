@@ -2,7 +2,7 @@ import { pagespeedonline } from '@googleapis/pagespeedonline'
 import dayjs from 'dayjs'
 import type { pagespeedonline_v5 } from '@googleapis/pagespeedonline/v5'
 import { withBase } from 'ufo'
-import { sitePathDateAnalytics, sites } from '~/server/database/schema'
+import { sitePageSpeedInsightScans, sitePathDateAnalytics, sites } from '~/server/database/schema'
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
 
 function ucFirst(s: string) {
@@ -10,7 +10,7 @@ function ucFirst(s: string) {
 }
 
 export default defineJobHandler(async (event) => {
-  const { siteId, page, strategy } = await readBody<{ siteId: number, page: string, strategy: string }>(event)
+  const { siteId, path, strategy } = await readBody<{ siteId: number, path: string, strategy: string }>(event)
   const db = useDrizzle()
 
   const site = await db.query.sites.findFirst({
@@ -28,7 +28,7 @@ export default defineJobHandler(async (event) => {
     where: and(
       eq(sitePathDateAnalytics.siteId, siteId),
       eq(sitePathDateAnalytics.date, dayjs().format('YYYY-MM-DD')),
-      eq(sitePathDateAnalytics.path, page),
+      eq(sitePathDateAnalytics.path, path),
     ),
   })
 
@@ -37,15 +37,20 @@ export default defineJobHandler(async (event) => {
       res: 'Already run',
     }
   }
+  const entry = await db.insert(sitePageSpeedInsightScans).values({
+    siteId,
+    path,
+    strategy,
+  }).returning()
 
   const api = pagespeedonline({
     version: 'v5',
     // TODO each oauth provider should have their own token
     auth: useRuntimeConfig().google.pagespeedApiToken,
   })
-  const url = withBase(site!.domain!, page)
+
   const res = await api.pagespeedapi.runpagespeed({
-    url,
+    url: withBase(path, site!.domain!),
     category: ['ACCESSIBILITY', 'BEST_PRACTICES', 'PERFORMANCE', 'SEO'],
     strategy,
   })
@@ -59,9 +64,18 @@ export default defineJobHandler(async (event) => {
     }
   }
 
-  const path = new URL(url).pathname
-  await hubBlob().put(`psi:${siteId}:${path}:${strategy}:lighthouse.json`, JSON.stringify(res))
-  await hubBlob().put(`psi:${siteId}:${path}:${strategy}:screenshot.png`, res.lighthouseResult.audits['final-screenshot'].details.data)
+  const reportBlob = await hubBlob().put(`psi:${siteId}:${path}:${strategy}:lighthouse.json`, JSON.stringify(res))
+  const reportScreenshotBlob = await hubBlob().put(`psi:${siteId}:${path}:${strategy}:screenshot.png`, res.lighthouseResult.audits['final-screenshot'].details.data)
+
+  await db.update(sitePageSpeedInsightScans).set({
+    performance: res.lighthouseResult.categories.performance?.score,
+    seo: res.lighthouseResult.categories.seo?.score,
+    accessibility: res.lighthouseResult.categories.accessibility?.score,
+    bestPractices: res.lighthouseResult.categories['best-practices']?.score,
+    reportBlob,
+    reportScreenshotBlob,
+  }).where(eq(sitePageSpeedInsightScans.sitePageSpeedInsightScanId, entry[0].sitePageSpeedInsightScanId))
+
   const totalScore = Math.round(Object.values(res.lighthouseResult.categories).reduce((acc, cat) => acc + cat.score, 0) / 4 * 100)
   const key = `psi${strategy === 'mobile' ? 'Mobile' : 'Desktop'}`
   const scores = Object.fromEntries(Object.entries(res.lighthouseResult.categories).map(([, cat]) => {
@@ -69,6 +83,11 @@ export default defineJobHandler(async (event) => {
     return [`${key}${ucFirst(_cat.id === 'best-practices' ? 'bestPractices' : _cat.id!)}`, _cat.score * 100]
   })) as Record<string, number>
   const payload = {
+    [`${key}Lcp`]: res.lighthouseResult.audits['largest-contentful-paint']?.numericValue,
+    [`${key}Fcp`]: res.lighthouseResult.audits['first-contentful-paint']?.numericValue,
+    [`${key}Si`]: res.lighthouseResult.audits['speed-index']?.numericValue,
+    [`${key}Tbt`]: res.lighthouseResult.audits['total-blocking-time']?.numericValue,
+    [`${key}Cls`]: res.lighthouseResult.audits['cumulative-layout-shift']?.numericValue,
     [`${key}Score`]: totalScore,
     ...scores,
   }
@@ -84,8 +103,8 @@ export default defineJobHandler(async (event) => {
   })
 
   return {
-    broadcastTo: site.owner.publicId,
-    siteId: site.publicId,
+    broadcastTo: site!.owner!.publicId,
+    siteId: site!.publicId,
     path,
     strategy,
     totalScore,

@@ -5,6 +5,7 @@ import { relations, sql } from 'drizzle-orm'
 import type { TokenInfo } from 'google-auth-library'
 import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
 import type { CredentialRequest } from 'google-auth-library/build/src/auth/credentials'
+import type { BlobObject } from '@nuxthub/core/dist/runtime/server/utils/blob'
 import type { RequiredNonNullable } from '~/types/util'
 import type { GoogleOAuthUser } from '~/server/app/utils/auth'
 import type { TaskMap } from '~/server/plugins/eventServiceProvider'
@@ -135,12 +136,6 @@ export const sites = sqliteTable('sites', {
   // for split domain properties
   domain: text('domain'),
   parentId: integer('parent_id').references((): AnySQLiteColumn => sites.siteId),
-  // meta
-  // pageCount30Day: integer('page_count_30_day'),
-  // isLosingData: integer('is_losing_data', { mode: 'boolean' }),
-  // startOfData: integer('start_of_data'),
-  // siteSettings: text('site_settings', { mode: 'json' }),
-  // searchConsolePayload: text('search_console_payload', { mode: 'json' }),
 
   // TODO better renaming for these two
   lastSynced: integer('last_synced'),
@@ -158,30 +153,11 @@ export type SiteSelect = typeof sites.$inferSelect
 export const sitePaths = sqliteTable('site_paths', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),
   path: text('path').notNull(),
-  // status: text('status'),
-  // payload: text('payload', { mode: 'json' }),
-  // indexing api
   firstSeenIndexed: integer('first_seen_indexed'),
   isIndexed: integer('is_indexed', { mode: 'boolean' }).notNull().default(false),
   indexingVerdict: text('indexing_verdict'),
-  // psi api
-  // psiDesktopScores: text('psi_desktop_scores', { mode: 'json' }),
-  // psiMobileScores: text('psi_mobile_scores', { mode: 'json' }),
-  // psiDesktopScore: integer('psi_desktop_score'),
-  // psiMobileScore: integer('psi_mobile_score'),
-
   inspectionPayload: text('inspection_payload', { mode: 'json' }).$type<searchconsole_v1.Schema$UrlInspectionResult>(),
   lastInspected: integer('last_inspected'),
-
-  // gsc api (maybe drop)
-  // ...googleSearchConsolePageAnalytics,
-  // keyword: text('keyword'),
-  // keywordPosition: integer('keyword_position').default(0),
-  // prevClicks: integer('prev_clicks').default(0),
-  // clicksPercent: integer('clicks_percent').default(0),
-  // impressionsPercent: integer('impressions_percent').default(0),
-  // prevImpressions: integer('prev_impressions').default(0),
-
   ...timestamps,
 }, t => ({
   pathIdx: index('path_site_url_idx').on(t.path),
@@ -193,12 +169,6 @@ export type SitePathSelect = typeof sitePaths.$inferSelect
 export const siteDateAnalytics = sqliteTable('site_date_analytics', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),
   date: text('date').notNull(), // all data for a path
-
-  // psi api
-  // psiDesktopScores: text('psi_desktop_scores', { mode: 'json' }),
-  // psiMobileScores: text('psi_mobile_scores', { mode: 'json' }),
-  // psiDesktopScore: integer('psi_desktop_score').default(0),
-  // psiMobileScore: integer('psi_mobile_score').default(0),
 
   // google search console (query by date)
   ...googleSearchConsolePageAnalytics,
@@ -217,6 +187,25 @@ export const siteDateAnalytics = sqliteTable('site_date_analytics', {
 
 export type SiteDateAnalyticsSelect = typeof siteDateAnalytics.$inferSelect
 
+export const sitePageSpeedInsightScans = sqliteTable('site_pagespeed_insight_scans', {
+  sitePageSpeedInsightScanId: integer('site_pagespeed_insight_scan_id').notNull().primaryKey(),
+  siteId: integer('site_id').notNull().references(() => sites.siteId),
+  path: text('path').notNull(),
+  strategy: text('strategy').notNull(),
+  performance: integer('performance'),
+  seo: integer('seo'),
+  accessibility: integer('accessibility'),
+  bestPractices: integer('best_practices'),
+  reportBlob: text('report_path', { mode: 'json' }).$type<BlobObject>(),
+  reportScreenshotBlob: text('report_screenshot_path', { mode: 'json' }).$type<BlobObject>(),
+  createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
+}, t => ({
+  pathIdx: index('path_idx').on(t.path),
+  strategyIdx: index('strategy_idx').on(t.strategy),
+}))
+
+export type SitePageSpeedInsightScansSelect = typeof sitePageSpeedInsightScans.$inferSelect
+
 export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),
   date: text('date').notNull(), // all data for a path
@@ -232,6 +221,17 @@ export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
   psiMobileBestPractices: integer('psi_mobile_best_practices'),
   psiDesktopScore: integer('psi_desktop_score'),
   psiMobileScore: integer('psi_mobile_score'),
+
+  psiDesktopLcp: integer('psi_desktop_lcp'),
+  psiMobileLcp: integer('psi_mobile_lcp'),
+  psiDesktopFcp: integer('psi_desktop_fcp'),
+  psiMobileFcp: integer('psi_mobile_fcp'),
+  psiDesktopSi: integer('psi_desktop_si'),
+  psiMobileSi: integer('psi_mobile_si'),
+  psiDesktopTbt: integer('psi_desktop_tbt'),
+  psiMobileTbt: integer('psi_mobile_tbt'),
+  psiDesktopCls: integer('psi_desktop_cls'),
+  psiMobileCls: integer('psi_mobile_cls'),
 
   // google search console (query by date and path)
   ...googleSearchConsolePageAnalytics,

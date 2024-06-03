@@ -57,7 +57,7 @@ export interface TaskMap {
   // sites
   'sites/setup': { siteId: number }
   // site urls
-  'paths/runPsi': { siteId: number, page: string, strategy: 'mobile' | 'desktop' }
+  'paths/runPsi': { siteId: number, path: string, strategy: 'mobile' | 'desktop' }
   'paths/gscInspect': { siteId: number, page: string }
   'sites/syncGscDate': { siteId: number, date: string }
   // teams

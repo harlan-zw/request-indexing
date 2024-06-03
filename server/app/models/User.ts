@@ -30,10 +30,14 @@ export function userPeriodRange(user: UserSelect, options: { includeToday?: bool
   }
   return {
     period: {
+      startTimestamp: startPeriod.valueOf(),
       start: startPeriod.toDate(),
+      startDateTime: startPeriod.format('YYYY-MM-DD HH:mm:ss'),
       startDate: startPeriod.format('YYYY-MM-DD'),
       end: endPeriod.toDate(),
       endDate: endPeriod.format('YYYY-MM-DD'),
+      endTimestamp: endPeriod.valueOf(),
+      endDateTime: endPeriod.format('YYYY-MM-DD HH:mm:ss'),
     },
     prevPeriod: {
       start: startPrevPeriod.toDate(),

@@ -9,8 +9,6 @@ definePageMeta({
   icon: 'i-heroicons-check-circle',
 })
 
-const { user } = useUserSession()
-
 const siteData = useSiteData(props.site)
 const { data } = siteData.indexing()
 // const { data: dateAnalytics } = siteData.dateAnalytics()
@@ -75,92 +73,92 @@ const { data } = siteData.indexing()
 </script>
 
 <template>
-<div>
-  <div class="grid grid-cols-3 w-full gap-10 mb-10">
-    <UCard>
-      <h2 class="mb-2 flex items-center text-sm font-semibold">
-        <UIcon name="i-ph-info-duotone" class="w-5 h-5 mr-1 text-gray-500" />
-        How it works
-      </h2>
-      <div class="text-sm text-gray-500 mb-1">
-        Every day your top pages will be scanned with the PageSpeed Insights API and the results will appear here.
-      </div>
-      <div class="text-sm text-gray-500">
-        Free users get their top 5 pages scanned on both mobile and desktop.
-      </div>
-    </UCard>
-    <UCard>
-      <h2 class="mb-2 flex items-center text-sm font-semibold gap-1">
-        <UIcon name="i-ph-lock-duotone" class="w-5 h-5 text-gray-500" />
-        <span>Permissions</span>
-      </h2>
-      <div class="text-sm mb-4">
-        <div>
-          Authorization is required for the <NuxtLink to="/" class="underline">
-          Web Indexing API
-        </NuxtLink>.
-          This is used to submit URLs to be indexed. You can safely revoke it at any
-          time on the <NuxtLink class="underline">
-          account page
-        </NuxtLink>.
+  <div>
+    <div class="grid grid-cols-3 w-full gap-10 mb-10">
+      <UCard>
+        <h2 class="mb-2 flex items-center text-sm font-semibold">
+          <UIcon name="i-ph-info-duotone" class="w-5 h-5 mr-1 text-gray-500" />
+          How it works
+        </h2>
+        <div class="text-sm text-gray-500 mb-1">
+          Every day your top pages will be scanned with the PageSpeed Insights API and the results will appear here.
         </div>
-      </div>
-      <UButton external to="/h3/google-indexing" color="gray" icon="i-heroicons-lock-closed">
-        Authorize Web Indexing API
-      </UButton>
-    </UCard>
-    <UCard>
-      <h2 class="mb-2 flex items-center text-sm font-semibold gap-1">
-        <UIcon name="i-ph-desktop-duotone" class="w-5 h-5 text-gray-500" />
-        <span>Quota</span>
-      </h2>
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        You are limited to the number of indexing requests you can make each day.
-      </p>
-      <div>
-        <div class="text-gray-600 dark:text-gray-300">
+        <div class="text-sm text-gray-500">
+          Free users get their top 5 pages scanned on both mobile and desktop.
+        </div>
+      </UCard>
+      <UCard>
+        <h2 class="mb-2 flex items-center text-sm font-semibold gap-1">
+          <UIcon name="i-ph-lock-duotone" class="w-5 h-5 text-gray-500" />
+          <span>Permissions</span>
+        </h2>
+        <div class="text-sm mb-4">
           <div>
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-sm">
-                  Request Indexing
-                </div>
-                <div class="text-lg font-bold">
-                  15/20
-                </div>
-                <UProgress :value="15" :color="'purple'" class="mt-1" />
-              </div>
-<!--              <UButton to="/account/upgrade" color="purple" size="xs" :variant="user.quota.indexingApi < apiCallLimit ? 'soft' : 'solid'">-->
-<!--                Upgrade-->
-<!--              </UButton>-->
-            </div>
-<!--            <div class="mt-5 text-gray-600 text-sm">-->
-<!--              <p class="mb-2">-->
-<!--                You've used up all of your API calls for the day. They will reset at midnight PTD.-->
-<!--              </p>-->
-<!--              <p class="mb-2">-->
-<!--                Don't feel like waiting? You can upgrade to Pro and get the following:-->
-<!--              </p>-->
-<!--              <ul class="list-disc ml-5">-->
-<!--                <li class="mb-2">-->
-<!--                  200 API calls / per day-->
-<!--                </li>-->
-<!--                <li>-->
-<!--                  <UBadge color="blue" variant="soft">-->
-<!--                    Soon-->
-<!--                  </UBadge> Automatic index requests for new pages-->
-<!--                </li>-->
-<!--              </ul>-->
-<!--            </div>-->
+            Authorization is required for the <NuxtLink to="/" class="underline">
+              Web Indexing API
+            </NuxtLink>.
+            This is used to submit URLs to be indexed. You can safely revoke it at any
+            time on the <NuxtLink class="underline">
+              account page
+            </NuxtLink>.
           </div>
         </div>
-      </div>
-    </UCard>
-    <UCard>
-      <h2 class="mb-2 flex items-center text-sm font-semibold gap-1">
-        <UIcon name="i-ph-device-mobile-duotone" class="w-5 h-5 mr-1 text-gray-500" />
-        <span>Overview</span>
-      </h2>
+        <UButton external to="/h3/google-indexing" color="gray" icon="i-heroicons-lock-closed">
+          Authorize Web Indexing API
+        </UButton>
+      </UCard>
+      <UCard>
+        <h2 class="mb-2 flex items-center text-sm font-semibold gap-1">
+          <UIcon name="i-ph-desktop-duotone" class="w-5 h-5 text-gray-500" />
+          <span>Quota</span>
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          You are limited to the number of indexing requests you can make each day.
+        </p>
+        <div>
+          <div class="text-gray-600 dark:text-gray-300">
+            <div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm">
+                    Request Indexing
+                  </div>
+                  <div class="text-lg font-bold">
+                    15/20
+                  </div>
+                  <UProgress :value="15" color="purple" class="mt-1" />
+                </div>
+                <!--              <UButton to="/account/upgrade" color="purple" size="xs" :variant="user.quota.indexingApi < apiCallLimit ? 'soft' : 'solid'"> -->
+                <!--                Upgrade -->
+                <!--              </UButton> -->
+              </div>
+              <!--            <div class="mt-5 text-gray-600 text-sm"> -->
+              <!--              <p class="mb-2"> -->
+              <!--                You've used up all of your API calls for the day. They will reset at midnight PTD. -->
+              <!--              </p> -->
+              <!--              <p class="mb-2"> -->
+              <!--                Don't feel like waiting? You can upgrade to Pro and get the following: -->
+              <!--              </p> -->
+              <!--              <ul class="list-disc ml-5"> -->
+              <!--                <li class="mb-2"> -->
+              <!--                  200 API calls / per day -->
+              <!--                </li> -->
+              <!--                <li> -->
+              <!--                  <UBadge color="blue" variant="soft"> -->
+              <!--                    Soon -->
+              <!--                  </UBadge> Automatic index requests for new pages -->
+              <!--                </li> -->
+              <!--              </ul> -->
+              <!--            </div> -->
+            </div>
+          </div>
+        </div>
+      </UCard>
+      <UCard>
+        <h2 class="mb-2 flex items-center text-sm font-semibold gap-1">
+          <UIcon name="i-ph-device-mobile-duotone" class="w-5 h-5 mr-1 text-gray-500" />
+          <span>Overview</span>
+        </h2>
       <!--        <div class="flex flex-col"> -->
       <!--          <GraphButtonGroup :buttons="buttons" :model-value="['pages']"> -->
       <!--            <template #indexedPagesCount-trend> -->
@@ -169,10 +167,10 @@ const { data } = siteData.indexing()
       <!--          </GraphButtonGroup> -->
       <!--        </div> -->
       <!--        <GraphData v-if="dateAnalytics?.dates?.length" :labels="true" :height="300" :columns="columns" :value="dateAnalytics.dates" /> -->
-    </UCard>
-  </div>
-  <UCard>
-    <TableIndexing v-if="data" :value="data" :site="site" />
+      </UCard>
+    </div>
+    <UCard>
+      <TableIndexing v-if="data" :value="data" :site="site" />
     <!--      <div> -->
     <!--        <div v-if="data?.requiresActionPercent === -1" class="text-lg text-gray-600 dark:text-gray-300 mb-2"> -->
     <!--          <UAlert color="yellow" variant="outline" icon="i-heroicons-exclamation-circle" title="Too many URLs"> -->
@@ -219,6 +217,6 @@ const { data } = siteData.indexing()
     <!--            </div> -->
     <!--          </div> -->
     <!--        </UCard> -->
-  </UCard>
-</div>
+    </UCard>
+  </div>
 </template>

@@ -1,12 +1,12 @@
 {
-  "version": "6",
+  "version": "7",
   "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
       "version": "6",
-      "when": 1716298747249,
-      "tag": "0000_stiff_mathemanic",
+      "when": 1717389734681,
+      "tag": "0000_tiresome_the_renegades",
       "breakpoints": true
     }
   ]

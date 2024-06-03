@@ -49,14 +49,14 @@ export default defineJobHandler(async (event) => {
         {
           name: 'paths/runPsi',
           payload: {
-            page: '/',
+            path: '/',
             strategy: 'mobile',
           },
         },
         {
           name: 'paths/runPsi',
           payload: {
-            page: '/',
+            path: '/',
             strategy: 'desktop',
           },
         },

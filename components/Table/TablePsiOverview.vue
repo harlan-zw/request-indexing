@@ -19,8 +19,8 @@ const columns = computed(() => [
     sortable: true,
   },
   {
-    key: 'psiDesktopScore',
-    label: 'Desktop',
+    key: 'psiMobilePerformance',
+    label: 'Performance',
     sortable: true,
   },
   {
@@ -29,8 +29,28 @@ const columns = computed(() => [
     sortable: true,
   },
   {
-    key: 'psiMobileScore',
-    label: 'Mobile',
+    key: 'psiMobileAccessibility',
+    label: 'Accessibility',
+    sortable: true,
+  },
+  {
+    key: 'clicksPercent',
+    label: '%',
+    sortable: true,
+  },
+  {
+    key: 'psiMobileBestPractices',
+    label: 'Best Practices',
+    sortable: true,
+  },
+  {
+    key: 'impressionsPercent',
+    label: '%',
+    sortable: true,
+  },
+  {
+    key: 'psiMobileSeo',
+    label: 'SEO',
     sortable: true,
   },
   {
@@ -120,6 +140,18 @@ function pageUrlToPath(url: string) {
             </div>
             graph
           </div>
+        </div>
+      </template>
+      <template #psiMobilePerformance-data="{ row }">
+        <div class="flex gap-3 items-center">
+          <UTooltip :text="`${row.psiMobilePerformance} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiMobilePerformance, 0) }}
+          </UTooltip>
+          <UTooltip :text="`${row.psiDesktopPerformance} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiDesktopPerformance, 0) }}
+          </UTooltip>
         </div>
       </template>
       <template #psiDesktopScore-data="{ row }">

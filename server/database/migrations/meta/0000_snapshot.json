@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "bf54d51b-eb67-4df0-8014-dc50a486b89e",
+  "id": "27e742b3-8ac8-42ea-ac13-fd675225329c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "failed_jobs": {
@@ -852,6 +852,122 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
+    "site_pagespeed_insight_scans": {
+      "name": "site_pagespeed_insight_scans",
+      "columns": {
+        "site_pagespeed_insight_scan_id": {
+          "name": "site_pagespeed_insight_scan_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "site_id": {
+          "name": "site_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "path": {
+          "name": "path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "strategy": {
+          "name": "strategy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "performance": {
+          "name": "performance",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "seo": {
+          "name": "seo",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "accessibility": {
+          "name": "accessibility",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "best_practices": {
+          "name": "best_practices",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "report_path": {
+          "name": "report_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "report_screenshot_path": {
+          "name": "report_screenshot_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        }
+      },
+      "indexes": {
+        "path_idx": {
+          "name": "path_idx",
+          "columns": [
+            "path"
+          ],
+          "isUnique": false
+        },
+        "strategy_idx": {
+          "name": "strategy_idx",
+          "columns": [
+            "strategy"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "site_pagespeed_insight_scans_site_id_sites_site_id_fk": {
+          "name": "site_pagespeed_insight_scans_site_id_sites_site_id_fk",
+          "tableFrom": "site_pagespeed_insight_scans",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "site_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "site_path_date_analytics": {
       "name": "site_path_date_analytics",
       "columns": {
@@ -941,6 +1057,76 @@
         },
         "psi_mobile_score": {
           "name": "psi_mobile_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_desktop_lcp": {
+          "name": "psi_desktop_lcp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_mobile_lcp": {
+          "name": "psi_mobile_lcp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_desktop_fcp": {
+          "name": "psi_desktop_fcp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_mobile_fcp": {
+          "name": "psi_mobile_fcp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_desktop_si": {
+          "name": "psi_desktop_si",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_mobile_si": {
+          "name": "psi_mobile_si",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_desktop_tbt": {
+          "name": "psi_desktop_tbt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_mobile_tbt": {
+          "name": "psi_mobile_tbt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_desktop_cls": {
+          "name": "psi_desktop_cls",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "psi_mobile_cls": {
+          "name": "psi_mobile_cls",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -1761,5 +1947,8 @@
     "schemas": {},
     "tables": {},
     "columns": {}
+  },
+  "internal": {
+    "indexes": {}
   }
 }

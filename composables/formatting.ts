@@ -26,7 +26,7 @@ export function useHumanFriendlyNumber(number: MaybeRef<string | number | null |
 export function useHumanMs(ms: number): string {
   // need to convert it such < 1000 we say $x ms, otherwise we say $x s
   if (ms < 1000)
-    return `${ms}ms`
+    return `${Number(ms).toFixed(0)}ms`
   return `${(ms / 1000).toFixed(1)}s`
 }
 

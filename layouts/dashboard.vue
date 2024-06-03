@@ -14,6 +14,7 @@ const sites = computed(() => {
 
 const logout = createLogoutHandler()
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
+const route = useRoute()
 
 watch(isOnWelcome, (val) => {
   if (!val && !session.value.team.onboardedStep)
@@ -99,6 +100,23 @@ const siteLinks = computed(() => !site.value
           label: 'Pagespeed Insights',
           icon: 'i-heroicons-rocket-launch',
           to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights'),
+          collapsible: false,
+          children: (route.path.includes('pagespeed-insights')
+            ? [
+                {
+                  label: 'Overview',
+                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights'),
+                },
+                {
+                  label: 'Performance Audits',
+                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights', 'performance'),
+                },
+                {
+                  label: 'Recent Scans',
+                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights', 'scans'),
+                },
+              ]
+            : []),
         },
       ],
       [
@@ -253,7 +271,6 @@ const domains = computed(() => {
   ]
 })
 
-const route = useRoute()
 function changeSite(siteId) {
   const childSegment = route.path.split('/').pop()
   return navigateTo(`/dashboard/site/${siteId}/${childSegment}`)
@@ -316,7 +333,7 @@ const groups = [{
               </template>
             </div>
           </div>
-          <UVerticalNavigation v-if="siteLinks?.length" :links="siteLinks" />
+          <UDashboardSidebarLinks :links="siteLinks.flat()" />
         </template>
         <template v-else>
           <USelectMenu v-model="session.team.name" :options="[{ label: session.team.name }, { label: 'Create Team', icon: 'i-heroicons-plus' }]">

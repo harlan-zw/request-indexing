@@ -214,10 +214,12 @@ onMounted(() => {
       || param.point.x > _container.clientWidth
       || param.point.y < 0
       || param.point.y > _container.clientHeight
-    )
+    ) {
       tooltipData.value = null
-    else
+    }
+    else {
       tooltipData.value = param
+    }
   })
 
   function syncToTheme(theme) {
