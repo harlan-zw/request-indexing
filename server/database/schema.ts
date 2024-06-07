@@ -177,6 +177,7 @@ export const siteDateAnalytics = sqliteTable('site_date_analytics', {
   pages: integer('pages'),
 
   // web indexing
+  isSynced: integer('is_synced', { mode: 'boolean' }).notNull().default(false),
   indexedPagesCount: integer('indexed_pages_count').default(0),
   totalPagesCount: integer('total_pages_count').default(0),
 
@@ -211,6 +212,8 @@ export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
   date: text('date').notNull(), // all data for a path
   path: text('path').notNull(),
 
+  // keywords: integer('keywords'),
+
   psiDesktopPerformance: integer('psi_desktop_performance'),
   psiMobilePerformance: integer('psi_mobile_performance'),
   psiDesktopSeo: integer('psi_desktop_seo'),
@@ -241,6 +244,38 @@ export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
 }))
 
 export type SiteUrlDateAnalyticsSelect = typeof sitePathDateAnalytics.$inferSelect
+
+export const keywords = sqliteTable('keywords', {
+  keywordId: integer('keyword_id').notNull().primaryKey(),
+  keyword: text('keyword').notNull().unique(),
+
+  // googleAdsPayload: text('google_ads_data', { mode: 'json' }).$type<GenerateKeywordIdeaResponse>(),
+  competitionIndex: integer('competition_index'),
+  competition: text('competition'),
+  monthlySearchVolumes: text('monthly_search_volumes', { mode: 'json' }).$type<{ date: string, value: number }[]>(),
+  avgMonthlySearches: integer('avg_monthly_searches'),
+  currentMonthSearchVolume: integer('current_month_search_volume'),
+  averageCpcMicros: integer('average_cpc_micros'),
+  lastSynced: integer('last_synced'),
+
+  ...timestamps,
+})
+
+export const relatedKeywords = sqliteTable('related_keywords', {
+  // composite key for keywords.keywordId and keywords.keywordId
+  keywordId: integer('keyword_id').notNull().references(() => keywords.keywordId),
+  relatedKeywordId: integer('related_keyword_id').notNull().references(() => keywords.keywordId),
+  siteId: integer('site_id').notNull().references(() => sites.siteId),
+}, t => ({
+  unq: unique().on(t.keywordId, t.relatedKeywordId, t.siteId),
+}))
+
+export const usages = sqliteTable('usages', {
+  usageId: integer('usage_id').notNull().primaryKey(),
+  teamId: integer('team_id').notNull().references(() => teams.teamId),
+  api: text('api').notNull(),
+  ...timestamps,
+})
 
 export const siteKeywordDateAnalytics = sqliteTable('site_keyword_date_analytics', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),

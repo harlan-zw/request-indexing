@@ -11,13 +11,14 @@ import { ofetch } from 'ofetch'
 // this is a copy of the googleEventHandler from nuxt-auth-utils
 // we need to provide runtime config for the client id and client secret
 export default defineEventHandler(async (event) => {
-  const authData = await getAuthenticatedData(event)
-  if (isError(authData))
-    return sendError(event, authData)
+  // const authData = await getAuthenticatedData(event)
+  // if (isError(authData))
+  //   return sendError(event, authData)
+  const { adsClientId: clientId, adsClientSecret: clientSecret } = useRuntimeConfig(event).google
 
   const config = {
-    clientId: '743046733183-jk9sd5qc1ekhm251gm4pfoov1sqoh6c5.apps.googleusercontent.com',
-    clientSecret: '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',
+    clientId,
+    clientSecret,
     authorizationURL: 'https://accounts.google.com/o/oauth2/v2/auth',
     tokenURL: 'https://oauth2.googleapis.com/token',
     scope: [

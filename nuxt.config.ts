@@ -65,6 +65,9 @@ export default defineNuxtConfig({
       adsCustomerId: '', // .env NUXT_GOOGLE_ADS_CUSTOMER_ID
       adsApiToken: '', // .env NUXT_GOOGLE_ADS_API_TOKEN
       cruxApiToken: '', // .env NUXT_GOOGLE_CRUX_API_TOKEN
+      adsClientId: '', // NUXT_GOOGLE_ADS_CLIENT_ID,
+      adsClientSecret: '', // NUXT_GOOGLE_ADS_CLIENT_SECRET
+      adsRefreshToken: '', // NUXT_GOOGLE_ADS_REFRESH_TOKEN
     },
     postmark: {
       apiKey: '', // .env NUXT_POSTMARK_API_KEY

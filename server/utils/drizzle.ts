@@ -13,8 +13,12 @@ export function useDrizzle() {
 /**
  * We can't send more than a certain kb threshold to the db at once, we need to chunk them up further.
  */
-export function chunkedBatch<T extends any[]>(arr: T, chunkSize: number = 100): Promise<any[]> {
+export async function chunkedBatch<T extends any[]>(arr: T, chunkSize: number = 0): Promise<any[]> {
   const db = useDrizzle()
+  // dynamic chunk size based on arr length with cloudflare worker and d1 limits
+  if (chunkSize === 0) {
+    chunkSize = Math.max(100, Math.ceil(arr.length / 100))
+  }
   const chunks: T[][] = arr.reduce((acc: any[], val) => {
     if (acc.length === 0 || acc[acc.length - 1].length >= chunkSize)
       acc.push([])
@@ -22,8 +26,18 @@ export function chunkedBatch<T extends any[]>(arr: T, chunkSize: number = 100): 
     acc[acc.length - 1].push(val)
     return acc
   }, [])
-  // batch them
-  return Promise.all(chunks.map(chunk => db.batch(chunk)))
+  // we can only send 6 batches at a time, split into workloads of 6
+  const workloads = chunks.reduce((acc: any[], val) => {
+    if (acc.length === 0 || acc[acc.length - 1].length >= 6)
+      acc.push([])
+
+    acc[acc.length - 1].push(val)
+    return acc
+  }, [])
+
+  for (const workload of workloads) {
+    await Promise.all(workload.map(chunk => db.batch(chunk)))
+  }
 }
 
 export type User = typeof schema.users.$inferSelect

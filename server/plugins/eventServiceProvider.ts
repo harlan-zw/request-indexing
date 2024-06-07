@@ -62,7 +62,7 @@ export interface TaskMap {
   'sites/syncGscDate': { siteId: number, date: string }
   // teams
   'teams/syncSelected': Parameters<NitroRuntimeHooks['app:team:sites-selected']>[number]
-  'sites/syncGscFirstDate': { siteId: number }
+  'sites/syncGscDates': { siteId: number }
   'sites/syncSitemapPages': { siteId: number }
   'sites/syncFinished': { siteId: number }
 }

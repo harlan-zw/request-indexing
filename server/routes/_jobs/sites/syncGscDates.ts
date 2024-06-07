@@ -36,8 +36,8 @@ export default defineJobHandler(async (event) => {
 
   const dates = await fetchGSCDates(site.owner.googleAccounts[0], {
     period: {
-      start: dayjs().subtract(500, 'days').toDate(),
-      end: dayjs().subtract(499, 'days').toDate(),
+      start: dayjs().subtract(501, 'days').toDate(),
+      end: dayjs().toDate(),
     },
   }, site)
 

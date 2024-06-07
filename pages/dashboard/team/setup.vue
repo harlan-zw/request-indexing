@@ -20,8 +20,8 @@ async function refresh() {
     .finally(() => {
       pending.value = false
     })
-  if (data.value.filter(s => !!s.lastSynced).length)
-    isSetup.value = true
+  // if (data.value.filter(s => !!s.lastSynced).length)
+  isSetup.value = true
 
   key.value++
 }
@@ -126,12 +126,12 @@ function setSelectedSites(val) {
                 check it exists within <a class="underline" href="https://search.google.com/search-console" target="_blank">Google Search Console</a>.
               </p>
               <p class="dark:text-gray-400 text-gray-600 text-sm mb-5">
-                The free plan includes up to 4 sites, up to 10,000 pages and tracking up to 100 keywords and pages with Psi. The Pro
+                The free plan includes up to 3 sites, up to 10,000 pages and tracking up to 100 keywords and pages with Psi. The Pro
                 plan is unlimited and is in development.
               </p>
               <div class="mb-3">
                 <div class="text-sm font-bold text-gray-700 mb-1">
-                  Please select up to 4 sites to continue.
+                  Please select up to 3 sites to continue.
                 </div>
                 <div class="text-xs text-gray-500">
                   The free plan offers limited sites, pro users have unlimited.

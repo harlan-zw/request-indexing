@@ -62,6 +62,7 @@ export default defineJobHandler(async (event) => {
     auth: createGoogleOAuthClient(site.owner.googleAccounts[0]),
   })
 
+  // not all pages will shown when queried with keywords
   const [pages, keywordsAndPages] = await Promise.all([
     (recursiveQuery(api, {
       siteUrl: site.property,
@@ -83,16 +84,16 @@ export default defineJobHandler(async (event) => {
         dimensions: ['page', 'query'],
       },
     }).then(d => d.data.rows || [])),
-    (recursiveQuery(api, {
-      siteUrl: site.property,
-      requestBody: {
-        ...generateDefaultQueryBody(site, {
-          start: date,
-          end: date,
-        }),
-        dimensions: ['query'],
-      },
-    }).then(d => d.data.rows || [])),
+    // (recursiveQuery(api, {
+    //   siteUrl: site.property,
+    //   requestBody: {
+    //     ...generateDefaultQueryBody(site, {
+    //       start: date,
+    //       end: date,
+    //     }),
+    //     dimensions: ['query'],
+    //   },
+    // }).then(d => d.data.rows || [])),
   ])
 
   // extract keywords from keywordsAndPages
@@ -175,7 +176,7 @@ export default defineJobHandler(async (event) => {
         set: row,
       }),
     )
-    await chunkedBatch(keywordInserts)
+    await chunkedBatch(keywordInserts, 50)
   }
 
   if (keywordsAndPages.length) {
@@ -192,7 +193,8 @@ export default defineJobHandler(async (event) => {
         set: row,
       }),
     )
-    await chunkedBatch(keywordPathInserts)
+    await chunkedBatch(keywordPathInserts, 50)
+    // TODO insert count into siteDateAnalytics, need to group keywordsAndPages by path
   }
 
   const totalPageClicks = pages.reduce((acc, row) => acc + row.clicks, 0)
@@ -212,6 +214,7 @@ export default defineJobHandler(async (event) => {
   }).onConflictDoUpdate({
     target: [siteDateAnalytics.siteId, siteDateAnalytics.date],
     set: {
+      // TODO set max of either totalPageClicks OR the existing total
       clicks: totalPageClicks,
       impressions: totalPageImpressions,
       ctr: totalPageCtr,

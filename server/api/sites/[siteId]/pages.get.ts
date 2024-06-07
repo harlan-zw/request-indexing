@@ -1,9 +1,9 @@
-import { avg, between, count, desc, gt, ilike, inArray, sum } from 'drizzle-orm'
-import { getQuery } from 'h3'
+import { asc, avg, between, count, desc, gt, ilike, inArray, max, sum } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
   siteKeywordDatePathAnalytics,
   sitePathDateAnalytics,
+  sitePaths,
   sites,
 } from '~/server/database/schema'
 import { userPeriodRange } from '~/server/app/models/User'
@@ -21,11 +21,7 @@ export default defineEventHandler(async (e) => {
       statusMessage: 'Site not found',
     })
   }
-  const { filter, page, q } = getQuery<{
-    filter: 'top-level' | 'new' | 'lost' | 'improving' | 'declining'
-    page: string
-    q: string
-  }>(e)
+  const { filters, offset, q, sort, pageSize } = getQueryAsyncDataTable<'top-level' | 'new' | 'lost' | 'improving' | 'declining'>(e)
   const range = userPeriodRange(user, {
     includeToday: false,
   })
@@ -36,7 +32,9 @@ export default defineEventHandler(async (e) => {
     _where.push(ilike(sitePathDateAnalytics.path, `%${q}%`))
   const sq = useDrizzle()
     .select({
-      path: filter === 'top-level' ? sql`SUBSTR(path, 1, INSTR(SUBSTR(path, 2), '/') + 1)`.as('topLevelPath1') : sitePathDateAnalytics.path,
+      path: filters.includes('top-level') ? sql`SUBSTR(path, 1, INSTR(SUBSTR(path, 2), '/') + 1)`.as('topLevelPath1') : sitePathDateAnalytics.path,
+      // need to use raw sql to get avg of both avg psiDesktopScore and avg psiMobileScore
+      psiScore: sql`AVG((${sitePathDateAnalytics.psiDesktopScore} + ${sitePathDateAnalytics.psiMobileScore}) / 2)`.as('psiScore'),
       clicks: sum(sitePathDateAnalytics.clicks).as('clicks'),
       ctr: avg(sitePathDateAnalytics.ctr).as('ctr'),
       impressions: sum(sitePathDateAnalytics.impressions).as('impressions'),
@@ -47,14 +45,15 @@ export default defineEventHandler(async (e) => {
       between(sitePathDateAnalytics.date, range.period.startDate, range.period.endDate),
       ..._where,
     ))
-    .groupBy(filter === 'top-level' ? sql`topLevelPath1` : sitePathDateAnalytics.path)
+    .groupBy(filters.includes('top-level') ? sql`topLevelPath1` : sitePathDateAnalytics.path)
     .as('sq')
 
   // we're going to get previous period data so we can join it and compute differences
   const sq2 = useDrizzle()
     .select({
-      path: filter === 'top-level' ? sql`SUBSTR(path, 1, INSTR(SUBSTR(path, 2), '/') + 1)`.as('topLevelPath2') : sitePathDateAnalytics.path,
+      path: filters.includes('top-level') ? sql`SUBSTR(path, 1, INSTR(SUBSTR(path, 2), '/') + 1)`.as('topLevelPath2') : sitePathDateAnalytics.path,
       prevClicks: sum(sitePathDateAnalytics.clicks).as('prevClicks'),
+      prevPsiScore: sql`AVG((${sitePathDateAnalytics.psiDesktopScore} + ${sitePathDateAnalytics.psiMobileScore}) / 2)`.as('prevPsiScore'),
       ctr: avg(sitePathDateAnalytics.ctr).as('prevCtr'),
       prevImpressions: sum(sitePathDateAnalytics.impressions).as('prevImpressions'),
       position: avg(sitePathDateAnalytics.position).as('prevPosition'),
@@ -64,64 +63,82 @@ export default defineEventHandler(async (e) => {
       between(sitePathDateAnalytics.date, range.prevPeriod.startDate, range.prevPeriod.endDate),
       ..._where,
     ))
-    .groupBy(filter === 'top-level' ? sql`topLevelPath2` : sitePathDateAnalytics.path)
+    .groupBy(filters.includes('top-level') ? sql`topLevelPath2` : sitePathDateAnalytics.path)
     .as('sq2')
 
   let finalWhere
-  if (filter === 'new') {
+  if (filters.includes('new')) {
     finalWhere = and(
       gt(sq.clicks, 0),
       eq(sq2.prevClicks, 0),
     )
   }
-  else if (filter === 'lost') {
+  else if (filters.includes('lost')) {
     finalWhere = and(
       eq(sq.clicks, 0),
       gt(sq2.prevClicks, 0),
     )
   }
-  else if (filter === 'improving') {
+  else if (filters.includes('improving')) {
     finalWhere = gt(sq.clicks, sq2.prevClicks)
   }
-  else if (filter === 'declining') {
+  else if (filters.includes('declining')) {
     finalWhere = gt(sq2.prevClicks, sq.clicks)
   }
 
-  const offset = ((Number(page) || 1) - 1) * 10
+  // const keywordSq = useDrizzle().select({
+  //   path: siteKeywordDatePathAnalytics.path,
+  //   keyword: siteKeywordDatePathAnalytics.keyword,
+  //   // keywordClicks: sum(siteKeywordDatePathAnalytics.clicks).as('keywordClicks'),
+  //   // keywordPosition: avg(siteKeywordDatePathAnalytics.position).as('keywordPosition'),
+  // })
+  //   .from(siteKeywordDatePathAnalytics)
+  //   .where(and(
+  //     eq(siteKeywordDatePathAnalytics.siteId, site.siteId),
+  //     between(siteKeywordDatePathAnalytics.date, range.period.startDate, range.period.endDate),
+  //   ))
+  //   .groupBy(siteKeywordDatePathAnalytics.path)
+  //   .orderBy(desc(max(siteKeywordDatePathAnalytics.clicks)))
+  //   .as('keywordSq')
 
   const pagesSelect = useDrizzle().select({
+    path: sitePaths.path,
+    isIndexed: sitePaths.isIndexed,
+    // keyword: keywordSq.keyword,
+    // keywordClicks: keywordSq.keywordClicks,
+    // keywordPosition: keywordSq.keywordPosition,
+    psiScore: sq.psiScore,
     clicks: sq.clicks,
     ctr: sq.ctr,
     impressions: sq.impressions,
-    path: sq.path,
     position: sq.position,
     prevClicks: sq2.prevClicks,
     prevCtr: sq2.ctr,
     prevImpressions: sq2.prevImpressions,
     prevPosition: sq2.position,
+    prevPsiScore: sq2.prevPsiScore,
     // pages: sq3.path,
   })
-    .from(sq)
-    .leftJoin(sq2, filter === 'top-level' ? sql`sq.topLevelPath1 = sq2.topLevelPath2` : eq(sq.path, sq2.path))
-    .where(finalWhere)
+    .from(sitePaths) // we want to get non-indexed pages as well
+    .leftJoin(sq, filters.includes('top-level') ? sql`sq.topLevelPath1 = sq.topLevelPath2` : eq(sitePaths.path, sq.path))
+    .leftJoin(sq2, filters.includes('top-level') ? sql`sq.topLevelPath1 = sq2.topLevelPath2` : eq(sitePaths.path, sq2.path))
+    // .leftJoin(keywordSq, eq(sitePaths.path, keywordSq.path))
+    .where(and(
+      eq(sitePaths.siteId, site.siteId),
+      finalWhere,
+    ))
     .orderBy(desc(sq.clicks))
     .as('pagesSelect')
 
   const pages = await useDrizzle().select()
     .from(pagesSelect)
+    .orderBy(sort.column ? (sort.direction === 'asc' ? asc(pagesSelect[sort.column]) : desc(pagesSelect[sort.column])) : desc(pagesSelect.clicks))
     .offset(offset)
-    .limit(10)
+    .limit(pageSize)
 
   if (pages.length) {
     // for each keyword find the top pages
-    const keywords = await useDrizzle().select({
-      clicks: sum(siteKeywordDatePathAnalytics.clicks).as('clicks'),
-      position: avg(siteKeywordDatePathAnalytics.position).as('position'),
-      ctr: avg(siteKeywordDatePathAnalytics.ctr).as('ctr'),
-      impressions: sum(siteKeywordDatePathAnalytics.impressions).as('impressions'),
-      keyword: siteKeywordDatePathAnalytics.keyword,
-      path: siteKeywordDatePathAnalytics.path,
-    })
+    const keywords = await useDrizzle().select()
       .from(siteKeywordDatePathAnalytics)
       .where(and(
         eq(siteKeywordDatePathAnalytics.siteId, site.siteId),
@@ -129,12 +146,17 @@ export default defineEventHandler(async (e) => {
         // filter for keywords
         inArray(siteKeywordDatePathAnalytics.path, pages.map(row => row.path)),
       ))
-      .groupBy(siteKeywordDatePathAnalytics.keyword, siteKeywordDatePathAnalytics.path)
-      .orderBy(desc(sum(siteKeywordDatePathAnalytics.clicks)))
+      .groupBy(siteKeywordDatePathAnalytics.path)
+      .orderBy(desc(max(siteKeywordDatePathAnalytics.clicks)))
 
     // apply keywords to pages
-    for (const page of pages)
-      page.keywords = keywords.filter(row => row.path === page.path)
+    for (const page of pages) {
+      const entry = keywords.find(row => row.path === page.path)
+      if (entry) {
+        page.keyword = entry.keyword
+        page.keywordPosition = entry.position
+      }
+    }
   }
 
   const totals = await useDrizzle().select({
@@ -143,17 +165,7 @@ export default defineEventHandler(async (e) => {
   })
     .from(pagesSelect)
   return {
-    rows: pages.map((row) => {
-      row.clicks = Number(row.clicks)
-      row.impressions = Number(row.impressions)
-      row.position = Number(row.position)
-      row.ctr = Number(row.ctr)
-      row.prevClicks = Number(row.prevClicks)
-      row.prevImpressions = Number(row.prevImpressions)
-      row.prevPosition = Number(row.prevPosition)
-      row.prevCtr = Number(row.prevCtr)
-      return row
-    }),
+    rows: pages,
     total: totals[0].count,
     totalClicks: Number(totals[0].clicks),
   }

@@ -34,7 +34,8 @@ export function useFriendlySiteUrl(url: string): string
 export function useFriendlySiteUrl(url: MaybeRef<string>) {
   const format = (s: string) => withoutTrailingSlash(
     s.replace('https://', '')
-      .replace('sc-domain:', ''),
+      .replace('sc-domain:', '')
+      .replace('www.', ''),
   )
   if (isRef(url)) {
     return computed(() => {

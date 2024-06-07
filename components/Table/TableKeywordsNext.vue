@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import type { GoogleSearchConsoleSite, GscDataRow } from '~/types/data'
+import type { GscDataRow } from '~/types/data'
 import { exponentialMovingAverage } from '~/lib/time-smoothing/exponentialMovingAverage'
 import { simpleMovingAverage } from '~/lib/time-smoothing/simpleMovingAverage'
 import { callFnSyncToggleRef } from '~/composables/loader'
+import type { SiteSelect } from '~/server/database/schema'
+import type { TableAsyncDataProps } from '~/components/Table/TableAsyncData.vue'
 
 const props = withDefaults(
-  defineProps<{ mock?: boolean, value?: GscDataRow[], site: GoogleSearchConsoleSite, pending?: boolean, pageCount?: number }>(),
+  defineProps<{
+    site: SiteSelect
+    sortable?: boolean
+    excludeColumns?: string[]
+  } & TableAsyncDataProps>(),
   {
-    pageCount: 8,
+    sortable: true,
+    pagination: true,
+    expandable: true,
+    pageSize: 8,
   },
 )
 
@@ -32,28 +41,39 @@ const columns = computed(() => {
   return [{
     key: 'keyword',
     label: 'Keyword',
-    sortable: true,
+    sortable: props.sortable,
   }, {
     key: 'clicks',
     label: 'Clicks',
-    sortable: true,
+    sortable: props.sortable,
   }, {
     key: 'impressions',
     label: 'Impressions',
-    sortable: true,
-  }, {
-    key: 'page',
-    label: 'Top Page',
-    sortable: true,
-  }, {
+    sortable: props.sortable,
+  }, props.filter?.startsWith('path')
+    ? undefined
+    : {
+        key: 'page',
+        label: 'Top Page',
+        sortable: props.sortable,
+      }, {
     key: 'position',
     label: 'Position',
-    sortable: true,
+    sortable: props.sortable,
   }, {
     key: 'positionPercent',
     label: '%',
-    sortable: true,
+    sortable: props.sortable,
   }, {
+    key: 'currentMonthSearchVolume',
+    label: 'Volume',
+    sortable: props.sortable,
+  }, {
+    key: 'competitionIndex',
+    label: 'Competition',
+    sortable: props.sortable,
+  },
+  /* {
     key: 'ctr',
     label: 'CTR',
     sortable: true,
@@ -61,9 +81,11 @@ const columns = computed(() => {
     key: 'ctrPercent',
     label: '%',
     sortable: true,
-  }, {
+  }, */ {
     key: 'actions',
-  }].filter(Boolean)
+  }].filter(Boolean).filter((col) => {
+    return !(props.excludeColumns || []).includes(col.key)
+  })
 })
 
 // const siteUrlFriendly = useFriendlySiteUrl(props.siteUrl)
@@ -116,78 +138,72 @@ const graph = computed(() => {
 //     selected.value.splice(index, 1)
 // }
 
-const filters = computed(() => {
-  return [
-    {
-      key: 'new',
-      label: 'New',
-      filter: (rows: T[]) => {
-        return rows.filter(row => !row.prevImpressions)
-      },
-    },
-    {
-      key: 'lost',
-      label: 'Lost',
-      filter: (rows: T[]) => {
-        return rows.filter(row => row.lost).sort((a, b) => b.prevImpressions - a.prevImpressions)
-      },
-    },
-    {
-      key: 'improving',
-      label: 'Improving',
-      filter: (rows: T[]) => {
-        return rows.filter(row => row.clicks > row.prevClicks)
-      },
-    },
-    {
-      key: 'declining',
-      label: 'Declining',
-      filter: (rows: T[]) => {
-        return rows.filter(row => row.clicks < row.prevClicks)
-      },
-    },
-    {
-      key: 'first-page',
-      label: 'First Page',
-      special: true,
-      filter: (rows: GscDataRow[]) => rows.filter(row => row.impressions > 5 && row.position <= 12 && row.position >= 0),
-    },
-    {
-      key: 'content-gap',
-      label: 'Content Gap',
-      special: true,
-      filter: (rows: GscDataRow[]) => {
-        // compute avg. impressions and avg ctr
-        const avgImpressions = rows.filter(row => row.impressions >= 0).reduce((acc, row) => acc + (row.impressions || 0), 0) / rows.length
-        const avgCtr = rows.filter(row => row.ctr >= 0).reduce((acc, row) => acc + (row.ctr || 0), 0) / rows.length
-        const thresholdImpressions = Math.max(avgImpressions * 0.5, 50)
-        const thresholdCTR = avgCtr * 0.5
-        return rows.filter(row => row.impressions > thresholdImpressions && row.ctr < thresholdCTR)
-          .sort((a, b) => b.impressions - a.impressions)
-      },
-    },
-  ]
-})
+const filters = props.filters || [
+  {
+    key: 'new',
+    label: 'New',
+  },
+  {
+    key: 'lost',
+    label: 'Lost',
+  },
+  {
+    key: 'improving',
+    label: 'Improving',
+  },
+  {
+    key: 'declining',
+    label: 'Declining',
+  },
+  {
+    key: 'non-branded',
+    label: 'Non-branded',
+    special: true,
+  },
+  {
+    key: 'first-page',
+    label: 'First Page',
+    special: true,
+  },
+  {
+    key: 'content-gap',
+    label: 'Content Gap',
+    special: true,
+  },
+]
+
+function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
+  switch (competition) {
+    case 'MEDIUM':
+      return 'yellow'
+    case 'LOW':
+      return 'green'
+    case 'HIGH':
+      return 'red'
+  }
+}
 </script>
 
 <template>
   <div>
-    <TableAsyncData :path="`/api/sites/${site.siteId}/keywords`" :columns="columns" :filters="filters" expandable @update:expanded="updateExpandedData">
+    <TableAsyncData :pagination="pagination" :searchable="searchable" :page-size="pageSize" :path="`/api/sites/${site.siteId}/keywords`" :columns="columns" :filter="filter" :filters="filters" :expandable="expandable" @update:expanded="updateExpandedData">
       <template #keyword-data="{ row, value: totals, expanded }">
         <div class="flex items-center">
           <div class="relative group w-[225px] truncate text-ellipsis">
             <ProgressPercent class="" :value="row.clicks" :total="totals?.totalClicks">
-              <div class="text-xs font-semibold max-w-[185px] block" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" color="gray" @click="q = row.keyword">
-                <div class="text-black max-w-[185px] truncate text-ellipsis">
-                  {{ row.keyword }}
-                </div>
+              <div class="">
+                <NuxtLink :href="`/dashboard/site/${site.siteId}/keywords/${encodeURIComponent(row.keyword)}`" :title="`Open ${row.path}`" class="max-w-[260px] transition py-1 rounded text-xs hover:bg-gray-100 block" color="gray">
+                  <div class="text-black max-w-[260px] truncate text-ellipsis">
+                    {{ row.keyword }}
+                  </div>
+                  <UBadge v-if="!row.prevImpressions" size="xs" variant="subtle">
+                    <span class="text-[10px]">New</span>
+                  </UBadge>
+                  <UBadge v-else-if="row.lost" size="xs" color="red" variant="subtle">
+                    <span class="text-[10px]">Lost</span>
+                  </UBadge>
+                </NuxtLink>
               </div>
-              <UBadge v-if="!row.prevPosition" size="xs" variant="subtle">
-                New
-              </UBadge>
-              <UBadge v-else-if="row.lost" size="xs" color="red" variant="subtle">
-                Lost
-              </UBadge>
             </ProgressPercent>
           </div>
         </div>
@@ -195,20 +211,30 @@ const filters = computed(() => {
           <GraphKeywords v-if="graph" :key="graph.key" :value="graph.position" :value2="graph.ctr" height="200" />
         </div>
       </template>
+      <template #currentMonthSearchVolume-data="{ row }">
+        <span class="">{{ useHumanFriendlyNumber(row.currentMonthSearchVolume) }}</span>
+      </template>
+      <template #competitionIndex-data="{ row }">
+        <ProgressPercent :value="row.competitionIndex" :color="colorForCompetition(row.competition)" class="w-[100px]">
+          <span class="text-xs text-gray-400">{{ row.competition }}</span>
+        </ProgressPercent>
+      </template>
 
       <template #page-data="{ row, expanded }">
         <div v-if="!expanded" class="flex items-center">
-          <UButton v-if="row.pages?.[0]" :title="row.pages[0].path" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="`/dashboard/site/${site.domain}/pages?q=${encodeURIComponent(row.pages[0].path)}`" color="gray">
-            <div class="max-w-[150px] truncate text-ellipsis">
-              {{ row.pages[0].path }}
+          <NuxtLink v-if="row.pages?.[0]" :title="row.pages[0].path" variant="link" size="xs" :to="`/dashboard/site/${site.domain}/pages?q=${encodeURIComponent(row.pages[0].path)}`" color="gray">
+            <div class="flex items-center">
+              <div class="max-w-[175px] text-[11px] text-xs truncate text-ellipsis">
+                {{ row.pages[0].path }}
+              </div>
+              <PositionMetric :value="row.pages[0].position" size="sm" />
             </div>
-            <PositionMetric :value="row.pages[0].position" />
-          </UButton>
+          </NuxtLink>
         </div>
         <div v-else>
           <ul class="space-y-2">
             <li v-for="(p, key) in expandedRowData?.pages || []" :key="key">
-              <UButton :title="p.path" variant="link" size="xs" :class="mock ? ['pointer-events-none'] : []" :to="`/dashboard/site/${site.domain}/pages?q=${encodeURIComponent(p.path)}`" color="gray">
+              <UButton :title="p.path" variant="link" size="xs" :to="`/dashboard/site/${site.domain}/pages?q=${encodeURIComponent(p.path)}`" color="gray">
                 <div>
                   <div class="max-w-[150px] truncate text-ellipsis">
                     {{ p.path }}
@@ -227,19 +253,32 @@ const filters = computed(() => {
         <div class="text-center">
           <UDivider v-if="row.lostKeyword" />
           <div v-else class="flex gap-1">
-            <UTooltip :text="`${row.clicks} clicks this period`" class="flex items-center justify-center gap-1">
-              <IconClicks />
-              {{ useHumanFriendlyNumber(row.clicks) }}
-            </UTooltip>
-            <TrendPercentage :value="row.clicks" :prev-value="row.prevClicks" />
+            <EmptyPlaceholder v-if="Number(row.clicks) === 0" />
+            <template v-else>
+              <ProgressPercent class="" :value="useHumanFriendlyNumber(row.ctr * 100)" :total="100" :tooltip="`${useHumanFriendlyNumber(row.ctr * 100)}% click through rate`">
+                <div class="flex items-center gap-1">
+                  <IconClicks class="opacity-70 !w-3 !h-3" />
+                  <div class="flex mb-1 items-center justify-center gap-2">
+                    {{ useHumanFriendlyNumber(row.clicks) }}
+                  </div>
+                </div>
+              </ProgressPercent>
+            </template>
           </div>
         </div>
       </template>
       <template #impressions-data="{ row }">
-        <UTooltip :text="`${row.impressions} impressions this period`" class="flex items-center justify-center gap-1">
-          <IconImpressions />
-          {{ useHumanFriendlyNumber(row.impressions) }}
-        </UTooltip>
+        <EmptyPlaceholder v-if="Number(row.impressions) === 0" />
+        <template v-else>
+          <ProgressPercent color="purple" :value="10 - row.position" :total="10" :tooltip="`Avg. position ${useHumanFriendlyNumber(row.position)}`">
+            <div class="flex items-center gap-1">
+              <IconImpressions class="opacity-70 !w-3 !h-3" />
+              <div class="flex mb-1 items-center justify-center gap-2">
+                {{ useHumanFriendlyNumber(row.impressions) }}
+              </div>
+            </div>
+          </ProgressPercent>
+        </template>
       </template>
       <template #position-data="{ row }">
         <div class="text-center">

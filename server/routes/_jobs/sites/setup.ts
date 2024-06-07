@@ -76,7 +76,7 @@ export default defineJobHandler(async (event) => {
           domain: withoutTrailingSlash(_site),
           parentId: site.siteId,
           active: true,
-          lastSynced: Date.now(),
+          // lastSynced: Date.now(),
         }
       }),
       userSites: domainKeys.map(() => {
@@ -144,9 +144,9 @@ export default defineJobHandler(async (event) => {
   }
 
   // update parent site
-  await db.update(sites).set({
-    lastSynced: Date.now(),
-  }).where(eq(sites.siteId, siteId))
+  // await db.update(sites).set({
+  //   lastSynced: Date.now(),
+  // }).where(eq(sites.siteId, siteId))
 
   return {
     broadcastTo: user.publicId,

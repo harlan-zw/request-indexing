@@ -2,18 +2,17 @@
 const props = defineProps<{
   total: string | number
   value: string | number
+  tooltip?: string
 }>()
 
 const percentage = computed(() => {
-  return (Number(props.value) / Number(props.total)) * 100
+  return (Number(props.value) / Number(props.total || 100)) * 100
 })
 </script>
 
 <template>
-  <UTooltip :text="`${value}/${total} - ${useHumanFriendlyNumber(percentage)}%`" class="block w-full">
-    <div class="mb-2">
-      <slot />
-    </div>
-    <UProgress :value="percentage" color="blue" class="opacity-60" size="sm" v-bind="$attrs" />
+  <UTooltip :text="tooltip || `${value}/${total || 100} - ${useHumanFriendlyNumber(percentage)}%`" class="block w-full">
+    <slot />
+    <UProgress :value="percentage" color="blue" class="opacity-30 max-w-12" size="sm" v-bind="$attrs" />
   </UTooltip>
 </template>

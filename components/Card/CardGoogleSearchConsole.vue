@@ -84,8 +84,8 @@ const buttons = computed<GraphButton[]>(() => [
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center">
-    <GraphButtonGroup :buttons="buttons" :model-value="selectedCharts">
+  <div class="flex flex-col justify-center">
+    <GraphButtonGroup :buttons="buttons" :model-value="selectedCharts" class="px-2">
       <template #clicks-icon>
         <IconClicks class="w-4 h-4 opacity-80" />
       </template>
@@ -105,6 +105,6 @@ const buttons = computed<GraphButton[]>(() => [
         <TrendPercentage v-if="!tooltipData && period" compact negative :value="period.position" :prev-value="prevPeriod?.position" />
       </template>
     </GraphButtonGroup>
-    <GraphData :labels="fill" :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" />
+    <GraphData :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" />
   </div>
 </template>

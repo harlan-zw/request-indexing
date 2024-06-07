@@ -2,13 +2,20 @@ import { defineEventHandler } from 'h3'
 import { asc, avg, between, max, sum } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import { userPeriodRange } from '~/server/app/models/User'
-import { siteDateAnalytics } from '~/server/database/schema'
+import { siteDateAnalytics, sitePathDateAnalytics } from '~/server/database/schema'
 import { requireEventSite } from '~/server/app/services/util'
 
 export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)
   const { site } = await requireEventSite(event, user)
 
+  const query = getQuery(event)
+  const _where = [
+    eq(sitePathDateAnalytics.siteId, site.siteId),
+  ]
+  if (query.path) {
+    _where.push(eq(sitePathDateAnalytics.path, query.path))
+  }
   const range = userPeriodRange(user, {
     includeToday: true,
   })

@@ -1,16 +1,24 @@
 <script lang="ts" setup>
 import type { SiteSelect } from '~/server/database/schema'
+import { useSiteData } from '~/composables/fetch'
 
-defineProps<{ site: SiteSelect }>()
+const props = defineProps<{ site: SiteSelect }>()
 
 definePageMeta({
   title: 'Pages',
   icon: 'i-heroicons-folder',
 })
+const siteData = useSiteData(props.site)
+const { data: dates } = siteData.dateAnalytics()
 </script>
 
 <template>
   <div>
+    <div class="grid grid-cols-3 w-full gap-10 mb-10">
+      <UCard>
+        <CardGoogleSearchConsole v-if="dates" :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['clicks', 'impressions']" />
+      </UCard>
+    </div>
     <UCard>
       <TablePagesNext :site="site" />
     </UCard>

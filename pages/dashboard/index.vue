@@ -32,6 +32,17 @@ const selectedCharts = ref([
 //   else
 //     selectedCharts.value.push(chart)
 // }
+const previousPeriodClicksPercent = computed(() => {
+  if (!stats.value?.prevPeriod?.clicks || !stats.value?.period?.clicks)
+    return 0
+  return ((stats.value.period.clicks - stats.value.prevPeriod.clicks) / stats.value.prevPeriod.clicks) * 100
+})
+
+const previousPeriodImpressionsPercent = computed(() => {
+  if (!stats.value?.prevPeriod?.impressions || !stats.value?.period?.impressions)
+    return 0
+  return ((stats.value.period.impressions - stats.value.prevPeriod.impressions) / stats.value.prevPeriod.impressions) * 100
+})
 </script>
 
 <template>
@@ -43,7 +54,7 @@ const selectedCharts = ref([
         </div>
         <div class="flex-shrink">
           In the last <span class="underline font-semibold">30 days</span>, your sites have received <span class="font-semibold">{{ useHumanFriendlyNumber(stats?.period.clicks || 0) }} clicks</span> and <strong>{{ useHumanFriendlyNumber(stats?.period.impressions || 0) }} impressions</strong>. Compared
-          to the <span class="underline font-semibold">previous period</span>, this is a <strong>10% increase</strong> in clicks and a <strong>5% decrease</strong> in impressions.
+          to the <span class="underline font-semibold">previous period</span>, this is a <strong>{{ useHumanFriendlyNumber(previousPeriodClicksPercent) }}% {{ previousPeriodClicksPercent > 0 ? 'increase' : 'decrease' }}</strong> in clicks and a <strong>{{ useHumanFriendlyNumber(previousPeriodImpressionsPercent) }}% {{ previousPeriodImpressionsPercent > 0 ? 'increase' : 'decrease' }}</strong> in impressions.
         </div>
         <div>
           <UIcon class="w-4 h-4" name="i-ph-arrow-circle-right-duotone" />

@@ -1,6 +1,8 @@
 import dayjs from 'dayjs'
 import { defu } from 'defu'
+import { isNull, lt } from 'drizzle-orm'
 import {
+  sites,
   teamSites,
 } from '~/server/database/schema'
 import { batchJobs, defineJobHandler } from '~/server/plugins/eventServiceProvider'
@@ -12,12 +14,32 @@ export default defineJobHandler(async (event) => {
 
   // get all sites for this team
   const db = useDrizzle()
-  const teamsSites = await db.query.teamSites.findMany({
-    with: {
-      site: true,
-    },
-    where: eq(teamSites.teamId, teamId),
+  // const teamsSites = await db.query.teamSites.findMany({
+  //   with: {
+  //     site: true,
+  //   },
+  //   where: and(
+  //     eq(teamSites.teamId, teamId),
+  //     // lastSynced must be before today
+  //     or(
+  //       isNull(sites.lastSynced),
+  //       lt(sites.lastSynced, dayjs().startOf('day').format('YYYY-MM-DD')),
+  //     ),
+  //   ),
+  // })
+
+  const teamsSites = await db.select({
+    siteId: teamSites.siteId,
   })
+    .from(teamSites)
+    .where(and(
+      eq(teamSites.teamId, teamId),
+      or(
+        isNull(sites.lastSynced),
+        lt(sites.lastSynced, dayjs().startOf('day').toDate().getTime()),
+      ),
+    ))
+    .leftJoin(sites, eq(teamSites.siteId, sites.siteId))
 
   // need last 30d to show graph and last 60 to show comparison
   const dates = Array.from({ length: 61 }, (_, i) => dayjs().subtract(i, 'day').format('YYYY-MM-DD'))
@@ -41,7 +63,7 @@ export default defineJobHandler(async (event) => {
         },
       }, [
         {
-          name: 'sites/syncGscFirstDate',
+          name: 'sites/syncGscDates',
         },
         {
           name: 'sites/syncSitemapPages',

@@ -1,7 +1,7 @@
-import { avg, between, count, desc, gt, ilike, inArray, lt, sum } from 'drizzle-orm'
-import { getQuery } from 'h3'
+import { asc, avg, between, count, desc, gt, inArray, like, lt, notLike, sum } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
+  keywords,
   siteKeywordDateAnalytics,
   siteKeywordDatePathAnalytics,
   sites,
@@ -21,21 +21,21 @@ export default defineEventHandler(async (e) => {
       statusMessage: 'Site not found',
     })
   }
-  const { filter, page, q } = getQuery<{
-    filter: 'first-page' | 'content-gap' | 'new' | 'lost' | 'improving' | 'declining'
-    page: string
-    q: string
-  }>(e)
+  const { filters, offset, q, sort, pageSize } = getQueryAsyncDataTable<'first-page' | 'content-gap' | 'new' | 'lost' | 'improving' | 'declining'>(e)
   const filterWhere = []
-  if (filter === 'first-page') {
+  if (filters.includes('first-page')) {
     filterWhere.push(lt(siteKeywordDateAnalytics.position, 11))
   }
-  else if (filter === 'content-gap') {
+  else if (filters.includes('content-gap')) {
     // convert above to sql
     filterWhere.push(and(
       gt(siteKeywordDateAnalytics.impressions, 50),
       lt(siteKeywordDateAnalytics.ctr, 0.005),
     ))
+  }
+  else if (filters.includes('non-branded')) {
+    const brandName = site.domain!.split('.')[0].replace('https://', '')
+    filterWhere.push(notLike(siteKeywordDateAnalytics.keyword, `%${brandName}%`))
   }
   const range = userPeriodRange(user, {
     includeToday: false,
@@ -45,7 +45,7 @@ export default defineEventHandler(async (e) => {
     ...filterWhere,
   ]
   if (q?.length)
-    _where.push(ilike(siteKeywordDateAnalytics.keyword, `%${q}%`))
+    _where.push(like(siteKeywordDateAnalytics.keyword, `%${q}%`))
   const sq = useDrizzle()
     .select({
       keyword: siteKeywordDateAnalytics.keyword,
@@ -80,25 +80,28 @@ export default defineEventHandler(async (e) => {
     .as('sq2')
 
   let finalWhere
-  if (filter === 'new') {
+  if (filters.includes('new')) {
     finalWhere = and(
       gt(sq.clicks, 0),
       eq(sq2.prevClicks, 0),
     )
   }
-  else if (filter === 'lost') {
+  else if (filters.includes('lost')) {
     finalWhere = and(
       eq(sq.clicks, 0),
       gt(sq2.prevClicks, 0),
     )
   }
-  else if (filter === 'improving') {
+  else if (filters.includes('improving')) {
     finalWhere = gt(sq.clicks, sq2.prevClicks)
   }
-  else if (filter === 'declining') {
+  else if (filters.includes('declining')) {
     finalWhere = gt(sq2.prevClicks, sq.clicks)
   }
   const keywordsSelect = useDrizzle().select({
+    currentMonthSearchVolume: keywords.currentMonthSearchVolume,
+    competitionIndex: keywords.competitionIndex,
+    competition: keywords.competition,
     clicks: sq.clicks,
     ctr: sq.ctr,
     impressions: sq.impressions,
@@ -112,17 +115,18 @@ export default defineEventHandler(async (e) => {
   })
     .from(sq)
     .leftJoin(sq2, eq(sq.keyword, sq2.keyword))
+    .leftJoin(keywords, eq(keywords.keyword, sq.keyword))
     .where(finalWhere)
     .orderBy(desc(sq.clicks))
     .as('keywordsSelect')
 
-  const offset = ((Number(page) || 1) - 1) * 10
-  const keywords = await useDrizzle().select()
+  const _keywords = await useDrizzle().select()
     .from(keywordsSelect)
     .offset(offset)
-    .limit(10)
+    .orderBy(sort.column ? (sort.direction === 'asc' ? asc(keywordsSelect[sort.column]) : desc(keywordsSelect[sort.column])) : desc(keywordsSelect.clicks))
+    .limit(pageSize)
 
-  if (keywords.length) {
+  if (_keywords.length) {
     // for each keyword find the top pages
     const pages = await useDrizzle().select({
       clicks: sum(siteKeywordDatePathAnalytics.clicks).as('clicks'),
@@ -135,14 +139,14 @@ export default defineEventHandler(async (e) => {
       .where(and(
         eq(siteKeywordDatePathAnalytics.siteId, site.siteId),
         between(siteKeywordDatePathAnalytics.date, range.period.startDate, range.period.endDate),
-        // filter for keywords
-        inArray(siteKeywordDatePathAnalytics.keyword, keywords.map(row => row.keyword)),
+        // filter for _keywords
+        inArray(siteKeywordDatePathAnalytics.keyword, _keywords.map(row => row.keyword)),
       ))
       .groupBy(siteKeywordDatePathAnalytics.keyword, siteKeywordDatePathAnalytics.path)
       .orderBy(desc(sum(siteKeywordDatePathAnalytics.clicks)))
 
-    // apply keywords to pages
-    for (const keyword of keywords)
+    // apply _keywords to pages
+    for (const keyword of _keywords)
       keyword.pages = pages.filter(row => row.keyword === keyword.keyword)
   }
 
@@ -151,10 +155,8 @@ export default defineEventHandler(async (e) => {
     clicks: sum(keywordsSelect.clicks).as('clicks'),
   })
     .from(keywordsSelect)
-    .offset(offset)
-    .limit(10)
   return {
-    rows: keywords.map((row) => {
+    rows: _keywords.map((row) => {
       row.clicks = Number(row.clicks)
       row.ctr = Number(row.ctr)
       row.impressions = Number(row.impressions)

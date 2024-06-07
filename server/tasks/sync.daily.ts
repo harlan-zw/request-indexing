@@ -52,9 +52,6 @@ export default defineTask({
         },
       }, [
         {
-          name: 'sites/syncGscFirstDate',
-        },
-        {
           name: 'sites/syncSitemapPages',
         },
         {

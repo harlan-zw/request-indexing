@@ -18,7 +18,7 @@ const data = ref<SitesPreview>(props.sites)
 // const isPending = computed(() => !props.sites.length)
 
 const selected = ref<SiteSelect[]>(props.modelValue)
-const maxSites = 4
+const maxSites = 3
 
 watch(selected, () => {
   emits('update:modelValue', selected.value)
@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
                 <div>
                   {{ site.property.startsWith('sc-domain:') ? 'Domain' : 'URL' }} Property
                 </div>
-                <div v-if="!site.lastSynced">
+                <div v-if="!site.pageCount30Day">
                   <UIcon name="i-ph-arrows-clockwise-duotone" class="w-4 h-4 animate-spin" />
                 </div>
                 <div v-else>
