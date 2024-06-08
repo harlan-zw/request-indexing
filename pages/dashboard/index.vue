@@ -18,6 +18,7 @@ onMounted(async () => {
 })
 
 useJobListener('sites/syncFinished', () => {
+  console.log('sites/syncFinished')
   refresh()
 })
 

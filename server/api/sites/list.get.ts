@@ -49,10 +49,12 @@ export default defineEventHandler(async (event) => {
         inArray(jobs.entityId, mySitesQuery.map(s => s.siteId)),
         eq(jobs.entityType, 'site'),
         inArray(jobs.name, taskIds),
-        eq(jobs.status, 'pending'),
+        eq(jobs.status, 'completed'),
       ),
     )
     .groupBy(jobs.entityId, jobs.name)
+
+  console.log(siteJobs)
 
   const result = await db.select({
     _id: sites.siteId,

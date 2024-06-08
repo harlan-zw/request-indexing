@@ -184,7 +184,7 @@ onMounted(() => {
           ...col,
         })
       }
-      series[key].setData(value.value.map(d => ({
+      series[key].setData((value.value || []).map(d => ({
         time: d.time || d.date,
         value: Number(d[key]) || 0,
       })))

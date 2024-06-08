@@ -36,6 +36,16 @@ export default defineEventHandler(async (e) => {
   else if (filters.includes('non-branded')) {
     const brandName = site.domain!.split('.')[0].replace('https://', '')
     filterWhere.push(notLike(siteKeywordDateAnalytics.keyword, `%${brandName}%`))
+  } else if (filters.includes('questions')) {
+    filterWhere.push(or(
+      like(siteKeywordDateAnalytics.keyword, '%how%'),
+      like(siteKeywordDateAnalytics.keyword, '%what%'),
+      like(siteKeywordDateAnalytics.keyword, '%when%'),
+      like(siteKeywordDateAnalytics.keyword, '%where%'),
+      like(siteKeywordDateAnalytics.keyword, '%why%'),
+      like(siteKeywordDateAnalytics.keyword, '%who%'),
+      like(siteKeywordDateAnalytics.keyword, '%which%'),
+    ))
   }
   const range = userPeriodRange(user, {
     includeToday: false,

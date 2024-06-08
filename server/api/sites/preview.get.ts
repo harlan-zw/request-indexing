@@ -12,6 +12,9 @@ export default defineEventHandler(async (event) => {
   if (force) {
     await queueJob('users/syncGscSites', {
       userId: user.userId,
+    }, {
+      queue: 'gsc',
+      priority: 2, // higher priority
     })
     // await mq.message('/api/_mq/ingest/sites', { userId: user.userId })
     return { sites: [], isPending: true }

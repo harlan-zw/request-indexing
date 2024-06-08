@@ -105,6 +105,7 @@ const buttons = computed<GraphButton[]>(() => [
         <TrendPercentage v-if="!tooltipData && period" compact negative :value="period.position" :prev-value="prevPeriod?.position" />
       </template>
     </GraphButtonGroup>
-    <GraphData :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" />
+<!--    <GraphData :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" />-->
+    <GraphDataNext :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" />
   </div>
 </template>

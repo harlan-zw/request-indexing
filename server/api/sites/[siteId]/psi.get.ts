@@ -2,6 +2,7 @@ import { avg, between, count, desc, gt, ilike, isNotNull } from 'drizzle-orm'
 import { getQuery } from 'h3'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
+  siteDateAnalytics,
   sitePathDateAnalytics,
   sites,
 } from '~/server/database/schema'
@@ -25,14 +26,19 @@ export default defineEventHandler(async (e) => {
     page: string
     q: string
   }>(e)
-  const range = userPeriodRange(user, {
-    includeToday: true,
-  })
+
   const _where = [
     eq(sitePathDateAnalytics.siteId, site.siteId),
     isNotNull(sitePathDateAnalytics.psiDesktopPerformance),
     isNotNull(sitePathDateAnalytics.psiMobilePerformance),
   ]
+  if (user.analyticsPeriod !== 'all') {
+    const range = userPeriodRange(user, {
+      includeToday: true,
+    })
+    _where.push(between(siteDateAnalytics.date, range.period.startDate, range.period.endDate))
+  }
+
   if (q?.length)
     _where.push(ilike(sitePathDateAnalytics.path, `%${q}%`))
   const sq = useDrizzle()
@@ -51,7 +57,6 @@ export default defineEventHandler(async (e) => {
     })
     .from(sitePathDateAnalytics)
     .where(and(
-      between(sitePathDateAnalytics.date, range.period.startDate, range.period.endDate),
       ..._where,
     ))
     .groupBy(filter === 'top-level' ? sql`topLevelPath1` : sitePathDateAnalytics.path)
@@ -74,7 +79,6 @@ export default defineEventHandler(async (e) => {
     })
     .from(sitePathDateAnalytics)
     .where(and(
-      between(sitePathDateAnalytics.date, range.prevPeriod.startDate, range.prevPeriod.endDate),
       ..._where,
     ))
     .groupBy(filter === 'top-level' ? sql`topLevelPath2` : sitePathDateAnalytics.path)

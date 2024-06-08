@@ -86,12 +86,14 @@ export default defineNuxtModule({
       // remove any queue data
       const newData = data.replace(/queues\..* = .*/g, '')
       await writeFile(path, `${newData}
-queues.producers = [
-  { queue = "${config.devMessageQueue.queue}", binding = "${config.devMessageQueue.binding}" }
-]
-queues.consumers = [
-  { queue = "${config.devMessageQueue.queue}" }
-]
+      
+[[queues.producers]]
+ queue = "${config.devMessageQueue.queue}"
+ binding = "${config.devMessageQueue.binding}"
+ 
+[[queues.producers]]
+ queue = "${config.devMessageQueue.queue}"
+ binding = "${config.devMessageQueue.binding}"
 `)
       // })
     }

@@ -51,11 +51,11 @@ export default defineJobHandler(async (event) => {
     ),
   })
 
-  if (existing?.clicks) {
-    return {
-      res: 'Already run',
-    }
-  }
+  // if (existing?.clicks) {
+  //   return {
+  //     res: 'Already run',
+  //   }
+  // }
 
   const api = searchconsole({
     version: 'v1',

@@ -12,7 +12,7 @@ export default defineTask({
 
     consola.info('Running Sync GSC Pages...')
     // run job
-    await queueJob('sites/syncGscDate', { siteId: payload.siteId, date: payload.date })
+    await queueJob('sites/syncFinished', { siteId: payload.siteId })
     // await queueJob('sites/syncSitemapPages', { siteId: payload.siteId })
     consola.success('Sync GSC pages done')
     return { result: 'Success' }

@@ -13,6 +13,7 @@ const props = withDefaults(
     excludeColumns?: string[]
   } & TableAsyncDataProps>(),
   {
+    searchable: true,
     sortable: true,
     pagination: true,
     expandable: true,
@@ -170,6 +171,11 @@ const filters = props.filters || [
     label: 'Content Gap',
     special: true,
   },
+  {
+    key: 'questions',
+    label: 'Questions',
+    special: true,
+  }
 ]
 
 function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {

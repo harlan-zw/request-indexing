@@ -1,9 +1,11 @@
 import type { NitroRuntimeHooks } from 'nitropack'
 import type { H3Event } from 'h3'
 import { createConsola } from 'consola'
+import { desc, eq, inArray, lt } from 'drizzle-orm'
+import { joinURL } from 'ufo'
 import { useMessageQueue } from '#imports'
-import type { JobBatchInsert, JobInsert } from '~/server/database/schema'
-import { jobBatches, jobs } from '~/server/database/schema'
+import type { JobBatchInsert, JobInsert, JobSelect } from '~/server/database/schema'
+import { failedJobs, jobBatches, jobs } from '~/server/database/schema'
 
 const logger = createConsola({
   level: import.meta.dev ? 5 : 3,
@@ -11,6 +13,45 @@ const logger = createConsola({
     tag: 'jobs',
   },
 })
+
+const queues = {
+  'google-search-console': {
+    /**
+     * QPS quota
+     * The Search Analytics resource enforces the following QPS (queries per second) QPM (queries per minute) and QPD (queries per day) limits:
+     *
+     * Per-site quota (calls querying the same site):
+     * 1,200 QPM
+     * Per-user quota (calls made by the same user):
+     * 1,200 QPM
+     * Per-project quota (calls made using the same Developer Console key):
+     * 30,000,000 QPD
+     * 40,000 QPM
+     */
+    concurrency: 1,
+  },
+  'url-inspection': {
+    /**
+     * URL inspection
+     * index inspection quota
+     *
+     * Per-site quota (calls querying the same site):
+     * 2000 QPD
+     * 600 QPM
+     * Per-project quota (calls made using the same Developer Console key):
+     * 10,000,000 QPD
+     * 15,000 QPM
+     */
+  },
+  'pagespeed-insights': {
+    /**
+     * PSI
+     * Per-project quota (calls made using the same Developer Console key):
+     * 25,000 QPD
+     * 25,000 QPM
+     */
+  },
+}
 
 export async function batchJobs(batchOptions: JobBatchInsert, _jobs: Partial<JobInsert>[]) {
   if (!_jobs.length)
@@ -32,6 +73,7 @@ export async function batchJobs(batchOptions: JobBatchInsert, _jobs: Partial<Job
     },
     ...j,
   } as JobInsert))
+  console.log(_jobs)
   const createdJobs = await db.batch(_jobs.map((job) => {
     return db.insert(jobs).values(job).returning()
   }))
@@ -58,13 +100,21 @@ export interface TaskMap {
   'sites/setup': { siteId: number }
   // site urls
   'paths/runPsi': { siteId: number, path: string, strategy: 'mobile' | 'desktop' }
+  // url-inspection
+  // 10,000,000 QPD
+  // 15,000 QPM
   'paths/gscInspect': { siteId: number, page: string }
+  // gsc API
+  // 30,000,000 QPD
+  // 40,000 QPM
   'sites/syncGscDate': { siteId: number, date: string }
+  'sites/syncGscDates': { siteId: number }
   // teams
   'teams/syncSelected': Parameters<NitroRuntimeHooks['app:team:sites-selected']>[number]
-  'sites/syncGscDates': { siteId: number }
   'sites/syncSitemapPages': { siteId: number }
   'sites/syncFinished': { siteId: number }
+
+  'keywords/adwords': { siteId: number, keywords: string[] }
 }
 
 export function defineJobHandler(handler: (event: H3Event) => Promise<void | { broadcastTo?: string[] | string }>) {
@@ -149,3 +199,139 @@ export default defineNitroPlugin(async (nitro) => {
     }),
   })
 })
+
+export async function failJob(job: JobSelect, body: any) {
+  const db = useDrizzle()
+  const mq = useMessageQueue()
+  const jobId = job.jobId
+  // failed
+  await db.insert(failedJobs).values({
+    jobId,
+    exception: JSON.stringify(body),
+  })
+  // check if we're at max attempts
+  if (job.attempts >= 3) {
+    await db.update(jobs).set({
+      status: 'failed',
+    }).where(eq(jobs.jobId, jobId))
+    if (job.jobBatchId) {
+      const payload: Partial<JobBatchInsert> = {
+        pendingJobs: sql`${jobBatches.pendingJobs} - 1`,
+        failedJobs: sql`${jobBatches.pendingJobs} + 1`,
+        // failedJobIds: [...(batch.failedJobIds || []), jobId],
+      }
+      await db.update(jobBatches).set(payload).where(eq(jobBatches.jobBatchId, job.jobBatchId))
+    }
+    return 'OK'
+  }
+  // increment attempts
+  await db.update(jobs).set({
+    attempts: sql`${jobs.attempts} + 1`,
+  }).where(eq(jobs.jobId, jobId))
+  await mq.message(`/_jobs/run`, { jobId: job.jobId })
+}
+
+export async function runJob(job: JobSelect) {
+  const jobId = job.jobId
+  const db = useDrizzle()
+  const nitro = useNitroApp()
+  const now = Date.now()
+  const res = await nitro.localFetch(joinURL('/_jobs', job.name), {
+    body: job.payload,
+    method: 'POST',
+    retry: false,
+    ignoreResponseError: true,
+    // we want json back
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).catch(e => e)
+  const body = res.status >= 400 ? await res.text() : await res.json()
+  // insert the response
+  await db.update(jobs).set({
+    response: res.status < 400
+      ? JSON.stringify({
+        status: res.status,
+        body,
+      })
+      : '',
+  }).where(eq(jobs.jobId, jobId))
+  if (res.status >= 400) {
+    return failJob(job, body)
+  }
+  await db.update(jobs).set({
+    timeTaken: Date.now() - now,
+    status: 'completed',
+  }).where(eq(jobs.jobId, jobId))
+  if (job.jobBatchId) {
+    const updatedBatch = (await db.update(jobBatches)
+      .set({
+        pendingJobs: sql`${jobBatches.pendingJobs} - 1`,
+      })
+      .where(eq(jobBatches.jobBatchId, job.jobBatchId))
+      .returning({ pendingJobs: jobBatches.pendingJobs, options: jobBatches.options }))?.[0]
+    // job can run separately and inherit broadcasting
+    if (updatedBatch?.pendingJobs === 0) {
+      // save finishedAt
+      await db.update(jobBatches).set({
+        finishedAt: Date.now(),
+      }).where(eq(jobBatches.jobBatchId, job.jobBatchId))
+      if (updatedBatch.options?.onFinish)
+        await queueJob(updatedBatch.options.onFinish.name, updatedBatch.options.onFinish.payload)
+    }
+  }
+  const { broadcastTo } = body as { broadcastTo?: string[] | string }
+  if (broadcastTo) {
+    (Array.isArray(broadcastTo) ? broadcastTo : [broadcastTo])
+      .forEach((to) => {
+        // success we can trigger broadcasting
+        nitro.hooks.callHook(`ws:message:${to}`, {
+          name: job.name,
+          entityId: job.entityId,
+          entityType: job.entityType,
+          payload: JSON.stringify({
+            ...body,
+            broadcastTo: undefined,
+          }),
+        })
+      })
+  }
+}
+
+export async function failStaleRunningJobs() {
+  const db = useDrizzle()
+  const runningJobs = await db.select()
+    .from(jobs)
+    .where(and(
+      eq(jobs.status, 'running'),
+      lt(jobs.startedAt, Date.now() - 300000), // 5 minutes (300 seconds
+    ))
+  console.log({ runningJobs: runningJobs.length })
+  await Promise.all(runningJobs.map(job => failJob(job, 'Stale running job')))
+}
+
+export async function nextWaitingJob(queue: string) {
+  const db = useDrizzle()
+  // we need to update the db immediately for the next row as a form of lockiong
+
+  const nextJobSubQuery = db.select({
+    jobId: jobs.jobId,
+  })
+    .from(jobs)
+    .where(and(
+      eq(jobs.status, 'pending'),
+      eq(jobs.queue, queue),
+    ))
+    .orderBy(desc(jobs.priority), jobs.createdAt)
+    .limit(1)
+
+  return (await db.update(jobs)
+    .set({
+      status: 'running',
+      startedAt: Date.now(),
+    })
+    .where(and(
+      inArray(jobs.jobId, nextJobSubQuery),
+    ))
+    .returning())?.[0]
+}

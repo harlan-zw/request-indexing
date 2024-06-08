@@ -45,8 +45,8 @@ export default defineNuxtConfig({
   messageQueue: {
     devMessageQueue: {
       // driver: 'cloudflare',
-      // queue: 'dev-queue',
-      // binding: 'DEV_QUEUE',
+      // queue: 'google-search-console',
+      // binding: 'QUEUE_GOOGLE_SEARCH_CONSOLE',
       driver: 'unstorage',
       storage: {
         base: '.db/queue',

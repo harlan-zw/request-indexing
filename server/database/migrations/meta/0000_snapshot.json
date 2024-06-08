@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "8441f3f1-685e-4a06-a51f-403bb66e32c5",
+  "id": "cb5fa737-b4b2-40b6-866f-4293d866380e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "failed_jobs": {
@@ -340,6 +340,14 @@
           "notNull": false,
           "autoincrement": false
         },
+        "priority": {
+          "name": "priority",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
         "job_batch_id": {
           "name": "job_batch_id",
           "type": "integer",
@@ -393,6 +401,13 @@
         },
         "time_taken": {
           "name": "time_taken",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "started_at": {
+          "name": "started_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,

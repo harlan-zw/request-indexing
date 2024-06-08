@@ -29,6 +29,7 @@ export default defineEventHandler(async (e) => {
   }, [
     {
       name: 'paths/runPsi',
+      queue: 'psi',
       payload: {
         siteId: site.siteId,
         path: body.path,
@@ -37,6 +38,7 @@ export default defineEventHandler(async (e) => {
     },
     {
       name: 'paths/runPsi',
+      queue: 'psi',
       payload: {
         siteId: site.siteId,
         path: body.path,

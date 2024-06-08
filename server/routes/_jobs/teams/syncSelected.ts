@@ -64,12 +64,14 @@ export default defineJobHandler(async (event) => {
       }, [
         {
           name: 'sites/syncGscDates',
+          queue: 'gsc',
         },
         {
           name: 'sites/syncSitemapPages',
         },
         {
           name: 'paths/runPsi',
+          queue: 'psi',
           payload: {
             path: '/',
             strategy: 'mobile',
@@ -77,6 +79,7 @@ export default defineJobHandler(async (event) => {
         },
         {
           name: 'paths/runPsi',
+          queue: 'psi',
           payload: {
             path: '/',
             strategy: 'desktop',
@@ -85,6 +88,7 @@ export default defineJobHandler(async (event) => {
         ...dates.map((date) => {
           return {
             name: 'sites/syncGscDate',
+            queue: 'gsc',
             payload: {
               date,
             },

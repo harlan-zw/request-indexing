@@ -7,12 +7,12 @@ export default defineTask({
     description: 'Sync GSC pages',
   },
   async run({ payload }) {
-    if (!import.meta.dev)
-      return
-
-    consola.info('Running PSI...')
-    await queueJob('paths/runPsi', payload)
-    consola.success('Running PSI done')
-    return { result: 'Success' }
+    // if (!import.meta.dev)
+    //   return
+    //
+    // consola.info('Running PSI...')
+    // await queueJob('paths/runPsi', payload)
+    // consola.success('Running PSI done')
+    // return { result: 'Success' }
   },
 })

@@ -12,7 +12,6 @@ export default defineEventHandler(async (e) => {
   if (job) {
     await db.update(jobs).set({
       attempts: job.attempts + 1,
-      status: 'processing',
     }).where(eq(jobs.jobId, Number(jobId)))
     // retry
     const mq = useMessageQueue()

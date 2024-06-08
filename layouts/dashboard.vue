@@ -3,9 +3,10 @@ import { joinURL, withoutTrailingSlash } from 'ufo'
 import countries from '../server/data/countries'
 import { fetchSites } from '~/composables/fetch'
 import { createLogoutHandler } from '~/composables/auth'
+import type {UserSelect} from "~/server/database/schema";
 
 const router = useRouter()
-const { user, session } = useUserSession()
+const { user, session, fetch } = useUserSession()
 
 const { data } = await fetchSites()
 const sites = computed(() => {
@@ -381,12 +382,13 @@ const datePickerPeriod = ref(user.value?.analyticsRange || {
 })
 
 async function updateAnalyticsPeriod(newPeriod: UserSelect['analyticsPeriod']) {
-  session.value = await $fetch('/api/user/me', {
+  await $fetch('/api/user/me', {
     method: 'POST',
     body: JSON.stringify({
       analyticsPeriod: newPeriod,
     }),
   })
+  await fetch()
   // refreshes sites
   await fetchSites()
   // refresh all sites
@@ -407,7 +409,7 @@ async function updateAnalyticsPeriod(newPeriod: UserSelect['analyticsPeriod']) {
 }
 
 async function updateAnalyticsRange(range: any) {
-  session.value = await $fetch('/api/user/me', {
+  await $fetch('/api/user/me', {
     method: 'POST',
     body: {
       analyticsPeriod: '',
@@ -417,6 +419,7 @@ async function updateAnalyticsRange(range: any) {
       },
     },
   })
+  await fetch()
   datePickerPeriod.value = range
 }
 
@@ -440,6 +443,9 @@ const periodItems = [
 const dayjs = useDayjs()
 
 const calenderPickerLabel = computed(() => {
+  if (!user.value) {
+    return ''
+  }
   const period = user.value?.analyticsPeriod
   if (!period) {
     // need to create a period string from the dates from user.value.analyticsRange
@@ -629,7 +635,7 @@ const allCountries = countries.map(country => ({
               </USelectMenu>
               <UPopover mode="hover" :popper="{ placement: 'bottom-end' }">
                 <template #default="{ open }">
-                  <UButton color="gray" icon="i-ph-calendar-dots-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
+                <UButton color="gray" icon="i-ph-calendar-dots-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
                     {{ calenderPickerLabel }}
                   </UButton>
                 </template>

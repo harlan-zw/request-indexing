@@ -22,12 +22,13 @@ export default defineNitroPlugin(() => {
     }
     // console.log(_session)
     const { user } = _session
+    console.log('returning user session from db', user)
     session.user = {
       name: user.name,
       userId: user.publicId,
       email: user.email,
       picture: user.avatar,
-      analyticsPeriod: '30d',
+      analyticsPeriod: user.analyticsPeriod,
     }
   })
 

@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-withDefaults(defineProps<{
+import type {TableAsyncDataProps} from "~/components/Table/TableAsyncData.vue";
+
+const props = withDefaults(defineProps<{
   site: any
   filter?: string
-  pageSize?: number
-  searchable?: boolean
-}>(), {
+  excludeColumns?: string[]
+} & TableAsyncDataProps>(), {
   searchable: true,
 })
 
@@ -16,7 +17,8 @@ const columns = [
   { key: 'averageCpcMicros', label: 'CPC', sortable: true },
   { key: 'lastSynced', label: 'Last Synced', sortable: true },
   { key: 'actions' },
-]
+].filter(column => !props.excludeColumns?.includes(column.key))
+
 const filters = [
   {
     key: 'long-tail',
@@ -38,7 +40,7 @@ function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
 </script>
 
 <template>
-  <TableAsyncData :path="`/api/sites/${site.siteId}/keyword-search-volumes`" :searchable="searchable" :page-size="pageSize" :columns="columns" :filter="filter" :filters="filters" expandable>
+  <TableAsyncData :sort="sort" :path="`/api/sites/${site.siteId}/keyword-search-volumes`" :searchable="searchable" :page-size="pageSize" :columns="columns" :filter="filter" :filters="filters" expandable>
     <template #keyword-data="{ row, value: totals, expanded }">
       <div class="flex items-center">
         <div class="relative group w-[225px] truncate text-ellipsis">
@@ -85,7 +87,7 @@ function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
       </div>
     </template>
     <template #lastSynced-data="{ row }">
-      <div class="flex items-center">
+      <div class="flex items-center text-xs">
         {{ useTimeAgo(row.lastSynced) }}
       </div>
     </template>

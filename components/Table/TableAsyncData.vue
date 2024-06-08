@@ -7,6 +7,7 @@ export interface TableAsyncDataProps {
   searchable?: boolean
   pageSize?: number
   pagination?: boolean
+  sort?: { column: string, direction: 'asc' | 'desc' }
   filters?: { key: string, label: string, filter: (rows: T[]) => T[] }[]
 }
 
@@ -28,8 +29,8 @@ const emit = defineEmits<{
 const value = ref<T[]>([])
 
 const sort = ref({
-  column: null,
-  direction: null,
+  column: props.sort?.column,
+  direction: props.sort?.direction,
 })
 
 const params = useUrlSearchParams('history', {

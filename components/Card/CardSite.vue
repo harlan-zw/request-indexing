@@ -43,9 +43,9 @@ function indexingPercentColor(perc: number) {
   return 'text-red-500'
 }
 
-const gscDataSynced = ref(60 - props.site.ingestingGsc)
-const psiSynced = ref(2 - props.site.ingestingPsi)
-const sitemapSynced = ref(1 - props.site.ingestingSitemap)
+const gscDataSynced = ref(props.site.ingestingGsc)
+const psiSynced = ref(props.site.ingestingPsi)
+const sitemapSynced = ref(props.site.ingestingSitemap)
 const isSynced = ref(props.site.isSynced)
 useJobListener('sites/syncGscDate', (ctx) => {
   if (ctx.siteId === props.site.siteId) {
@@ -61,6 +61,10 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
   if (ctx.siteId === props.site.siteId) {
     sitemapSynced.value++
   }
+})
+
+const completedPercentSynced = computed(() => {
+  return Math.round((gscDataSynced.value + psiSynced.value + sitemapSynced.value) / 64 * 100)
 })
 
 function hide() {
@@ -81,6 +85,15 @@ const dropdownItems = [
     },
   ],
 ]
+
+function formatPageSpeedInsightScore(score: number) {
+  // return a tailwind color for the score
+  if (score >= 90)
+    return 'text-green-500'
+  if (score >= 50)
+    return 'text-yellow-600'
+  return 'text-red-500'
+}
 </script>
 
 <template>
@@ -103,13 +116,13 @@ const dropdownItems = [
     <div class="flex gap-2 h-[190px] w-[400px]">
       <div v-if="!isSynced" class="flex w-full p-5">
         <div>
-          <div class="text-sm flex items-center mb-2 font-semibold text-gray-600">
-            Syncing site data...
-          </div>
+          <ProgressPercent :value="completedPercentSynced" class="text-sm mb-2 font-semibold text-gray-600">
+            <div class="mb-2">{{ completedPercentSynced }}% - Syncing site data...</div>
+          </ProgressPercent>
           <ul class="text-xs text-gray-500 space-y-2">
             <li class="flex items-center gap-1">
               <UIcon :name="gscDataSynced >= 60 ? `i-ph-check-fat-duotone` : `i-ph-spinner-gap-duotone`" :class="gscDataSynced < 60 ? 'animate-spin animated' : 'text-green-500'" class="w-4 h-4 opacity-80 text-gray-500 " />
-              Ingesting Google Search Console data - {{ gscDataSynced }} / 60
+              Ingesting Google Search Console data - {{ gscDataSynced }} / 61
             </li>
             <li class="flex items-center gap-1">
               <UIcon :name="psiSynced >= 2 ? `i-ph-check-fat-duotone` : `i-ph-spinner-gap-duotone`" :class="psiSynced < 2 ? 'animate-spin animated' : 'text-green-500'" class="w-4 h-4 opacity-80 text-gray-500 " />
@@ -130,9 +143,32 @@ const dropdownItems = [
           <div class="border border-gray-500/20 shadow-sm rounded py-2">
             <CardGoogleSearchConsole :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" />
           </div>
-          <div class="">
-            <CardPageSpeedInsights :key="site.siteId" :site="site" :selected-charts="selectedCharts" />
-          </div>
+          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pagespeed-insights`" class="transition rounded group hover:bg-gray-100 flex group text-[11px] items-center text-gray-500/80 gap-2 px-2">
+            <div>PageSpeed Insights</div>
+            <div class=" px-2 py-1 rounded text-[11px] flex items-center gap-1 text-gray-500/80 ">
+              <div class="flex gap-1">
+                <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+                <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
+                  Mobile
+                </div>
+              </div>
+              <div class="flex items-center gap-1 font-bold" :class="formatPageSpeedInsightScore(dates?.period.psiMobileScore)">
+                {{ useHumanFriendlyNumber(dates?.period.psiMobileScore) }}
+              </div>
+            </div>
+
+            <div class=" px-2 py-1 rounded text-[11px] flex items-center gap-1 text-gray-500/80 ">
+              <div class="flex gap-1">
+                <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+                <div class="text-[11px] flex items-center text-gray-500/80">
+                  Desktop
+                </div>
+              </div>
+              <div class="flex items-center font-bold" :class="formatPageSpeedInsightScore(dates?.period?.psiDesktopScore)">
+                {{ useHumanFriendlyNumber(dates?.period?.psiDesktopScore) }}
+              </div>
+            </div>
+          </NuxtLink>
         </div>
         <div class="flex flex-col h-full space-y-2 min-w-[75px]">
           <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition group hover:bg-gray-50 rounded flex items-center">

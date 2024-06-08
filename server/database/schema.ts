@@ -173,6 +173,10 @@ export const siteDateAnalytics = sqliteTable('site_date_analytics', {
   // google search console (query by date)
   ...googleSearchConsolePageAnalytics,
 
+  // make life easier for querying
+  psiDesktopScore: integer('psi_desktop_score'),
+  psiMobileScore: integer('psi_mobile_score'),
+
   keywords: integer('keywords'),
   pages: integer('pages'),
 
@@ -350,6 +354,7 @@ export const jobs = sqliteTable('jobs', {
   queue: text('queue').notNull(),
   entityId: integer('entity_id'),
   entityType: text('entity_type'),
+  priority: integer('priority').notNull().default(0),
   jobBatchId: integer('job_batch_id').references(() => jobBatches.jobBatchId),
   name: text('name').notNull().$type<keyof TaskMap>(),
   payload: text('payload', { mode: 'json' }).$type<Record<string, any>>().notNull(),
@@ -358,7 +363,8 @@ export const jobs = sqliteTable('jobs', {
   availableAt: integer('available_at'),
   createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
   timeTaken: integer('time_taken'),
-  status: text('status').notNull().default('pending').$type<'pending' | 'failed' | 'completed'>(),
+  startedAt: integer('started_at'),
+  status: text('status').notNull().default('pending').$type<'pending' | 'running' | 'failed' | 'completed'>(),
 }, t => ({
   queueIdx: index('queue_idx').on(t.queue),
   statusIdx: index('status_idx').on(t.status),
