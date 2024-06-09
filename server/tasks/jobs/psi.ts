@@ -1,12 +1,9 @@
-import { consola } from 'consola'
-import { queueJob } from '~/server/plugins/eventServiceProvider'
-
 export default defineTask({
   meta: {
     name: 'psi:page',
     description: 'Sync GSC pages',
   },
-  async run({ payload }) {
+  async run() {
     // if (!import.meta.dev)
     //   return
     //

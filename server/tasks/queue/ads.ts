@@ -6,10 +6,8 @@ export default defineTask({
     description: 'Works the GSC queue',
   },
   async run() {
-    console.log('running task ads')
     let shouldQuit = false
     listenForTermination(() => {
-      console.log('got sig term')
       shouldQuit = true
     })
     while (true) {

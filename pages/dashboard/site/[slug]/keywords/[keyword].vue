@@ -11,7 +11,6 @@ definePageMeta({
 
 const keyword = useRoute().params.keyword
 
-const res = ref()
 onMounted(async () => {
   // res.value = await $fetch(`/api/sites/${props.site.siteId}/keywords/${encodeURIComponent(keyword as string)}`)
 })

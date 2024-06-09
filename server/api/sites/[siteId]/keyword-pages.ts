@@ -1,4 +1,4 @@
-export default defineEventHandler(async (e) => {
+export default defineEventHandler(async () => {
   /* // extract from db
   const user = await authenticateUser(e)
   const { siteId } = getRouterParams(e, { decode: true })

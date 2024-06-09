@@ -175,7 +175,7 @@ const filters = props.filters || [
     key: 'questions',
     label: 'Questions',
     special: true,
-  }
+  },
 ]
 
 function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {

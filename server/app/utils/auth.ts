@@ -62,7 +62,9 @@ export async function authenticateUser(event: H3Event): Promise<UserSelect> {
   }
   // resync session data
   // await setUserSession(event, user.getAttributes())
-  return dbSession.user
+  return defu(dbSession.user, (await getUserSession(event)).user, {
+    analyticsPeriod: '30d',
+  })
 }
 
 export interface GoogleOAuthUser {

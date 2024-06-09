@@ -1,4 +1,4 @@
-import { asc, count, desc, gt, isNotNull, like, lt } from 'drizzle-orm'
+import { asc, count, desc, gt, isNotNull, like, lt, notLike } from 'drizzle-orm'
 import {
   keywords,
   relatedKeywords,
@@ -82,6 +82,9 @@ export default defineEventHandler(async (e) => {
 
   const finalWhere = []
   if (filters.includes('long-tail')) {
+    // strip branded keywords
+    const brandName = site.domain!.split('.')[0].replace('https://', '')
+    finalWhere.push(notLike(keywords.keyword, `%${brandName}%`))
     finalWhere.push(
       and(
         gt(keywords.currentMonthSearchVolume, 300),

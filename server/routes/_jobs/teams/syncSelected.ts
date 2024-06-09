@@ -1,5 +1,4 @@
 import dayjs from 'dayjs'
-import { defu } from 'defu'
 import { isNull, lt } from 'drizzle-orm'
 import {
   sites,
@@ -46,57 +45,54 @@ export default defineJobHandler(async (event) => {
 
   await Promise.all(
     teamsSites.map((row) => {
-      const jobOptions = {
+      const gscJobs = dates.map((date) => {
+        return ['date', 'page', 'query', 'all', 'country'].map(job => ({
+          name: `gsc/${job}`,
+          queue: 'gsc',
+          entityId: row.siteId,
+          entityType: 'site',
+          payload: {
+            siteId: row.siteId,
+            date,
+          },
+        }))
+      }).flat()
+      const psiJobs = ['mobile', 'desktop'].map(strategy => ({
+        name: 'paths/runPsi',
+        queue: 'psi',
         entityId: row.siteId,
         entityType: 'site',
         payload: {
           siteId: row.siteId,
+          path: '/',
+          strategy,
         },
-      }
+      }))
       return batchJobs({
         name: 'site/sync',
         options: {
           onFinish: {
             name: 'sites/syncFinished',
-            ...jobOptions,
+            entityId: row.siteId,
+            entityType: 'site',
+            payload: {
+              siteId: row.siteId,
+            },
           },
         },
       }, [
         {
-          name: 'sites/syncGscDates',
-          queue: 'gsc',
-        },
-        {
           name: 'sites/syncSitemapPages',
-        },
-        {
-          name: 'paths/runPsi',
-          queue: 'psi',
+          entityId: row.siteId,
+          entityType: 'site',
           payload: {
-            path: '/',
-            strategy: 'mobile',
+            siteId: row.siteId,
           },
         },
-        {
-          name: 'paths/runPsi',
-          queue: 'psi',
-          payload: {
-            path: '/',
-            strategy: 'desktop',
-          },
-        },
-        ...dates.map((date) => {
-          return {
-            name: 'sites/syncGscDate',
-            queue: 'gsc',
-            payload: {
-              date,
-            },
-          }
-        }),
-      ]
-        .map(job => defu(job, jobOptions)))
-    }).flat(),
+        ...psiJobs,
+        ...gscJobs,
+      ])
+    }),
   )
 
   return {

@@ -1,8 +1,8 @@
 import { prefixStorage } from 'unstorage'
 
-const storage = prefixStorage<{ urlOrTopic: string, payload: any, attempts: number }>(useStorage(), 'app:queue')
+// const storage = prefixStorage<{ urlOrTopic: string, payload: any, attempts: number }>(useStorage(), 'app:queue')
 
-export default defineNitroPlugin((nitro) => {
+export default defineNitroPlugin(() => {
   // let nitroRunning = true
   // nitro.hooks.hook('close', () => {
   //   nitroRunning = false

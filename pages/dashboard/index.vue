@@ -9,6 +9,7 @@ definePageMeta({
 })
 
 const { data, refresh } = await fetchSites()
+const key = ref(0)
 const sites = computed(() => (data.value?.sites || []))
 
 const stats = ref()
@@ -17,9 +18,9 @@ onMounted(async () => {
   stats.value = await $fetch('/api/sites/stats')
 })
 
-useJobListener('sites/syncFinished', () => {
-  console.log('sites/syncFinished')
-  refresh()
+useJobListener('sites/syncFinished', async () => {
+  await refresh()
+  key.value++
 })
 
 const selectedCharts = ref([
@@ -47,7 +48,7 @@ const previousPeriodImpressionsPercent = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div :key="key">
     <div class="max-w-2xl mb-12">
       <div class="flex items-center justify-between gap-3 text-gray-600">
         <div>

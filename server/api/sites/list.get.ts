@@ -1,7 +1,6 @@
 import { count, inArray } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import { jobs, sitePaths, sites, teamSites } from '~/server/database/schema'
-import type { TaskMap } from '~/server/plugins/eventServiceProvider'
 
 export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)
@@ -31,15 +30,11 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const taskIds: keyof TaskMap[] = [
-    'sites/syncSitemapPages',
-    'sites/syncGscDate',
-    'paths/runPsi',
-  ]
   const siteJobs = await db.select({
     // siteId: jobs.entityId,
     siteId: jobs.entityId,
-    name: jobs.name,
+    // name: jobs.name,
+    queue: jobs.queue,
     jobCount: count(),
     // jobCount: sql`(SELECT COUNT(*) FROM ${jobs} WHERE ${jobs.status} = 'pending' AND ${jobs.entityId} = ${sites.siteId} AND ${jobs.entityType} = 'site')`.as('jobCount'),
   })
@@ -48,13 +43,10 @@ export default defineEventHandler(async (event) => {
       and(
         inArray(jobs.entityId, mySitesQuery.map(s => s.siteId)),
         eq(jobs.entityType, 'site'),
-        inArray(jobs.name, taskIds),
         eq(jobs.status, 'completed'),
       ),
     )
-    .groupBy(jobs.entityId, jobs.name)
-
-  console.log(siteJobs)
+    .groupBy(jobs.entityId, jobs.queue)
 
   const result = await db.select({
     _id: sites.siteId,
@@ -88,9 +80,9 @@ export default defineEventHandler(async (event) => {
       return {
         ...site,
         _id: undefined,
-        ingestingGsc: sJobs.find(s => s.name === 'sites/syncGscDate')?.jobCount || 0,
-        ingestingPsi: sJobs.find(s => s.name === 'paths/runPsi')?.jobCount || 0,
-        ingestingSitemap: sJobs.find(s => s.name === 'sites/syncSitemapPages')?.jobCount || 0,
+        ingestingGsc: sJobs.find(s => s.queue === 'gsc')?.jobCount || 0,
+        ingestingPsi: sJobs.find(s => s.queue === 'psi')?.jobCount || 0,
+        ingestingSitemap: sJobs.find(s => s.queue === 'default')?.jobCount || 0,
       }
     }),
   }

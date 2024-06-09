@@ -1,7 +1,8 @@
-import {desc, gt, like, lt, not, notLike, sum} from 'drizzle-orm'
+import { desc, like, not, notLike, sum } from 'drizzle-orm'
 import {
   siteDateAnalytics,
-  siteKeywordDateAnalytics, sitePathDateAnalytics,
+  siteKeywordDateAnalytics,
+  sitePathDateAnalytics,
   sitePaths,
   sites,
 } from '~/server/database/schema'
@@ -121,8 +122,6 @@ export default defineJobHandler(async (event) => {
     return acc
   }, [])
 
-  console.log(allKeywords)
-
   await batchJobs(
     {
       name: 'site-batch',
@@ -134,7 +133,7 @@ export default defineJobHandler(async (event) => {
         queue: 'ads',
         payload: {
           siteId,
-          keywords: keywords,
+          keywords,
         },
       })),
       // run psi test for top pages
@@ -160,30 +159,30 @@ export default defineJobHandler(async (event) => {
           },
         },
       ])).flat(),
-      ..._sitePaths.map(p => ({
-        name: 'paths/gscInspect',
-        queue: 'gsc',
-        priority: -1,
-        payload: {
-          siteId,
-          path: p.path,
-        },
-      })),
-      ..._siteDates.map(p => ({
-        name: 'sites/syncGscDate',
-        queue: 'gsc',
-        priority: -1,
-        payload: {
-          siteId,
-          date: p.date,
-        },
-      })),
+      // ..._sitePaths.map(p => ({
+      //   name: 'paths/gscInspect',
+      //   queue: 'gsc',
+      //   priority: -1,
+      //   payload: {
+      //     siteId,
+      //     path: p.path,
+      //   },
+      // })),
+      // ..._siteDates.map(p => ({
+      //   name: 'sites/syncGscDate',
+      //   queue: 'gsc',
+      //   priority: -1,
+      //   payload: {
+      //     siteId,
+      //     date: p.date,
+      //   },
+      // })),
     ],
   )
 
-// need to start ingesting dates that we have not yet ingested
+  // need to start ingesting dates that we have not yet ingested
 
-// TODO start web indexing process
+  // TODO start web indexing process
 
   return {
     // TODO broadcast to all teams which own the site

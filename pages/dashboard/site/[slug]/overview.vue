@@ -22,7 +22,7 @@ function indexingPercentColor(perc: number) {
 }
 
 const siteData = useSiteData(props.site)
-const { data: devices } = siteData.devices()
+// const { data: devices } = siteData.devices()
 const { data: countries } = siteData.countries()
 const { data: _dates } = siteData.dateAnalytics()
 const dates = computed(() => {
@@ -122,7 +122,7 @@ const dates = computed(() => {
         </div>
       </div>
       <div class="col-span-4 space-y-5">
-        <CardTopCountries v-if="countries" :countries="countries" />
+        <CardTopCountries v-if="countries" :rows="countries.rows" />
         <CardDevices v-if="devices" :devices="devices" />
       </div>
     </div>

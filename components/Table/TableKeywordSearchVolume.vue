@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type {TableAsyncDataProps} from "~/components/Table/TableAsyncData.vue";
+import type { TableAsyncDataProps } from '~/components/Table/TableAsyncData.vue'
 
 const props = withDefaults(defineProps<{
   site: any

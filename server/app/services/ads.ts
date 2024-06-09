@@ -1,5 +1,5 @@
 import { GoogleAdsApi } from 'google-ads-api'
-import { desc, inArray, isNotNull } from 'drizzle-orm'
+import { desc, inArray } from 'drizzle-orm'
 import { keywords, relatedKeywords } from '~/server/database/schema'
 
 export async function fetchKeywordHistorialData(keywords: string[]) {
@@ -74,7 +74,6 @@ export async function fetchKeywordIdeas(keyword: string | string[], siteId: numb
     return { err }
   })
 
-  console.log(res)
   if (res.err) {
     return res
   }

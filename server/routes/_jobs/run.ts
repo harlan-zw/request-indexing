@@ -1,11 +1,5 @@
-import { joinURL } from 'ufo'
-import type { JobBatchInsert, JobBatchSelect } from '~/server/database/schema'
-import { failedJobs, jobBatches, jobs } from '~/server/database/schema'
-import { useMessageQueue } from '~/lib/nuxt-ttyl/runtime/nitro/mq'
-import { queueJob } from '~/server/plugins/eventServiceProvider'
-
-export default defineEventHandler(async (event) => {
-  const { jobId } = await readBody<{ jobId: number }>(event)
+export default defineEventHandler(async () => {
+  /* const { jobId } = await readBody<{ jobId: number }>(event)
   const db = useDrizzle()
   const job = await db.query.jobs.findFirst({
     where: eq(jobs.jobId, jobId),
@@ -37,7 +31,7 @@ export default defineEventHandler(async (event) => {
   const body = res.status >= 400 ? await res.text() : await res.json()
   // insert the response
   await db.update(jobs).set({
-    response: JSON.stringify({
+    response: stringify({
       status: res.status,
       body,
     }),
@@ -109,6 +103,6 @@ export default defineEventHandler(async (event) => {
           })
         })
     }
-  }
+  } */
   return 'OK'
 })

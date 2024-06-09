@@ -92,11 +92,11 @@ function retry(row: JobSelect) {
         <span v-else>-</span>
       </template>
       <template #status-data="{ row }">
-      <UTooltip :text="row.status">
-        <UIcon v-if="row.status === 'completed'" name="i-ph-check-fat-duotone" class="text-green-500" />
-        <UIcon v-else-if="row.status === 'failed'" name="i-ph-x-duotone" class="text-red-500" />
-        <UIcon v-else name="i-ph-circle-duotone" class="text-yellow-500" />
-      </UTooltip>
+        <UTooltip :text="row.status">
+          <UIcon v-if="row.status === 'completed'" name="i-ph-check-fat-duotone" class="text-green-500" />
+          <UIcon v-else-if="row.status === 'failed'" name="i-ph-x-duotone" class="text-red-500" />
+          <UIcon v-else name="i-ph-circle-duotone" class="text-yellow-500" />
+        </UTooltip>
       </template>
       <template #createdAt-data="{ row }">
         <span>{{ useTimeAgo(row.createdAt) }}</span>
@@ -106,8 +106,9 @@ function retry(row: JobSelect) {
       </template>
       <template #response-data="{ row }">
         <div v-if="row.response">
-          <div>{{ JSON.parse(row.response).status }}</div>
-          <pre>{{ JSON.parse(row.response).body }}</pre>
+          {{ row.response }}
+          <!--          <div>{{ parse(row.response).status }}</div> -->
+          <!--          <pre>{{ parse(row.response).body }}</pre> -->
         </div>
       </template>
       <template #exceptions-data="{ row }">

@@ -44,12 +44,12 @@ export default defineJobHandler(async (event) => {
   }
 
   // check we haven't already done this date
-  const existing = await db.query.siteDateAnalytics.findFirst({
-    where: and(
-      eq(siteDateAnalytics.siteId, siteId),
-      eq(siteDateAnalytics.date, date),
-    ),
-  })
+  // const existing = await db.query.siteDateAnalytics.findFirst({
+  //   where: and(
+  //     eq(siteDateAnalytics.siteId, siteId),
+  //     eq(siteDateAnalytics.date, date),
+  //   ),
+  // })
 
   // if (existing?.clicks) {
   //   return {

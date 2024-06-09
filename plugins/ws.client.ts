@@ -1,3 +1,4 @@
+import { parse } from 'devalue'
 import type { TaskMap } from '~/server/plugins/eventServiceProvider'
 import type { UserSelect } from '~/server/database/schema'
 
@@ -17,11 +18,10 @@ export default defineNuxtPlugin((nuxtApp) => {
     const url = `${(isSecure ? 'wss://' : 'ws://') + location.host}/_ws?userId=${user.userId}`
     ws && ws.close()
     ws = new WebSocket(url)
-    ws.addEventListener('message', ({ data }) => {
-      const job = JSON.parse(data) as { name: keyof TaskMap, payload: any }
-      const payload = JSON.parse(job.payload)
+    ws.addEventListener('message', (ctx) => {
+      const job = parse(ctx.data) as { name: keyof TaskMap, payload: any }
+      const payload = job.payload
       const hookName = `app:${job.name.replace('/', ':')}`
-      console.log(hookName, payload)
       nuxtApp.hooks.callHook(hookName, payload)
       // console.log('ws message', job.name, payload)
       // if (job.name === 'users/syncGscSites') {

@@ -3,6 +3,7 @@ import type { H3Event } from 'h3'
 import { createConsola } from 'consola'
 import { desc, eq, inArray, lt } from 'drizzle-orm'
 import { joinURL } from 'ufo'
+import { stringify } from 'devalue'
 import { useMessageQueue } from '#imports'
 import type { JobBatchInsert, JobInsert, JobSelect } from '~/server/database/schema'
 import { failedJobs, jobBatches, jobs } from '~/server/database/schema'
@@ -14,44 +15,44 @@ const logger = createConsola({
   },
 })
 
-const queues = {
-  'google-search-console': {
-    /**
-     * QPS quota
-     * The Search Analytics resource enforces the following QPS (queries per second) QPM (queries per minute) and QPD (queries per day) limits:
-     *
-     * Per-site quota (calls querying the same site):
-     * 1,200 QPM
-     * Per-user quota (calls made by the same user):
-     * 1,200 QPM
-     * Per-project quota (calls made using the same Developer Console key):
-     * 30,000,000 QPD
-     * 40,000 QPM
-     */
-    concurrency: 1,
-  },
-  'url-inspection': {
-    /**
-     * URL inspection
-     * index inspection quota
-     *
-     * Per-site quota (calls querying the same site):
-     * 2000 QPD
-     * 600 QPM
-     * Per-project quota (calls made using the same Developer Console key):
-     * 10,000,000 QPD
-     * 15,000 QPM
-     */
-  },
-  'pagespeed-insights': {
-    /**
-     * PSI
-     * Per-project quota (calls made using the same Developer Console key):
-     * 25,000 QPD
-     * 25,000 QPM
-     */
-  },
-}
+// const queues = {
+//   'google-search-console': {
+//     /**
+//      * QPS quota
+//      * The Search Analytics resource enforces the following QPS (queries per second) QPM (queries per minute) and QPD (queries per day) limits:
+//      *
+//      * Per-site quota (calls querying the same site):
+//      * 1,200 QPM
+//      * Per-user quota (calls made by the same user):
+//      * 1,200 QPM
+//      * Per-project quota (calls made using the same Developer Console key):
+//      * 30,000,000 QPD
+//      * 40,000 QPM
+//      */
+//     concurrency: 1,
+//   },
+//   'url-inspection': {
+//     /**
+//      * URL inspection
+//      * index inspection quota
+//      *
+//      * Per-site quota (calls querying the same site):
+//      * 2000 QPD
+//      * 600 QPM
+//      * Per-project quota (calls made using the same Developer Console key):
+//      * 10,000,000 QPD
+//      * 15,000 QPM
+//      */
+//   },
+//   'pagespeed-insights': {
+//     /**
+//      * PSI
+//      * Per-project quota (calls made using the same Developer Console key):
+//      * 25,000 QPD
+//      * 25,000 QPM
+//      */
+//   },
+// }
 
 export async function batchJobs(batchOptions: JobBatchInsert, _jobs: Partial<JobInsert>[]) {
   if (!_jobs.length)
@@ -73,10 +74,9 @@ export async function batchJobs(batchOptions: JobBatchInsert, _jobs: Partial<Job
     },
     ...j,
   } as JobInsert))
-  console.log(_jobs)
-  const createdJobs = await db.batch(_jobs.map((job) => {
-    return db.insert(jobs).values(job).returning()
-  }))
+  const createdJobs = await db.batch(
+    _jobs.map(job => db.insert(jobs).values(job).returning()),
+  )
   const mq = useMessageQueue()
   return Promise.all(createdJobs.map(job => mq.message(`/_jobs/run`, { jobId: job[0].jobId })))
 }
@@ -107,8 +107,13 @@ export interface TaskMap {
   // gsc API
   // 30,000,000 QPD
   // 40,000 QPM
-  'sites/syncGscDate': { siteId: number, date: string }
-  'sites/syncGscDates': { siteId: number }
+  'gsc/all': { siteId: number, date: string }
+  'gsc/country': { siteId: number, date: string }
+  'gsc/date': { siteId: number, date: string }
+  'gsc/device': { siteId: number, date: string }
+  'gsc/page': { siteId: number, date: string }
+  'gsc/query': { siteId: number, date: string }
+  // 'sites/syncGscDates': { siteId: number }
   // teams
   'teams/syncSelected': Parameters<NitroRuntimeHooks['app:team:sites-selected']>[number]
   'sites/syncSitemapPages': { siteId: number }
@@ -207,7 +212,7 @@ export async function failJob(job: JobSelect, body: any) {
   // failed
   await db.insert(failedJobs).values({
     jobId,
-    exception: JSON.stringify(body),
+    exception: stringify(body),
   })
   // check if we're at max attempts
   if (job.attempts >= 3) {
@@ -224,9 +229,11 @@ export async function failJob(job: JobSelect, body: any) {
     }
     return 'OK'
   }
+  console.log('re-attempting job', { jobId })
   // increment attempts
   await db.update(jobs).set({
     attempts: sql`${jobs.attempts} + 1`,
+    status: 'pending',
   }).where(eq(jobs.jobId, jobId))
   await mq.message(`/_jobs/run`, { jobId: job.jobId })
 }
@@ -243,18 +250,14 @@ export async function runJob(job: JobSelect) {
     ignoreResponseError: true,
     // we want json back
     headers: {
-      'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
-  }).catch(e => e)
-  const body = res.status >= 400 ? await res.text() : await res.json()
+  })
+
+  const body = await res.json()
   // insert the response
   await db.update(jobs).set({
-    response: res.status < 400
-      ? JSON.stringify({
-        status: res.status,
-        body,
-      })
-      : '',
+    response: body,
   }).where(eq(jobs.jobId, jobId))
   if (res.status >= 400) {
     return failJob(job, body)
@@ -289,10 +292,10 @@ export async function runJob(job: JobSelect) {
           name: job.name,
           entityId: job.entityId,
           entityType: job.entityType,
-          payload: JSON.stringify({
+          payload: {
             ...body,
             broadcastTo: undefined,
-          }),
+          },
         })
       })
   }
@@ -304,9 +307,8 @@ export async function failStaleRunningJobs() {
     .from(jobs)
     .where(and(
       eq(jobs.status, 'running'),
-      lt(jobs.startedAt, Date.now() - 300000), // 5 minutes (300 seconds
+      lt(jobs.startedAt, Date.now() - 120_000), // 200 seconds - 3m20s
     ))
-  console.log({ runningJobs: runningJobs.length })
   await Promise.all(runningJobs.map(job => failJob(job, 'Stale running job')))
 }
 
@@ -325,7 +327,7 @@ export async function nextWaitingJob(queue: string) {
     .orderBy(desc(jobs.priority), jobs.createdAt)
     .limit(1)
 
-  return (await db.update(jobs)
+  const job = await db.update(jobs)
     .set({
       status: 'running',
       startedAt: Date.now(),
@@ -333,5 +335,8 @@ export async function nextWaitingJob(queue: string) {
     .where(and(
       inArray(jobs.jobId, nextJobSubQuery),
     ))
-    .returning())?.[0]
+    .returning().catch(() => {
+      return null
+    })
+  return job[0]
 }

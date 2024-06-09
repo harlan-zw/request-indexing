@@ -36,7 +36,8 @@ export default defineEventHandler(async (e) => {
   else if (filters.includes('non-branded')) {
     const brandName = site.domain!.split('.')[0].replace('https://', '')
     filterWhere.push(notLike(siteKeywordDateAnalytics.keyword, `%${brandName}%`))
-  } else if (filters.includes('questions')) {
+  }
+  else if (filters.includes('questions')) {
     filterWhere.push(or(
       like(siteKeywordDateAnalytics.keyword, '%how%'),
       like(siteKeywordDateAnalytics.keyword, '%what%'),

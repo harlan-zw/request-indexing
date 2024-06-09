@@ -7,7 +7,7 @@
 // we need to run them, if they stop we need to restart them
 // use execa
 
-import { execa } from 'execa';
+import { execa } from 'execa'
 
 const tasks = [
   'queue:ads',
@@ -18,29 +18,38 @@ const tasks = [
   'queue:gsc4',
   'queue:psi',
   'queue:psi2',
-];
+]
 
 function bootstrapProcess(task) {
   // if it fails, restart it
-  let taskProcess = execa('nitro', ['task', 'run', task]);
-  taskProcess.stdout.pipe(process.stdout);
-  taskProcess.stderr.pipe(process.stderr);
-  const start = Date.now();
+  const taskProcess = execa('nitro', ['task', 'run', task])
+  taskProcess.stdout.pipe(process.stdout)
+  taskProcess.stderr.pipe(process.stderr)
+  const start = Date.now()
   taskProcess.on('exit', (code, signal) => {
-    const end = Date.now();
+    const end = Date.now()
     if (end - start < 1000) {
-      console.log(`Task ${task} failed to start`);
+      console.log(`Task ${task} failed to start`)
       return
     }
-    console.log(`Task ${task} exited with code ${code} and signal ${signal}`);
+    console.log(`Task ${task} exited with code ${code} and signal ${signal}`)
     // restart the task
     bootstrapProcess(task)
-  });
+  })
   process.setMaxListeners(50)
   // listen for sigterm and kill processes
   process.on('SIGTERM', () => {
-    taskProcess.kill('SIGTERM');
-  });
+    taskProcess.kill('SIGTERM')
+  })
 }
 
-tasks.forEach(bootstrapProcess)
+async function init() {
+  for (const task of tasks) {
+    bootstrapProcess(task)
+    await new Promise(resolve => setTimeout(resolve, 250))
+  }
+}
+
+init().then(() => {
+  console.log('ready')
+})

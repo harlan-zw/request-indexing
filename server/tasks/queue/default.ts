@@ -12,9 +12,12 @@ export default defineTask({
       console.log('got sig term - default')
       shouldQuit = true
     })
-    await failStaleRunningJobs()
     // only for default
     while (true) {
+      // HRM can break jobs
+      if (import.meta.dev) {
+        await failStaleRunningJobs()
+      }
       // get the next job
       const job = await nextWaitingJob('default')
       if (job) {

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "cb5fa737-b4b2-40b6-866f-4293d866380e",
+  "id": "154b75f9-9bee-4ca0-b0e5-d2d4f23ae8cf",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "failed_jobs": {
@@ -245,6 +245,14 @@
         },
         "total_jobs": {
           "name": "total_jobs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "running_jobs": {
+          "name": "running_jobs",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -770,6 +778,90 @@
           "notNull": false,
           "autoincrement": false
         },
+        "mobile_clicks": {
+          "name": "mobile_clicks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "mobile_impressions": {
+          "name": "mobile_impressions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "mobile_ctr": {
+          "name": "mobile_ctr",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "mobile_position": {
+          "name": "mobile_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "desktop_clicks": {
+          "name": "desktop_clicks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "desktop_impressions": {
+          "name": "desktop_impressions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "desktop_ctr": {
+          "name": "desktop_ctr",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "desktop_position": {
+          "name": "desktop_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tablet_clicks": {
+          "name": "tablet_clicks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tablet_impressions": {
+          "name": "tablet_impressions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tablet_ctr": {
+          "name": "tablet_ctr",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tablet_position": {
+          "name": "tablet_position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "is_synced": {
           "name": "is_synced",
           "type": "integer",
@@ -825,6 +917,108 @@
         "site_date_analytics_site_id_sites_site_id_fk": {
           "name": "site_date_analytics_site_id_sites_site_id_fk",
           "tableFrom": "site_date_analytics",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "site_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "site_date_country_analytics": {
+      "name": "site_date_country_analytics",
+      "columns": {
+        "site_id": {
+          "name": "site_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "country": {
+          "name": "country",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "clicks": {
+          "name": "clicks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "impressions": {
+          "name": "impressions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "ctr": {
+          "name": "ctr",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        }
+      },
+      "indexes": {
+        "site_date_country_analytics_site_id_date_country_unique": {
+          "name": "site_date_country_analytics_site_id_date_country_unique",
+          "columns": [
+            "site_id",
+            "date",
+            "country"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "site_date_country_analytics_site_id_sites_site_id_fk": {
+          "name": "site_date_country_analytics_site_id_sites_site_id_fk",
+          "tableFrom": "site_date_country_analytics",
           "tableTo": "sites",
           "columnsFrom": [
             "site_id"
@@ -972,6 +1166,20 @@
           "notNull": true,
           "autoincrement": false
         },
+        "country": {
+          "name": "country",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "device": {
+          "name": "device",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "clicks": {
           "name": "clicks",
           "type": "integer",
@@ -1022,13 +1230,15 @@
         }
       },
       "indexes": {
-        "site_keyword_date_path_analytics_site_id_date_keyword_path_unique": {
-          "name": "site_keyword_date_path_analytics_site_id_date_keyword_path_unique",
+        "site_keyword_date_path_analytics_site_id_date_keyword_path_country_device_unique": {
+          "name": "site_keyword_date_path_analytics_site_id_date_keyword_path_country_device_unique",
           "columns": [
             "site_id",
             "date",
             "keyword",
-            "path"
+            "path",
+            "country",
+            "device"
           ],
           "isUnique": true
         }
@@ -1191,6 +1401,38 @@
           "notNull": true,
           "autoincrement": false
         },
+        "clicks": {
+          "name": "clicks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "impressions": {
+          "name": "impressions",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "ctr": {
+          "name": "ctr",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 0
+        },
         "psi_desktop_performance": {
           "name": "psi_desktop_performance",
           "type": "integer",
@@ -1330,38 +1572,6 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "clicks": {
-          "name": "clicks",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": 0
-        },
-        "impressions": {
-          "name": "impressions",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": 0
-        },
-        "ctr": {
-          "name": "ctr",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": 0
-        },
-        "position": {
-          "name": "position",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": 0
         },
         "created_at": {
           "name": "created_at",

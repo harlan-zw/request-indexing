@@ -21,7 +21,7 @@ const dates = computed(() => {
   const period = _dates.value.period
   const prevPeriod = _dates.value.prevPeriod
   return {
-    dates: _dates.value.dates,
+    ..._dates.value,
     period: {
       ...period,
       indexedPercent: Math.round(period.indexedPagesCount / (period.totalPagesCount || 1) * 100),
@@ -47,7 +47,7 @@ const gscDataSynced = ref(props.site.ingestingGsc)
 const psiSynced = ref(props.site.ingestingPsi)
 const sitemapSynced = ref(props.site.ingestingSitemap)
 const isSynced = ref(props.site.isSynced)
-useJobListener('sites/syncGscDate', (ctx) => {
+useJobListener('gsc/date', (ctx) => {
   if (ctx.siteId === props.site.siteId) {
     gscDataSynced.value++
   }
@@ -117,7 +117,9 @@ function formatPageSpeedInsightScore(score: number) {
       <div v-if="!isSynced" class="flex w-full p-5">
         <div>
           <ProgressPercent :value="completedPercentSynced" class="text-sm mb-2 font-semibold text-gray-600">
-            <div class="mb-2">{{ completedPercentSynced }}% - Syncing site data...</div>
+            <div class="mb-2">
+              {{ completedPercentSynced }}% - Syncing site data...
+            </div>
           </ProgressPercent>
           <ul class="text-xs text-gray-500 space-y-2">
             <li class="flex items-center gap-1">
@@ -152,8 +154,8 @@ function formatPageSpeedInsightScore(score: number) {
                   Mobile
                 </div>
               </div>
-              <div class="flex items-center gap-1 font-bold" :class="formatPageSpeedInsightScore(dates?.period.psiMobileScore)">
-                {{ useHumanFriendlyNumber(dates?.period.psiMobileScore) }}
+              <div class="flex items-center gap-1 font-bold" :class="formatPageSpeedInsightScore(dates?.psiData?.psiMobileScore)">
+                {{ useHumanFriendlyNumber(dates?.psiData?.psiMobileScore) }}
               </div>
             </div>
 
@@ -164,8 +166,8 @@ function formatPageSpeedInsightScore(score: number) {
                   Desktop
                 </div>
               </div>
-              <div class="flex items-center font-bold" :class="formatPageSpeedInsightScore(dates?.period?.psiDesktopScore)">
-                {{ useHumanFriendlyNumber(dates?.period?.psiDesktopScore) }}
+              <div class="flex items-center font-bold" :class="formatPageSpeedInsightScore(dates?.psiData?.psiDesktopScore)">
+                {{ useHumanFriendlyNumber(dates?.psiData?.psiDesktopScore) }}
               </div>
             </div>
           </NuxtLink>

@@ -11,11 +11,11 @@ export function getQueryAsyncDataTable<T extends string>(e: H3Event) {
     pageSize?: number
   }>(e)
   const pageSize = _pageSize || 10
-  const sort = JSON.parse(_sort)
+  const sort = typeof _sort !== 'undefined' ? JSON.parse(_sort) : {}
   const offset = ((Number(page) || 1) - 1) * pageSize
   return {
     offset,
-    filters: filter.split(','),
+    filters: (filter || '').split(','),
     page,
     q,
     sort,

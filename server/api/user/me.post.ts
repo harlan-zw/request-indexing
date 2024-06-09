@@ -14,15 +14,7 @@ export default defineEventHandler(async (e) => {
   }).where(eq(users.userId, user.userId))
     .returning())[0]
 
-  console.log('savesd user', _user)
-
   await setUserSession(e, {
-    user: {
-      analyticsPeriod: _user.analyticsPeriod,
-      analyticsRange: _user.analyticsRange,
-    },
-  })
-  console.log('set session', {
     user: {
       analyticsPeriod: _user.analyticsPeriod,
       analyticsRange: _user.analyticsRange,

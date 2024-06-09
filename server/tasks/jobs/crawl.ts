@@ -1,14 +1,9 @@
-import { consola } from 'consola'
-import { isNull, not } from 'drizzle-orm'
-import { queueJob } from '~/server/plugins/eventServiceProvider'
-import { sites } from '~/server/database/schema'
-
 export default defineTask({
   meta: {
     name: 'site:crawl',
     description: 'Crawl Site pages',
   },
-  async run({ payload }) {
+  async run() {
     // if (!import.meta.dev)
     //   return
     //

@@ -1,5 +1,6 @@
 import type { Peer } from 'crossws'
 import { getQuery } from 'ufo'
+import { stringify } from 'devalue'
 import { users } from '~/server/database/schema'
 
 const wsHooks = new Map<string, () => void>()
@@ -14,7 +15,7 @@ export default defineWebSocketHandler({
 
     const nitro = useNitroApp()
     wsHooks.set(userId, nitro.hooks.hook(`ws:message:${user.publicId}`, (message) => {
-      peer.send(JSON.stringify(message))
+      peer.send(stringify(message))
     }))
   },
 

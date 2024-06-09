@@ -35,8 +35,14 @@ export async function chunkedBatch<T extends any[]>(arr: T, chunkSize: number = 
     return acc
   }, [])
 
+  let id = 0
   for (const workload of workloads) {
-    await Promise.all(workload.map(chunk => db.batch(chunk)))
+    console.log(`workload ${id}`)
+    await Promise.all(workload.map(async (chunk) => {
+      console.log('processing', { workloads: workload.length, currentChunkSize: chunk.length, totalChunkSize: chunkSize })
+      return await db.batch(chunk)
+    }))
+    id++
   }
 }
 

@@ -33,8 +33,9 @@ export default defineEventHandler(async (e) => {
   const sq = useDrizzle()
     .select({
       path: filters.includes('top-level') ? sql`SUBSTR(path, 1, INSTR(SUBSTR(path, 2), '/') + 1)`.as('topLevelPath1') : sitePathDateAnalytics.path,
+      count: count().as('count'),
       // need to use raw sql to get avg of both avg psiDesktopScore and avg psiMobileScore
-      psiScore: sql`AVG((${sitePathDateAnalytics.psiDesktopScore} + ${sitePathDateAnalytics.psiMobileScore}) / 2)`.as('psiScore'),
+      // psiScore: sql`AVG((${sitePathDateAnalytics.psiDesktopScore} + ${sitePathDateAnalytics.psiMobileScore}) / 2)`.as('psiScore'),
       clicks: sum(sitePathDateAnalytics.clicks).as('clicks'),
       ctr: avg(sitePathDateAnalytics.ctr).as('ctr'),
       impressions: sum(sitePathDateAnalytics.impressions).as('impressions'),
@@ -53,7 +54,7 @@ export default defineEventHandler(async (e) => {
     .select({
       path: filters.includes('top-level') ? sql`SUBSTR(path, 1, INSTR(SUBSTR(path, 2), '/') + 1)`.as('topLevelPath2') : sitePathDateAnalytics.path,
       prevClicks: sum(sitePathDateAnalytics.clicks).as('prevClicks'),
-      prevPsiScore: sql`AVG((${sitePathDateAnalytics.psiDesktopScore} + ${sitePathDateAnalytics.psiMobileScore}) / 2)`.as('prevPsiScore'),
+      // prevPsiScore: sql`AVG((${sitePathDateAnalytics.psiDesktopScore} + ${sitePathDateAnalytics.psiMobileScore}) / 2)`.as('prevPsiScore'),
       ctr: avg(sitePathDateAnalytics.ctr).as('prevCtr'),
       prevImpressions: sum(sitePathDateAnalytics.impressions).as('prevImpressions'),
       position: avg(sitePathDateAnalytics.position).as('prevPosition'),
@@ -104,10 +105,11 @@ export default defineEventHandler(async (e) => {
   const pagesSelect = useDrizzle().select({
     path: sitePaths.path,
     isIndexed: sitePaths.isIndexed,
+    count: sq.count,
     // keyword: keywordSq.keyword,
     // keywordClicks: keywordSq.keywordClicks,
     // keywordPosition: keywordSq.keywordPosition,
-    psiScore: sq.psiScore,
+    // psiScore: sq.psiScore,
     clicks: sq.clicks,
     ctr: sq.ctr,
     impressions: sq.impressions,
@@ -116,7 +118,7 @@ export default defineEventHandler(async (e) => {
     prevCtr: sq2.ctr,
     prevImpressions: sq2.prevImpressions,
     prevPosition: sq2.position,
-    prevPsiScore: sq2.prevPsiScore,
+    // prevPsiScore: sq2.prevPsiScore,
     // pages: sq3.path,
   })
     .from(sitePaths) // we want to get non-indexed pages as well

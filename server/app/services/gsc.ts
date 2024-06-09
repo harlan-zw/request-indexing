@@ -5,6 +5,7 @@ import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
 import type { H3Event } from 'h3'
 import { count } from 'drizzle-orm'
 import dayjs from 'dayjs'
+import { defu } from 'defu'
 import countries from '../../data/countries'
 import type { ResolvedAnalyticsRange, SiteAnalytics } from '~/types'
 import { percentDifference } from '~/server/app/utils/formatting'
@@ -30,6 +31,12 @@ export async function recursiveQuery(api: searchconsole_v1.Searchconsole, query:
       ...query.requestBody,
       startRow: (page - 1) * rowLimit,
     },
+    fields: 'rows',
+  }, {
+    headers: {
+      'Accept-Encoding': 'gzip',
+      'User-Agent': 'Request Indexing (gzip)',
+    },
   })
   const _rows = res.data?.rows || []
   const rowsLength = _rows.length || 0
@@ -39,6 +46,26 @@ export async function recursiveQuery(api: searchconsole_v1.Searchconsole, query:
     await recursiveQuery(api, query, page + 1, rows)
 
   return { data: { rows }, pages: page }
+}
+
+export async function queryPaginated(api: searchconsole_v1.Searchconsole, query: searchconsole_v1.Params$Resource$Searchanalytics$Query, options?: { page?: number, pageSize?: number }) {
+  const { page, pageSize } = defu(options, { page: 1, pageSize: 25_000 })
+  const res = await api.searchanalytics.query({
+    ...query,
+    requestBody: {
+      ...query.requestBody,
+      rowLimit: pageSize,
+      startRow: (page - 1) * pageSize,
+    },
+  })
+  const rows = res.data?.rows || []
+  const rowsLength = rows.length || 0
+  let hasNextPage = false
+  if (rowsLength === pageSize) {
+    hasNextPage = true
+  }
+
+  return { rows, hasNextPage }
 }
 
 export function createGoogleOAuthClient(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }) {

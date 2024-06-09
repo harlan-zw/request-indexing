@@ -51,6 +51,7 @@ const authDropdownItems: DropdownItem[][] = computed(() => {
     </template>
     <template #right>
       <div class="flex items-center">
+        <UColorModeButton size="sm" class="mx-5" />
         <UDropdown :items="authDropdownItems" mode="hover" class="flex items-center">
           <template #account="{ item }">
             <div class="flex flex-col w-full">

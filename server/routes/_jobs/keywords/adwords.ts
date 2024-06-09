@@ -28,8 +28,7 @@ export default defineJobHandler(async (event) => {
     })
   }
 
-  const res = await fetchKeywordIdeas(keywords, site.siteId)
-  console.log('adwords job', res)
+  await fetchKeywordIdeas(keywords, site.siteId)
   return {
     broadcastTo: site.owner.publicId,
     siteId: site.publicId,

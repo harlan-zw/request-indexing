@@ -1,9 +1,6 @@
 import { eq, isNull, lt, or } from 'drizzle-orm'
-import { defu } from 'defu'
-import type { JobInsert } from '~/server/database/schema'
 import { sites, teamSites } from '~/server/database/schema'
 import { dayjs } from '~/server/utils/dayjs'
-import { batchJobs } from '~/server/plugins/eventServiceProvider'
 
 export default defineTask({
   meta: {
@@ -31,55 +28,55 @@ export default defineTask({
       .leftJoin(sites, eq(teamSites.siteId, sites.siteId))
       .limit(10)
 
-    for (const site of validSites) {
-      const lastSynced = dayjs(site.lastSynced)
-      const diffDays = dayjs().diff(lastSynced, 'days')
-      const jobOptions = {
-        entityId: site.siteId,
-        entityType: 'site',
-        payload: {
-          siteId: site.siteId,
-        },
-      }
-      // do psi scans
-      await batchJobs({
-        name: 'site/sync',
-        options: {
-          onFinish: {
-            name: 'sites/syncFinished',
-            ...jobOptions,
-          },
-        },
-      }, [
-        {
-          name: 'sites/syncSitemapPages',
-        },
-        {
-          name: 'paths/runPsi',
-          payload: {
-            path: '/',
-            strategy: 'mobile',
-          },
-        },
-        {
-          name: 'paths/runPsi',
-          payload: {
-            path: '/',
-            strategy: 'desktop',
-          },
-        },
-        ...Array.from({ length: diffDays }, (_, i) => lastSynced.add(i, 'day').format('YYYY-MM-DD'))
-          .map((date) => {
-            return {
-              name: 'sites/syncGscDate',
-              payload: {
-                date,
-              },
-            }
-          }),
-      ]
-        .map(job => defu(job, jobOptions) as any as JobInsert))
-    }
+    // for (const site of validSites) {
+    //   const lastSynced = dayjs(site.lastSynced)
+    //   const diffDays = dayjs().diff(lastSynced, 'days')
+    //   const jobOptions = {
+    //     entityId: site.siteId,
+    //     entityType: 'site',
+    //     payload: {
+    //       siteId: site.siteId,
+    //     },
+    //   }
+    // do psi scans
+    //   await batchJobs({
+    //     name: 'site/sync',
+    //     options: {
+    //       onFinish: {
+    //         name: 'sites/syncFinished',
+    //         ...jobOptions,
+    //       },
+    //     },
+    //   }, [
+    //     {
+    //       name: 'sites/syncSitemapPages',
+    //     },
+    //     {
+    //       name: 'paths/runPsi',
+    //       payload: {
+    //         path: '/',
+    //         strategy: 'mobile',
+    //       },
+    //     },
+    //     {
+    //       name: 'paths/runPsi',
+    //       payload: {
+    //         path: '/',
+    //         strategy: 'desktop',
+    //       },
+    //     },
+    //     ...Array.from({ length: diffDays }, (_, i) => lastSynced.add(i, 'day').format('YYYY-MM-DD'))
+    //       .map((date) => {
+    //         return {
+    //           name: 'sites/syncGscDate',
+    //           payload: {
+    //             date,
+    //           },
+    //         }
+    //       }),
+    //   ]
+    //     .map(job => defu(job, jobOptions) as any as JobInsert))
+    // }
     return { result: validSites }
   },
 })

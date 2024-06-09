@@ -35,7 +35,7 @@ export function useSiteData(site: SiteSelect) {
     dates: () => factory<{ startDate?: string, endDate?: string, rows: (Omit<searchconsole_v1.Schema$ApiDataRow, 'keys'> & { date: string })[] }>('gsc/dates'),
     analytics: () => factory<{ period: { clicks: number, impressions: number }, prevPeriod: { clicks: number, impressions: number } }>('gsc/analytics'),
     devices: () => factory<{ period: { device: string, clicks: number, impressions: number }, prevPeriod: { device: string, clicks: number, impressions: number } }>('gsc/devices'),
-    countries: () => factory<{ period: { country: string, clicks: number, impressions: number }, prevPeriod: { country: string, clicks: number, impressions: number } }>('gsc/countries'),
+    countries: () => factory<{ period: { country: string, clicks: number, impressions: number }, prevPeriod: { country: string, clicks: number, impressions: number } }>('countries'),
   }
 }
 

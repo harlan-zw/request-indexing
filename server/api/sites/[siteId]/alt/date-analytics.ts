@@ -1,5 +1,5 @@
 import { defineEventHandler } from 'h3'
-import { asc, avg, between, isNotNull, max, sum } from 'drizzle-orm'
+import { asc, avg, between, desc, isNotNull, max, sum } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import { userPeriodRange } from '~/server/app/models/User'
 import { siteDateAnalytics, sitePathDateAnalytics } from '~/server/database/schema'
@@ -16,32 +16,14 @@ export default defineEventHandler(async (event) => {
   // if (query.path) {
   //   _where.push(eq(siteDateAnalytics.path, query.path))
   // }
-  console.log(user.analyticsPeriod)
+  const range = userPeriodRange(user, {
+    includeToday: true,
+  })
   if (user.analyticsPeriod !== 'all') {
-    const range = userPeriodRange(user, {
-      includeToday: true,
-    })
     _where.push(between(siteDateAnalytics.date, range.period.startDate, range.period.endDate))
   }
 
-  // const psiData = await useDrizzle()
-  //   .select({
-  //     psiDesktopScore: avg(sitePathDateAnalytics.psiDesktopScore),
-  //     psiMobileScore: avg(sitePathDateAnalytics.psiMobileScore),
-  //   })
-  //   .from(sitePathDateAnalytics)
-  //   .where(and(
-  //     eq(sitePathDateAnalytics.siteId, site.siteId),
-  //     ...(user.analyticsPeriod !== 'all'
-  //       ? [
-  //           between(sitePathDateAnalytics.date, range.period.startDate, range.period.endDate),
-  //         ]
-  //       : []),
-  //     isNotNull(sitePathDateAnalytics.psiDesktopScore),
-  //     isNotNull(sitePathDateAnalytics.psiMobileScore),
-  //   ))
-
-  console.log(psiSubquery)
+  // console.log(psiSubquery)
 
   const periodSelect = {
     clicks: sum(siteDateAnalytics.clicks),
@@ -53,26 +35,41 @@ export default defineEventHandler(async (event) => {
     totalPagesCount: max(siteDateAnalytics.totalPagesCount),
     indexedPagesCount: max(siteDateAnalytics.indexedPagesCount),
     // need to take an average where the value is not null
-    psiDesktopScore: psiSubquery.psiDesktopScore,
-    psiMobileScore: psiSubquery.psiMobileScore,
+    // psiDesktopScore: psiSubquery.psiDesktopScore,
+    // psiMobileScore: psiSubquery.psiMobileScore,
   }
   const db = useDrizzle()
-  const [dates, period, prevPeriod] = await Promise.all([
+  const [psiData, dates, period, prevPeriod] = await Promise.all([
+    db
+      .select({
+        psiDesktopScore: avg(sitePathDateAnalytics.psiDesktopScore),
+        psiMobileScore: avg(sitePathDateAnalytics.psiMobileScore),
+      })
+      .from(sitePathDateAnalytics)
+      .where(and(
+        eq(sitePathDateAnalytics.siteId, site.siteId),
+        ...(user.analyticsPeriod !== 'all'
+          ? [
+              between(sitePathDateAnalytics.date, range.period.startDate, range.period.endDate),
+            ]
+          : []),
+        isNotNull(sitePathDateAnalytics.psiDesktopScore),
+        isNotNull(sitePathDateAnalytics.psiMobileScore),
+      ))
+      // .groupBy(sitePathDateAnalytics.date)
+      .orderBy(desc(sitePathDateAnalytics.date))
+      .limit(1),
     db.select({
       // all fields except for timestamps and siteId
       clicks: siteDateAnalytics.clicks,
       impressions: siteDateAnalytics.impressions,
       position: siteDateAnalytics.position,
       ctr: siteDateAnalytics.ctr,
-      /*
       date: siteDateAnalytics.date,
       keywords: siteDateAnalytics.keywords,
       pages: siteDateAnalytics.pages,
       totalPagesCount: siteDateAnalytics.totalPagesCount,
       indexedPagesCount: siteDateAnalytics.indexedPagesCount,
-      psiDesktopScore: avg(sitePathDateAnalytics.psiDesktopScore),
-      psiMobileScore: avg(sitePathDateAnalytics.psiMobileScore),
-      */
     }).from(siteDateAnalytics)
       .where(and(..._where))
       .orderBy(asc(siteDateAnalytics.date)),
@@ -87,7 +84,7 @@ export default defineEventHandler(async (event) => {
         .orderBy(asc(siteDateAnalytics.date))
       : Promise.resolve([]),
   ])
-  return { dates, period: period[0], prevPeriod: prevPeriod[0] }
+  return { psiData: psiData[0], dates, period: period[0], prevPeriod: prevPeriod[0] }
 
   // query the db to find the total pages and the pages indexed for each date of the range
   // return useDrizzle().query.siteDateAnalytics.findMany({

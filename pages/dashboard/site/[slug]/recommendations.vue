@@ -107,7 +107,7 @@ definePageMeta({
                 </div>
               </div>
             </template>
-            <TableKeywordSearchVolume :exclude-columns="['lastSynced']" :site="site" :filter="'long-tail'" :filters="false" :sort="{ column: 'currentMonthSearchVolume', direction: 'desc' }" :searchable="false" :page-size="6" />
+            <TableKeywordSearchVolume :exclude-columns="['lastSynced']" :site="site" filter="long-tail" :filters="false" :sort="{ column: 'currentMonthSearchVolume', direction: 'desc' }" :searchable="false" :page-size="6" />
           </UCard>
         </div>
         <UCard>

@@ -3,7 +3,6 @@ import { getQuery } from 'h3'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
   siteKeywordDatePathAnalytics,
-
   sites,
 } from '~/server/database/schema'
 import { userPeriodRange } from '~/server/app/models/User'

@@ -173,24 +173,48 @@ export const siteDateAnalytics = sqliteTable('site_date_analytics', {
   // google search console (query by date)
   ...googleSearchConsolePageAnalytics,
 
-  // make life easier for querying
-  psiDesktopScore: integer('psi_desktop_score'),
-  psiMobileScore: integer('psi_mobile_score'),
+  // TODO make life easier for querying?
+  // psiDesktopScore: integer('psi_desktop_score'),
+  // psiMobileScore: integer('psi_mobile_score'),
 
   keywords: integer('keywords'),
   pages: integer('pages'),
+
+  mobileClicks: integer('mobile_clicks'),
+  mobileImpressions: integer('mobile_impressions'),
+  mobileCtr: integer('mobile_ctr'),
+  mobilePosition: integer('mobile_position'),
+
+  desktopClicks: integer('desktop_clicks'),
+  desktopImpressions: integer('desktop_impressions'),
+  desktopCtr: integer('desktop_ctr'),
+  desktopPosition: integer('desktop_position'),
+
+  tabletClicks: integer('tablet_clicks'),
+  tabletImpressions: integer('tablet_impressions'),
+  tabletCtr: integer('tablet_ctr'),
+  tabletPosition: integer('tablet_position'),
 
   // web indexing
   isSynced: integer('is_synced', { mode: 'boolean' }).notNull().default(false),
   indexedPagesCount: integer('indexed_pages_count').default(0),
   totalPagesCount: integer('total_pages_count').default(0),
-
   ...timestamps,
 }, t => ({
   unq: unique().on(t.siteId, t.date),
 }))
 
 export type SiteDateAnalyticsSelect = typeof siteDateAnalytics.$inferSelect
+
+export const siteDateCountryAnalytics = sqliteTable('site_date_country_analytics', {
+  siteId: integer('site_id').notNull().references(() => sites.siteId),
+  date: text('date').notNull(), // all data for a path
+  country: text('country').notNull(),
+  ...googleSearchConsolePageAnalytics,
+  ...timestamps,
+}, t => ({
+  unq: unique().on(t.siteId, t.date, t.country),
+}))
 
 export const sitePageSpeedInsightScans = sqliteTable('site_pagespeed_insight_scans', {
   sitePageSpeedInsightScanId: integer('site_pagespeed_insight_scan_id').notNull().primaryKey(),
@@ -215,7 +239,7 @@ export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),
   date: text('date').notNull(), // all data for a path
   path: text('path').notNull(),
-
+  ...googleSearchConsolePageAnalytics,
   // keywords: integer('keywords'),
 
   psiDesktopPerformance: integer('psi_desktop_performance'),
@@ -241,7 +265,6 @@ export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
   psiMobileCls: integer('psi_mobile_cls'),
 
   // google search console (query by date and path)
-  ...googleSearchConsolePageAnalytics,
   ...timestamps,
 }, t => ({
   unq: unique().on(t.siteId, t.date, t.path),
@@ -296,10 +319,12 @@ export const siteKeywordDatePathAnalytics = sqliteTable('site_keyword_date_path_
   date: text('date').notNull(), // all data for a path
   keyword: text('keyword').notNull(),
   path: text('path').notNull(),
+  country: text('country').notNull(),
+  device: text('device').notNull(),
   ...googleSearchConsolePageAnalytics,
   ...timestamps,
 }, t => ({
-  unq: unique().on(t.siteId, t.date, t.keyword, t.path),
+  unq: unique().on(t.siteId, t.date, t.keyword, t.path, t.country, t.device),
 }))
 
 export type SiteKeywordDateAnalyticsSelect = typeof sitePathDateAnalytics.$inferSelect
@@ -337,10 +362,11 @@ export const jobBatches = sqliteTable('job_batches', {
   jobBatchId: integer('job_batch_id').notNull().primaryKey(),
   name: text('name').notNull(),
   totalJobs: integer('total_jobs').notNull().default(0),
+  runningJobs: integer('running_jobs').notNull().default(0),
   pendingJobs: integer('pending_jobs').notNull().default(0),
   failedJobs: integer('failed_jobs').notNull().default(0),
   failedJobIds: text('failed_job_ids', { mode: 'json' }).$type<number[]>(),
-  options: text('options', { mode: 'json' }).$type<{ onFinish: { name: string, payload: any } }>(),
+  options: text('options', { mode: 'json' }).$type<{ onFinish: any }>(),
   cancelledAt: integer('cancelled_at'),
   createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
   finishedAt: integer('finished_at'),

@@ -3,7 +3,7 @@ import { joinURL, withoutTrailingSlash } from 'ufo'
 import countries from '../server/data/countries'
 import { fetchSites } from '~/composables/fetch'
 import { createLogoutHandler } from '~/composables/auth'
-import type {UserSelect} from "~/server/database/schema";
+import type { UserSelect } from '~/server/database/schema'
 
 const router = useRouter()
 const { user, session, fetch } = useUserSession()
@@ -13,7 +13,7 @@ const sites = computed(() => {
   return (data.value?.sites || [])
 })
 
-const logout = createLogoutHandler()
+// const logout = createLogoutHandler()
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
 const route = useRoute()
 
@@ -447,20 +447,23 @@ const calenderPickerLabel = computed(() => {
     return ''
   }
   const period = user.value?.analyticsPeriod
-  if (!period) {
+  const range = user.value.analyticsRange
+  if (!period && range) {
     // need to create a period string from the dates from user.value.analyticsRange
-    const start = dayjs(user.value.analyticsRange.start)
-    const end = dayjs(user.value.analyticsRange.end)
+    const start = dayjs(range.start)
+    const end = dayjs(range.end)
     // if end is not today or yesterday
     if (end.isBefore(dayjs().subtract(2, 'day')))
       return `${start.format('Do MMM YY')} - ${end.format('Do MMM YY')}`
     // should be like {days}d
     return `Last ${end.diff(start, 'days') + 1} days`
   }
-  if (user.value.analyticsPeriod === 'all')
-    return 'All time'
-  if (user.value.analyticsPeriod.endsWith('d'))
-    return `Last ${user.value.analyticsPeriod.replace('d', '')} days`
+  if (period) {
+    if (period === 'all')
+      return 'All time'
+    if (period.endsWith('d'))
+      return `Last ${period.replace('d', '')} days`
+  }
   return 'Unknown'
 })
 
@@ -635,7 +638,7 @@ const allCountries = countries.map(country => ({
               </USelectMenu>
               <UPopover mode="hover" :popper="{ placement: 'bottom-end' }">
                 <template #default="{ open }">
-                <UButton color="gray" icon="i-ph-calendar-dots-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
+                  <UButton color="gray" icon="i-ph-calendar-dots-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
                     {{ calenderPickerLabel }}
                   </UButton>
                 </template>
