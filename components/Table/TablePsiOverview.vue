@@ -204,6 +204,42 @@ function pageUrlToPath(url: string) {
           </UTooltip>
         </div>
       </template>
+      <template #psiMobileAccessibility-data="{ row }">
+        <div class="flex gap-3 items-center">
+          <UTooltip :text="`${row.psiMobileAccessibility} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiMobileAccessibility, 0) }}
+          </UTooltip>
+          <UTooltip :text="`${row.psiDesktopAccessibility} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiDesktopAccessibility, 0) }}
+          </UTooltip>
+        </div>
+      </template>
+      <template #psiMobileBestPractices-data="{ row }">
+        <div class="flex gap-3 items-center">
+          <UTooltip :text="`${row.psiMobileBestPractices} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiMobileBestPractices, 0) }}
+          </UTooltip>
+          <UTooltip :text="`${row.psiDesktopBestPractices} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiDesktopBestPractices, 0) }}
+          </UTooltip>
+        </div>
+      </template>
+      <template #psiMobileSeo-data="{ row }">
+        <div class="flex gap-3 items-center">
+          <UTooltip :text="`${row.psiMobileSeo} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiMobileSeo, 0) }}
+          </UTooltip>
+          <UTooltip :text="`${row.psiDesktopSeo} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiDesktopSeo, 0) }}
+          </UTooltip>
+        </div>
+      </template>
       <template #actions-data="{ row }">
         <UDropdown :items="[[{ label: 'Open Page', click: () => openUrl(row.path, '_blank') }], [{ label: 'Page Inspections', icon: 'i-heroicons-document-magnifying-glass', disabled: true }, (row.inspectionResult?.inspectionResultLink ? { label: 'View Inspection Result' } : undefined), { label: 'Inspect Index Status' }].filter(Boolean)]">
           <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="gray" />

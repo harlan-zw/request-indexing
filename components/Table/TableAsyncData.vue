@@ -41,11 +41,12 @@ const params = useUrlSearchParams('history', {
 // const sort = ref()
 const q = ref(params.q || '')
 const page = ref(params.page || 1)
-const filter = ref(params.filter || 'default')
+const filter = ref(params.filter || props.filter || 'default')
 const rows = computed<T>(() => value.value?.rows || [])
 const expandedRow = ref(null)
 const isLoading = ref(true)
 
+const dataProvider = inject('tableAsyncDataProvider', null)
 async function refresh() {
   isLoading.value = true
   const _filter = [
@@ -66,6 +67,9 @@ async function refresh() {
   }).finally(() => {
     isLoading.value = false
   })
+  if (dataProvider) {
+    dataProvider.value = value.value
+  }
 }
 
 onMounted(() => {
@@ -103,9 +107,8 @@ function toggleFilter(_filter: string) {
   else
     filter.value = _filter
 }
-const pageCount = props.pageCount || 10
 // const paginatedRows = computed<T[]>(() => {
-//   return queriedRows.value.slice((page.value - 1) * pageCount, (page.value) * pageCount)
+//   return queriedRows.value.slice((page.value - 1) * pageSize, (page.value) * pageSize)
 // })
 
 // function updateSort(_sort: any) {
@@ -201,7 +204,7 @@ const tableUi = {
       </template>
     </UTable>
     <div v-if="pagination && value?.total > pageSize" class="flex items-center justify-between mt-7 px-3 py-5 border-t border-gray-200 dark:border-gray-700">
-      <UPagination v-model="page" :page-count="pageCount" :total="value?.total" />
+      <UPagination v-model="page" :page-count="pageSize" :total="value?.total" />
       <div class="text-base dark:text-gray-300 text-gray-600 mb-2">
         {{ value?.total }} total
       </div>

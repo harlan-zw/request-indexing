@@ -34,37 +34,35 @@ defineProps<{ rows: any[] }>()
 //   })
 // })
 
-const columns = [
-  { label: 'Country', key: 'country' },
-  { label: 'Clicks', sortable: true, key: 'clicks' },
-  // { label: '%', key: 'percent', sortable: true },
-  // { label: 'Keywords', key: 'keywords' }
-]
+const columns = [{ label: 'Country', key: 'country' }, { label: '%', sortable: true, key: 'percent' }]
 </script>
 
 <template>
   <div>
-    <div class="font-bold flex items-center gap-1 mb-2">
-      <UIcon name="i-heroicons-globe-americas" /> Traffic by location
+    <div class="flex items-center text-sm gap-1 mb-2">
+      <UIcon name="i-heroicons-globe-americas" /> Top Countries
     </div>
-    <TableData :searchable="false" :value="rows" :columns="columns">
-      <template #country-data="{ row }">
-        <div class="flex-1 flex-grow min-h-full">
-          <ProgressPercent :value="row.clicks" :total="100" class="min-w-full">
-            <div class="flex items-center gap-2">
-              <Icon :name="`circle-flags:${row.countryCode.toLowerCase()}`" />
-              <span class=" capitalize">{{ row.countryCode }}</span>
+    <UCard>
+      <TableData :searchable="false" :value="rows" :columns="columns" :filters="[]">
+        <template #country-data="{ row }">
+          <div class="flex-1 flex-grow min-h-full">
+            <ProgressPercent :value="row.percent" :total="100" class="min-w-full">
+              <div class="flex items-center gap-2 mb-1">
+                <Icon :name="`circle-flags:${row.countryCode.toLowerCase()}`" />
+                <span class=" capitalize">{{ row.country }}</span>
               <!--            <div>{{ useHumanFriendlyNumber(row.clicks / clicksSum * 100) }}%</div> -->
-            </div>
-          </ProgressPercent>
-        </div>
-      </template>
-      <template #clicksPercent-data="{ row }">
-        {{ useHumanFriendlyNumber(row.clicksPercent) }}%
-      </template>
-      <template #percent-data="{ row }">
-        <TrendPercentage symbol="%" :value="row.clicksPercent" :prev-value="row.prevPeriodClicksPercent" />
-      </template>
-    </TableData>
+              </div>
+            </ProgressPercent>
+          </div>
+        </template>
+        <template #clicksPercent-data="{ row }">
+          {{ useHumanFriendlyNumber(row.clicksPercent) }}%
+        </template>
+        <template #percent-data="{ row }">
+          {{ useHumanFriendlyNumber(row.percent) }}%
+          <TrendPercentage symbol="%" :value="row.percent" :prev-value="row.prevPeriodClicksPercent" />
+        </template>
+      </TableData>
+    </UCard>
   </div>
 </template>

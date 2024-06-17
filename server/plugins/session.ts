@@ -27,7 +27,7 @@ export default defineNitroPlugin(() => {
       userId: user.publicId,
       email: user.email,
       picture: user.avatar,
-      analyticsPeriod: user.analyticsPeriod || '30d',
+      analyticsPeriod: user.analyticsPeriod || '90d',
       analyticsRange: user.analyticsRange,
     }
   })

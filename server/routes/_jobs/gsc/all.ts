@@ -7,9 +7,10 @@ import { defineJobHandler, queueJob } from '~/server/plugins/eventServiceProvide
 import { createGoogleOAuthClient } from '#imports'
 import { generateDefaultQueryBody } from '~/server/app/services/gsc'
 import { chunkedBatch } from '~/server/utils/drizzle'
+import { incrementUsage } from '~/server/app/services/usage'
 
 export default defineJobHandler(async (event) => {
-  const { siteId, date, page } = await readBody<{ siteId: number, date: string, page: number }>(event)
+  const { siteId, start, end, page } = await readBody<{ siteId: number, start: string, end: string, page: number }>(event)
 
   const db = useDrizzle()
   const site = await db.query.sites.findFirst({
@@ -58,20 +59,21 @@ export default defineJobHandler(async (event) => {
     auth: createGoogleOAuthClient(site.owner.googleAccounts[0]),
   })
 
+  await incrementUsage(site.siteId, 'gsc')
   // not all pages will shown when queried with keywords
   const { rows, hasNextPage } = await queryPaginated(api, {
     siteUrl: site.property,
     requestBody: {
       ...generateDefaultQueryBody(site, {
-        start: date,
-        end: date,
+        start,
+        end,
       }),
-      dimensions: ['page', 'query', 'country', 'device'],
+      dimensions: ['date', 'page', 'query', 'country', 'device'],
     },
-  }, { page, pageSize: 5000 })
+  }, { page, pageSize: 1000 })
 
   const data = rows.map((row) => {
-    const [page, query, country, device] = row.keys as [string, string, string, string]
+    const [date, page, query, country, device] = row.keys as [string, string, string, string, string]
     return db.insert(siteKeywordDatePathAnalytics)
       .values({
         siteId: site.siteId,
@@ -84,13 +86,14 @@ export default defineJobHandler(async (event) => {
         impressions: row.impressions,
         ctr: row.ctr,
         position: row.position,
-      })/* .onConflictDoUpdate({
+      }).onConflictDoUpdate({
         target: [
           siteKeywordDatePathAnalytics.siteId,
           siteKeywordDatePathAnalytics.date,
+          siteKeywordDatePathAnalytics.keyword,
           siteKeywordDatePathAnalytics.path,
           siteKeywordDatePathAnalytics.country,
-          siteKeywordDatePathAnalytics.device
+          siteKeywordDatePathAnalytics.device,
         ],
         set: {
           clicks: row.clicks,
@@ -98,17 +101,23 @@ export default defineJobHandler(async (event) => {
           ctr: row.ctr,
           position: row.position,
         },
-      }) */
+      })
   })
 
   await chunkedBatch(data)
 
   // queue another job while we still have pages
   if (hasNextPage) {
-    await queueJob('gsc/page-query-country-device', {
-      siteId,
-      date,
-      page: page + 1,
+    await queueJob('gsc/all', {
+      queue: 'gsc',
+      payload: {
+        siteId,
+        start,
+        end,
+        page: page + 1,
+      },
+      entityId: siteId,
+      entityType: 'site',
     })
   }
 
@@ -208,6 +217,7 @@ export default defineJobHandler(async (event) => {
     // TODO broadcast to all teams which own the site
     broadcastTo: site.owner.publicId,
     siteId: site.publicId,
-    date,
+    start,
+    end,
   }
 })

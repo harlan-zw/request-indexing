@@ -22,6 +22,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       const job = parse(ctx.data) as { name: keyof TaskMap, payload: any }
       const payload = job.payload
       const hookName = `app:${job.name.replace('/', ':')}`
+      console.log('ws', hookName)
       nuxtApp.hooks.callHook(hookName, payload)
       // console.log('ws message', job.name, payload)
       // if (job.name === 'users/syncGscSites') {

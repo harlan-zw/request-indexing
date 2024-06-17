@@ -24,9 +24,7 @@ export default defineEventHandler(async (e) => {
     page: string
     q: string
   }>(e)
-  const range = userPeriodRange(user, {
-    includeToday: true,
-  })
+  const range = userPeriodRange(user)
   const _where = [
     eq(sitePageSpeedInsightScans.siteId, site.siteId),
   ]

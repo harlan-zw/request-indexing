@@ -25,12 +25,19 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@vueuse/nuxt',
     '@nuxtjs/seo',
+    '@nuxt/scripts',
     NuxtMessageQueue,
     (_, nuxt) => {
       nuxt.options.nitro!.virtual = nuxt.options.nitro!.virtual || {}
       nuxt.options.nitro.virtual['#app/token-pool.mjs'] = `export const tokens = ${JSON.stringify(tokens)}`
     },
   ],
+  future: {
+    // compatibilityVersion: 4,
+  },
+  uiPro: {
+    routerOptions: false,
+  },
   ogImage: {
     enabled: false,
   },

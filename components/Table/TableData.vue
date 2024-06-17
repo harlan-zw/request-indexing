@@ -128,8 +128,15 @@ watch(expandedRow, () => {
 })
 
 const tableUi = {
+  default: {
+    sortButton: {
+      size: 'xs',
+    },
+  },
   th: {
     padding: 'px-2 py-2',
+    size: 'text-xs',
+    font: 'font-normal',
   },
   td: {
     padding: 'px-2 py-1',
@@ -139,46 +146,48 @@ const tableUi = {
 
 <template>
   <div>
-    <div class="flex justify-between">
-      <slot name="header" />
-      <div v-if="searchable" class="flex items-center gap-5 mb-2">
-        <div class="flex w-[300px] dark:border-gray-700">
-          <UInput
-            v-model="q"
-            class="w-full"
-            placeholder="Search..."
-            icon="i-heroicons-magnifying-glass"
-            autocomplete="off"
-            :ui="{ icon: { trailing: { pointer: '' } } }"
-          >
-            <template #trailing>
-              <UButton
-                v-show="q !== ''"
-                color="gray"
-                variant="link"
-                icon="i-heroicons-x-mark"
-                :padded="false"
-                @click="q = ''"
-              />
-            </template>
-          </UInput>
+    <template v-if="searchable || $slots.header">
+      <div class="flex justify-between">
+        <slot name="header" />
+        <div v-if="searchable" class="flex items-center gap-5 mb-2">
+          <div class="flex w-[300px] dark:border-gray-700">
+            <UInput
+              v-model="q"
+              class="w-full"
+              placeholder="Search..."
+              icon="i-heroicons-magnifying-glass"
+              autocomplete="off"
+              :ui="{ icon: { trailing: { pointer: '' } } }"
+            >
+              <template #trailing>
+                <UButton
+                  v-show="q !== ''"
+                  color="gray"
+                  variant="link"
+                  icon="i-heroicons-x-mark"
+                  :padded="false"
+                  @click="q = ''"
+                />
+              </template>
+            </UInput>
+          </div>
+        </div>
+        <div v-if="filters.length > 1" class="flex items-center gap-3 mb-3">
+          <UBadge v-for="_filter in filters.filter(f => f.special)" :key="_filter.key" class="cursor-pointer" :ui="{ rounded: 'rounded-full' }" :color="filter === _filter.key ? 'green' : 'gray'" :variant="filter === _filter.key ? 'subtle' : 'soft'" @click="toggleFilter(_filter.key)">
+            <UTooltip :text="_filter.description || ''" class="flex gap-1 items-center">
+              <UIcon name="i-heroicons-sparkles" class="w-4 h-4" />
+              {{ _filter.label }} <span v-if="_filter.key === filter"> - {{ queriedRows.length }}</span>
+            </UTooltip>
+          </UBadge>
+          <UBadge v-for="_filter in filters.filter(f => !f.special)" :key="_filter.key" class="cursor-pointer" :ui="{ rounded: 'rounded-full' }" :color="filter === _filter.key ? 'green' : 'gray'" :variant="filter === _filter.key ? 'subtle' : 'soft'" @click="toggleFilter(_filter.key)">
+            <UTooltip :text="_filter.description || ''" class="flex gap-1 items-center">
+              {{ _filter.label }} <span v-if="_filter.key === filter"> - {{ queriedRows.length }}</span>
+            </UTooltip>
+          </UBadge>
         </div>
       </div>
-      <div v-if="filters.length > 1" class="flex items-center gap-3 mb-3">
-        <UBadge v-for="_filter in filters.filter(f => f.special)" :key="_filter.key" class="cursor-pointer" :ui="{ rounded: 'rounded-full' }" :color="filter === _filter.key ? 'green' : 'gray'" :variant="filter === _filter.key ? 'subtle' : 'soft'" @click="toggleFilter(_filter.key)">
-          <UTooltip :text="_filter.description || ''" class="flex gap-1 items-center">
-            <UIcon name="i-heroicons-sparkles" class="w-4 h-4" />
-            {{ _filter.label }} <span v-if="_filter.key === filter"> - {{ queriedRows.length }}</span>
-          </UTooltip>
-        </UBadge>
-        <UBadge v-for="_filter in filters.filter(f => !f.special)" :key="_filter.key" class="cursor-pointer" :ui="{ rounded: 'rounded-full' }" :color="filter === _filter.key ? 'green' : 'gray'" :variant="filter === _filter.key ? 'subtle' : 'soft'" @click="toggleFilter(_filter.key)">
-          <UTooltip :text="_filter.description || ''" class="flex gap-1 items-center">
-            {{ _filter.label }} <span v-if="_filter.key === filter"> - {{ queriedRows.length }}</span>
-          </UTooltip>
-        </UBadge>
-      </div>
-    </div>
-    <UDivider />
+      <UDivider />
+    </template>
     <UTable :loading="!value" :rows="paginatedRows" :columns="columns" :ui="tableUi" @update:sort="updateSort">
       <template #expand-data="{ index }">
         <UButton :icon="expandedRow === index ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'" color="gray" size="xs" variant="ghost" @click="toggleExpandedRow(index)" />

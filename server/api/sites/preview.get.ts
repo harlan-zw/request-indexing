@@ -1,7 +1,6 @@
 import { count, inArray } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
-import { siteDateAnalytics, sitePaths, sites, userSites } from '~/server/database/schema'
-import { queueJob } from '~/server/plugins/eventServiceProvider'
+import { jobs, siteDateAnalytics, sitePaths, sites, userSites } from '~/server/database/schema'
 
 export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)
@@ -10,12 +9,12 @@ export default defineEventHandler(async (event) => {
   const force = String(_force) === 'true'
 
   if (force) {
-    await queueJob('users/syncGscSites', {
-      userId: user.userId,
-    }, {
-      queue: 'gsc',
-      priority: 2, // higher priority
-    })
+    // await queueJob('users/syncGscSites', {
+    //   userId: user.userId,
+    // }, {
+    //   queue: 'gsc',
+    //   priority: 2, // higher priority
+    // })
     // await mq.message('/api/_mq/ingest/sites', { userId: user.userId })
     return { sites: [], isPending: true }
   }
@@ -56,23 +55,33 @@ export default defineEventHandler(async (event) => {
     .from(userSites)
     .where(whereQuery)
     .as('sq3')
-  return await db.select({
-    property: sites.property,
-    sitemaps: sites.sitemaps,
-    siteId: sites.publicId,
-    domain: sites.domain,
-    lastSynced: sites.lastSynced,
-    pageCount30Day: sq.pageCount30Day,
-    startOfData: sq2.startOfData,
-    isLosingData: sq2.isLosingData,
-    permissionLevel: sq3.permissionLevel,
-  })
-    .from(sites)
+  const jobQuery = (await db.select({
+    status: jobs.status,
+  }).from(jobs)
     .where(and(
-      inArray(sites.siteId, mySitesQuery),
-      eq(sites.active, true),
-    ))
-    .leftJoin(sq, eq(sites.siteId, sq.siteId))
-    .leftJoin(sq2, eq(sites.siteId, sq2.siteId))
-    .leftJoin(sq3, eq(sites.siteId, sq3.siteId))
+      eq(jobs.entityId, user.userId),
+      eq(jobs.name, 'users/syncGscSites'),
+    )))[0]
+  return {
+    jobStatus: jobQuery.status,
+    sites: await db.select({
+      property: sites.property,
+      sitemaps: sites.sitemaps,
+      siteId: sites.publicId,
+      domain: sites.domain,
+      lastSynced: sites.lastSynced,
+      pageCount30Day: sq.pageCount30Day,
+      startOfData: sq2.startOfData,
+      isLosingData: sq2.isLosingData,
+      permissionLevel: sq3.permissionLevel,
+    })
+      .from(sites)
+      .where(and(
+        inArray(sites.siteId, mySitesQuery),
+        eq(sites.active, true),
+      ))
+      .leftJoin(sq, eq(sites.siteId, sq.siteId))
+      .leftJoin(sq2, eq(sites.siteId, sq2.siteId))
+      .leftJoin(sq3, eq(sites.siteId, sq3.siteId)),
+  }
 })

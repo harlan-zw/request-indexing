@@ -1,5 +1,3 @@
-import { prefixStorage } from 'unstorage'
-
 // const storage = prefixStorage<{ urlOrTopic: string, payload: any, attempts: number }>(useStorage(), 'app:queue')
 
 export default defineNitroPlugin(() => {

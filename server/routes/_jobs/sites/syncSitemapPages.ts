@@ -47,7 +47,7 @@ export default defineJobHandler(async (event) => {
   const totalPagesCount = sitemapUrls.flat().length
   await db.insert(siteDateAnalytics).values({
     siteId,
-    date: dayjs().format('YYYY-MM-DD'), // gcs format
+    date: dayjs().subtract(1, 'day').format('YYYY-MM-DD'),
     totalPagesCount,
   }).onConflictDoUpdate({
     target: [siteDateAnalytics.siteId, siteDateAnalytics.date],

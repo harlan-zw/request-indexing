@@ -1,4 +1,4 @@
-import { asc, avg, between, count, desc, gt, ilike, inArray, max, sum } from 'drizzle-orm'
+import { asc, between, count, desc, gt, ilike, inArray, max, sum } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
   siteKeywordDatePathAnalytics,
@@ -21,10 +21,10 @@ export default defineEventHandler(async (e) => {
       statusMessage: 'Site not found',
     })
   }
-  const { filters, offset, q, sort, pageSize } = getQueryAsyncDataTable<'top-level' | 'new' | 'lost' | 'improving' | 'declining'>(e)
-  const range = userPeriodRange(user, {
-    includeToday: false,
-  })
+  const { filters, offset, q, sort, pageSize } = getQueryAsyncDataTable<
+    'top-level' | 'new' | 'lost' | 'improving' | 'declining' | 'trending'
+  >(e)
+  const range = userPeriodRange(user)
   const _where = [
     eq(sitePathDateAnalytics.siteId, site.siteId),
   ]
@@ -36,10 +36,11 @@ export default defineEventHandler(async (e) => {
       count: count().as('count'),
       // need to use raw sql to get avg of both avg psiDesktopScore and avg psiMobileScore
       // psiScore: sql`AVG((${sitePathDateAnalytics.psiDesktopScore} + ${sitePathDateAnalytics.psiMobileScore}) / 2)`.as('psiScore'),
-      clicks: sum(sitePathDateAnalytics.clicks).as('clicks'),
-      ctr: avg(sitePathDateAnalytics.ctr).as('ctr'),
-      impressions: sum(sitePathDateAnalytics.impressions).as('impressions'),
-      position: avg(sitePathDateAnalytics.position).as('position'),
+      // clicks: sum(sitePathDateAnalytics.clicks).as('clicks'),
+      clicks: sql<number>`sum(${sitePathDateAnalytics.clicks})`.mapWith(Number).as('clicks'),
+      ctr: sql<number>`avg(${sitePathDateAnalytics.ctr})`.mapWith(Number).as('ctr'),
+      impressions: sql<number>`sum(${sitePathDateAnalytics.impressions})`.mapWith(Number).as('impressions'),
+      position: sql<number>`avg(${sitePathDateAnalytics.position})`.mapWith(Number).as('position'),
     })
     .from(sitePathDateAnalytics)
     .where(and(
@@ -53,11 +54,10 @@ export default defineEventHandler(async (e) => {
   const sq2 = useDrizzle()
     .select({
       path: filters.includes('top-level') ? sql`SUBSTR(path, 1, INSTR(SUBSTR(path, 2), '/') + 1)`.as('topLevelPath2') : sitePathDateAnalytics.path,
-      prevClicks: sum(sitePathDateAnalytics.clicks).as('prevClicks'),
-      // prevPsiScore: sql`AVG((${sitePathDateAnalytics.psiDesktopScore} + ${sitePathDateAnalytics.psiMobileScore}) / 2)`.as('prevPsiScore'),
-      ctr: avg(sitePathDateAnalytics.ctr).as('prevCtr'),
-      prevImpressions: sum(sitePathDateAnalytics.impressions).as('prevImpressions'),
-      position: avg(sitePathDateAnalytics.position).as('prevPosition'),
+      prevClicks: sql<number>`sum(${sitePathDateAnalytics.clicks})`.mapWith(Number).as('prevClicks'),
+      prevCtr: sql<number>`avg(${sitePathDateAnalytics.ctr})`.mapWith(Number).as('prevCtr'),
+      prevImpressions: sql<number>`sum(${sitePathDateAnalytics.impressions})`.mapWith(Number).as('prevImpressions'),
+      prevPosition: sql<number>`avg(${sitePathDateAnalytics.position})`.mapWith(Number).as('prevPosition'),
     })
     .from(sitePathDateAnalytics)
     .where(and(
@@ -86,6 +86,12 @@ export default defineEventHandler(async (e) => {
   else if (filters.includes('declining')) {
     finalWhere = gt(sq2.prevClicks, sq.clicks)
   }
+  if (filters.includes('with-clicks')) {
+    finalWhere = and(
+      gt(sq.clicks, 5),
+      gt(sq2.prevClicks, 5),
+    )
+  }
 
   // const keywordSq = useDrizzle().select({
   //   path: siteKeywordDatePathAnalytics.path,
@@ -111,13 +117,20 @@ export default defineEventHandler(async (e) => {
     // keywordPosition: keywordSq.keywordPosition,
     // psiScore: sq.psiScore,
     clicks: sq.clicks,
+    // need to do the sql equivalent of this code ((a - b) / ((a + b) / 2)) * 100
+    // we also want to return a 0 if a or b is 0
+    // clicksPercent: sql`((sq.clicks - sq2.prevClicks) / ((sq.clicks + sq2.prevClicks) / 2)) * 100`.as('clicksPercent'),
+    // clicksPercent: sql`((${sq.clicks} - ${sq2.prevClicks}) / ((${sq.clicks} + ${sq2.prevClicks}) / 2)) * 100`.as('clicksPercent'),
+    // clicksPercent: sql`CASE WHEN (${sq.clicks} + ${sq2.prevClicks}) = 0 THEN 0 ELSE ((${sq.clicks} - ${sq2.prevClicks}) / ((${sq.clicks} + ${sq2.prevClicks}) / 2)) * 100 END`.as('clicksPercent'),
+    // clicksPercent: sql`CASE WHEN (${sq.clicks} + ${sq2.prevClicks}) = 0 THEN 0 ELSE ((CAST(${sq.clicks} AS REAL) - ${sq2.prevClicks}) / ((CAST(${sq.clicks} AS REAL) + ${sq2.prevClicks}) / 2)) * 100 END`.as('clicksPercent'),
+    clicksPercent: sql`CASE WHEN (${sq.clicks} + ${sq2.prevClicks}) = 0 THEN 0 ELSE ROUND(((CAST(${sq.clicks} AS REAL) - ${sq2.prevClicks}) / ((CAST(${sq.clicks} AS REAL) + ${sq2.prevClicks}) / 2)) * 100, 2) END`.as('clicksPercent'),
     ctr: sq.ctr,
     impressions: sq.impressions,
     position: sq.position,
     prevClicks: sq2.prevClicks,
-    prevCtr: sq2.ctr,
+    prevCtr: sq2.prevCtr,
     prevImpressions: sq2.prevImpressions,
-    prevPosition: sq2.position,
+    prevPosition: sq2.prevPosition,
     // prevPsiScore: sq2.prevPsiScore,
     // pages: sq3.path,
   })

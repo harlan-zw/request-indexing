@@ -192,7 +192,7 @@ function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
 
 <template>
   <div>
-    <TableAsyncData :pagination="pagination" :searchable="searchable" :page-size="pageSize" :path="`/api/sites/${site.siteId}/keywords`" :columns="columns" :filter="filter" :filters="filters" :expandable="expandable" @update:expanded="updateExpandedData">
+    <TableAsyncData :key="filter" :sort="sort" :pagination="pagination" :searchable="searchable" :page-size="pageSize" :path="`/api/sites/${site.siteId}/keywords`" :columns="columns" :filter="filter" :filters="filters" :expandable="expandable" @update:expanded="updateExpandedData">
       <template #keyword-data="{ row, value: totals, expanded }">
         <div class="flex items-center">
           <div class="relative group w-[225px] truncate text-ellipsis">

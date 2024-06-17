@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import { sitePathDateAnalytics, sites } from '~/server/database/schema'
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
 import { inspectGscUrl } from '~/server/app/services/gsc'
+import { incrementUsage } from '~/server/app/services/usage'
 
 export default defineJobHandler(async (event) => {
   const { siteId, path } = await readBody<{ siteId: number, path: string }>(event)
@@ -42,7 +43,7 @@ export default defineJobHandler(async (event) => {
       res: 'Already run',
     }
   }
-
+  await incrementUsage(site.siteId, 'gscInspectUrl')
   const res = await inspectGscUrl(site.owner.googleAccounts[0], site, path)
   return {
     broadcastTo: site.owner.publicId,

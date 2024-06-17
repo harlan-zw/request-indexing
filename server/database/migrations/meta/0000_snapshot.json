@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "154b75f9-9bee-4ca0-b0e5-d2d4f23ae8cf",
+  "id": "893fdf05-1790-4ea5-a45b-72f9dc891c29",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "failed_jobs": {
@@ -764,6 +764,83 @@
           "autoincrement": false,
           "default": 0
         },
+        "mobile_origin_cls_75": {
+          "name": "mobile_origin_cls_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "mobile_origin_ttfb_75": {
+          "name": "mobile_origin_ttfb_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "mobile_origin_fcp_75": {
+          "name": "mobile_origin_fcp_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "mobile_origin_lcp_75": {
+          "name": "mobile_origin_lcp_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "mobile_origin_inp_75": {
+          "name": "mobile_origin_inp_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "desktop_origin_cls_75": {
+          "name": "desktop_origin_cls_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "desktop_origin_ttfb_75": {
+          "name": "desktop_origin_ttfb_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "desktop_origin_fcp_75": {
+          "name": "desktop_origin_fcp_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "desktop_origin_lcp_75": {
+          "name": "desktop_origin_lcp_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "desktop_origin_inp_75": {
+          "name": "desktop_origin_inp_75",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "origin_loading_experience": {
+          "name": "origin_loading_experience",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "keywords": {
           "name": "keywords",
           "type": "integer",
@@ -1253,6 +1330,102 @@
           ],
           "columnsTo": [
             "site_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "site_pagespeed_insight_scan_audits": {
+      "name": "site_pagespeed_insight_scan_audits",
+      "columns": {
+        "site_pagespeed_insight_scan_audit_id": {
+          "name": "site_pagespeed_insight_scan_audit_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "site_pagespeed_insight_scan_id": {
+          "name": "site_pagespeed_insight_scan_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "audit_id": {
+          "name": "audit_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "weight": {
+          "name": "weight",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "numeric_value": {
+          "name": "numeric_value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        }
+      },
+      "indexes": {
+        "audit_idx": {
+          "name": "audit_idx",
+          "columns": [
+            "audit_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "site_pagespeed_insight_scan_audits_site_pagespeed_insight_scan_id_site_pagespeed_insight_scans_site_pagespeed_insight_scan_id_fk": {
+          "name": "site_pagespeed_insight_scan_audits_site_pagespeed_insight_scan_id_site_pagespeed_insight_scans_site_pagespeed_insight_scan_id_fk",
+          "tableFrom": "site_pagespeed_insight_scan_audits",
+          "tableTo": "site_pagespeed_insight_scans",
+          "columnsFrom": [
+            "site_pagespeed_insight_scan_id"
+          ],
+          "columnsTo": [
+            "site_pagespeed_insight_scan_id"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -2156,55 +2329,57 @@
     "usages": {
       "name": "usages",
       "columns": {
-        "usage_id": {
-          "name": "usage_id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "team_id": {
-          "name": "team_id",
+        "site_id": {
+          "name": "site_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "api": {
-          "name": "api",
+        "date": {
+          "name": "date",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
+        "key": {
+          "name": "key",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
+          "autoincrement": false
         },
-        "updated_at": {
-          "name": "updated_at",
+        "usage": {
+          "name": "usage",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
+          "default": 0
         }
       },
-      "indexes": {},
+      "indexes": {
+        "usages_site_id_date_key_unique": {
+          "name": "usages_site_id_date_key_unique",
+          "columns": [
+            "site_id",
+            "date",
+            "key"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {
-        "usages_team_id_teams_team_id_fk": {
-          "name": "usages_team_id_teams_team_id_fk",
+        "usages_site_id_sites_site_id_fk": {
+          "name": "usages_site_id_sites_site_id_fk",
           "tableFrom": "usages",
-          "tableTo": "teams",
+          "tableTo": "sites",
           "columnsFrom": [
-            "team_id"
+            "site_id"
           ],
           "columnsTo": [
-            "team_id"
+            "site_id"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"

@@ -5,10 +5,12 @@ import {
 } from '~/server/database/schema'
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
 import { createGoogleOAuthClient, generateDefaultQueryBody } from '~/server/app/services/gsc'
+import { incrementUsage } from '~/server/app/services/usage'
+import { chunkedBatch } from '#imports'
 // import { wsUsers } from '~/server/routes/_ws'
 
 export default defineJobHandler(async (event) => {
-  const { siteId, date } = await readBody<{ siteId: number, date: string }>(event)
+  const { siteId, start, end } = await readBody<{ siteId: number, start: string, end: string }>(event)
 
   const db = useDrizzle()
   const site = await db.query.sites.findFirst({
@@ -37,39 +39,44 @@ export default defineJobHandler(async (event) => {
     version: 'v1',
     auth: createGoogleOAuthClient(site.owner.googleAccounts[0]),
   })
-
-  const set = await api.searchanalytics.query({
+  await incrementUsage(site.siteId, 'gsc')
+  const rows = await api.searchanalytics.query({
     siteUrl: site.property,
     requestBody: {
       ...generateDefaultQueryBody(site, {
-        start: date,
-        end: date,
+        start,
+        end,
       }),
+      dimensions: ['date'],
     },
   }).then((res) => {
-    const row = res.data.rows?.[0] || {}
-    return {
-      clicks: row.clicks || 0,
-      impressions: row.impressions || 0,
-      ctr: row.ctr || 0,
-      position: row.position || 0,
-    }
+    return (res.data.rows || []).map((row) => {
+      const [date] = row.keys as [string]
+      return {
+        date,
+        clicks: row.clicks,
+        impressions: row.impressions,
+        ctr: row.ctr,
+        position: row.position,
+      }
+    })
   })
-  // insert the rows
-  // should only be a single record
-  await db.insert(siteDateAnalytics).values({
-    siteId,
-    date,
-    ...set,
-  }).onConflictDoUpdate({
-    // this is the most accurate data
-    target: [siteDateAnalytics.siteId, siteDateAnalytics.date],
-    set,
+  const inserts = rows.map((row) => {
+    return db.insert(siteDateAnalytics).values({
+      siteId,
+      ...row,
+    }).onConflictDoUpdate({
+      // this is the most accurate data
+      target: [siteDateAnalytics.siteId, siteDateAnalytics.date],
+      set: row,
+    })
   })
 
+  await chunkedBatch(inserts)
   return {
     broadcastTo: site.owner.publicId,
     siteId: site.publicId,
+    inserts: inserts.length,
     // startDate,
   }
 })

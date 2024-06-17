@@ -5,6 +5,7 @@ import {
   teamSites,
 } from '~/server/database/schema'
 import { batchJobs, defineJobHandler } from '~/server/plugins/eventServiceProvider'
+import { dayjsPst } from '~/server/utils/dayjs'
 // import { wsUsers } from '~/server/routes/_ws'
 
 // only after they have selected it as a site
@@ -40,20 +41,31 @@ export default defineJobHandler(async (event) => {
     ))
     .leftJoin(sites, eq(teamSites.siteId, sites.siteId))
 
-  // need last 30d to show graph and last 60 to show comparison
-  const dates = Array.from({ length: 61 }, (_, i) => dayjs().subtract(i, 'day').format('YYYY-MM-DD'))
-
   await Promise.all(
     teamsSites.map((row) => {
-      const gscJobs = dates.map((date) => {
-        return ['date', 'page', 'query', 'all', 'country'].map(job => ({
+      // today PST
+      const endDayjs = dayjsPst().subtract(1, 'day') // avoid partial data
+      // TODO check earliest dates
+      const TOTAL_PAGES = 90
+      const CHUNK_SIZE = 30 // divisible by 10
+      // we want to get the last 90 days, for this we'll create 9 separate jobs all doing 10 days each
+      const regionChunks = Array.from({ length: TOTAL_PAGES / CHUNK_SIZE }, (_, i) => i * CHUNK_SIZE)
+        .map((start) => {
+          return {
+            start: endDayjs.subtract(start + CHUNK_SIZE, 'day').format('YYYY-MM-DD'),
+            end: endDayjs.subtract(start, 'day').format('YYYY-MM-DD'),
+          }
+        })
+      const gscJobs = regionChunks.map(({ start, end }) => {
+        return ['date', 'page', 'query', 'all', 'country', 'device'].map(job => ({
           name: `gsc/${job}`,
           queue: 'gsc',
           entityId: row.siteId,
           entityType: 'site',
           payload: {
             siteId: row.siteId,
-            date,
+            start,
+            end,
           },
         }))
       }).flat()
@@ -87,6 +99,24 @@ export default defineJobHandler(async (event) => {
           entityType: 'site',
           payload: {
             siteId: row.siteId,
+          },
+        },
+        {
+          name: 'crux/history',
+          entityId: row.siteId,
+          entityType: 'site',
+          payload: {
+            siteId: row.siteId,
+            strategy: 'DESKTOP',
+          },
+        },
+        {
+          name: 'crux/history',
+          entityId: row.siteId,
+          entityType: 'site',
+          payload: {
+            siteId: row.siteId,
+            strategy: 'PHONE',
           },
         },
         ...psiJobs,

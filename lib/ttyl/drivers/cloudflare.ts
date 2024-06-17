@@ -11,7 +11,6 @@ export default (config: { binding: string, queue: string }) => {
     message(path, payload) {
       // isn't available straight away
       const binding = getQueueBinding(config.binding)
-      console.log('got binding', binding, config.binding, globalThis.__env__?.DEV_QUEUE)
       return binding.send({ path, payload }, {
         // delaySeconds: 0,
       })

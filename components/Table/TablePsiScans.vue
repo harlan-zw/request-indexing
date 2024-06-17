@@ -130,6 +130,18 @@ function pageUrlToPath(url: string) {
           </UTooltip>
         </div>
       </template>
+      <template #accessibility-data="{ row }">
+        <div class="flex gap-3 items-center">
+          <UTooltip :text="`${row.psiMobileAccessibility} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiMobileAccessibility, 0) }}
+          </UTooltip>
+          <UTooltip :text="`${row.psiDesktopAccessibility} score this period`" class="flex items-center justify-center gap-1">
+            <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+            {{ useHumanFriendlyNumber(row.psiDesktopAccessibility, 0) }}
+          </UTooltip>
+        </div>
+      </template>
       <template #psiMobileScore-data="{ row }">
         <div class="text-center text-lg font-semibold">
           <UTooltip :text="`${row.psiMobileScore} score this period`" class="flex items-center justify-center gap-1">

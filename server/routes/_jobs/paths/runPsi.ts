@@ -2,8 +2,16 @@ import { pagespeedonline } from '@googleapis/pagespeedonline'
 import dayjs from 'dayjs'
 import type { pagespeedonline_v5 } from '@googleapis/pagespeedonline/v5'
 import { withBase } from 'ufo'
-import { sitePageSpeedInsightScans, sitePathDateAnalytics, sites } from '~/server/database/schema'
+import { defu } from 'defu'
+import {
+  siteDateAnalytics,
+  sitePageSpeedInsightScanAudits,
+  sitePageSpeedInsightScans,
+  sitePathDateAnalytics,
+  sites,
+} from '~/server/database/schema'
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
+import { incrementUsage } from '~/server/app/services/usage'
 
 function ucFirst(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
@@ -24,25 +32,25 @@ export default defineJobHandler(async (event) => {
     where: eq(sites.siteId, siteId),
   })
 
-  const existing = await db.query.sitePathDateAnalytics.findFirst({
-    where: and(
-      eq(sitePathDateAnalytics.siteId, siteId),
-      eq(sitePathDateAnalytics.date, dayjs().format('YYYY-MM-DD')),
-      eq(sitePathDateAnalytics.path, path),
-    ),
-  })
+  // const existing = await db.query.sitePathDateAnalytics.findFirst({
+  //   where: and(
+  //     eq(sitePathDateAnalytics.siteId, siteId),
+  //     eq(sitePathDateAnalytics.date, dayjs().format('YYYY-MM-DD')),
+  //     eq(sitePathDateAnalytics.path, path),
+  //   ),
+  // })
 
-  if ((existing?.psiMobileScore && strategy === 'mobile') || (existing?.psiDesktopScore && strategy === 'desktop')) {
-    return {
-      res: 'Already run',
-    }
-  }
+  // if ((existing?.psiMobileScore && strategy === 'mobile') || (existing?.psiDesktopScore && strategy === 'desktop')) {
+  //   return {
+  //     res: 'Already run',
+  //   }
+  // }
   const entry = await db.insert(sitePageSpeedInsightScans).values({
     siteId,
     path,
     strategy,
   }).returning()
-
+  await incrementUsage(site.siteId, 'psi')
   const api = pagespeedonline({
     version: 'v5',
     // TODO each oauth provider should have their own token
@@ -63,6 +71,50 @@ export default defineJobHandler(async (event) => {
       error: 'Failed to fetch PSI',
     }
   }
+  // keep track of origin loading experience
+  if (res.originLoadingExperience) {
+    /**
+     * Need to save the data for all these columns, may need to manually map
+     *
+     * mobileOriginCls75: integer('mobile_origin_cls_75'),
+     *   mobileOriginTtfb75: integer('mobile_origin_ttfb_75'),
+     *   mobileOriginFcp75: integer('mobile_origin_fcp_75'),
+     *   mobileOriginLcp75: integer('mobile_origin_lcp_75'),
+     *   mobileOriginFid75: integer('mobile_origin_fid_75'),
+     *   mobileOriginInp75: integer('mobile_origin_inp_75'),
+     *   // now desktop
+     *   desktopOriginCls75: integer('desktop_origin_cls_75'),
+     *   desktopOriginTtfb75: integer('desktop_origin_ttfb_75'),
+     *   desktopOriginFcp75: integer('desktop_origin_fcp_75'),
+     *   desktopOriginLcp75: integer('desktop_origin_lcp_75'),
+     *   desktopOriginFid75: integer('desktop_origin_fid_75'),
+     */
+    const metrics = res.originLoadingExperience.metrics || {}
+    const payload: Record<string, any> = {}
+    if (metrics.CUMULATIVE_LAYOUT_SHIFT_SCORE) {
+      payload[`${strategy}OriginCls75`] = metrics.CUMULATIVE_LAYOUT_SHIFT_SCORE.percentile
+    }
+    if (metrics.EXPERIMENTAL_TIME_TO_FIRST_BYTE) {
+      payload[`${strategy}OriginTtfb75`] = metrics.EXPERIMENTAL_TIME_TO_FIRST_BYTE.percentile
+    }
+    if (metrics.FIRST_CONTENTFUL_PAINT_MS) {
+      payload[`${strategy}OriginFcp75`] = metrics.FIRST_CONTENTFUL_PAINT_MS.percentile
+    }
+    if (metrics.LARGEST_CONTENTFUL_PAINT_MS) {
+      payload[`${strategy}OriginLcp75`] = metrics.LARGEST_CONTENTFUL_PAINT_MS.percentile
+    }
+    if (metrics.INTERACTION_TO_NEXT_PAINT) {
+      payload[`${strategy}OriginInp75`] = metrics.INTERACTION_TO_NEXT_PAINT.percentile
+    }
+    await db.update(siteDateAnalytics)
+      .set({
+        originLoadingExperience: res.originLoadingExperience,
+        ...payload,
+      }).where(
+        eq(siteDateAnalytics.siteId, siteId),
+        and(eq(siteDateAnalytics.date, dayjs().format('YYYY-MM-DD'))),
+      )
+  }
 
   const reportBlob = await hubBlob().put(`psi:${siteId}:${path}:${strategy}:lighthouse.json`, JSON.stringify(res))
   const reportScreenshotBlob = await hubBlob().put(`psi:${siteId}:${path}:${strategy}:screenshot.png`, res.lighthouseResult.audits['final-screenshot'].details.data)
@@ -75,6 +127,41 @@ export default defineJobHandler(async (event) => {
     reportBlob,
     reportScreenshotBlob,
   }).where(eq(sitePageSpeedInsightScans.sitePageSpeedInsightScanId, entry[0].sitePageSpeedInsightScanId))
+
+  function findCategoryForAuditId(auditId: pagespeedonline_v5.Schema$LighthouseAuditResultV5['id']) {
+    let category: { weight: number, category: string } = null
+    Object.values(res.lighthouseResult.categories).forEach((cat) => {
+      const _cat = cat as pagespeedonline_v5.Schema$LighthouseCategoryV5
+      const auditRef = _cat.auditRefs.find(ref => ref.id === auditId)
+      if (auditRef) {
+        category = {
+          weight: auditRef.weight,
+          category: _cat.id,
+        }
+      }
+    })
+    return category
+  }
+
+  // iterate over audits, we want to store any that have a score that is set and not 1
+  const auditData = Object.values(res.lighthouseResult?.audits)
+    .map((audit) => {
+      return defu(audit as pagespeedonline_v5.Schema$LighthouseAuditResultV5, findCategoryForAuditId(audit.id))
+    })
+    .filter(audit => (audit.score !== 1 && audit.weight > 0) || audit.numericValue)
+    .map((audit) => {
+      // sitePageSpeedInsightScanAudits
+      return db.insert(sitePageSpeedInsightScanAudits).values({
+        sitePageSpeedInsightScanId: entry[0].sitePageSpeedInsightScanId,
+        category: audit.category,
+        auditId: audit.id,
+        weight: audit.weight,
+        score: audit.score,
+        numericValue: audit.numericValue,
+      })
+    })
+
+  await chunkedBatch(auditData, 100)
 
   const totalScore = Math.round(Object.values(res.lighthouseResult.categories).reduce((acc, cat) => acc + cat.score, 0) / 4 * 100)
   const key = `psi${strategy === 'mobile' ? 'Mobile' : 'Desktop'}`

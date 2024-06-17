@@ -30,6 +30,13 @@ export function useHumanMs(ms: number): string {
   return `${(ms / 1000).toFixed(1)}s`
 }
 
+export function useHumanMsRaw(ms: number): string {
+  // need to convert it such < 1000 we say $x ms, otherwise we say $x s
+  if (ms < 1000)
+    return `${Number(ms).toFixed(0)}`
+  return `${(ms / 1000).toFixed(1)}`
+}
+
 export function useFriendlySiteUrl(url: string): string
 export function useFriendlySiteUrl(url: MaybeRef<string>) {
   const format = (s: string) => withoutTrailingSlash(
@@ -90,4 +97,18 @@ export function useTimeMonthsAgo(date: MaybeRef<string>) {
     })
   }
   return format(date)
+}
+
+export function psiScoreToColor(score: number) {
+  // return a tailwind color for the score
+  if (score >= 90)
+    return 'green' // 'text-green-500'
+  if (score >= 50)
+    return 'yellow' // ''text-yellow-600'
+  return 'red' // 'text-red-500'
+}
+
+export function formatPageSpeedInsightScore(score: number) {
+  const color = psiScoreToColor(score)
+  return `text-${color}-${color === 'yellow' ? '600' : '500'}`
 }

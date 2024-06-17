@@ -2,11 +2,22 @@
 import type { GscDataRow } from '~/types/data'
 import { callFnSyncToggleRef } from '~/composables/loader'
 import type { SiteSelect } from '~/server/database/schema'
+import { formatPageSpeedInsightScore } from '~/composables/formatting'
+import type { TableAsyncDataProps } from '~/components/Table/TableAsyncData.vue'
 
 const props = withDefaults(
-  defineProps<{ site: SiteSelect, pageCount?: number, device: 'mobile' | 'desktop' }>(),
+  defineProps<{
+    site: SiteSelect
+    sortable?: boolean
+    excludeColumns?: string[]
+    device: 'mobile' | 'desktop'
+  } & TableAsyncDataProps>(),
   {
-    pageCount: 8,
+    searchable: true,
+    sortable: true,
+    pagination: true,
+    expandable: true,
+    pageSize: 8,
   },
 )
 
@@ -18,61 +29,70 @@ const columns = computed(() => [
   {
     key: 'page',
     label: 'Page',
-    sortable: true,
+    sortable: props.sortable,
   },
   {
     key: `${deviceKey.value}Performance`,
     label: 'Score',
-    sortable: true,
+    sortable: props.sortable,
+  },
+  {
+    key: `${deviceKey.value}Fcp`,
+    label: 'FCP',
+    sortable: props.sortable,
   },
   {
     key: `${deviceKey.value}Lcp`,
-    label: 'Largest Contentful Paint',
-    sortable: true,
+    label: 'LCP',
+    sortable: props.sortable,
   },
   {
     key: `${deviceKey.value}Si`,
-    label: 'Speed Index',
-    sortable: true,
+    label: 'SI',
+    sortable: props.sortable,
   },
   {
     key: `${deviceKey.value}Tbt`,
-    label: 'Total Blocking Time',
-    sortable: true,
+    label: 'TBT',
+    sortable: props.sortable,
   },
   {
     key: `${deviceKey.value}Cls`,
-    label: 'Cumulative Layout Shift',
-    sortable: true,
+    label: 'CLS',
+    sortable: props.sortable,
   },
   {
     key: 'actions',
   },
-].filter(Boolean))
+].filter(Boolean).filter((col) => {
+  return !(props.excludeColumns || []).includes(col.key)
+}))
 
-const filters = [
-  {
-    key: 'new',
-    label: 'New',
-  },
-  {
-    key: 'lost',
-    label: 'Lost',
-  },
-  {
-    key: 'improving',
-    label: 'Improving',
-  },
-  {
-    key: 'declining',
-    label: 'Declining',
-  },
-  {
-    key: 'top-level',
-    special: true,
-    label: 'Top Level',
-  },
-]
+const filters = computed(() => {
+  return [
+    {
+      key: 'new',
+      label: 'New',
+    },
+    {
+      key: 'lost',
+      label: 'Lost',
+    },
+    {
+      key: 'improving',
+      label: 'Improving',
+    },
+    {
+      key: 'declining',
+      label: 'Declining',
+    },
+    {
+      key: 'top-level',
+      special: true,
+      label: 'Top Level',
+    },
+  ]
+})
 // const siteUrlFriendly = useFriendlySiteUrl(props.siteUrl)
 
 const expandedRowData = ref(null)
@@ -100,17 +120,18 @@ function pageUrlToPath(url: string) {
 </script>
 
 <template>
-  <TableAsyncData :path="`/api/sites/${site.siteId}/psi-performance`" :columns="columns" :filters="filters" expandable @page-change="p => page = p" @update:expanded="updateExpandedData">
+  <TableAsyncData v-bind="$props" :path="`/api/sites/${site.siteId}/psi-performance`" :columns="columns" :filters="filters" :expandable="expandable" @page-change="p => page = p" @update:expanded="updateExpandedData">
     <template #page-data="{ row, expanded }">
       <div class="flex items-center">
         <div class="relative group w-[260px] max-w-full">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 mb-1">
             <button type="button" :title="`Open ${row.path}`" class="max-w-[260px] text-xs">
-              <div class="max-w-[260px] truncate text-ellipsis">
+              <div class="text-black max-w-[260px] truncate text-ellipsis">
                 {{ pageUrlToPath(row.path) }}
               </div>
             </button>
           </div>
+          <!--          <UProgress :value="row[`${deviceKey}Performance`]" :color="psiScoreToColor(row[`${deviceKey}Performance`])" class="opacity-50" size="xs" v-bind="$attrs" /> -->
           <!--            <div v-if="row.inspectionResult" class="text-xs text-gray-500 flex items-center"> -->
           <!--              <UTooltip v-if="row.inspectionResult?.inspectionResultLink" mode="hover" text="View Inspection Result" size="xs"> -->
           <!--                <UButton target="_blank" :to="row.inspectionResult?.inspectionResultLink" icon="i-heroicons-document-magnifying-glass" color="gray" variant="link" size="xs" /> -->
@@ -130,72 +151,58 @@ function pageUrlToPath(url: string) {
     </template>
     <template #psiMobilePerformance-data="{ row }">
       <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiMobilePerformance}ms this period`" class="flex items-center justify-center gap-1">
+        <UTooltip :text="`${row.psiMobilePerformance}ms this period`" class="font-bold flex items-center justify-center gap-1" :class="formatPageSpeedInsightScore(row.psiMobilePerformance)">
           {{ useHumanFriendlyNumber(row.psiMobilePerformance) }}
         </UTooltip>
       </div>
     </template>
     <template #psiDesktopPerformance-data="{ row }">
       <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiDesktopPerformance}ms this period`" class="flex items-center justify-center gap-1">
+        <UTooltip :text="`${row.psiDesktopPerformance}ms this period`" class="font-bold flex items-center justify-center gap-1" :class="formatPageSpeedInsightScore(row.psiDesktopPerformance)">
           {{ useHumanFriendlyNumber(row.psiDesktopPerformance) }}
         </UTooltip>
       </div>
     </template>
+    <template #psiMobileFcp-data="{ row }">
+      <PsiUnit :value="row.psiMobileFcp" class="mb-1" />
+      <PsiBenchmark :value="row.psiMobileFcp" :fast="1800" :moderate="3000" />
+    </template>
+    <template #psiDesktopFcp-data="{ row }">
+      <PsiUnit :value="row.psiDesktopFcp" class="mb-1" />
+      <PsiBenchmark :value="row.psiDesktopFcp" :fast="1800" :moderate="3000" />
+    </template>
     <template #psiMobileLcp-data="{ row }">
-      <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiMobileLcp}ms this period`" class="flex items-center justify-center gap-1">
-          {{ useHumanMs(row.psiMobileLcp) }}
-        </UTooltip>
-      </div>
+      <PsiUnit :value="row.psiMobileLcp" class="mb-1" />
+      <PsiBenchmark :value="row.psiMobileLcp" :fast="2500" :moderate="4000" />
     </template>
     <template #psiDesktopLcp-data="{ row }">
-      <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiDesktopLcp}ms this period`" class="flex items-center justify-center gap-1">
-          {{ useHumanMs(row.psiDesktopLcp) }}
-        </UTooltip>
-      </div>
+      <PsiUnit :value="row.psiDesktopLcp" class="mb-1" />
+      <PsiBenchmark :value="row.psiDesktopLcp" :fast="2500" :moderate="4000" />
     </template>
     <template #psiMobileSi-data="{ row }">
-      <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiMobileSi}ms this period`" class="flex items-center justify-center gap-1">
-          {{ useHumanMs(row.psiMobileSi) }}
-        </UTooltip>
-      </div>
+      <PsiUnit :value="row.psiMobileSi" class="mb-1" />
+      <PsiBenchmark :value="row.psiMobileSi" :fast="3400" :moderate="5800" />
     </template>
     <template #psiDesktopSi-data="{ row }">
-      <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiDesktopSi}ms this period`" class="flex items-center justify-center gap-1">
-          {{ useHumanMs(row.psiDesktopSi) }}
-        </UTooltip>
-      </div>
+      <PsiUnit :value="row.psiDesktopSi" class="mb-1" />
+      <PsiBenchmark :value="row.psiDesktopSi" :fast="3400" :moderate="5800" />
     </template>
     <template #psiMobileTbt-data="{ row }">
-      <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiMobileTbt}ms this period`" class="flex items-center justify-center gap-1">
-          {{ useHumanMs(row.psiMobileTbt) }}
-        </UTooltip>
-      </div>
+      <PsiUnit :value="row.psiMobileTbt" class="mb-1" />
+      <PsiBenchmark :value="row.psiMobileTbt" :fast="800" :moderate="1800" />
     </template>
     <template #psiDesktopTbt-data="{ row }">
-      <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiDesktopTbt}ms this period`" class="flex items-center justify-center gap-1">
-          {{ useHumanMs(row.psiDesktopTbt) }}
-        </UTooltip>
-      </div>
+      <PsiUnit :value="row.psiDesktopTbt" class="mb-1" />
+      <PsiBenchmark :value="row.psiDesktopTbt" :fast="800" :moderate="1800" />
     </template>
     <template #psiMobileCls-data="{ row }">
-      <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiMobileCls}ms this period`" class="flex items-center justify-center gap-1">
-          {{ useHumanFriendlyNumber(row.psiMobileCls) }}
-        </UTooltip>
-      </div>
+      <PsiUnit :value="row.psiMobileCls" unitless class="mb-1" />
+      <PsiBenchmark :value="row.psiMobileCls" :fast="0.1" :moderate="0.25" />
     </template>
     <template #psiDesktopCls-data="{ row }">
-      <div class="flex gap-3 items-center">
-        <UTooltip :text="`${row.psiDesktopCls}ms this period`" class="flex items-center justify-center gap-1">
-          {{ useHumanFriendlyNumber(row.psiDesktopCls) }}
-        </UTooltip>
+      <div>
+        <PsiUnit :value="row.psiDesktopCls" unitless class="mb-1" />
+        <PsiBenchmark :value="row.psiDesktopCls" :fast="0.1" :moderate="0.25" />
       </div>
     </template>
     <template #actions-data="{ row }">

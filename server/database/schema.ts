@@ -6,6 +6,7 @@ import type { TokenInfo } from 'google-auth-library'
 import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
 import type { CredentialRequest } from 'google-auth-library/build/src/auth/credentials'
 import type { BlobObject } from '@nuxthub/core/dist/runtime/server/utils/blob'
+import type { pagespeedonline_v5 } from '@googleapis/pagespeedonline/v5'
 import type { RequiredNonNullable } from '~/types/util'
 import type { GoogleOAuthUser } from '~/server/app/utils/auth'
 import type { TaskMap } from '~/server/plugins/eventServiceProvider'
@@ -174,8 +175,21 @@ export const siteDateAnalytics = sqliteTable('site_date_analytics', {
   ...googleSearchConsolePageAnalytics,
 
   // TODO make life easier for querying?
-  // psiDesktopScore: integer('psi_desktop_score'),
-  // psiMobileScore: integer('psi_mobile_score'),
+  // save all percentile 75
+  mobileOriginCls75: integer('mobile_origin_cls_75'),
+  mobileOriginTtfb75: integer('mobile_origin_ttfb_75'),
+  mobileOriginFcp75: integer('mobile_origin_fcp_75'),
+  mobileOriginLcp75: integer('mobile_origin_lcp_75'),
+  mobileOriginInp75: integer('mobile_origin_inp_75'),
+  // now desktop
+  desktopOriginCls75: integer('desktop_origin_cls_75'),
+  desktopOriginTtfb75: integer('desktop_origin_ttfb_75'),
+  desktopOriginFcp75: integer('desktop_origin_fcp_75'),
+  desktopOriginLcp75: integer('desktop_origin_lcp_75'),
+  desktopOriginInp75: integer('desktop_origin_inp_75'),
+
+  mobileOriginLoadingExperience: text('origin_loading_experience', { mode: 'json' }).$type<pagespeedonline_v5.Schema$PagespeedApiLoadingExperienceV5>(),
+  desktopOriginLoadingExperience: text('origin_loading_experience', { mode: 'json' }).$type<pagespeedonline_v5.Schema$PagespeedApiLoadingExperienceV5>(),
 
   keywords: integer('keywords'),
   pages: integer('pages'),
@@ -234,6 +248,21 @@ export const sitePageSpeedInsightScans = sqliteTable('site_pagespeed_insight_sca
 }))
 
 export type SitePageSpeedInsightScansSelect = typeof sitePageSpeedInsightScans.$inferSelect
+
+// a table where we record individual audit results if they're failing, should be generic to the ligthhouse json format
+export const sitePageSpeedInsightScanAudits = sqliteTable('site_pagespeed_insight_scan_audits', {
+  sitePageSpeedInsightScanAuditId: integer('site_pagespeed_insight_scan_audit_id').notNull().primaryKey(),
+  sitePageSpeedInsightScanId: integer('site_pagespeed_insight_scan_id').notNull().references(() => sitePageSpeedInsightScans.sitePageSpeedInsightScanId),
+  auditId: text('audit_id').notNull(),
+  category: text('category'),
+  weight: integer('weight'),
+  score: integer('score').notNull(),
+  numericValue: text('numeric_value'),
+  ...timestamps,
+}, t => ({
+  // index the audit id
+  auditIdx: index('audit_idx').on(t.auditId),
+}))
 
 export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),
@@ -298,10 +327,14 @@ export const relatedKeywords = sqliteTable('related_keywords', {
 }))
 
 export const usages = sqliteTable('usages', {
-  usageId: integer('usage_id').notNull().primaryKey(),
-  teamId: integer('team_id').notNull().references(() => teams.teamId),
-  api: text('api').notNull(),
-  ...timestamps,
+  siteId: integer('site_id').notNull().references(() => sites.siteId),
+  date: text('date').notNull(),
+  key: text('key').notNull(),
+  usage: integer('usage').notNull().default(0),
+}, (t) => {
+  return {
+    unq: unique().on(t.siteId, t.date, t.key),
+  }
 })
 
 export const siteKeywordDateAnalytics = sqliteTable('site_keyword_date_analytics', {

@@ -14,7 +14,6 @@ export default defineTask({
       // get the next job
       const job = await nextWaitingJob('ads')
       if (job) {
-        console.log('processing job', job.jobId, job.name)
         // run the job
         await runJob(job)
       }

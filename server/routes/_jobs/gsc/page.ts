@@ -1,7 +1,5 @@
 import { searchconsole } from '@googleapis/searchconsole'
-import { count, lte } from 'drizzle-orm'
 import {
-  siteDateAnalytics,
   sitePathDateAnalytics,
   sitePaths,
   sites,
@@ -10,9 +8,10 @@ import { defineJobHandler, queueJob } from '~/server/plugins/eventServiceProvide
 import { createGoogleOAuthClient } from '#imports'
 import { generateDefaultQueryBody } from '~/server/app/services/gsc'
 import { chunkedBatch } from '~/server/utils/drizzle'
+import { incrementUsage } from '~/server/app/services/usage'
 
 export default defineJobHandler(async (event) => {
-  const { siteId, date, page } = await readBody<{ siteId: number, date: string, page: number }>(event)
+  const { siteId, start, end, page } = await readBody<{ siteId: number, start: string, end: string, page: number }>(event)
   const db = useDrizzle()
   const site = await db.query.sites.findFirst({
     with: {
@@ -59,32 +58,34 @@ export default defineJobHandler(async (event) => {
     version: 'v1',
     auth: createGoogleOAuthClient(site.owner.googleAccounts[0]),
   })
-
+  await incrementUsage(site.siteId, 'gsc')
   const { rows, hasNextPage } = await queryPaginated(api, {
     siteUrl: site.property,
     requestBody: {
       ...generateDefaultQueryBody(site, {
-        start: date,
-        end: date,
+        start,
+        end,
       }),
-      dimensions: ['page'],
+      dimensions: ['date', 'page'],
     },
-  }, { page, pageSize: 5000 })
+  }, { page, pageSize: 1000 })
   // finished
   if (!rows.length) {
     return {
       // TODO broadcast to all teams which own the site
       broadcastTo: site.owner.publicId,
       siteId: site.publicId,
-      date,
+      start,
+      end,
     }
   }
   const pages = rows.map((row) => {
-    const keys = row.keys
+    const [date, page] = row.keys as [string]
     delete row.keys
     return {
       ...row,
-      path: new URL(keys![0]).pathname,
+      date,
+      path: new URL(page).pathname,
     }
   })
 
@@ -95,12 +96,12 @@ export default defineJobHandler(async (event) => {
         path: row.path,
         isIndexed: true,
         // should be the min of the current value and date
-        firstSeenIndexed: sql`MIN(${date}, 'first_seen_indexed')`,
+        firstSeenIndexed: sql`MIN(${row.date}, 'first_seen_indexed')`,
       })
       .onConflictDoUpdate({
         target: [sitePaths.siteId, sitePaths.path],
         set: {
-          firstSeenIndexed: sql`MIN(${date}, 'first_seen_indexed')`,
+          firstSeenIndexed: sql`MIN(${row.date}, 'first_seen_indexed')`,
           isIndexed: true,
         },
       }),
@@ -117,7 +118,7 @@ export default defineJobHandler(async (event) => {
     return db.insert(sitePathDateAnalytics)
       .values({
         siteId: site.siteId,
-        date,
+        date: row.date,
         ...set,
       })
       .onConflictDoUpdate({
@@ -129,37 +130,18 @@ export default defineJobHandler(async (event) => {
 
   await chunkedBatch(pageInserts)
 
-  const pagesIndexed = await db.select({
-    count: count(),
-  }).from(sitePaths)
-    .where(and(
-      eq(sitePaths.siteId, siteId),
-      lte(sitePaths.firstSeenIndexed, date),
-      eq(sitePaths.isIndexed, true),
-    ))
-    // .groupBy(sitePaths.isIndexed)
-    .then(res => res[0].count)
-  //
-  // store analytics for the day
-  await db.insert(siteDateAnalytics).values({
-    siteId,
-    date,
-    pages: pages.length, // keep track of total pages being shown each day
-    indexedPagesCount: pagesIndexed,
-  }).onConflictDoUpdate({
-    target: [siteDateAnalytics.siteId, siteDateAnalytics.date],
-    set: {
-      indexedPagesCount: pagesIndexed,
-      pages: pages.length,
-    },
-  })
-
   // queue another job while we still have pages
   if (hasNextPage) {
     await queueJob('gsc/page', {
-      siteId,
-      date,
-      page: page + 1,
+      payload: {
+        siteId,
+        page: page + 1,
+        start,
+        end,
+      },
+      queue: 'gsc',
+      entityId: siteId,
+      entityType: 'site',
     })
   }
 
@@ -167,6 +149,7 @@ export default defineJobHandler(async (event) => {
     // TODO broadcast to all teams which own the site
     broadcastTo: site.owner.publicId,
     siteId: site.publicId,
-    date,
+    start,
+    end,
   }
 })

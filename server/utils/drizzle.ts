@@ -26,24 +26,11 @@ export async function chunkedBatch<T extends any[]>(arr: T, chunkSize: number = 
     acc[acc.length - 1].push(val)
     return acc
   }, [])
-  // we can only send 6 batches at a time, split into workloads of 6
-  const workloads = chunks.reduce((acc: any[], val) => {
-    if (acc.length === 0 || acc[acc.length - 1].length >= 6)
-      acc.push([])
 
-    acc[acc.length - 1].push(val)
-    return acc
-  }, [])
-
-  let id = 0
-  for (const workload of workloads) {
-    console.log(`workload ${id}`)
-    await Promise.all(workload.map(async (chunk) => {
-      console.log('processing', { workloads: workload.length, currentChunkSize: chunk.length, totalChunkSize: chunkSize })
-      return await db.batch(chunk)
-    }))
-    id++
-  }
+  await Promise.all(chunks.map(async (workload) => {
+    if (workload.length)
+      await db.batch(workload)
+  }))
 }
 
 export type User = typeof schema.users.$inferSelect

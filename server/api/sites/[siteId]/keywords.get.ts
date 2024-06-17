@@ -48,9 +48,7 @@ export default defineEventHandler(async (e) => {
       like(siteKeywordDateAnalytics.keyword, '%which%'),
     ))
   }
-  const range = userPeriodRange(user, {
-    includeToday: false,
-  })
+  const range = userPeriodRange(user)
   const _where = [
     eq(siteKeywordDateAnalytics.siteId, site.siteId),
     ...filterWhere,
@@ -109,11 +107,19 @@ export default defineEventHandler(async (e) => {
   else if (filters.includes('declining')) {
     finalWhere = gt(sq2.prevClicks, sq.clicks)
   }
+  if (filters.includes('with-clicks')) {
+    finalWhere = and(
+      gt(sq.clicks, 5),
+      gt(sq2.prevClicks, 5),
+    )
+  }
+
   const keywordsSelect = useDrizzle().select({
     currentMonthSearchVolume: keywords.currentMonthSearchVolume,
     competitionIndex: keywords.competitionIndex,
     competition: keywords.competition,
     clicks: sq.clicks,
+    clicksPercent: sql`CASE WHEN (${sq.clicks} + ${sq2.prevClicks}) = 0 THEN 0 ELSE ROUND(((CAST(${sq.clicks} AS REAL) - ${sq2.prevClicks}) / ((CAST(${sq.clicks} AS REAL) + ${sq2.prevClicks}) / 2)) * 100, 2) END`.as('clicksPercent'),
     ctr: sq.ctr,
     impressions: sq.impressions,
     keyword: sq.keyword,

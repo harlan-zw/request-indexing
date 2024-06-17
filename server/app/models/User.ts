@@ -3,22 +3,28 @@ import type { UserSelect } from '~/server/database/schema'
 
 // const encryptKeys = ['loginTokens', 'indexingTokens']
 
-export function userPeriodRange(user: UserSelect, options: { includeToday?: boolean } = {}) {
-  const maximumDate = dayjs().subtract(options.includeToday ? -1 : 1, 'day').toDate()
+export function userPeriodRange(user: UserSelect) {
   const periodRange = user.analyticsRange || user.analyticsPeriod || '30d'
   let startPeriod
   let endPeriod
   let startPrevPeriod
   let endPrevPeriod
   if (typeof periodRange === 'string') {
-    const periodDays = periodRange.includes('d')
-      ? Number.parseInt(periodRange.replace('d', ''))
-      : (Number.parseInt(periodRange.replace('mo', '')) * 30)
-
-    startPeriod = dayjs(maximumDate).subtract(periodDays, 'day')
-    endPeriod = dayjs(maximumDate)
-    startPrevPeriod = dayjs(maximumDate).subtract(periodDays * 2, 'day')
-    endPrevPeriod = dayjs(maximumDate).subtract(periodDays + 1, 'day')
+    endPeriod = dayjsPst()
+    if (periodRange === 'all') {
+      // 100 years ago
+      startPeriod = dayjs().subtract(100, 'year')
+      startPrevPeriod = dayjs().subtract(200, 'year')
+      endPrevPeriod = dayjs().subtract(100, 'year')
+    }
+    else {
+      const periodDays = periodRange.includes('d')
+        ? Number.parseInt(periodRange.replace('d', ''))
+        : (Number.parseInt(periodRange.replace('mo', '')) * 30)
+      startPeriod = endPeriod.clone().subtract(periodDays, 'day')
+      startPrevPeriod = endPeriod.clone().subtract(periodDays * 2, 'day')
+      endPrevPeriod = endPeriod.clone().subtract(periodDays + 1, 'day')
+    }
   }
   else {
     startPeriod = dayjs(periodRange.start)

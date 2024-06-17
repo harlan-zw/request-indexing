@@ -2,7 +2,6 @@
 import { joinURL, withoutTrailingSlash } from 'ufo'
 import countries from '../server/data/countries'
 import { fetchSites } from '~/composables/fetch'
-import { createLogoutHandler } from '~/composables/auth'
 import type { UserSelect } from '~/server/database/schema'
 
 const router = useRouter()
@@ -23,6 +22,16 @@ watch(isOnWelcome, (val) => {
 }, {
   immediate: true,
 })
+
+function indexingPercentColor(perc: number) {
+  if (perc >= 100)
+    return 'text-gray-500'
+  if (perc >= 90)
+    return 'text-green-500'
+  if (perc >= 50)
+    return 'text-yellow-500'
+  return 'text-red-500'
+}
 
 // const authDropdownItems: DropdownItem[][] = computed(() => {
 //   if (isOnWelcome.value) {
@@ -68,12 +77,22 @@ const dashboards = computed(() => !site.value
   ? []
   : [
       {
-        label: 'Overview',
+        label: 'Organic Search',
         to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'),
         icon: 'i-ph-app-window-duotone',
       },
       {
-        label: 'Recommendations',
+        label: 'Page Audits',
+        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'audits'),
+        icon: 'i-ph-list-checks-duotone',
+      },
+      {
+        label: 'Web Vitals',
+        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'performance'),
+        icon: 'i-ph-speedometer-duotone',
+      },
+      {
+        label: 'Keyword Suggestions',
         to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'recommendations'),
         icon: 'i-ph-lightning-duotone',
       },
@@ -105,6 +124,14 @@ const siteLinks = computed(() => !site.value
                   label: 'Non-indexed',
                   to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'non-indexed'),
                 },
+                {
+                  label: 'Audits',
+                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'page-audits'),
+                },
+                {
+                  label: 'Web Vitals',
+                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'web-vitals'),
+                },
               ]
             : []),
         },
@@ -125,6 +152,19 @@ const siteLinks = computed(() => !site.value
               ]
             : []),
         },
+        {
+          label: 'Countries',
+          icon: 'i-ph-globe-hemisphere-east-duotone',
+          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries'),
+          children: (route.path.includes('countries')
+            ? [
+                {
+                  label: 'Overview',
+                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries'),
+                },
+              ]
+            : []),
+        },
       ],
     ])
 
@@ -132,81 +172,14 @@ const apiLinks = computed(() => !site.value
   ? []
   : [
       {
-        label: 'Web Indexing',
-        icon: 'i-ph-network-x-duotone',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'web-indexing'),
-        collapsible: false,
-        children: (route.path.includes('web-indexing')
-          ? [
-              {
-                label: 'Overview',
-                to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'web-indexing'),
-              },
-              {
-                label: 'Usage',
-                to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'web-indexing', 'usage'),
-              },
-            ]
-          : []),
-      },
-      // {
-      //   label: 'CRuX',
-      //   icon: 'i-heroicons-users',
-      //   to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'crux'),
-      // },
-      {
-        label: 'Adwords',
-        icon: 'i-heroicons-users',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'adwords'),
-        collapsible: false,
-        children: (route.path.includes('adwords')
-          ? [
-              {
-                label: 'Overview',
-                to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'adwords'),
-              },
-              {
-                label: 'Usage',
-                to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'adwords', 'usage'),
-              },
-            ]
-          : []),
+        label: 'API Usages',
+        // icon: 'i-ph-network-x-duotone',
+        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'usages'),
       },
       {
-        label: 'PageSpeed Insights',
-        icon: 'i-heroicons-rocket-launch',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights'),
-        collapsible: false,
-        children: (route.path.includes('pagespeed-insights')
-          ? [
-              {
-                label: 'Overview',
-                to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights'),
-              },
-              {
-                label: 'Performance Audits',
-                to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights', 'performance'),
-              },
-              {
-                label: 'Recent Scans',
-                to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pagespeed-insights', 'scans'),
-              },
-            ]
-          : []),
-      },
-      {
-        label: 'Search Console',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'google-search-console'),
-        icon: 'i-heroicons-circle-stack',
-        children: (route.path.includes('google-search-console')
-          ? [
-              {
-                label: 'Overview',
-                to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'google-search-console'),
-              },
-
-            ]
-          : []),
+        label: 'Data & Exports',
+        // icon: 'i-ph-network-x-duotone',
+        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'data'),
       },
     ])
 
@@ -239,8 +212,10 @@ const onlySiteLinks = computed(() => {
     ...sites.value.map((s) => {
       return {
         label: useFriendlySiteUrl(s.domain),
-        to: `/dashboard/site/${s.siteId}/overview`,
+        to: s.isSynced ? `/dashboard/site/${s.siteId}/overview` : undefined,
         avatarClass: 'rounded-sm',
+        disabled: !s.isSynced,
+        icon: s.isSynced ? undefined : 'i-ph-circle-x-duotone',
         avatar: {
           style: 'border-radius: 0;',
           size: '3xs',
@@ -384,9 +359,10 @@ const datePickerPeriod = ref(user.value?.analyticsRange || {
 async function updateAnalyticsPeriod(newPeriod: UserSelect['analyticsPeriod']) {
   await $fetch('/api/user/me', {
     method: 'POST',
-    body: JSON.stringify({
+    body: {
+      analyticsRange: '',
       analyticsPeriod: newPeriod,
-    }),
+    },
   })
   await fetch()
   // refreshes sites
@@ -408,19 +384,20 @@ async function updateAnalyticsPeriod(newPeriod: UserSelect['analyticsPeriod']) {
   }
 }
 
-async function updateAnalyticsRange(range: any) {
-  await $fetch('/api/user/me', {
-    method: 'POST',
-    body: {
-      analyticsPeriod: '',
-      analyticsRange: {
-        start: range.start.getTime(),
-        end: range.end.getTime(),
-      },
-    },
-  })
-  await fetch()
-  datePickerPeriod.value = range
+async function updateAnalyticsRange() {
+  // TODO Fix
+  // await $fetch('/api/user/me', {
+  //   method: 'POST',
+  //   body: {
+  //     analyticsPeriod: '',
+  //     analyticsRange: {
+  //       start: range.start.getTime(),
+  //       end: range.end.getTime(),
+  //     },
+  //   },
+  // })
+  // await fetch()
+  // datePickerPeriod.value = range
 }
 
 const periodItems = [
@@ -428,14 +405,16 @@ const periodItems = [
   [
     { label: 'Last 7 Days', value: '7d' },
     { label: 'Last 30 Days', value: '30d' },
-    { label: 'Last 365 Days', value: '365d' },
+    { label: 'Last 3 months', value: '90d' },
+    { label: 'Last 6 months', value: '180d' },
+    { label: 'Last 12 months', value: '360d' },
   ],
   // months
   [
     { label: 'This Month', value: 'this-month' },
     { label: 'Last Month', value: 'last-month' },
-    { label: 'This Month', value: 'this-year' },
-    { label: 'Last Month', value: 'last-year' },
+    { label: 'This Year', value: 'this-year' },
+    { label: 'Last Year', value: 'last-year' },
   ],
   [{ label: 'All time', value: 'all' }],
 ]
@@ -546,11 +525,15 @@ const allCountries = countries.map(country => ({
 
           <div class="mx-3 mt-4">
             <div class="text-xs font-semibold text-gray-600 mb-0.5">
-              <div>APIs</div>
+              <div>Settings</div>
             </div>
             <UDivider />
           </div>
-          <UDashboardSidebarLinks :links="apiLinks" />
+          <UDashboardSidebarLinks :links="apiLinks">
+            <!--            <template #badge="{ link }"> -->
+            <!--              <UChip v-if="link.label === 'Web Indexing'" color="red" class="ml-3" /> -->
+            <!--            </template> -->
+          </UDashboardSidebarLinks>
 
           <!--          <div class="flex flex-grow" /> -->
           <!--          <div class="text-sm text-gray-700 mt-3"> -->
@@ -663,6 +646,49 @@ const allCountries = countries.map(country => ({
                       />
                     </div>
                   </div>
+                </template>
+              </UPopover>
+              <UPopover v-if="site" mode="hover">
+                <template #default="{ open }">
+                  <UButton color="gray" icon="i-ph-notification-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
+                    <UChip color="green" />
+                  </UButton>
+                </template>
+                <template #panel>
+                  <UButton variant="ghost" color="gray" :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="w-full">
+                    <div class="w-full">
+                      <ProgressPercent :value="dates?.period.indexedPercent">
+                        <div class="text-xs text-gray-600">
+                          Pages Indexed
+                        </div>
+                        <div class="flex items-center justify-between mb-1">
+                          <div class="flex items-center justify-center gap-1">
+                            <span class="text-4xl font-semibold" :class="indexingPercentColor(dates?.period.indexedPercent)">
+                              {{ useHumanFriendlyNumber(dates?.period.indexedPercent) }}%
+                            </span>
+                            <UIcon v-if="dates?.period.indexedPercent >= 50 && dates?.period.indexedPercent < 100" name="i-ph-info-duotone" class="w-4 h-4 text-yellow-500" />
+                            <UIcon v-else-if="dates?.period.indexedPercent < 50" name="i-ph-warning-duotone" class="w-4 h-4 text-red-500" />
+                          </div>
+                          <div class="text-xs mt-2 text-gray-500">
+                            <div>
+                              <div class="flex gap-3 justify-between mb-1">
+                                <div class="text-gray-500 dark:text-gray-200">
+                                  Indexed Pages
+                                </div>
+                                <div>{{ dates?.period.indexedPagesCount }}</div>
+                              </div>
+                              <div class="flex gap-3 justify-between mb-1">
+                                <div class="text-gray-500 dark:text-gray-200">
+                                  Total Pages
+                                </div>
+                                <div>{{ dates?.period.totalPagesCount }}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </ProgressPercent>
+                    </div>
+                  </UButton>
                 </template>
               </UPopover>
             </div>

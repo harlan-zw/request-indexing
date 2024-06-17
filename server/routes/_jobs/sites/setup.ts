@@ -35,6 +35,7 @@ export default defineJobHandler(async (event) => {
     })
   }
 
+  // TODO usage here
   const pages = await fetchGSCPages(user.googleAccounts[0], {
     period: {
       start: dayjs().subtract(30, 'day').toDate(),

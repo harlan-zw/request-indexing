@@ -119,7 +119,7 @@ function pageUrlToPath(url: string) {
 </script>
 
 <template>
-  <TableAsyncData :pagination="pagination" :searchable="searchable" :page-size="pageSize" :path="`/api/sites/${site.siteId}/pages`" :columns="columns" :filters="filters" :expandable="expandable" @page-change="p => page = p" @update:expanded="updateExpandedData">
+  <TableAsyncData :key="filter" :sort="sort" :filter="filter" :pagination="pagination" :searchable="searchable" :page-size="pageSize" :path="`/api/sites/${site.siteId}/pages`" :columns="columns" :filters="filters" :expandable="expandable" @page-change="p => page = p" @update:expanded="updateExpandedData">
     <template #page-data="{ row, value: totals, expanded }">
       <div class="flex items-center">
         <div class="relative group w-[260px] max-w-full">

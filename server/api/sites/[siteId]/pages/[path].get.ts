@@ -21,9 +21,7 @@ export default defineEventHandler(async (e) => {
     })
   }
 
-  const range = userPeriodRange(user, {
-    includeToday: true,
-  })
+  const range = userPeriodRange(user)
 
   const page = await useDrizzle().query.sitePaths.findFirst({
     where: eq(sitePaths.path, path),

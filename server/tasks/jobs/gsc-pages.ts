@@ -12,7 +12,16 @@ export default defineTask({
 
     consola.info('Running Sync GSC Pages...')
     // run job
-    await queueJob('gsc/page', { siteId: payload.siteId, date: `2024-06-05` })
+    // await queueJob('crux/history', {
+    //   payload: { siteId: payload.siteId, strategy: 'DESKTOP' },
+    //   entityId: payload.siteId,
+    //   entityType: 'site',
+    // })
+    await queueJob('sites/syncWebIndexing', {
+      payload: { siteId: payload.siteId },
+      entityId: payload.siteId,
+      entityType: 'site',
+    })
     // await queueJob('sites/syncSitemapPages', { siteId: payload.siteId })
     consola.success('Sync GSC pages done')
     return { result: 'Success' }

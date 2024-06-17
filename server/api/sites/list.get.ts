@@ -1,6 +1,6 @@
 import { count, inArray } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
-import { jobs, sitePaths, sites, teamSites } from '~/server/database/schema'
+import { jobs, sites, teamSites } from '~/server/database/schema'
 
 export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)
@@ -53,13 +53,13 @@ export default defineEventHandler(async (event) => {
     siteId: sites.publicId,
     domain: sites.domain,
     property: sites.property,
-    sitemaps: sites.sitemaps,
+    // sitemaps: sites.sitemaps,
     isSynced: sites.isSynced,
     // ingestingGsc: sq.ingestingGsc,
 
     // permissionLevel: userSites.permissionLevel,
-    pageCount: sql`(SELECT COUNT(*) FROM ${sitePaths} WHERE ${sitePaths.siteId} = ${sites.siteId})`,
-    pageCountIndexed: sql`(SELECT COUNT(*) FROM ${sitePaths} WHERE ${sitePaths.siteId} = ${sites.siteId} AND ${sitePaths.isIndexed} = 1)`,
+    // pageCount: sql`(SELECT COUNT(*) FROM ${sitePaths} WHERE ${sitePaths.siteId} = ${sites.siteId})`,
+    // pageCountIndexed: sql`(SELECT COUNT(*) FROM ${sitePaths} WHERE ${sitePaths.siteId} = ${sites.siteId} AND ${sitePaths.isIndexed} = 1)`,
     // psiAverageDesktopScore: sql`(SELECT AVG(${siteUrls.psiDesktopScores}) FROM ${siteUrls} WHERE ${siteUrls.siteId} = ${sites.siteId})`,
     // psiAverageMobileScore: sql`-- (SELECT AVG(${siteUrls.psiMobileScores}) FROM ${siteUrls} WHERE ${siteUrls.siteId} = ${sites.siteId})`,
   })

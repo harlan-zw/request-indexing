@@ -21,9 +21,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const where = []
-  const range = userPeriodRange(user, {
-    includeToday: true,
-  })
+  const range = userPeriodRange(user)
   if (user.analyticsPeriod !== 'all') {
     where.push(between(siteDateAnalytics.date, range.period.startDate, range.period.endDate))
   }

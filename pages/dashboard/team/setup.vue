@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { SitePreview } from '~/types'
+import { useJobListener } from '~/composables/events'
 
 // const { data, pending, refresh, forceRefresh } = fetchSites('all')
-const data = ref<SitePreview[]>([])
+const data = ref<{ sites: SitePreview[], jobStatus: string }>([])
 const key = ref(0)
 const pending = ref(true)
 
@@ -21,7 +22,9 @@ async function refresh() {
       pending.value = false
     })
   // if (data.value.filter(s => !!s.lastSynced).length)
-  isSetup.value = true
+  sitesSynced.value = data.value.sites.filter(s => !!s.pageCount30Day).length
+  isSetup.value = data.value.jobStatus !== 'pending'
+  totalSites.value = data.value.sites.length
 
   key.value++
 }
@@ -62,26 +65,27 @@ async function onSubmit() {
   })
 }
 
-// function sync() {
-//   forceRefresh()
-// }
-const nuxtApp = useNuxtApp()
-const sideEffects: (() => void)[] = []
-onMounted(() => {
-  sideEffects.push(...[
-    nuxtApp.hooks.hook('app:users:syncGscSites', refresh),
-    nuxtApp.hooks.hook('app:sites:setup', refresh),
-  ])
+onMounted(() => refresh())
+
+useJobListener('sites/setup', () => {
   refresh()
+  sitesSynced.value++
+  key.value++
 })
 
-onUnmounted(() => {
-  sideEffects.forEach(fn => fn())
+useJobListener('users/syncGscSites', () => {
+  refresh()
+  isSetup.value = true
+  key.value++
 })
 
 function setSelectedSites(val) {
   selectedSites.value = val
 }
+
+const sites = computed(() => {
+  return data.value?.sites || []
+})
 </script>
 
 <template>
@@ -107,7 +111,7 @@ function setSelectedSites(val) {
                 </div>
               </div>
             </div>
-            <div v-else-if="!isPending && data.length === 0">
+            <div v-else-if="!isPending && sites.length === 0">
               <div class="text-center">
                 <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12" />
                 <div class="text-xl mb-5">
@@ -144,7 +148,7 @@ function setSelectedSites(val) {
                 </div>
                 <UProgress :max="totalSites" :value="sitesSynced" class="mb-5" />
               </div>
-              <TeamSiteSelector :key="key" :sites="data" :model-value="selectedSites" @update:model-value="setSelectedSites" />
+              <TeamSiteSelector :key="key" :sites="sites" :model-value="selectedSites" @update:model-value="setSelectedSites" />
             </div>
           </div>
           <template #footer>

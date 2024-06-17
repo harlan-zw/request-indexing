@@ -37,9 +37,7 @@ export default defineEventHandler(async (e) => {
       lt(siteKeywordDatePathAnalytics.ctr, 0.005),
     ))
   }
-  const range = userPeriodRange(user, {
-    includeToday: false,
-  })
+  const range = userPeriodRange(user)
   const _where = [
     eq(siteKeywordDatePathAnalytics.siteId, site.siteId),
     ...filterWhere,

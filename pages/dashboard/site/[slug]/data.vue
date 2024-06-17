@@ -5,7 +5,8 @@ import type { SiteSelect } from '~/server/database/schema'
 const props = defineProps<{ site: SiteSelect }>()
 
 definePageMeta({
-  title: 'Google Search Console',
+  title: 'Settings',
+  subTitle: 'Data & Exports',
   icon: 'i-heroicons-check-circle',
 })
 

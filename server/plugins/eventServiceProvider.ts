@@ -4,6 +4,7 @@ import { createConsola } from 'consola'
 import { desc, eq, inArray, lt } from 'drizzle-orm'
 import { joinURL } from 'ufo'
 import { stringify } from 'devalue'
+import { defu } from 'defu'
 import { useMessageQueue } from '#imports'
 import type { JobBatchInsert, JobInsert, JobSelect } from '~/server/database/schema'
 import { failedJobs, jobBatches, jobs } from '~/server/database/schema'
@@ -14,6 +15,9 @@ const logger = createConsola({
     tag: 'jobs',
   },
 })
+
+// per user:
+// gsc: 60000 QPD, 80 QPM
 
 // const queues = {
 //   'google-search-console': {
@@ -65,15 +69,13 @@ export async function batchJobs(batchOptions: JobBatchInsert, _jobs: Partial<Job
     pendingJobs: _jobs.length,
     ...batchOptions,
   }).returning())[0]
-  _jobs = _jobs.map(j => ({
+  _jobs = _jobs.map(j => (defu(j, {
     queue: 'default',
     jobBatchId: batch.jobBatchId,
     payload: {
-      ...j.payload || {},
       jobBatchesId: batch.jobBatchId,
     },
-    ...j,
-  } as JobInsert))
+  } as JobInsert)))
   const createdJobs = await db.batch(
     _jobs.map(job => db.insert(jobs).values(job).returning()),
   )
@@ -81,14 +83,13 @@ export async function batchJobs(batchOptions: JobBatchInsert, _jobs: Partial<Job
   return Promise.all(createdJobs.map(job => mq.message(`/_jobs/run`, { jobId: job[0].jobId })))
 }
 
-export async function queueJob<T extends keyof TaskMap>(taskName: T, payload: TaskMap[T], options?: Partial<JobInsert>) {
+export async function queueJob<T extends keyof TaskMap>(taskName: T, options: Partial<JobInsert> & { payload: TaskMap[T] }) {
   const mq = useMessageQueue()
   const db = useDrizzle()
   const job = (await db.insert(jobs).values({
     queue: 'default',
-    name: taskName,
-    payload,
     ...options,
+    name: taskName,
   }).returning())[0]
   return await mq.message(`/_jobs/run`, { jobId: job.jobId })
 }
@@ -107,13 +108,14 @@ export interface TaskMap {
   // gsc API
   // 30,000,000 QPD
   // 40,000 QPM
-  'gsc/all': { siteId: number, date: string }
-  'gsc/country': { siteId: number, date: string }
-  'gsc/date': { siteId: number, date: string }
-  'gsc/device': { siteId: number, date: string }
-  'gsc/page': { siteId: number, date: string }
-  'gsc/query': { siteId: number, date: string }
-  // 'sites/syncGscDates': { siteId: number }
+  'gsc/country': { siteId: number, start: string, end: string }
+  'gsc/date': { siteId: number, start: string, end: string }
+  'gsc/device': { siteId: number, start: string, end: string }
+  'gsc/all': { siteId: number, start: string, end: string, page: number }
+  'gsc/page': { siteId: number, start: string, end: string, page: number }
+  'gsc/query': { siteId: number, start: string, end: string, page: number }
+
+  'crux/history': { siteId: number, strategy: 'PHONE' | 'DESKTOP' }
   // teams
   'teams/syncSelected': Parameters<NitroRuntimeHooks['app:team:sites-selected']>[number]
   'sites/syncSitemapPages': { siteId: number }
@@ -146,7 +148,7 @@ function listeners<T extends keyof NitroRuntimeHooks>(hookName: T, tasks: (keyof
           const filter = typeof task === 'string' ? () => true : task[1]
           if (!filter(ctx))
             return
-          return await queueJob(taskName, payloadTransformer(ctx).payload)
+          return await queueJob(taskName, payloadTransformer(ctx))
           // const job = (await db.insert(jobs).values({
           //   queue: 'default',
           //   name: taskName,
@@ -229,7 +231,6 @@ export async function failJob(job: JobSelect, body: any) {
     }
     return 'OK'
   }
-  console.log('re-attempting job', { jobId })
   // increment attempts
   await db.update(jobs).set({
     attempts: sql`${jobs.attempts} + 1`,
@@ -280,7 +281,7 @@ export async function runJob(job: JobSelect) {
         finishedAt: Date.now(),
       }).where(eq(jobBatches.jobBatchId, job.jobBatchId))
       if (updatedBatch.options?.onFinish)
-        await queueJob(updatedBatch.options.onFinish.name, updatedBatch.options.onFinish.payload)
+        await queueJob(updatedBatch.options.onFinish.name, updatedBatch.options.onFinish)
     }
   }
   const { broadcastTo } = body as { broadcastTo?: string[] | string }
@@ -338,5 +339,5 @@ export async function nextWaitingJob(queue: string) {
     .returning().catch(() => {
       return null
     })
-  return job[0]
+  return job?.[0]
 }

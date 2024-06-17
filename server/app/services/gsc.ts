@@ -68,6 +68,25 @@ export async function queryPaginated(api: searchconsole_v1.Searchconsole, query:
   return { rows, hasNextPage }
 }
 
+/**
+ *   const oauthClient = new OAuth2Client({
+ *     // tells client to use the refresh_token...
+ *     forceRefreshOnFailure: true,
+ *     credentials: {
+ *       access_token: 'ya29.a0AXooCguqQNO-BbSOg9Fozzx18TyRAv1rwVdrfsYGULVqEK-dVAZmi0Zq7h6mnUNhX1iJMPB_B5qfUydBZ2zDbom0pR1FUe78OxFnvSn8vItar1A02aY0NsUWcTNSOV7teRBoVGezj5xB8gbkwq80JUQCc8lBa09kRJElaCgYKAcASARASFQHGX2MiJWWuSOY8K_4KDfz_x5uVQw0171',
+ *       expires_in: 3599,
+ *       refresh_token: '1//0gexILYLvFyW_CgYIARAAGBASNwF-L9IrGHBjAuR2d1cR1fsIv7EYH0QNOzyApP7TVtYgtIuyRdUkmWzc9r2wXIhHHCzRtdYfNOs',
+ *       scope: 'https://www.googleapis.com/auth/adwords',
+ *       token_type: 'Bearer',
+ *     },
+ *     clientId: client_id,
+ *     clientSecret: client_secret,
+ *   })
+ *
+ *   const refreshed = await oauthClient.refreshAccessToken()
+ * @param account
+ */
+
 export function createGoogleOAuthClient(account: GoogleAccountsSelect & { googleOAuthClient: GoogleOAuthClientsSelect }) {
   // token = token || tokens[0]
   return new OAuth2Client({

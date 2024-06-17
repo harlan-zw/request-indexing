@@ -7,7 +7,6 @@ import {
   sites,
 } from '~/server/database/schema'
 import { userPeriodRange } from '~/server/app/models/User'
-import { fetchKeywordIdeas } from '~/server/app/services/ads'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -27,9 +26,7 @@ export default defineEventHandler(async (e) => {
     page: string
     q: string
   }>(e)
-  const range = userPeriodRange(user, {
-    includeToday: false,
-  })
+  const range = userPeriodRange(user)
   const _where = [
     eq(siteKeywordDateAnalytics.siteId, site.siteId),
   ]
@@ -86,9 +83,9 @@ export default defineEventHandler(async (e) => {
     .orderBy(asc(sq.date))
 
   const history = {} // await fetchKeywordHistorialData([filter.split(':')[1]])
-  const ideas = await fetchKeywordIdeas(filter.split(':')[1], site.siteId)
+  // const ideas = await fetchKeywordIdeas(filter.split(':')[1], site.siteId)
   return {
-    ideas,
+    // ideas,
     history,
     dates,
     period: dates[dates.length - 1],

@@ -52,6 +52,31 @@ useJobListener('gsc/date', (ctx) => {
     gscDataSynced.value++
   }
 })
+useJobListener('gsc/device', (ctx) => {
+  if (ctx.siteId === props.site.siteId) {
+    gscDataSynced.value++
+  }
+})
+useJobListener('gsc/page', (ctx) => {
+  if (ctx.siteId === props.site.siteId) {
+    gscDataSynced.value++
+  }
+})
+useJobListener('gsc/query', (ctx) => {
+  if (ctx.siteId === props.site.siteId) {
+    gscDataSynced.value++
+  }
+})
+useJobListener('gsc/all', (ctx) => {
+  if (ctx.siteId === props.site.siteId) {
+    gscDataSynced.value++
+  }
+})
+useJobListener('gsc/country', (ctx) => {
+  if (ctx.siteId === props.site.siteId) {
+    gscDataSynced.value++
+  }
+})
 useJobListener('paths/runPsi', (ctx) => {
   if (ctx.siteId === props.site.siteId) {
     psiSynced.value++
@@ -64,7 +89,7 @@ useJobListener('sites/syncSitemapPages', (ctx) => {
 })
 
 const completedPercentSynced = computed(() => {
-  return Math.round((gscDataSynced.value + psiSynced.value + sitemapSynced.value) / 64 * 100)
+  return Math.round((gscDataSynced.value + psiSynced.value + sitemapSynced.value) / 366 * 100)
 })
 
 function hide() {
@@ -85,15 +110,6 @@ const dropdownItems = [
     },
   ],
 ]
-
-function formatPageSpeedInsightScore(score: number) {
-  // return a tailwind color for the score
-  if (score >= 90)
-    return 'text-green-500'
-  if (score >= 50)
-    return 'text-yellow-600'
-  return 'text-red-500'
-}
 </script>
 
 <template>
@@ -123,8 +139,8 @@ function formatPageSpeedInsightScore(score: number) {
           </ProgressPercent>
           <ul class="text-xs text-gray-500 space-y-2">
             <li class="flex items-center gap-1">
-              <UIcon :name="gscDataSynced >= 60 ? `i-ph-check-fat-duotone` : `i-ph-spinner-gap-duotone`" :class="gscDataSynced < 60 ? 'animate-spin animated' : 'text-green-500'" class="w-4 h-4 opacity-80 text-gray-500 " />
-              Ingesting Google Search Console data - {{ gscDataSynced }} / 61
+              <UIcon :name="gscDataSynced >= 366 ? `i-ph-check-fat-duotone` : `i-ph-spinner-gap-duotone`" :class="gscDataSynced < 366 ? 'animate-spin animated' : 'text-green-500'" class="w-4 h-4 opacity-80 text-gray-500 " />
+              Ingesting Google Search Console data - {{ gscDataSynced }} / 366
             </li>
             <li class="flex items-center gap-1">
               <UIcon :name="psiSynced >= 2 ? `i-ph-check-fat-duotone` : `i-ph-spinner-gap-duotone`" :class="psiSynced < 2 ? 'animate-spin animated' : 'text-green-500'" class="w-4 h-4 opacity-80 text-gray-500 " />
@@ -145,32 +161,38 @@ function formatPageSpeedInsightScore(score: number) {
           <div class="border border-gray-500/20 shadow-sm rounded py-2">
             <CardGoogleSearchConsole :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" />
           </div>
-          <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pagespeed-insights`" class="transition rounded group hover:bg-gray-100 flex group text-[11px] items-center text-gray-500/80 gap-2 px-2">
-            <div>PageSpeed Insights</div>
-            <div class=" px-2 py-1 rounded text-[11px] flex items-center gap-1 text-gray-500/80 ">
-              <div class="flex gap-1">
-                <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-                <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
-                  Mobile
+          <div class="flex justify-between">
+            <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pagespeed-insights`" class="transition rounded group hover:bg-gray-100 flex group text-[11px] items-center text-gray-500/80 gap-4 px-2">
+              <div class="  py-1 rounded text-[11px] flex items-center gap-1 text-gray-500/80 ">
+                <div class="flex gap-1">
+                  <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+                  <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
+                    Mobile
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 font-bold" :class="formatPageSpeedInsightScore(dates?.psiData?.psiMobileScore)">
+                  {{ useHumanFriendlyNumber(dates?.psiData?.psiMobileScore) }}
                 </div>
               </div>
-              <div class="flex items-center gap-1 font-bold" :class="formatPageSpeedInsightScore(dates?.psiData?.psiMobileScore)">
-                {{ useHumanFriendlyNumber(dates?.psiData?.psiMobileScore) }}
-              </div>
-            </div>
 
-            <div class=" px-2 py-1 rounded text-[11px] flex items-center gap-1 text-gray-500/80 ">
-              <div class="flex gap-1">
-                <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-                <div class="text-[11px] flex items-center text-gray-500/80">
-                  Desktop
+              <div class="  py-1 rounded text-[11px] flex items-center gap-1 text-gray-500/80 ">
+                <div class="flex gap-1">
+                  <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
+                  <div class="text-[11px] flex items-center text-gray-500/80">
+                    Desktop
+                  </div>
+                </div>
+                <div class="flex items-center font-bold" :class="formatPageSpeedInsightScore(dates?.psiData?.psiDesktopScore)">
+                  {{ useHumanFriendlyNumber(dates?.psiData?.psiDesktopScore) }}
                 </div>
               </div>
-              <div class="flex items-center font-bold" :class="formatPageSpeedInsightScore(dates?.psiData?.psiDesktopScore)">
-                {{ useHumanFriendlyNumber(dates?.psiData?.psiDesktopScore) }}
-              </div>
-            </div>
-          </NuxtLink>
+            </NuxtLink>
+            <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pagespeed-insights`" class="transition rounded group hover:bg-gray-100 flex group text-[11px] items-center text-gray-500/80 gap-1 px-2">
+              <UTooltip v-for="(country, i) in dates.countries.slice(0, 3)" :key="i" :text="`#${(i + 1)} Clicks - ${country.country}`">
+                <Icon :name="`circle-flags:${country.countryCode.toLowerCase()}`" class="w-3 h-3" />
+              </UTooltip>
+            </NuxtLink>
+          </div>
         </div>
         <div class="flex flex-col h-full space-y-2 min-w-[75px]">
           <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition group hover:bg-gray-50 rounded flex items-center">

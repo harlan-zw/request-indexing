@@ -27,8 +27,33 @@ export default defineJobHandler(async (event) => {
   }
   await db.update(sites).set({
     isSynced: true,
-    lastSynced: Date.now(),
+    lastSynced: dayjsPst().format('YYYY-MM-DD'),
   }).where(eq(sites.siteId, siteId))
+
+  // const pagesIndexed = await db.select({
+  //   count: count(),
+  // }).from(sitePaths)
+  //   .where(and(
+  //     eq(sitePaths.siteId, siteId),
+  //     lte(sitePaths.firstSeenIndexed, date),
+  //     eq(sitePaths.isIndexed, true),
+  //   ))
+  //   // .groupBy(sitePaths.isIndexed)
+  //   .then(res => res[0].count)
+  //
+  // store analytics for the day
+  // await db.insert(siteDateAnalytics).values({
+  //   siteId,
+  //   date,
+  //   pages: pages.length, // keep track of total pages being shown each day
+  //   indexedPagesCount: pagesIndexed,
+  // }).onConflictDoUpdate({
+  //   target: [siteDateAnalytics.siteId, siteDateAnalytics.date],
+  //   set: {
+  //     indexedPagesCount: pagesIndexed,
+  //     pages: pages.length,
+  //   },
+  // })
 
   // we need to get all non-indexed site paths
   // and start the indexing process
@@ -136,6 +161,15 @@ export default defineJobHandler(async (event) => {
           keywords,
         },
       })),
+      {
+        name: 'sites/syncWebIndexing',
+        queue: 'default',
+        entityId: siteId,
+        entityType: 'site',
+        payload: {
+          siteId,
+        },
+      },
       // run psi test for top pages
       ...topPages.map(p => ([
         {

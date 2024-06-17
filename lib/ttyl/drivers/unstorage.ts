@@ -2,7 +2,6 @@ import type { H3Event } from 'h3'
 import { createConsola } from 'consola'
 import type { Driver } from 'unstorage'
 import { createStorage } from 'unstorage'
-import { hash } from 'ohash'
 import { defineMessageQueueDriver } from '../'
 
 export default (options: { debug: boolean, storage: Driver }) => {
@@ -14,10 +13,10 @@ export default (options: { debug: boolean, storage: Driver }) => {
   // create client
   return defineMessageQueueDriver({
     async message(urlOrTopic, payload) {
-      const message: any = { urlOrTopic, payload, createdAt: Date.now() }
-      message.taskId = hash(message)
-      logger.info('Queued message', message.taskId, message.urlOrTopic, message.payload)
-      await storage.setItem(`.queue:${message.taskId}.json`, message)
+      // const message: any = { urlOrTopic, payload, createdAt: Date.now() }
+      // message.taskId = hash(message)
+      // logger.info('Queued message', message.taskId, message.urlOrTopic, message.payload)
+      // await storage.setItem(`.queue:${message.taskId}.json`, message)
     },
     async receive(event: H3Event) {
       const message = await readBody(event)

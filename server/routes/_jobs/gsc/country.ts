@@ -6,10 +6,11 @@ import {
 import { defineJobHandler } from '~/server/plugins/eventServiceProvider'
 import { createGoogleOAuthClient, generateDefaultQueryBody } from '~/server/app/services/gsc'
 import { chunkedBatch } from '~/server/utils/drizzle'
+import { incrementUsage } from '~/server/app/services/usage'
 // import { wsUsers } from '~/server/routes/_ws'
 
 export default defineJobHandler(async (event) => {
-  const { siteId, date } = await readBody<{ siteId: number, date: string }>(event)
+  const { siteId, start, end } = await readBody<{ siteId: number, start: string, end: string }>(event)
 
   const db = useDrizzle()
   const site = await db.query.sites.findFirst({
@@ -39,18 +40,20 @@ export default defineJobHandler(async (event) => {
     auth: createGoogleOAuthClient(site.owner.googleAccounts[0]),
   })
 
+  await incrementUsage(site.siteId, 'gsc')
   const rows = await api.searchanalytics.query({
     siteUrl: site.property,
     requestBody: {
       ...generateDefaultQueryBody(site, {
-        start: date,
-        end: date,
+        start,
+        end,
       }),
-      dimensions: ['country'],
+      dimensions: ['date', 'country'],
     },
   }).then(res => (res.data.rows || []).map((row) => {
-    const [country] = row.keys as [string]
+    const [date, country] = row.keys as [string, string]
     return {
+      date,
       country,
       clicks: row.clicks,
       impressions: row.impressions,
@@ -62,7 +65,6 @@ export default defineJobHandler(async (event) => {
   const batch = rows.map((set) => {
     return db.insert(siteDateCountryAnalytics).values({
       siteId,
-      date,
       ...set,
     }).onConflictDoUpdate({
       // this is the most accurate data

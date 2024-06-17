@@ -11,9 +11,7 @@ export default defineEventHandler(async (event) => {
 
   // const query = getQuery(event)
 
-  const range = userPeriodRange(user, {
-    includeToday: true,
-  })
+  const range = userPeriodRange(user)
 
   return useDrizzle().select({
     date: sitePathDateAnalytics.date,

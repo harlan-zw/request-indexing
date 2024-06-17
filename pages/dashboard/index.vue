@@ -45,11 +45,15 @@ const previousPeriodImpressionsPercent = computed(() => {
     return 0
   return ((stats.value.period.impressions - stats.value.prevPeriod.impressions) / stats.value.prevPeriod.impressions) * 100
 })
+
+const allSitesLoaded = computed(() => {
+  return sites.value.filter(s => s.isSynced).length === sites.value.length
+})
 </script>
 
 <template>
   <div :key="key">
-    <div class="max-w-2xl mb-12">
+    <div v-if="allSitesLoaded" class="max-w-2xl mb-12">
       <div class="flex items-center justify-between gap-3 text-gray-600">
         <div>
           <UIcon class="w-4 h-4 flex-grow" name="i-ph-arrow-circle-left-duotone" />
@@ -62,6 +66,9 @@ const previousPeriodImpressionsPercent = computed(() => {
           <UIcon class="w-4 h-4" name="i-ph-arrow-circle-right-duotone" />
         </div>
       </div>
+    </div>
+    <div v-else>
+      <UAlert title="Setting up your dashboard" color="blue" variant="subtle" description="This could take some time." class="mb-10 max-w-lg" />
     </div>
     <div class="flex flex-wrap items-center gap-7">
       <CardSite v-for="(site) in sites" :key="site.siteId" :site="site" :selected-charts="selectedCharts" />

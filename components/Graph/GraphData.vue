@@ -206,7 +206,9 @@ onMounted(() => {
   _chart.timeScale().fitContent()
 
   _chart.subscribeCrosshairMove((param) => {
-    const _container = container.value!
+    const _container = container.value
+    if (!_container)
+      return
     if (
       param.point === undefined
       || !param.time

@@ -13,14 +13,14 @@ const props = defineProps<{
 //   toggleChart: [chart: string]
 // }>()
 
+const highestTotalPagesCount = props.dates.reduce((acc, row) => Math.max(acc, row.totalPagesCount), 0)
+
 const graph = computed(
   () => (props.dates || []).map(((row, i) => {
-    // need to compute indexedPagesCount, it should be the MAX of all of the previous row pages count
-    const indexedPagesCount = props.dates.slice(0, i)
-      .reduce((acc, row) => Math.max(acc, row.pages), 0)
     return {
-      indexedPagesCount,
-      indexedPercent: Math.round(indexedPagesCount / (row.totalPagesCount || 1) * 100),
+      date: row.date,
+      indexedPagesCount: row.indexedPagesCount,
+      indexedPercent: Math.round(row.indexedPagesCount / (highestTotalPagesCount || 1) * 100),
       totalPagesCount: row.totalPagesCount,
     }
   })),
@@ -65,6 +65,21 @@ const buttons = computed(() => [
 //     },
 //   },
 // ]
+
+// const graphColours = {
+//   indexedPagesCount: {
+//     // indigo
+//     topColor: 'rgba(63, 81, 181, 0.9)',
+//     bottomColor: 'rgba(63, 81, 181, 0.04)',
+//     lineColor: 'rgba(63, 81, 181, 0.5)',
+//   },
+//   indexedPercent: {
+//     // orange
+//     topColor: 'rgba(255, 152, 0, 0.9)',
+//     bottomColor: 'rgba(255, 152, 0, 0.04)',
+//     lineColor: 'rgba(255, 152, 0, 0.5)',
+//   },
+// }
 </script>
 
 <template>
@@ -74,5 +89,8 @@ const buttons = computed(() => [
         <TrendPercentage :value="lastEntry?.indexedPagesCount" :prev-value="props.prevPeriod?.indexedPagesCount" />
       </template>
     </GraphButtonGroup>
+    <div class="relative">
+      <GraphPercent :value="graph!.map(g => ({ time: g.date, value: g.indexedPagesCount }))" />
+    </div>
   </div>
 </template>

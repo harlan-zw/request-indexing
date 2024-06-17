@@ -2,7 +2,6 @@ import { avg, between, count, desc, gt, ilike, isNotNull } from 'drizzle-orm'
 import { getQuery } from 'h3'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
-  siteDateAnalytics,
   sitePathDateAnalytics,
   sites,
 } from '~/server/database/schema'
@@ -32,12 +31,7 @@ export default defineEventHandler(async (e) => {
     isNotNull(sitePathDateAnalytics.psiDesktopPerformance),
     isNotNull(sitePathDateAnalytics.psiMobilePerformance),
   ]
-  if (user.analyticsPeriod !== 'all') {
-    const range = userPeriodRange(user, {
-      includeToday: true,
-    })
-    _where.push(between(siteDateAnalytics.date, range.period.startDate, range.period.endDate))
-  }
+  const range = userPeriodRange(user)
 
   if (q?.length)
     _where.push(ilike(sitePathDateAnalytics.path, `%${q}%`))
@@ -58,6 +52,7 @@ export default defineEventHandler(async (e) => {
     .from(sitePathDateAnalytics)
     .where(and(
       ..._where,
+      between(sitePathDateAnalytics.date, range.period.startDate, range.period.endDate),
     ))
     .groupBy(filter === 'top-level' ? sql`topLevelPath1` : sitePathDateAnalytics.path)
     .as('sq')
@@ -80,6 +75,7 @@ export default defineEventHandler(async (e) => {
     .from(sitePathDateAnalytics)
     .where(and(
       ..._where,
+      between(sitePathDateAnalytics.date, range.prevPeriod.startDate, range.prevPeriod.endDate),
     ))
     .groupBy(filter === 'top-level' ? sql`topLevelPath2` : sitePathDateAnalytics.path)
     .as('sq2')
@@ -132,6 +128,9 @@ export default defineEventHandler(async (e) => {
     count: count().as('total'),
     totalAvgDesktop: avg(sq.psiDesktopScore).as('psiDesktopScore'),
     totalAvgMobile: avg(sq.psiMobileScore).as('psiMobileScore'),
+    totalAvgAccessibility: avg(sq.psiMobileAccessibility).as('psiMobileAccessibility'),
+    totalAvgBestPractices: avg(sq.psiMobileAccessibility).as('psiMobileBestPractices'),
+    totalAvgSeo: avg(sq.psiMobileAccessibility).as('psiMobileBestPractices'),
   })
     .from(pagesSelect)
   return {
