@@ -28,13 +28,24 @@ provide('tableAsyncDataProvider', connector)
 
 const tab = ref(0)
 
-function getLastEntry(key: string, allowZero?: boolean) {
+function getLastEntryCrux(key: string, allowZero?: boolean) {
   if (!connector.value.crux?.length)
     return null
   key = `${tab.value === 0 ? 'mobileOrigin' : 'desktopOrigin'}${key}`
   for (let i = connector.value.crux.length - 1; i >= 0; i--) {
     if (connector.value.crux[i][key] || (allowZero && connector.value.crux[i][key] !== null)) {
       return connector.value.crux[i][key]
+    }
+  }
+}
+
+function getLastEntrySynthetic(key: string, allowZero?: boolean) {
+  if (!connector.value?.syntheticWebVitals?.length)
+    return null
+  key = `${tab.value === 0 ? 'mobile' : 'desktop'}${key}`
+  for (let i = connector.value.syntheticWebVitals.length - 1; i >= 0; i--) {
+    if (connector.value.syntheticWebVitals[i][key] || (allowZero && connector.value.syntheticWebVitals[i][key] !== null)) {
+      return connector.value.syntheticWebVitals[i][key]
     }
   }
 }
@@ -57,83 +68,75 @@ function getLastEntry(key: string, allowZero?: boolean) {
         <div v-if="connector?.crux?.length">
           <div class="mb-3">
             <div class="font-bold text-base mb-1">
-              Field web vitals
+              Real users web vitals
             </div>
             <div class="max-w-4xl mb-5 text-sm text-gray-500">
               This data is collected from the Chrome User Experience Report, which is a public dataset of key user experience metrics for popular destinations on the web, as experienced by Chrome users under real-world conditions.
             </div>
           </div>
           <div :key="tab" class="grid grid-cols-3 w-full gap-5 mb-12">
-            <div>
-              <div class="flex items-center mb-2 justify-between">
-                <div class="text-xs font-bold">
-                  Largest Contentful Paint
-                </div>
-                <div>
-                  <PsiUnit :value="getLastEntry('Lcp75')" />
-                  <PsiBenchmark :value="getLastEntry('Lcp75')" :fast="2500" :moderate="4000" />
-                </div>
-              </div>
-              <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }" class="relative">
-                <CruxGraphLcp :value="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginLcp75 : r.desktopOriginLcp75 })).filter(r => r.value !== 0)" />
-              </UCard>
+            <WebVital
+              id="largest-contentful-paint"
+              :value="getLastEntryCrux('Lcp75')"
+              :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginLcp75 : r.desktopOriginLcp75 })).filter(r => r.value)"
+            />
+            <WebVital
+              id="interaction-next-paint"
+              :value="getLastEntryCrux('Inp75')"
+              :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginInp75 : r.desktopOriginInp75 })).filter(r => r.value)"
+            />
+            <WebVital
+              id="cumulative-layout-shift"
+              :value="getLastEntryCrux('Cls75', true)"
+              :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginCls75 : r.desktopOriginCls75 }))"
+            />
+            <WebVital
+              id="first-contentful-paint"
+              :value="getLastEntryCrux('Fcp75')"
+              :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginFcp75 : r.desktopOriginFcp75 })).filter(r => r.value)"
+            />
+            <WebVital
+              id="time-to-first-byte"
+              :value="getLastEntryCrux('Ttfb75')"
+              :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginTtfb75 : r.desktopOriginTtfb75 })).filter(r => r.value)"
+            />
+          </div>
+        </div>
+        <div v-else-if="connector?.syntheticWebVitals?.length">
+          <div class="mb-3">
+            <div class="font-bold text-base mb-1">
+              Synthetic Web Vitals
             </div>
-            <div>
-              <div class="flex items-center mb-2 justify-between">
-                <div class="text-xs font-bold">
-                  Interaction Next Paint
-                </div>
-                <div>
-                  <PsiUnit :value="getLastEntry('Inp75')" />
-                  <PsiBenchmark :value="getLastEntry('Inp75')" :fast="200" :moderate="500" />
-                </div>
-              </div>
-              <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }" class="relative">
-                <CruxGraphInp :value="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginInp75 : r.desktopOriginInp75 })).filter(r => r.value)" />
-              </UCard>
+            <div class="max-w-4xl mb-5 text-sm text-gray-500">
+              You don't have enough data from the Chrome User Experience Report to see real data, this has been collected through PageSpeed Insights.
             </div>
-            <div>
-              <div class="flex items-center mb-2 justify-between">
-                <div class="text-xs font-bold">
-                  Cumulative Layout Shift (CLS)
-                </div>
-                <div>
-                  <PsiUnit :value="getLastEntry('Cls75', true)" unitless />
-                  <PsiBenchmark :value="getLastEntry('Cls75', true)" :fast="0.1" :moderate="0.25" />
-                </div>
-              </div>
-              <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }" class="relative">
-                <CruxGraphCls :value="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginCls75 : r.desktopOriginCls75 }))" />
-              </UCard>
-            </div>
-            <div>
-              <div class="flex items-center mb-2 justify-between">
-                <div class="text-xs font-bold">
-                  First Contentful Paint
-                </div>
-                <div>
-                  <PsiUnit :value="getLastEntry('Fcp75')" />
-                  <PsiBenchmark :value="getLastEntry('Fcp75')" :fast="1800" :moderate="3000" />
-                </div>
-              </div>
-              <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }" class="relative">
-                <CruxGraphFcp :value="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginFcp75 : r.desktopOriginFcp75 })).filter(r => r.value)" />
-              </UCard>
-            </div>
-            <div>
-              <div class="flex items-center mb-2 justify-between">
-                <div class="text-xs font-bold">
-                  Time to first byte
-                </div>
-                <div>
-                  <PsiUnit :value="getLastEntry('Ttfb75')" />
-                  <PsiBenchmark :value="getLastEntry('Ttfb75')" :fast="800" :moderate="1800" />
-                </div>
-              </div>
-              <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }" class="relative">
-                <CruxGraphTtfb :value="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginTtfb75 : r.desktopOriginTtfb75 })).filter(r => r.value)" />
-              </UCard>
-            </div>
+          </div>
+          <div :key="tab" class="grid grid-cols-3 w-full gap-5 mb-12">
+            <WebVital
+              id="first-contentful-paint"
+              :value="getLastEntrySynthetic('Fcp')"
+              :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileFcp : r.desktopFcp })).filter(r => r.value)"
+            />
+            <WebVital
+              id="largest-contentful-paint"
+              :value="getLastEntrySynthetic('Lcp')"
+              :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileLcp : r.desktopLcp })).filter(r => r.value)"
+            />
+            <WebVital
+              id="total-blocking-time"
+              :value="getLastEntrySynthetic('Tbt')"
+              :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileTbt : r.desktopTbt })).filter(r => r.value)"
+            />
+            <WebVital
+              id="cumulative-layout-shift"
+              :value="getLastEntrySynthetic('Cls', true)"
+              :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileCls : r.desktopCls }))"
+            />
+            <WebVital
+              id="speed-index"
+              :value="getLastEntrySynthetic('Si')"
+              :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileSi : r.desktopSi }))"
+            />
           </div>
         </div>
         <div>

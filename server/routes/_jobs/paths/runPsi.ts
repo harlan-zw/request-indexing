@@ -108,11 +108,40 @@ export default defineJobHandler(async (event) => {
     }
     await db.update(siteDateAnalytics)
       .set({
-        originLoadingExperience: res.originLoadingExperience,
+        [`${strategy}OriginLoadingExperience`]: res.originLoadingExperience,
         ...payload,
       }).where(
         eq(siteDateAnalytics.siteId, siteId),
         and(eq(siteDateAnalytics.date, dayjs().format('YYYY-MM-DD'))),
+      )
+  }
+  if (res.loadingExperience) {
+    // save to siteDatePathAnalytics
+    const metrics = res.loadingExperience.metrics || {}
+    const payload: Record<string, any> = {
+      [`${strategy}LoadingExperience`]: res.loadingExperience,
+    }
+    if (metrics.CUMULATIVE_LAYOUT_SHIFT_SCORE) {
+      payload[`${strategy}Cls75`] = metrics.CUMULATIVE_LAYOUT_SHIFT_SCORE.percentile
+    }
+    if (metrics.EXPERIMENTAL_TIME_TO_FIRST_BYTE) {
+      payload[`${strategy}Ttfb75`] = metrics.EXPERIMENTAL_TIME_TO_FIRST_BYTE.percentile
+    }
+    if (metrics.FIRST_CONTENTFUL_PAINT_MS) {
+      payload[`${strategy}Fcp75`] = metrics.FIRST_CONTENTFUL_PAINT_MS.percentile
+    }
+    if (metrics.LARGEST_CONTENTFUL_PAINT_MS) {
+      payload[`${strategy}Lcp75`] = metrics.LARGEST_CONTENTFUL_PAINT_MS.percentile
+    }
+    if (metrics.INTERACTION_TO_NEXT_PAINT) {
+      payload[`${strategy}Inp75`] = metrics.INTERACTION_TO_NEXT_PAINT.percentile
+    }
+    await db.update(sitePathDateAnalytics)
+      .set(payload)
+      .where(
+        eq(sitePathDateAnalytics.siteId, siteId),
+        eq(sitePathDateAnalytics.date, dayjs().format('YYYY-MM-DD')),
+        eq(sitePathDateAnalytics.path, path),
       )
   }
 
@@ -148,7 +177,7 @@ export default defineJobHandler(async (event) => {
     .map((audit) => {
       return defu(audit as pagespeedonline_v5.Schema$LighthouseAuditResultV5, findCategoryForAuditId(audit.id))
     })
-    .filter(audit => (audit.score !== 1 && audit.weight > 0) || audit.numericValue)
+    .filter(audit => audit.score && audit.score !== 1)
     .map((audit) => {
       // sitePageSpeedInsightScanAudits
       return db.insert(sitePageSpeedInsightScanAudits).values({
@@ -174,6 +203,7 @@ export default defineJobHandler(async (event) => {
     [`${key}Fcp`]: res.lighthouseResult.audits['first-contentful-paint']?.numericValue,
     [`${key}Si`]: res.lighthouseResult.audits['speed-index']?.numericValue,
     [`${key}Tbt`]: res.lighthouseResult.audits['total-blocking-time']?.numericValue,
+    [`${key}Ttfb`]: res.lighthouseResult.audits['server-response-time']?.numericValue,
     [`${key}Cls`]: res.lighthouseResult.audits['cumulative-layout-shift']?.numericValue,
     [`${key}Score`]: totalScore,
     ...scores,

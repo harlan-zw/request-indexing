@@ -82,14 +82,14 @@ const dashboards = computed(() => !site.value
         icon: 'i-ph-app-window-duotone',
       },
       {
+        label: 'Performance',
+        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'performance'),
+        icon: 'i-ph-speedometer-duotone',
+      },
+      {
         label: 'Page Audits',
         to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'audits'),
         icon: 'i-ph-list-checks-duotone',
-      },
-      {
-        label: 'Web Vitals',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'performance'),
-        icon: 'i-ph-speedometer-duotone',
       },
       {
         label: 'Keyword Suggestions',

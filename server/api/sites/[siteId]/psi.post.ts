@@ -27,22 +27,42 @@ export default defineEventHandler(async (e) => {
   await batchJobs({
     name: 'psi:page',
   }, [
+    // {
+    //   name: 'paths/runPsi',
+    //   queue: 'psi',
+    //   payload: {
+    //     siteId: site.siteId,
+    //     path: body.path,
+    //     strategy: 'desktop',
+    //   },
+    // },
+    // {
+    //   name: 'paths/runPsi',
+    //   queue: 'psi',
+    //   payload: {
+    //     siteId: site.siteId,
+    //     path: body.path,
+    //     strategy: 'mobile',
+    //   },
+    // },
     {
-      name: 'paths/runPsi',
-      queue: 'psi',
+      name: 'crux/history',
+      entityId: site.siteId,
+      entityType: 'site',
       payload: {
         siteId: site.siteId,
         path: body.path,
-        strategy: 'desktop',
+        strategy: 'PHONE',
       },
     },
     {
-      name: 'paths/runPsi',
-      queue: 'psi',
+      name: 'crux/history',
+      entityId: site.siteId,
+      entityType: 'site',
       payload: {
         siteId: site.siteId,
         path: body.path,
-        strategy: 'mobile',
+        strategy: 'DESKTOP',
       },
     },
   ])

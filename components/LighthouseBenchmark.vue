@@ -7,7 +7,7 @@ defineProps<{
 <template>
   <div class="w-12">
     <UProgress v-if="value >= 90" :value="value - 90" :max="10" color="green" size="sm" />
-    <UProgress v-else-if="value > 70" :value="90 - value" :max="20" color="yellow" size="sm" />
-    <UProgress v-else :value="70 - value" :max="70" color="red" size="sm" />
+    <UProgress v-else-if="value > 50" :value="value - 50" :max="40" color="yellow" size="sm" />
+    <UProgress v-else :value="49 - value" :max="50" color="red" size="sm" />
   </div>
 </template>

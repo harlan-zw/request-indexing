@@ -36,6 +36,7 @@ async function refresh() {
     .finally(() => {
       pending.value = false
     })
+    .then(s => s.sites)
   if (data.value.filter(s => !!s.lastSynced).length)
     isSetup.value = true
 

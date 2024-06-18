@@ -41,15 +41,15 @@ export default defineJobHandler(async (event) => {
         lte(sitePaths.firstSeenIndexed, date.format('YYYY-MM-DD')),
         eq(sitePaths.isIndexed, true),
       ))
-    updates = db.update(siteDateAnalytics).set({
+    updates.push(db.update(siteDateAnalytics).set({
       indexedPagesCount: indexedCountSq[0].indexedPagesCount,
     }).where(and(
       eq(siteDateAnalytics.siteId, siteId),
       eq(siteDateAnalytics.date, date.format('YYYY-MM-DD')),
-    ))
+    )))
   }
 
-  chunkedBatch(updates)
+  await chunkedBatch(updates)
 
   return {
     broadcastTo: site.owner.publicId,

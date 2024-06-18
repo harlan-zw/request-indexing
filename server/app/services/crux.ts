@@ -1,4 +1,4 @@
-import { withHttps, withTrailingSlash } from 'ufo'
+import {withBase, withHttps, withTrailingSlash} from 'ufo'
 import type { FetchError } from 'ofetch'
 import { $fetch } from 'ofetch'
 import { useRuntimeConfig } from '#imports'
@@ -12,8 +12,16 @@ const cwvKeys = [
   'experimental_time_to_first_byte',
 ] as const
 
-export async function fetchCrux(domain: string, formFactor: 'PHONE' | 'TABLET' | 'DESKTOP' = 'PHONE') {
+export async function fetchCrux(domain: string, formFactor: 'PHONE' | 'TABLET' | 'DESKTOP' = 'PHONE', path = null) {
   const origin = withTrailingSlash(withHttps(domain))
+  const body = {
+    formFactor: formFactor.toUpperCase(),
+  }
+  if (path) {
+    body['url'] = withHttps(withBase(path, domain))
+  } else {
+    body['origin'] = origin
+  }
   const results = await $fetch(`/records:queryHistoryRecord`, {
     baseURL: 'https://chromeuxreport.googleapis.com/v1',
     method: 'POST',
@@ -23,10 +31,7 @@ export async function fetchCrux(domain: string, formFactor: 'PHONE' | 'TABLET' |
     query: {
       key: useRuntimeConfig().google.cruxApiToken,
     },
-    body: {
-      origin,
-      formFactor: formFactor.toUpperCase(),
-    },
+    body,
   }).catch((e: FetchError) => {
     // 404 is okay, it just means there's no data for this domain
     if (e.status === 404)
@@ -36,8 +41,8 @@ export async function fetchCrux(domain: string, formFactor: 'PHONE' | 'TABLET' |
 
   if (results.exists === false)
     return results
-
-  return normaliseCruxHistory(results.record, formFactor)
+  console.log(results?.record?.metrics?.interaction_to_next_paint?.percentilesTimeseries?.p75s)
+  return normaliseCruxHistory(results.record, formFactor, !path)
 }
 interface CrUXHistoryResult {
   key: {
@@ -73,7 +78,7 @@ interface CrUXHistoryResult {
 interface NormalizedCrUXHistoryResult {
 }
 
-function normaliseCruxHistory(data: CrUXHistoryResult, formFactor: string): NormalizedCrUXHistoryResult {
+function normaliseCruxHistory(data: CrUXHistoryResult, formFactor: string, isOrigin = true): NormalizedCrUXHistoryResult {
   // we need to turn it into a time series data where we have each metric seperated into
   // an array like { value: number, time: number }[]
   // we also need to make sure that the data is sorted by time
@@ -130,22 +135,7 @@ function normaliseCruxHistory(data: CrUXHistoryResult, formFactor: string): Norm
     ttfb.findLastIndex(v => v.value > 0),
   )
 
-  // need to normalise to siteDateAnalytics
-  /**
-   *   // save all percentile 75
-   *   mobileOriginCls75: integer('mobile_origin_cls_75'),
-   *   mobileOriginTtfb75: integer('mobile_origin_ttfb_75'),
-   *   mobileOriginFcp75: integer('mobile_origin_fcp_75'),
-   *   mobileOriginLcp75: integer('mobile_origin_lcp_75'),
-   *   mobileOriginInp75: integer('mobile_origin_inp_75'),
-   *   // now desktop
-   *   desktopOriginCls75: integer('desktop_origin_cls_75'),
-   *   desktopOriginTtfb75: integer('desktop_origin_ttfb_75'),
-   *   desktopOriginFcp75: integer('desktop_origin_fcp_75'),
-   *   desktopOriginLcp75: integer('desktop_origin_lcp_75'),
-   *   desktopOriginInp75: integer('desktop_origin_inp_75'),
-   */
-  const prefix = formFactor === 'PHONE' ? 'mobileOrigin' : `${formFactor.toLowerCase()}Origin`
+  const prefix = formFactor === 'PHONE' ? `mobile${isOrigin ? 'Origin' : ''}` : `${formFactor.toLowerCase()}${isOrigin ? 'Origin' : ''}`
   return dates.slice(start, end).map((date) => {
     return {
       date,

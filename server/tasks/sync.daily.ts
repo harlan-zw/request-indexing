@@ -1,6 +1,5 @@
-import { eq } from 'drizzle-orm'
+import { eq, isNull, lt } from 'drizzle-orm'
 import { sites, teamSites } from '~/server/database/schema'
-import { dayjs } from '~/server/utils/dayjs'
 import { batchJobs } from '~/server/plugins/eventServiceProvider'
 
 export default defineTask({
@@ -21,19 +20,14 @@ export default defineTask({
         eq(sites.active, true),
         // or(
         //   isNull(sites.lastSynced),
-        //   lt(sites.lastSynced, dayjsPst().format('YYYY-MM-DD')),
+        //   // lt(sites.lastSynced, dayjsPst().format('YYYY-MM-DD')),
         // ),
       ))
       .leftJoin(sites, eq(teamSites.siteId, sites.siteId))
+    console.log({ validSites }, dayjsPst().format('YYYY-MM-DD'))
       // .limit(10)
-    console.log(validSites)
-    console.log({
-      start: '2024-06-14',
-      end: dayjsPst().format('YYYY-MM-DD'),
-    })
 
     for (const site of validSites) {
-      const lastSynced = dayjs(site.lastSynced)
       const gscJobs = ['date', 'page', 'query', 'all', 'country', 'device'].map(job => ({
         name: `gsc/${job}`,
         queue: 'gsc',
@@ -41,7 +35,7 @@ export default defineTask({
         entityType: 'site',
         payload: {
           siteId: site.siteId,
-          start: '2024-06-14',
+          start: site.lastSynced,
           end: dayjsPst().format('YYYY-MM-DD'),
         },
       }))

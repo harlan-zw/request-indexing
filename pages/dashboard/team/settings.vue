@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import {fetchSites} from "~/composables/fetch";
+
 definePageMeta({
   layout: 'dashboard',
   title: 'Settings',
@@ -6,14 +8,8 @@ definePageMeta({
   description: 'Manage your team settings.',
 })
 
-const { data: sites } = useFetch('/api/teams/sites', {
-  transform(data) {
-    return data.map(site => site.siteId)
-  },
-  default() {
-    return []
-  },
-})
+const { data: siteData } = await fetchSites()
+
 const value = ref([])
 function syncSites(val) {
   value.value = val
@@ -22,6 +18,6 @@ function syncSites(val) {
 
 <template>
   <div class="max-w-3xl">
-    <TeamSiteSelector :model-value="sites" @update:model-value="syncSites" />
+    <TeamSiteSelector :sites="sites" :model-value="[]" @update:model-value="syncSites" />
   </div>
 </template>

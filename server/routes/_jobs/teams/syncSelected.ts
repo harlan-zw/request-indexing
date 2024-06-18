@@ -44,7 +44,7 @@ export default defineJobHandler(async (event) => {
   await Promise.all(
     teamsSites.map((row) => {
       // today PST
-      const endDayjs = dayjsPst().subtract(1, 'day') // avoid partial data
+      const endDayjs = dayjsPst()
       // TODO check earliest dates
       const TOTAL_PAGES = 90
       const CHUNK_SIZE = 30 // divisible by 10

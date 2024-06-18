@@ -2,13 +2,26 @@
 import type { GscDataRow } from '~/types/data'
 import { callFnSyncToggleRef } from '~/composables/loader'
 import type { SiteSelect } from '~/server/database/schema'
+import type {TableAsyncDataProps} from "~/components/Table/TableAsyncData.vue";
 
 const props = withDefaults(
-  defineProps<{ site: SiteSelect, pageCount?: number }>(),
+  defineProps<{
+    site: SiteSelect
+    sortable?: boolean
+    excludeColumns?: string[]
+    device?: 'mobile' | 'desktop'
+  } & TableAsyncDataProps>(),
   {
-    pageCount: 8,
+    device: 'mobile',
+    searchable: true,
+    sortable: true,
+    pagination: true,
+    expandable: true,
+    pageSize: 8,
   },
 )
+
+const key = computed(() => `psi${props.device === 'mobile' ? 'Mobile' : 'Desktop'}`)
 
 const page = ref(1)
 
@@ -16,52 +29,54 @@ const columns = computed(() => [
   {
     key: 'page',
     label: 'Page',
-    sortable: true,
+    sortable: props.sortable,
   },
   {
-    key: 'psiMobilePerformance',
+    key: `${key.value}Performance`,
     label: 'Performance',
-    sortable: true,
+    sortable: props.sortable,
   },
+  // {
+  //   key: 'clicksPercent',
+  //   label: '%',
+  //   sortable: true,
+  // },
   {
-    key: 'clicksPercent',
-    label: '%',
-    sortable: true,
-  },
-  {
-    key: 'psiMobileAccessibility',
+    key: `${key.value}Accessibility`,
     label: 'Accessibility',
-    sortable: true,
+    sortable: props.sortable,
   },
+  // {
+  //   key: 'clicksPercent',
+  //   label: '%',
+  //   sortable: true,
+  // },
   {
-    key: 'clicksPercent',
-    label: '%',
-    sortable: true,
-  },
-  {
-    key: 'psiMobileBestPractices',
+    key: `${key.value}BestPractices`,
     label: 'Best Practices',
-    sortable: true,
+    sortable: props.sortable,
   },
+  // {
+  //   key: 'impressionsPercent',
+  //   label: '%',
+  //   sortable: true,
+  // },
   {
-    key: 'impressionsPercent',
-    label: '%',
-    sortable: true,
-  },
-  {
-    key: 'psiMobileSeo',
+    key: `${key.value}Seo`,
     label: 'SEO',
-    sortable: true,
+    sortable: props.sortable,
   },
-  {
-    key: 'impressionsPercent',
-    label: '%',
-    sortable: true,
-  },
+  // {
+  //   key: 'impressionsPercent',
+  //   label: '%',
+  //   sortable: true,
+  // },
   {
     key: 'actions',
   },
-].filter(Boolean))
+].filter(Boolean).filter((col) => {
+  return !(props.excludeColumns || []).includes(col.key)
+}))
 
 const filters = [
   {
@@ -120,7 +135,7 @@ function pageUrlToPath(url: string) {
           <div class="relative group w-[260px] max-w-full">
             <div class="flex items-center gap-2">
               <button type="button" :title="`Open ${row.path}`" class="max-w-[260px] text-xs">
-                <div class="max-w-[260px] truncate text-ellipsis">
+                <div class="text-black max-w-[260px] truncate text-ellipsis">
                   {{ pageUrlToPath(row.path) }}
                 </div>
               </button>
@@ -140,104 +155,6 @@ function pageUrlToPath(url: string) {
             </div>
             graph
           </div>
-        </div>
-      </template>
-      <template #psiMobilePerformance-data="{ row }">
-        <div class="flex gap-3 items-center">
-          <UTooltip :text="`${row.psiMobilePerformance} score this period`" class="flex items-center justify-center gap-1">
-            <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-            {{ useHumanFriendlyNumber(row.psiMobilePerformance, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiDesktopPerformance} score this period`" class="flex items-center justify-center gap-1">
-            <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-            {{ useHumanFriendlyNumber(row.psiDesktopPerformance, 0) }}
-          </UTooltip>
-        </div>
-      </template>
-      <template #psiDesktopScore-data="{ row }">
-        <div class="text-left text-lg font-semibold">
-          <UTooltip :text="`${row.psiDesktopScore} score this period`" class="flex items-center justify-center gap-1">
-            {{ useHumanFriendlyNumber(row.psiDesktopScore, 0) }}
-          </UTooltip>
-        </div>
-        <div class="text-xs flex items-center gap-2">
-          <UTooltip :text="`${row.psiDesktopPerformance} score this period`" class="flex items-center justify-center gap-1">
-            Performance:
-            {{ useHumanFriendlyNumber(row.psiDesktopPerformance, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiDesktopAccessibility} score this period`" class="flex items-center justify-center gap-1">
-            Accessibility:
-            {{ useHumanFriendlyNumber(row.psiDesktopAccessibility, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiDesktopBestPractices} score this period`" class="flex items-center justify-center gap-1">
-            Best Practices:
-            {{ useHumanFriendlyNumber(row.psiDesktopBestPractices, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiDesktopSeo} score this period`" class="flex items-center justify-center gap-1">
-            SEO:
-            {{ useHumanFriendlyNumber(row.psiDesktopSeo, 0) }}
-          </UTooltip>
-        </div>
-      </template>
-      <template #psiMobileScore-data="{ row }">
-        <div class="text-center text-lg font-semibold">
-          <UTooltip :text="`${row.psiMobileScore} score this period`" class="flex items-center justify-center gap-1">
-            {{ useHumanFriendlyNumber(row.psiMobileScore, 0) }}
-          </UTooltip>
-        </div>
-        <div class="text-xs flex items-center gap-2">
-          <UTooltip :text="`${row.psiMobilePerformance} score this period`" class="flex items-center justify-center gap-1">
-            Performance:
-            {{ useHumanFriendlyNumber(row.psiMobilePerformance, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiMobileAccessibility} score this period`" class="flex items-center justify-center gap-1">
-            Accessibility:
-            {{ useHumanFriendlyNumber(row.psiMobileAccessibility, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiMobileBestPractices} score this period`" class="flex items-center justify-center gap-1">
-            Best Practices:
-            {{ useHumanFriendlyNumber(row.psiMobileBestPractices, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiMobileSeo} score this period`" class="flex items-center justify-center gap-1">
-            SEO:
-            {{ useHumanFriendlyNumber(row.psiMobileSeo, 0) }}
-          </UTooltip>
-        </div>
-      </template>
-      <template #psiMobileAccessibility-data="{ row }">
-        <div class="flex gap-3 items-center">
-          <UTooltip :text="`${row.psiMobileAccessibility} score this period`" class="flex items-center justify-center gap-1">
-            <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-            {{ useHumanFriendlyNumber(row.psiMobileAccessibility, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiDesktopAccessibility} score this period`" class="flex items-center justify-center gap-1">
-            <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-            {{ useHumanFriendlyNumber(row.psiDesktopAccessibility, 0) }}
-          </UTooltip>
-        </div>
-      </template>
-      <template #psiMobileBestPractices-data="{ row }">
-        <div class="flex gap-3 items-center">
-          <UTooltip :text="`${row.psiMobileBestPractices} score this period`" class="flex items-center justify-center gap-1">
-            <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-            {{ useHumanFriendlyNumber(row.psiMobileBestPractices, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiDesktopBestPractices} score this period`" class="flex items-center justify-center gap-1">
-            <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-            {{ useHumanFriendlyNumber(row.psiDesktopBestPractices, 0) }}
-          </UTooltip>
-        </div>
-      </template>
-      <template #psiMobileSeo-data="{ row }">
-        <div class="flex gap-3 items-center">
-          <UTooltip :text="`${row.psiMobileSeo} score this period`" class="flex items-center justify-center gap-1">
-            <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-            {{ useHumanFriendlyNumber(row.psiMobileSeo, 0) }}
-          </UTooltip>
-          <UTooltip :text="`${row.psiDesktopSeo} score this period`" class="flex items-center justify-center gap-1">
-            <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-            {{ useHumanFriendlyNumber(row.psiDesktopSeo, 0) }}
-          </UTooltip>
         </div>
       </template>
       <template #actions-data="{ row }">

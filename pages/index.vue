@@ -1,10 +1,6 @@
 <script lang="ts" setup>
 const { loggedIn, user } = useUserSession()
 
-const site = ref<GoogleSearchConsoleSite | null>({
-  siteId: '7tquiw3trk58',
-  domain: 'https://requestindexing.com',
-})
 const selectedCharts = ref<string[]>([])
 </script>
 
@@ -82,13 +78,10 @@ const selectedCharts = ref<string[]>([])
             <div class="xl:col-span-5 max-w-full sticky top-10">
               <UTabs :items="[{ label: 'Web Indexing', slot: 'web-indexing' }, { label: 'Google Search Console', slot: 'gsc' }, { label: 'PageSpeed Insights', slot: 'psi' }]">
                 <template #web-indexing>
-                  <CardWebIndexing :site="site" :selected-charts="selectedCharts" />
                 </template>
                 <template #gsc>
-                  <CardGoogleSearchConsole :site="site" :selected-charts="selectedCharts" />
                 </template>
                 <template #psi>
-                  <CardPageSpeedInsights :site="site" :selected-charts="selectedCharts" />
                 </template>
               </UTabs>
             </div>

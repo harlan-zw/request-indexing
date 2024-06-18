@@ -1,7 +1,7 @@
 import { asc, avg, between, count, desc, gt, ilike, isNotNull } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
-  siteDateAnalytics,
+  siteDateAnalytics, sitePageSpeedInsightScanAudits, sitePageSpeedInsightScans,
   sitePathDateAnalytics,
   sites,
 } from '~/server/database/schema'
@@ -145,11 +145,63 @@ export default defineEventHandler(async (e) => {
         isNotNull(siteDateAnalytics.mobileOriginInp75),
       ),
     ))
+  let syntheticWebVitals = []
+
+  // TODO use hasCruxOriginData
+  if (!site.hasCruxOriginData || !crux.length) {
+    syntheticWebVitals = await useDrizzle().select({
+      date: sitePathDateAnalytics.date,
+      desktopCls: avg(sitePathDateAnalytics.psiDesktopCls).mapWith(Number).as('desktopCls'),
+      desktopFcp: avg(sitePathDateAnalytics.psiDesktopFcp).mapWith(Number).as('desktopFcp'),
+      desktopLcp: avg(sitePathDateAnalytics.psiDesktopLcp).mapWith(Number).as('desktopLcp'),
+      desktopTbt: avg(sitePathDateAnalytics.psiDesktopTbt).mapWith(Number).as('desktopTbt'),
+      desktopSi: avg(sitePathDateAnalytics.psiDesktopSi).mapWith(Number).as('desktopSi'),
+      mobileCls: avg(sitePathDateAnalytics.psiMobileCls).mapWith(Number).as('mobileCls'),
+      mobileFcp: avg(sitePathDateAnalytics.psiMobileFcp).mapWith(Number).as('mobileFcp'),
+      mobileLcp: avg(sitePathDateAnalytics.psiMobileLcp).mapWith(Number).as('mobileLcp'),
+      mobileTbt: avg(sitePathDateAnalytics.psiMobileTbt).mapWith(Number).as('mobileTbt'),
+      mobileSi: avg(sitePathDateAnalytics.psiMobileSi).mapWith(Number).as('mobileSi'),
+    })
+      .from(sitePathDateAnalytics)
+      .where(and(
+        eq(sitePathDateAnalytics.siteId, site.siteId),
+      ))
+      .groupBy(sitePathDateAnalytics.date)
+      .having(isNotNull(sitePathDateAnalytics.psiDesktopCls))
+    // const sq = useDrizzle().select()
+    //   .from(sitePageSpeedInsightScanAudits)
+    //   .leftJoin(sitePathDateAnalytics, eq(sitePageSpeedInsightScanAudits.sitePageSpeedInsightScanId, sitePageSpeedInsightScans.sitePageSpeedInsightScanId))
+    //   .where(and(
+    //     eq(sitePageSpeedInsightScans.siteId, site.siteId),
+    //   ))
+    //   .as('sq')
+    // const clsSq = useDrizzle()
+    //   .select({
+    //     cls: avg(sitePageSpeedInsightScanAudits.numericValue).as('cls'),
+    //   })
+    //   .from(sq)
+    //   .where(and(
+    //     eq(sitePageSpeedInsightScanAudits.auditId, 'cumulative-layout-shift'),
+    //   ))
+    //   .as('clsSq')
+    // // we can use sitePageSpeedInsightScanAudits data
+    // syntheticWebVitals = await useDrizzle().select({
+    //   // need to convert createdAt to date in format yyyy-mm-dd
+    //   date: sql`DATE_FORMAT(${sitePageSpeedInsightScanAudits.createdAt}, '%Y-%m-%d')`.as('date'),
+    //   cls: clsSq,
+    // })
+    //   .from(sq)
+    //   .leftJoin(sitePathDateAnalytics, eq(sitePageSpeedInsightScanAudits.sitePageSpeedInsightScanId, sitePageSpeedInsightScans.sitePageSpeedInsightScanId))
+    //   .where(and(
+    //     eq(sitePageSpeedInsightScans.siteId, site.siteId),
+    //   ))
+  }
 
   return {
     rows: pages,
     total: totals[0].count,
     totals: totals[0],
+    syntheticWebVitals,
     crux,
   }
 })
