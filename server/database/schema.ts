@@ -352,6 +352,7 @@ export const relatedKeywords = sqliteTable('related_keywords', {
   unq: unique().on(t.keywordId, t.relatedKeywordId, t.siteId),
 }))
 
+// TODO siteUsages (need to figure out billing but more granular is better)
 export const usages = sqliteTable('usages', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),
   date: text('date').notNull(),

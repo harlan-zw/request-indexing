@@ -33,15 +33,20 @@ const data = computed(() => ({
 </script>
 
 <template>
-  <div>
-    <VisSingleContainer :data="data" height="500" class="border border-gray-100 rounded">
-      <VisTopoJSONMap
-        :projection="MapProjection.Mercator()"
-        :topojson="WorldMapTopoJSON"
-      />
-    </VisSingleContainer>
-    <UCard>
+  <div class="space-y-7">
+    <div>
+      <div class="border border-dashed rounded-lg">
+        <CalenderFilter />
+      </div>
+    </div>
+    <div>
+      <VisSingleContainer :data="data" height="500" class="border border-gray-100 rounded">
+        <VisTopoJSONMap
+          :projection="MapProjection.Mercator()"
+          :topojson="WorldMapTopoJSON"
+        />
+      </VisSingleContainer>
       <TableCountries :site="site" :page-size="12" :pagination="true" />
-    </UCard>
+    </div>
   </div>
 </template>

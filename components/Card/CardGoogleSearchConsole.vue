@@ -1,14 +1,18 @@
 <script lang="ts" setup>
 import type { SiteDateAnalyticsSelect, SiteSelect } from '~/server/database/schema'
 import type { GraphButton } from '~/components/GraphButtonGroup.vue'
+import { googleSearchConsoleColumns } from '~/composables/state'
 
 const props = defineProps<{
   site: SiteSelect
-  selectedCharts: string[]
   dates: SiteDateAnalyticsSelect[]
   period: SiteDateAnalyticsSelect
   prevPeriod: SiteDateAnalyticsSelect
   fill?: boolean
+}>()
+
+defineEmits<{
+  'update:model-value': [key: string]
 }>()
 //
 // const emits = defineEmits<{
@@ -21,19 +25,24 @@ const props = defineProps<{
 // const { data: analytics } = siteData.analytics()
 
 const graph = computed(
-  () => (props.dates || []).map(row => ({
-    ...row,
-    ctr: (row.ctr || 0) * 100,
-  })),
+  () => (props.dates || []).map((row) => {
+    // we need to make the clicks and impressions into percentages based on the totals
+    const clicks = row.clicks || 0
+    const impressions = row.impressions || 0
+    return {
+      ...row,
+      clicksRelative: (clicks / props.period.clicks) * 33, // 1/2 the %
+      impressionsRelative: (impressions / props.period.impressions) * 100,
+      ctrRelative: (clicks / impressions) * 100,
+    }
+    // return {
+    //   ...row,
+    //   ctr: (row.ctr || 0) * 100,
+    // }
+  }),
 )
 
 const tooltipData = ref()
-const tooltipEntry = computed(() => {
-  if (!tooltipData.value?.time)
-    return null
-  // find graph with the date = time
-  return graph.value.find(row => row.date === tooltipData.value.time)
-})
 
 // function toggleChart(chart: string) {
 //   emits('toggleChart', chart)
@@ -65,19 +74,19 @@ const buttons = computed<GraphButton[]>(() => [
   {
     key: 'clicks',
     label: 'Clicks',
-    value: typeof tooltipEntry.value?.clicks !== 'undefined' ? tooltipEntry.value.clicks : props.period?.clicks,
+    value: typeof tooltipData.value?.clicks !== 'undefined' ? tooltipData.value.clicks : props.period?.clicks,
     color: 'blue',
   },
   {
     key: 'impressions',
     label: 'Views',
-    value: typeof tooltipEntry.value?.impressions !== 'undefined' ? tooltipEntry.value.impressions : props.period?.impressions,
+    value: typeof tooltipData.value?.impressions !== 'undefined' ? tooltipData.value.impressions : props.period?.impressions,
     color: 'purple',
   },
   {
     key: 'position',
     label: 'Position',
-    value: typeof tooltipEntry.value?.position !== 'undefined' ? tooltipEntry.value.position : props.period?.position,
+    value: typeof tooltipData.value?.position !== 'undefined' ? tooltipData.value.position : props.period?.position,
     color: 'orange',
   },
 ])
@@ -85,7 +94,7 @@ const buttons = computed<GraphButton[]>(() => [
 
 <template>
   <div class="flex flex-col justify-center">
-    <GraphButtonGroup :buttons="buttons" :model-value="selectedCharts" class="px-2">
+    <GraphButtonGroup v-model="googleSearchConsoleColumns" :buttons="buttons" class="mb-2">
       <template #clicks-icon>
         <IconClicks class="w-4 h-4 opacity-80" />
       </template>
@@ -105,7 +114,7 @@ const buttons = computed<GraphButton[]>(() => [
         <TrendPercentage v-if="!tooltipData && period" compact negative :value="period.position" :prev-value="prevPeriod?.position" />
       </template>
     </GraphButtonGroup>
-    <GraphData :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" />
-    <!--    <GraphDataNext :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" /> -->
+    <!--    <GraphData v-if="site.domain !== 'https://nuxtseo.com'" :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" /> -->
+    <GraphDataNext v-if="googleSearchConsoleColumns.length" :height="fill ? 300 : 100" :value="graph!" :columns="googleSearchConsoleColumns" :colors="graphColours" @tooltip="e => tooltipData = e" />
   </div>
 </template>

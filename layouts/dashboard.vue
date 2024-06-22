@@ -2,7 +2,6 @@
 import { joinURL, withoutTrailingSlash } from 'ufo'
 import countries from '../server/data/countries'
 import { fetchSites } from '~/composables/fetch'
-import type { UserSelect } from '~/server/database/schema'
 
 const router = useRouter()
 const { user, session, fetch } = useUserSession()
@@ -76,112 +75,109 @@ const site = computed(() => {
 const dashboards = computed(() => !site.value
   ? []
   : [
-      {
-        label: 'Organic Search',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'),
-        icon: 'i-ph-app-window-duotone',
-      },
-      {
-        label: 'Performance',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'performance'),
-        icon: 'i-ph-speedometer-duotone',
-      },
-      {
-        label: 'Page Audits',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'audits'),
-        icon: 'i-ph-list-checks-duotone',
-      },
-      {
-        label: 'Keyword Suggestions',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'recommendations'),
-        icon: 'i-ph-lightning-duotone',
-      },
-    ])
+    {
+      label: 'Organic Search',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'),
+      icon: 'i-ph-app-window-duotone',
+    },
+    {
+      label: 'Keywords Insights',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keyword-insights'),
+      icon: 'i-ph-lightning-duotone',
+    },
+    {
+      label: 'Field Performance',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'performance'),
+      icon: 'i-ph-speedometer-duotone',
+    },
+    {
+      label: 'Lab Performance',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'lab-performance'),
+      icon: 'i-ph-test-tube-duotone',
+    },
+    {
+      label: 'Lighthouse Audits',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'audits'),
+      icon: 'i-ph-list-checks-duotone',
+    },
+    {
+      label: 'Web Indexing',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'web-indexing'),
+      icon: 'i-ph-check-circle-duotone',
+    },
+  ])
 
 const siteLinks = computed(() => !site.value
   ? []
   : [
-      [
-        {
-          label: 'Overview',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'),
-          icon: 'i-ph-app-window-duotone',
-        },
-      ],
-      [
-        {
-          label: 'Pages',
-          icon: 'i-heroicons-folder',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
-          collapsible: false,
-          children: (route.path.includes('pages')
-            ? [
-                {
-                  label: 'Overview',
-                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
-                },
-                {
-                  label: 'Non-indexed',
-                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'non-indexed'),
-                },
-                {
-                  label: 'Audits',
-                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'page-audits'),
-                },
-                {
-                  label: 'Web Vitals',
-                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'web-vitals'),
-                },
-              ]
-            : []),
-        },
-        {
-          label: 'Keywords',
-          icon: 'i-heroicons-magnifying-glass-circle',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
-          children: (route.path.includes('keywords')
-            ? [
-                {
-                  label: 'Overview',
-                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
-                },
-                {
-                  label: 'Search Volumes',
-                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords', 'search-volumes'),
-                },
-              ]
-            : []),
-        },
-        {
-          label: 'Countries',
-          icon: 'i-ph-globe-hemisphere-east-duotone',
-          to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries'),
-          children: (route.path.includes('countries')
-            ? [
-                {
-                  label: 'Overview',
-                  to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries'),
-                },
-              ]
-            : []),
-        },
-      ],
-    ])
+    {
+      label: 'Pages',
+      icon: 'i-heroicons-folder',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
+      collapsible: false,
+      children: (route.path.includes('pages')
+        ? [
+          {
+            label: 'Overview',
+            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
+          },
+          {
+            label: 'Lighthouse Audits',
+            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'page-audits'),
+          },
+          {
+            label: 'Web Vitals',
+            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'web-vitals'),
+          },
+        ]
+        : []),
+    },
+    {
+      label: 'Keywords',
+      icon: 'i-heroicons-magnifying-glass-circle',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
+      children: (route.path.includes('keywords')
+        ? [
+          {
+            label: 'Overview',
+            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
+          },
+          {
+            label: 'Search Volumes',
+            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords', 'search-volumes'),
+          },
+        ]
+        : []),
+    },
+    {
+      label: 'Countries',
+      icon: 'i-ph-globe-hemisphere-east-duotone',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries'),
+      children: (route.path.includes('countries')
+        ? [
+          {
+            label: 'Overview',
+            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries'),
+          },
+        ]
+        : []),
+    },
+  ])
 
 const apiLinks = computed(() => !site.value
   ? []
   : [
-      {
-        label: 'API Usages',
-        // icon: 'i-ph-network-x-duotone',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'usages'),
-      },
-      {
-        label: 'Data & Exports',
-        // icon: 'i-ph-network-x-duotone',
-        to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'data'),
-      },
-    ])
+    {
+      label: 'API Usages',
+      // icon: 'i-ph-network-x-duotone',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'usages'),
+    },
+    {
+      label: 'Data & Exports',
+      // icon: 'i-ph-network-x-duotone',
+      to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'data'),
+    },
+  ])
 
 const teamLinks = computed(() => [
   // members
@@ -356,95 +352,7 @@ const datePickerPeriod = ref(user.value?.analyticsRange || {
   end: new Date().setDate(new Date().getDate() - 1),
 })
 
-async function updateAnalyticsPeriod(newPeriod: UserSelect['analyticsPeriod']) {
-  await $fetch('/api/user/me', {
-    method: 'POST',
-    body: {
-      analyticsRange: '',
-      analyticsPeriod: newPeriod,
-    },
-  })
-  await fetch()
-  // refreshes sites
-  await fetchSites()
-  // refresh all sites
-  // if (currentRoute.path === '/dashboard') {
-  //   for (const site of sites.data.value?.sites || []) {
-  //     const res = await fetchSite(site)
-  //     await res.forceRefresh()
-  //   }
-  // }
-  // else if (currentRoute.name === 'dashboard-site-slug') {
-  //   const res = await fetchSite(sites.data.value!.find(site => site.siteUrl === currentRoute.params.slug)!)
-  //   await res.forceRefresh()
-  // }
-  datePickerPeriod.value = {
-    start: startDate.value,
-    end: new Date().setDate(new Date().getDate() - 1),
-  }
-}
-
-async function updateAnalyticsRange() {
-  // TODO Fix
-  // await $fetch('/api/user/me', {
-  //   method: 'POST',
-  //   body: {
-  //     analyticsPeriod: '',
-  //     analyticsRange: {
-  //       start: range.start.getTime(),
-  //       end: range.end.getTime(),
-  //     },
-  //   },
-  // })
-  // await fetch()
-  // datePickerPeriod.value = range
-}
-
-const periodItems = [
-  // days
-  [
-    { label: 'Last 7 Days', value: '7d' },
-    { label: 'Last 30 Days', value: '30d' },
-    { label: 'Last 3 months', value: '90d' },
-    { label: 'Last 6 months', value: '180d' },
-    { label: 'Last 12 months', value: '360d' },
-  ],
-  // months
-  [
-    { label: 'This Month', value: 'this-month' },
-    { label: 'Last Month', value: 'last-month' },
-    { label: 'This Year', value: 'this-year' },
-    { label: 'Last Year', value: 'last-year' },
-  ],
-  [{ label: 'All time', value: 'all' }],
-]
-
 const dayjs = useDayjs()
-
-const calenderPickerLabel = computed(() => {
-  if (!user.value) {
-    return ''
-  }
-  const period = user.value?.analyticsPeriod
-  const range = user.value.analyticsRange
-  if (!period && range) {
-    // need to create a period string from the dates from user.value.analyticsRange
-    const start = dayjs(range.start)
-    const end = dayjs(range.end)
-    // if end is not today or yesterday
-    if (end.isBefore(dayjs().subtract(2, 'day')))
-      return `${start.format('Do MMM YY')} - ${end.format('Do MMM YY')}`
-    // should be like {days}d
-    return `Last ${end.diff(start, 'days') + 1} days`
-  }
-  if (period) {
-    if (period === 'all')
-      return 'All time'
-    if (period.endsWith('d'))
-      return `Last ${period.replace('d', '')} days`
-  }
-  return 'Unknown'
-})
 
 const allCountries = countries.map(country => ({
   label: country.name,
@@ -454,256 +362,174 @@ const allCountries = countries.map(country => ({
 </script>
 
 <template>
-  <UDashboardLayout>
-    <UDashboardPanel :width="250" :resizable="{ min: 200, max: 400 }" collapsible>
-      <div class="h-[--header-height] flex-shrink-0 flex justify-center flex-col items-center border-b border-gray-200 dark:border-gray-800 px-4 gap-x-4 min-w-0">
-        <template v-if="site">
-          <USelectMenu v-if="site" :model-value="site" variant="none" :options="sites" value-attribute="siteId" class="w-full" @change="changeSite">
-            <template #option="{ option }">
-              <div class="flex w-full items-center">
-                <div class="flex items-center gap-2">
-                  <SiteFavicon :site="option" />
-                  <span class="truncate">{{ useFriendlySiteUrl(option.domain) }}</span>
-                </div>
-              </div>
-            </template>
-            <template #default="{ open }">
-              <UButton color="white" variant="link" class="flex items-center gap-1 w-full flex-grow" :ui="{ padding: { xl: 'pl-0 ' } }">
-                <SiteFavicon :site="site" />
-                <div class="text-black">
-                  {{ useFriendlySiteUrl(site.domain) }}
-                </div>
-                <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
-              </UButton>
-            </template>
-          </USelectMenu>
-        </template>
-        <USelectMenu v-else v-model="session.team.name" variant="none" :options="[{ label: session.team.name }, { label: 'Create Team', icon: 'i-heroicons-plus' }]">
-          <template #default="{ open }">
-            <UButton color="white" variant="link" size="sm" class="flex items-center gap-2">
-              {{ session.team.name }}
-              <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
-            </UButton>
-          </template>
-        </USelectMenu>
-      </div>
-
-      <UDashboardSidebar>
-        <template v-if="site">
-          <UButton icon="i-ph-arrow-u-down-left-fill" color="gray" variant="link" size="xs" to="/dashboard">
-            Back
-          </UButton>
-          <div v-if="domains.length >= 2 && site.property.includes('sc-domain:')" class="flex items-center gap-3">
-            <div class="text-sm w-[200px] ">
-              <USelectMenu v-if="domains.length >= 2" size="xs" :options="domains" variant="none">
-                <template #label>
-                  <span class="text-gray-700 dark:text-gray-300">{{ domains.length }} Sites In Property</span>
-                </template>
-                <template #option="{ option }">
-                  <img v-if="option.value" :src="`https://www.google.com/s2/favicons?domain=${option.value}`" alt="favicon" class="w-4 h-4 rounded-sm">
-                  <span class="truncate">{{ option.label }}</span>
-                </template>
-              </USelectMenu>
-            </div>
-          </div>
-
-          <div class="mx-3 mt-4">
-            <div class="text-xs font-semibold text-gray-600 mb-0.5">
-              <div>Dashboards</div>
-            </div>
-            <UDivider />
-          </div>
-          <UDashboardSidebarLinks :links="dashboards" />
-
-          <div class="mx-3 mt-4">
-            <div class="text-xs font-semibold text-gray-600 mb-0.5">
-              <div>Site</div>
-            </div>
-            <UDivider />
-          </div>
-          <UDashboardSidebarLinks :links="siteLinks.flat().slice(1)" />
-
-          <div class="mx-3 mt-4">
-            <div class="text-xs font-semibold text-gray-600 mb-0.5">
-              <div>Settings</div>
-            </div>
-            <UDivider />
-          </div>
-          <UDashboardSidebarLinks :links="apiLinks">
-            <!--            <template #badge="{ link }"> -->
-            <!--              <UChip v-if="link.label === 'Web Indexing'" color="red" class="ml-3" /> -->
-            <!--            </template> -->
-          </UDashboardSidebarLinks>
-
-          <!--          <div class="flex flex-grow" /> -->
-          <!--          <div class="text-sm text-gray-700 mt-3"> -->
-          <!--            <div>Settings</div> -->
-          <!--          </div> -->
-          <!--          <UDivider /> -->
-        </template>
-        <template v-else>
-          <!--          <div class="text-sm text-gray-700 mt-3"> -->
-          <!--            <div>Dashboards</div> -->
-          <!--          </div> -->
-          <!--          <UDivider /> -->
-          <div class="mx-3 mt-4">
-            <div class="text-xs font-semibold text-gray-600 mb-0.5">
-              <div>Dashboards</div>
-            </div>
-            <UDivider />
-          </div>
-          <UDashboardSidebarLinks :links="onlyDashboardLinks" />
-          <div class="mx-3 mt-4">
-            <div class="text-xs font-semibold text-gray-600 mb-0.5">
-              <div>Team Sites</div>
-            </div>
-            <UDivider />
-          </div>
-          <UDashboardSidebarLinks :links="onlySiteLinks" />
-          <div class="mx-3 mt-4">
-            <div class="text-xs font-semibold text-gray-600 mb-0.5">
-              <div>Usage</div>
-            </div>
-            <UDivider />
-          </div>
-          <div class="flex flex-grow" />
-          <div class="mx-3 mt-4">
-            <div class="text-xs font-semibold text-gray-600 mb-0.5">
-              <div>Team Settings</div>
-            </div>
-            <UDivider />
-          </div>
-          <UDashboardSidebarLinks :links="teamLinks" />
-        </template>
-        <template #footer>
-          <div>
-            <ULink to="/dashboard" color="gray" size="xs" class="flex items-center gap-2 group mr-10">
-              <div class="text-black dark:text-white font-title font-semibold whitespace-nowrap text-xl" style="letter-spacing: -1.5px;">
-                Request Indexing
-              </div>
-              <svg height="25" width="25" class="text-green-500 group-hover:text-green-300 transition" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 267 262" xml:space="preserve">
-                <!-- magnifying glass  -->
-                <path class="text-gray-900 dark:text-gray-200" fill="currentColor" d="M263.158 210.588a356.834 356.834 0 0 1-4.262 20.272c-6.823 10.235-16.074 16.193-27.508 15.709-9.868-.419-18.375-5.864-25.2-13.736-7.18-7.119-14.246-13.954-21.458-21.087-4.04-3.958-7.935-7.62-11.912-11.405-.083-.122-.328-.288-.451-.52-.814-.79-1.505-1.35-2.333-2.224-5.983-5.888-11.828-11.46-16.3-15.723-9.814 1.528-18.278 2.847-27.163 4.085-3.796-.411-7.172-.742-10.549-1.072-19.389-5.02-33.04-16.713-40.374-35.368-10.582-26.915.226-58.306 24.396-71.556 25.178-13.803 57.44-7.278 74.137 15.112 6.41 8.596 10.107 18.333 10.876 29.054.275 3.834 1.534 6.756 4.436 9.489 21.078 19.857 42.005 39.875 62.945 59.878 5.396 5.154 9.691 10.99 10.72 19.092m-69.483-19.776c.804.663 1.608 1.325 2.566 2.512.287.213.573.427 1.057 1.278 2.907 2.725 5.815 5.45 9.127 8.72 2.455 2.256 4.911 4.512 7.592 7.414 3.66 3.52 7.319 7.042 11.37 11.21 3.465 3.398 7.165 5.256 11.897 2.24 4.23-2.697 5.523-6.184 4.113-12.584-2.101-2.542-3.977-5.32-6.341-7.588-13.16-12.62-26.433-25.122-39.679-37.653-4.967-4.698-9.964-9.365-15.173-14.258-2.053 3.451-3.647 6.132-5.838 9.14l-5.036 5.914c6.051 5.716 11.883 11.225 17.91 17.228.29.192.579.384 1.088 1.179 1.682 1.562 3.364 3.124 5.347 5.248m-43.732-90.58c-10.045-7.61-21.03-9.549-33.713-5.474-1.433.688-2.866 1.375-4.906 2.127-.823.554-1.645 1.107-3.11 1.95-1.039.934-2.077 1.87-3.61 2.887-.303.377-.606.755-1.512 1.472-5.304 5.515-8.8 11.892-9.804 20.37-1.858 24.173 14.898 41.888 38.296 40.312 2.839-.19 5.615-1.305 9.083-1.922.778-.395 1.557-.79 2.999-1.304 4.836-4.424 9.673-8.849 15.047-13.656.408-.997.816-1.995 1.76-3.519 3.31-7.65 3.88-15.5 1.815-24.308-.937-2.443-1.875-4.887-2.895-7.816 0 0-.342-.355-.329-.988-.84-1.146-1.681-2.293-2.834-4.067-1.981-1.82-3.963-3.64-6.287-6.063z" />
-                <path fill="currentColor" d="M142.168 224.923c-.526 1.84-1.433 3.664-1.505 5.52-.188 4.822.056 9.658.009 14.487-.057 5.809-2.836 8.954-8.622 9.652a36.509 36.509 0 0 1-6.98.147c-5.381-.391-8.263-3.162-8.426-8.61-.247-8.319-.117-16.65-.165-24.975-.025-4.483 1.265-8.377 5.64-10.267 4.862-2.1 9.787-1.754 14.345 1.032 1.224.748 2.085 2.088 3.38 3.442.266.285.322.316.323.626.354 2.784.706 5.26 1.107 7.933.332.47.613.742.894 1.013z" />
-                <path fill="currentColor" d="M229.032 137.723c-2.992-.023-5.493.017-7.988-.077-7.696-.289-11.938-4.695-11.957-12.346-.018-7.269 4.268-11.49 11.917-11.63 7.66-.14 15.322-.278 22.983-.27 7.137.006 10.745 4.34 10.699 12.578-.046 8.296-3.206 11.818-10.67 11.827-4.83.006-9.66-.05-14.984-.082z" />
-                <path fill="currentColor" d="M25.01 137.827c-4.32-.054-8.17.15-11.964-.22-6.226-.61-8.5-4.17-8.358-12.357.126-7.24 3.074-11.277 8.997-11.502 8.31-.314 16.64-.423 24.953-.257 6.21.125 10.54 5.497 10.444 12.268-.101 7.245-4.43 11.996-11.095 12.082-4.16.054-8.32-.005-12.976-.014z" />
-                <path fill="currentColor" d="M116.648 11.1c3.823-6.647 16.339-8.611 21.333-3.45 1.458 1.506 2.47 4.046 2.56 6.16.316 7.3.195 14.62.127 21.933-.068 7.247-3.83 11.077-10.982 11.382-8.093.345-12.946-3.286-13.235-10.728-.32-8.287.032-16.599.197-25.298z" />
-                <path fill="currentColor" d="M72.732 206.65c-4.6 4.605-8.826 9.08-13.316 13.273-4.275 3.993-7.4 4.17-11.957.613-2.451-1.914-4.745-4.227-6.512-6.775-3.156-4.553-2.753-8.061 1.071-12.05 4.254-4.435 8.672-8.716 13.059-13.022 6.077-5.966 11.537-6.346 16.865-1.235 6.481 6.217 6.842 12.726.79 19.196z" />
-                <path fill="currentColor" d="M196.987 72.077c-5.68.823-10.224-.669-13.739-4.82-4.215-4.979-4.175-10.527.33-15.182 4.389-4.536 8.932-8.93 13.54-13.243 4.206-3.936 8.573-4.372 12.893-.621 2.793 2.425 5.056 5.692 6.809 8.98.834 1.564.758 4.848-.333 6-6.143 6.484-12.72 12.557-19.5 18.886z" />
-                <path fill="currentColor" d="M77.148 59.041c-.723 5.547-3.386 9.498-7.936 11.834-4.095 2.103-8.397 2.318-12.106-1.054-5.422-4.927-10.722-9.99-16.12-14.944-2.673-2.454-3.005-5.423-.94-8.037 2.857-3.616 5.937-7.273 9.634-9.915 1.78-1.271 6.2-1.4 7.693-.084 6.712 5.92 12.833 12.514 19.07 18.96.584.605.481 1.875.705 3.24z" />
-              </svg>
-            </ULink>
-          </div>
-        </template>
-      </UDashboardSidebar>
-    </UDashboardPanel>
-    <UDashboardPage>
-      <UDashboardPanel grow>
-        <DashboardHeader>
-          <div class="w-[1240px] max-w-7xl flex justify-between">
-            <DashboardPageTitle
-              v-if="$route.meta"
-              :icon="$route.meta.icon"
-              :title="$route.meta.title"
-              :sub-title="$route.meta.subTitle"
-            />
-            <div class="flex items-center gap-3">
-              <USelectMenu searchable searchable-placeholder="Search a location..." size="xs" :options="allCountries">
-                <template #default="{ open }">
-                  <UButton color="gray" icon="i-ph-globe-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid" @click="open">
-                    All locations
-                  </UButton>
-                </template>
-                <template #option="{ option: country }">
-                  <Icon :name="country.icon" class="w-4 h-4" />
-                  <span class="truncate">{{ country.label }}</span>
-                </template>
-              </USelectMenu>
-              <UPopover mode="hover" :popper="{ placement: 'bottom-end' }">
-                <template #default="{ open }">
-                  <UButton color="gray" icon="i-ph-calendar-dots-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
-                    {{ calenderPickerLabel }}
-                  </UButton>
-                </template>
-
-                <template #panel="{ close }">
-                  <div class="flex items-center divide-x divide-gray-200 dark:divide-gray-800">
-                    <DatePicker :model-value="datePickerPeriod" @update:model-value="updateAnalyticsRange" @close="close" />
-                    <div class="flex flex-col py-4">
-                      <div class="ml-6 font-bold">
-                        Period
-                      </div>
-                      <UButton
-                        v-for="(range, index) in periodItems.flat()"
-                        :key="index"
-                        :label="range.label"
-                        color="gray"
-                        variant="ghost"
-                        class="rounded-none px-6"
-                        :trailing-icon="range.value === user?.analyticsPeriod ? 'i-heroicons-check-circle' : ''"
-                        :class="[range.value === user?.analyticsPeriod ? 'bg-gray-100 dark:bg-gray-800' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50']"
-                        @click="updateAnalyticsPeriod(range.value)"
-                      />
-                    </div>
-                  </div>
-                </template>
-              </UPopover>
-              <UPopover v-if="site" mode="hover">
-                <template #default="{ open }">
-                  <UButton color="gray" icon="i-ph-notification-duotone" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
-                    <UChip color="green" />
-                  </UButton>
-                </template>
-                <template #panel>
-                  <UButton variant="ghost" color="gray" :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="w-full">
-                    <div class="w-full">
-                      <ProgressPercent :value="dates?.period.indexedPercent">
-                        <div class="text-xs text-gray-600">
-                          Pages Indexed
-                        </div>
-                        <div class="flex items-center justify-between mb-1">
-                          <div class="flex items-center justify-center gap-1">
-                            <span class="text-4xl font-semibold" :class="indexingPercentColor(dates?.period.indexedPercent)">
-                              {{ useHumanFriendlyNumber(dates?.period.indexedPercent) }}%
-                            </span>
-                            <UIcon v-if="dates?.period.indexedPercent >= 50 && dates?.period.indexedPercent < 100" name="i-ph-info-duotone" class="w-4 h-4 text-yellow-500" />
-                            <UIcon v-else-if="dates?.period.indexedPercent < 50" name="i-ph-warning-duotone" class="w-4 h-4 text-red-500" />
-                          </div>
-                          <div class="text-xs mt-2 text-gray-500">
-                            <div>
-                              <div class="flex gap-3 justify-between mb-1">
-                                <div class="text-gray-500 dark:text-gray-200">
-                                  Indexed Pages
-                                </div>
-                                <div>{{ dates?.period.indexedPagesCount }}</div>
-                              </div>
-                              <div class="flex gap-3 justify-between mb-1">
-                                <div class="text-gray-500 dark:text-gray-200">
-                                  Total Pages
-                                </div>
-                                <div>{{ dates?.period.totalPagesCount }}</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </ProgressPercent>
-                    </div>
-                  </UButton>
-                </template>
-              </UPopover>
-            </div>
-          </div>
-        </DashboardHeader>
-        <div class="overflow-y-auto py-5 w-full">
-          <div class="max-w-7xl mx-8">
-            <slot />
+<UDashboardLayout class="mx-auto max-w-screen-2xl">
+  <UDashboardPanel :width="250" :resizable="{ min: 200, max: 400 }" collapsible>
+    <div class="h-[--header-height] flex-shrink-0 flex justify-center flex-col items-center border-b border-gray-200 dark:border-gray-800 px-4 gap-x-4 min-w-0">
+      <template v-if="site">
+      <USelectMenu v-if="site" :model-value="site" variant="none" :options="sites" value-attribute="siteId" class="w-full" @change="changeSite">
+        <template #option="{ option }">
+        <div class="flex w-full items-center">
+          <div class="flex items-center gap-2">
+            <SiteFavicon :site="option" />
+            <span class="truncate">{{ useFriendlySiteUrl(option.domain) }}</span>
           </div>
         </div>
-      </UDashboardPanel>
-    </UDashboardPage>
+        </template>
+        <template #default="{ open }">
+        <UButton color="white" variant="link" class="flex items-center gap-1 w-full flex-grow" :ui="{ padding: { xl: 'pl-0 ' } }">
+          <SiteFavicon :site="site" />
+          <div class="text-black">
+            {{ useFriendlySiteUrl(site.domain) }}
+          </div>
+          <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
+        </UButton>
+        </template>
+      </USelectMenu>
+      </template>
+      <USelectMenu v-else v-model="session.team.name" variant="none" :options="[{ label: session.team.name }, { label: 'Create Team', icon: 'i-heroicons-plus' }]">
+        <template #default="{ open }">
+        <UButton color="white" variant="link" size="sm" class="flex items-center gap-2">
+          {{ session.team.name }}
+          <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
+        </UButton>
+        </template>
+      </USelectMenu>
+    </div>
 
-    <ClientOnly>
-      <LazyUDashboardSearch :groups="groups" />
-    </ClientOnly>
-  </UDashboardLayout>
+    <UDashboardSidebar>
+      <template v-if="site">
+      <UButton icon="i-ph-arrow-u-down-left-fill" color="gray" variant="link" size="xs" to="/dashboard">
+        Back
+      </UButton>
+      <div v-if="domains.length >= 2 && site.property.includes('sc-domain:')" class="flex items-center gap-3">
+        <div class="text-sm w-[200px] ">
+          <USelectMenu v-if="domains.length >= 2" size="xs" :options="domains" variant="none">
+            <template #label>
+            <span class="text-gray-700 dark:text-gray-300">{{ domains.length }} Sites In Property</span>
+            </template>
+            <template #option="{ option }">
+            <img v-if="option.value" :src="`https://www.google.com/s2/favicons?domain=${option.value}`" alt="favicon" class="w-4 h-4 rounded-sm">
+            <span class="truncate">{{ option.label }}</span>
+            </template>
+          </USelectMenu>
+        </div>
+      </div>
+
+      <div class="mx-3 mt-4">
+        <div class="text-xs font-semibold text-gray-600 mb-0.5">
+          <div>Dashboards</div>
+        </div>
+        <UDivider />
+      </div>
+      <UDashboardSidebarLinks :links="dashboards" />
+
+      <div class="mx-3 mt-4">
+        <div class="text-xs font-semibold text-gray-600 mb-0.5">
+          <div>Site</div>
+        </div>
+        <UDivider />
+      </div>
+      <UDashboardSidebarLinks :links="siteLinks" />
+      <div class="mx-3 mt-4">
+        <div class="text-xs font-semibold text-gray-600 mb-0.5">
+          <div>Settings</div>
+        </div>
+        <UDivider />
+      </div>
+      <UDashboardSidebarLinks :links="apiLinks">
+        <!--            <template #badge="{ link }"> -->
+        <!--              <UChip v-if="link.label === 'Web Indexing'" color="red" class="ml-3" /> -->
+        <!--            </template> -->
+      </UDashboardSidebarLinks>
+
+      <!--          <div class="flex flex-grow" /> -->
+      <!--          <div class="text-sm text-gray-700 mt-3"> -->
+      <!--            <div>Settings</div> -->
+      <!--          </div> -->
+      <!--          <UDivider /> -->
+      </template>
+      <template v-else>
+      <!--          <div class="text-sm text-gray-700 mt-3"> -->
+      <!--            <div>Dashboards</div> -->
+      <!--          </div> -->
+      <!--          <UDivider /> -->
+      <div class="mx-3 mt-4">
+        <div class="text-xs font-semibold text-gray-600 mb-0.5">
+          <div>Dashboards</div>
+        </div>
+        <UDivider />
+      </div>
+      <UDashboardSidebarLinks :links="onlyDashboardLinks" />
+      <div class="mx-3 mt-4">
+        <div class="text-xs font-semibold text-gray-600 mb-0.5">
+          <div>Team Sites</div>
+        </div>
+        <UDivider />
+      </div>
+      <UDashboardSidebarLinks :links="onlySiteLinks" />
+      <div class="mx-3 mt-4">
+        <div class="text-xs font-semibold text-gray-600 mb-0.5">
+          <div>Usage</div>
+        </div>
+        <UDivider />
+      </div>
+      <div class="flex flex-grow" />
+      <div class="mx-3 mt-4">
+        <div class="text-xs font-semibold text-gray-600 mb-0.5">
+          <div>Team Settings</div>
+        </div>
+        <UDivider />
+      </div>
+      <UDashboardSidebarLinks :links="teamLinks" />
+      </template>
+      <template #footer>
+      <div>
+        <ULink to="/dashboard" color="gray" size="xs" class="flex items-center gap-2 group mr-10">
+          <div class="text-black dark:text-white font-title font-semibold whitespace-nowrap text-xl" style="letter-spacing: -1.5px;">
+            Request Indexing
+          </div>
+          <svg height="25" width="25" class="text-green-500 group-hover:text-green-300 transition" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 267 262" xml:space="preserve">
+                <!-- magnifying glass  -->
+                <path class="text-gray-900 dark:text-gray-200" fill="currentColor" d="M263.158 210.588a356.834 356.834 0 0 1-4.262 20.272c-6.823 10.235-16.074 16.193-27.508 15.709-9.868-.419-18.375-5.864-25.2-13.736-7.18-7.119-14.246-13.954-21.458-21.087-4.04-3.958-7.935-7.62-11.912-11.405-.083-.122-.328-.288-.451-.52-.814-.79-1.505-1.35-2.333-2.224-5.983-5.888-11.828-11.46-16.3-15.723-9.814 1.528-18.278 2.847-27.163 4.085-3.796-.411-7.172-.742-10.549-1.072-19.389-5.02-33.04-16.713-40.374-35.368-10.582-26.915.226-58.306 24.396-71.556 25.178-13.803 57.44-7.278 74.137 15.112 6.41 8.596 10.107 18.333 10.876 29.054.275 3.834 1.534 6.756 4.436 9.489 21.078 19.857 42.005 39.875 62.945 59.878 5.396 5.154 9.691 10.99 10.72 19.092m-69.483-19.776c.804.663 1.608 1.325 2.566 2.512.287.213.573.427 1.057 1.278 2.907 2.725 5.815 5.45 9.127 8.72 2.455 2.256 4.911 4.512 7.592 7.414 3.66 3.52 7.319 7.042 11.37 11.21 3.465 3.398 7.165 5.256 11.897 2.24 4.23-2.697 5.523-6.184 4.113-12.584-2.101-2.542-3.977-5.32-6.341-7.588-13.16-12.62-26.433-25.122-39.679-37.653-4.967-4.698-9.964-9.365-15.173-14.258-2.053 3.451-3.647 6.132-5.838 9.14l-5.036 5.914c6.051 5.716 11.883 11.225 17.91 17.228.29.192.579.384 1.088 1.179 1.682 1.562 3.364 3.124 5.347 5.248m-43.732-90.58c-10.045-7.61-21.03-9.549-33.713-5.474-1.433.688-2.866 1.375-4.906 2.127-.823.554-1.645 1.107-3.11 1.95-1.039.934-2.077 1.87-3.61 2.887-.303.377-.606.755-1.512 1.472-5.304 5.515-8.8 11.892-9.804 20.37-1.858 24.173 14.898 41.888 38.296 40.312 2.839-.19 5.615-1.305 9.083-1.922.778-.395 1.557-.79 2.999-1.304 4.836-4.424 9.673-8.849 15.047-13.656.408-.997.816-1.995 1.76-3.519 3.31-7.65 3.88-15.5 1.815-24.308-.937-2.443-1.875-4.887-2.895-7.816 0 0-.342-.355-.329-.988-.84-1.146-1.681-2.293-2.834-4.067-1.981-1.82-3.963-3.64-6.287-6.063z" />
+            <path fill="currentColor" d="M142.168 224.923c-.526 1.84-1.433 3.664-1.505 5.52-.188 4.822.056 9.658.009 14.487-.057 5.809-2.836 8.954-8.622 9.652a36.509 36.509 0 0 1-6.98.147c-5.381-.391-8.263-3.162-8.426-8.61-.247-8.319-.117-16.65-.165-24.975-.025-4.483 1.265-8.377 5.64-10.267 4.862-2.1 9.787-1.754 14.345 1.032 1.224.748 2.085 2.088 3.38 3.442.266.285.322.316.323.626.354 2.784.706 5.26 1.107 7.933.332.47.613.742.894 1.013z" />
+            <path fill="currentColor" d="M229.032 137.723c-2.992-.023-5.493.017-7.988-.077-7.696-.289-11.938-4.695-11.957-12.346-.018-7.269 4.268-11.49 11.917-11.63 7.66-.14 15.322-.278 22.983-.27 7.137.006 10.745 4.34 10.699 12.578-.046 8.296-3.206 11.818-10.67 11.827-4.83.006-9.66-.05-14.984-.082z" />
+            <path fill="currentColor" d="M25.01 137.827c-4.32-.054-8.17.15-11.964-.22-6.226-.61-8.5-4.17-8.358-12.357.126-7.24 3.074-11.277 8.997-11.502 8.31-.314 16.64-.423 24.953-.257 6.21.125 10.54 5.497 10.444 12.268-.101 7.245-4.43 11.996-11.095 12.082-4.16.054-8.32-.005-12.976-.014z" />
+            <path fill="currentColor" d="M116.648 11.1c3.823-6.647 16.339-8.611 21.333-3.45 1.458 1.506 2.47 4.046 2.56 6.16.316 7.3.195 14.62.127 21.933-.068 7.247-3.83 11.077-10.982 11.382-8.093.345-12.946-3.286-13.235-10.728-.32-8.287.032-16.599.197-25.298z" />
+            <path fill="currentColor" d="M72.732 206.65c-4.6 4.605-8.826 9.08-13.316 13.273-4.275 3.993-7.4 4.17-11.957.613-2.451-1.914-4.745-4.227-6.512-6.775-3.156-4.553-2.753-8.061 1.071-12.05 4.254-4.435 8.672-8.716 13.059-13.022 6.077-5.966 11.537-6.346 16.865-1.235 6.481 6.217 6.842 12.726.79 19.196z" />
+            <path fill="currentColor" d="M196.987 72.077c-5.68.823-10.224-.669-13.739-4.82-4.215-4.979-4.175-10.527.33-15.182 4.389-4.536 8.932-8.93 13.54-13.243 4.206-3.936 8.573-4.372 12.893-.621 2.793 2.425 5.056 5.692 6.809 8.98.834 1.564.758 4.848-.333 6-6.143 6.484-12.72 12.557-19.5 18.886z" />
+            <path fill="currentColor" d="M77.148 59.041c-.723 5.547-3.386 9.498-7.936 11.834-4.095 2.103-8.397 2.318-12.106-1.054-5.422-4.927-10.722-9.99-16.12-14.944-2.673-2.454-3.005-5.423-.94-8.037 2.857-3.616 5.937-7.273 9.634-9.915 1.78-1.271 6.2-1.4 7.693-.084 6.712 5.92 12.833 12.514 19.07 18.96.584.605.481 1.875.705 3.24z" />
+              </svg>
+        </ULink>
+      </div>
+      </template>
+    </UDashboardSidebar>
+  </UDashboardPanel>
+  <UDashboardPage>
+    <UDashboardPanel grow>
+      <DashboardHeader>
+        <USelectMenu size="xs" :options="siteLinks">
+          <template #default="{ open }">
+          <UButton color="gray" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid" @click="open">
+            <div class="flex items-center gap-2">
+              <div class="text-lg flex items-center text-gray-900 dark:text-gray-100 font-semibold gap-1">
+                <UIcon :name="$route.meta.icon" />
+                {{ $route.meta.subTitle || $route.meta.title }}
+              </div>
+            </div>
+          </UButton>
+          </template>
+        </USelectMenu>
+      </DashboardHeader>
+      <div class="overflow-y-auto py-5 w-full">
+        <div class="max-w-4xl mx-auto mb-10">
+          <slot />
+        </div>
+      </div>
+    </UDashboardPanel>
+  </UDashboardPage>
+
+  <ClientOnly>
+    <LazyUDashboardSearch :groups="groups" />
+  </ClientOnly>
+</UDashboardLayout>
 </template>

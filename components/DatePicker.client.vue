@@ -85,4 +85,9 @@ const isRange = computed(() => {
   --vc-accent-800: rgb(var(--color-primary-800));
   --vc-accent-900: rgb(var(--color-primary-900));
 }
+
+.vc-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
 </style>

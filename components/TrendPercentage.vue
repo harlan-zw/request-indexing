@@ -28,11 +28,11 @@ const isSame = computed(() => {
         ─
       </div>
     </div>
-    <div v-else-if="percentage > 0" class="text-xs items-center flex gap-1 text-green-500">
+    <div v-else-if="percentage > 0" class="text-xs items-center flex gap-1 text-green-500 font-mono">
       <UIcon v-if="!compact" name="i-heroicons-arrow-trending-up" class="w-4 h-4 opacity-70" />
       <div>{{ useHumanFriendlyNumber(Math.round(percentage * 100)) }}<span class="text-[10px]">%</span></div>
     </div>
-    <div v-else class="text-xs  items-center flex gap-1 text-red-500">
+    <div v-else class="text-xs  items-center flex gap-1 text-red-500 font-mono">
       <UIcon v-if="!compact" name="i-heroicons-arrow-trending-down" class="w-4 h-4 opacity-70" />
       <div>{{ useHumanFriendlyNumber(Math.round(percentage * 100)) }}<span class="text-[10px]">%</span></div>
     </div>

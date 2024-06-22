@@ -39,28 +39,17 @@ const buttons = computed(() => [
 </script>
 
 <template>
-  <div>
-    <div class="grid grid-cols-3 w-full gap-10 mb-10">
-      <UCard>
-        <CardGoogleSearchConsole v-if="dates" :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['clicks', 'impressions']" />
-      </UCard>
-      <UCard>
-        <div class="flex flex-col justify-center">
-          <GraphButtonGroup :buttons="buttons" :model-value="['pages']" class="px-2">
-            <template #pages-icon>
-              <IconClicks class="w-4 h-4 opacity-80" />
-            </template>
-            <template #pages-trend>
-              <!--            <TrendPercentage v-if="!tooltipData && period" compact :value="period.clicks" :prev-value="prevPeriod?.clicks" /> -->
-            </template>
-          </GraphButtonGroup>
-          <GraphData :value="graph!" :columns="['pages']" @tooltip="e => tooltipData = e" />
-        </div>
-      </UCard>
+<div class="space-y-7">
+    <div class="flex items-center gap-3">
+      <div class="border border-dashed rounded-lg">
+        <CalenderFilter />
+      </div>
+      <div class="border border-dashed rounded-lg">
+        <LocationFilter />
+      </div>
     </div>
-    <UCard>
-      <TablePagesNext :site="site" :page-size="12" />
-    </UCard>
+      <CardGoogleSearchConsole v-if="dates" :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['clicks', 'impressions']" />
+      <TablePagesNext :site="site" :page-size="12" :exclude-columns="['psiScore']" />
   <!--      <div> -->
   <!--        <div class="text-2xl font-bold flex gap-2 items-center"> -->
   <!--          {{ useHumanFriendlyNumber(pages.periodCount) }}  <span class="font-normal text-sm">Pages</span> -->

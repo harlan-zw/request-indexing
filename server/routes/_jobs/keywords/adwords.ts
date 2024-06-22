@@ -107,6 +107,12 @@ export default defineJobHandler(async (event) => {
       }).returning()
     })
   }).filter(Boolean).flat()
+  if (!inserts.length) {
+    return {
+      broadcastTo: site.owner.publicId,
+      siteId: site.publicId,
+    }
+  }
   const keywordEntries: { keywordId: number }[] = (await db.batch(inserts)).map(row => row[0])
   const inserts2 = keywordEntries.map((row) => {
     // save related keywords

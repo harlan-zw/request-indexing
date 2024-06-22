@@ -30,7 +30,7 @@ const columns = computed(() => [
   },
   {
     key: 'count',
-    label: 'Occurrences',
+    label: 'Pages',
     sortable: props.sortable,
   },
   {
@@ -39,15 +39,20 @@ const columns = computed(() => [
     sortable: props.sortable,
   },
   {
+    key: 'category',
+    label: 'Category',
+    sortable: props.sortable,
+  },
+  {
     key: 'weight',
     label: 'Weight',
     sortable: props.sortable,
   },
-  {
-    key: 'path',
-    label: 'Paths',
-    sortable: props.sortable,
-  },
+  // {
+  //   key: 'path',
+  //   label: 'Paths',
+  //   sortable: props.sortable,
+  // },
   {
     key: 'actions',
   },
@@ -106,111 +111,38 @@ function pageUrlToPath(url: string) {
 
 <template>
 <TableAsyncData :key="filter" :filter="filter" :sort="sort" :pagination="pagination" :searchable="searchable" :page-size="pageSize" :columns="columns" :filters="filters" :expandable="expandable" :path="`/api/sites/${site.siteId}/psi-audits`" @page-change="p => page = p" @update:expanded="updateExpandedData">
-  <template #psiMobilePerformance-data="{ row }">
-  <div class="flex gap-3 items-center">
-    <UTooltip :text="`${row.psiMobilePerformance} score this period`" class="flex items-center justify-center gap-1">
-      <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-      {{ useHumanFriendlyNumber(row.psiMobilePerformance, 0) }}
-    </UTooltip>
-    <UTooltip :text="`${row.psiDesktopPerformance} score this period`" class="flex items-center justify-center gap-1">
-      <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-      {{ useHumanFriendlyNumber(row.psiDesktopPerformance, 0) }}
-    </UTooltip>
-  </div>
+  <template #category-data="{ row }">
+  <div v-if="row.category === 'seo'" class="text-xs">SEO</div>
+  <div v-else-if="row.category === 'best-practices'" class="text-xs">Best Practices</div>
+  <div v-else class="text-xs capitalize">{{ row.category }}</div>
   </template>
   <template #auditId-data="{ row }">
-  <div class="relative group w-[370px] max-w-full">
+  <div class="relative group w-[350px] max-w-full">
     <div class="flex items-center gap-2">
-      <button type="button" :title="`Open ${row.path}`" class="max-w-[370px] text-xs">
-        <div class="max-w-[370px] truncate text-ellipsis">
+      <button type="button" :title="`Open ${row.path}`" class="max-w-[350px] text-xs">
+        <div class="max-w-[350px] text-[11px] text-black dark:text-white truncate text-ellipsis">
           {{ audits[row.auditId].title }}
         </div>
       </button>
     </div>
   </div>
   </template>
-  <template #psiMobileAccessibility-data="{ row }">
-  <div class="flex gap-3 items-center">
-    <UTooltip :text="`${row.psiMobileAccessibility} score this period`" class="flex items-center justify-center gap-1">
-      <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-      {{ useHumanFriendlyNumber(row.psiMobileAccessibility, 0) }}
-    </UTooltip>
-    <UTooltip :text="`${row.psiDesktopAccessibility} score this period`" class="flex items-center justify-center gap-1">
-      <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />
-      {{ useHumanFriendlyNumber(row.psiDesktopAccessibility, 0) }}
-    </UTooltip>
-  </div>
-  </template>
-  <template #psiDesktopScore-data="{ row }">
-  <div class="text-left text-lg font-semibold">
-    <UTooltip :text="`${row.psiDesktopScore} score this period`" class="flex items-center justify-center gap-1">
-      {{ useHumanFriendlyNumber(row.psiDesktopScore, 0) }}
-    </UTooltip>
-  </div>
-  <div class="text-xs flex items-center gap-2">
-    <UTooltip :text="`${row.psiDesktopPerformance} score this period`" class="flex items-center justify-center gap-1">
-      Performance:
-      {{ useHumanFriendlyNumber(row.psiDesktopPerformance, 0) }}
-    </UTooltip>
-    <UTooltip :text="`${row.psiDesktopAccessibility} score this period`" class="flex items-center justify-center gap-1">
-      Accessibility:
-      {{ useHumanFriendlyNumber(row.psiDesktopAccessibility, 0) }}
-    </UTooltip>
-    <UTooltip :text="`${row.psiDesktopBestPractices} score this period`" class="flex items-center justify-center gap-1">
-      Best Practices:
-      {{ useHumanFriendlyNumber(row.psiDesktopBestPractices, 0) }}
-    </UTooltip>
-    <UTooltip :text="`${row.psiDesktopSeo} score this period`" class="flex items-center justify-center gap-1">
-      SEO:
-      {{ useHumanFriendlyNumber(row.psiDesktopSeo, 0) }}
-    </UTooltip>
-  </div>
-  </template>
-  <template #psiMobileScore-data="{ row }">
-  <div class="text-center text-lg font-semibold">
-    <UTooltip :text="`${row.psiMobileScore} score this period`" class="flex items-center justify-center gap-1">
-      {{ useHumanFriendlyNumber(row.psiMobileScore, 0) }}
-    </UTooltip>
-  </div>
-  <div class="text-xs flex items-center gap-2">
-    <UTooltip :text="`${row.psiMobilePerformance} score this period`" class="flex items-center justify-center gap-1">
-      Performance:
-      {{ useHumanFriendlyNumber(row.psiMobilePerformance, 0) }}
-    </UTooltip>
-    <UTooltip :text="`${row.psiMobileAccessibility} score this period`" class="flex items-center justify-center gap-1">
-      Accessibility:
-      {{ useHumanFriendlyNumber(row.psiMobileAccessibility, 0) }}
-    </UTooltip>
-    <UTooltip :text="`${row.psiMobileBestPractices} score this period`" class="flex items-center justify-center gap-1">
-      Best Practices:
-      {{ useHumanFriendlyNumber(row.psiMobileBestPractices, 0) }}
-    </UTooltip>
-    <UTooltip :text="`${row.psiMobileSeo} score this period`" class="flex items-center justify-center gap-1">
-      SEO:
-      {{ useHumanFriendlyNumber(row.psiMobileSeo, 0) }}
-    </UTooltip>
-  </div>
-  </template>
-  <template #path-data="{ row, expanded }">
+  <template #count-data="{ row, expanded }">
   <div class="flex items-center">
+    <UPopover mode="hover">
     <div class="mr-3 text-xs w-14">
-      {{ row.count }} pages
+      {{ row.count }}
     </div>
-    <div class="relative group w-[200px] max-w-full">
-      <div class="flex items-center gap-2">
+      <template #panel>
+      <div class="flex items-center gap-2 p-3">
         <button type="button" :title="`Open ${row.path}`" class="max-w-[260px] text-xs">
-          <div class="text-black max-w-[200px] text-[10px] truncate text-ellipsis">
+          <div class="text-black dark:text-white max-w-[200px] text-xs truncate text-ellipsis">
             {{ pageUrlToPath(row.path) }}
           </div>
         </button>
       </div>
-      <!--            <div v-if="row.inspectionResult" class="text-xs text-gray-500 flex items-center"> -->
-      <!--              <UTooltip v-if="row.inspectionResult?.inspectionResultLink" mode="hover" text="View Inspection Result" size="xs"> -->
-      <!--                <UButton target="_blank" :to="row.inspectionResult?.inspectionResultLink" icon="i-heroicons-document-magnifying-glass" color="gray" variant="link" size="xs" /> -->
-      <!--              </UTooltip> -->
-      <!--              Crawled {{ useTimeAgo(row.inspectionResult.indexStatusResult.lastCrawlTime) }} -->
-      <!--            </div> -->
-    </div>
+      </template>
+    </UPopover>
   </div>
   <div v-if="expanded" class="">
     <div class="relative w-[350px] h-[200px] mb-2">

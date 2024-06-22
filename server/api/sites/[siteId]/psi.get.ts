@@ -1,4 +1,4 @@
-import { avg, between, count, desc, gt, ilike, isNotNull } from 'drizzle-orm'
+import {asc, avg, between, count, desc, gt, ilike, isNotNull} from 'drizzle-orm'
 import { getQuery } from 'h3'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
@@ -20,11 +20,9 @@ export default defineEventHandler(async (e) => {
       statusMessage: 'Site not found',
     })
   }
-  const { filter, page, q } = getQuery<{
-    filter: 'top-level' | 'new' | 'lost' | 'improving' | 'declining'
-    page: string
-    q: string
-  }>(e)
+  const { filters, offset, q, sort, pageSize } = getQueryAsyncDataTable<
+    'top-level' | 'new' | 'lost' | 'improving' | 'declining' | 'trending'
+  >(e)
 
   const _where = [
     eq(sitePathDateAnalytics.siteId, site.siteId),
@@ -37,7 +35,7 @@ export default defineEventHandler(async (e) => {
     _where.push(ilike(sitePathDateAnalytics.path, `%${q}%`))
   const sq = useDrizzle()
     .select({
-      path: filter === 'top-level' ? sql`SUBSTR(path, 1, INSTR(SUBSTR(path, 2), '/') + 1)`.as('topLevelPath1') : sitePathDateAnalytics.path,
+      path: sitePathDateAnalytics.path,
       psiDesktopPerformance: avg(sitePathDateAnalytics.psiDesktopPerformance).as('psiDesktopPerformance'),
       psiMobilePerformance: avg(sitePathDateAnalytics.psiMobilePerformance).as('psiMobilePerformance'),
       psiDesktopSeo: avg(sitePathDateAnalytics.psiDesktopSeo).as('psiDesktopSeo'),
@@ -54,13 +52,13 @@ export default defineEventHandler(async (e) => {
       ..._where,
       between(sitePathDateAnalytics.date, range.period.startDate, range.period.endDate),
     ))
-    .groupBy(filter === 'top-level' ? sql`topLevelPath1` : sitePathDateAnalytics.path)
+    .groupBy(sitePathDateAnalytics.path)
     .as('sq')
 
   // we're going to get previous period data so we can join it and compute differences
   const sq2 = useDrizzle()
     .select({
-      path: filter === 'top-level' ? sql`SUBSTR(path, 1, INSTR(SUBSTR(path, 2), '/') + 1)`.as('topLevelPath2') : sitePathDateAnalytics.path,
+      path: sitePathDateAnalytics.path,
       prevPsiDesktopPerformance: avg(sitePathDateAnalytics.psiDesktopPerformance).as('prevPsiDesktopPerformance'),
       prevPsiMobilePerformance: avg(sitePathDateAnalytics.psiMobilePerformance).as('prevPsiMobilePerformance'),
       prevPsiDesktopSeo: avg(sitePathDateAnalytics.psiDesktopSeo).as('prevPsiDesktopSeo'),
@@ -77,18 +75,16 @@ export default defineEventHandler(async (e) => {
       ..._where,
       between(sitePathDateAnalytics.date, range.prevPeriod.startDate, range.prevPeriod.endDate),
     ))
-    .groupBy(filter === 'top-level' ? sql`topLevelPath2` : sitePathDateAnalytics.path)
+    .groupBy(sitePathDateAnalytics.path)
     .as('sq2')
 
   let finalWhere
-  if (filter === 'improving') {
+  if (filters.includes('improving')) {
     finalWhere = gt(sq.psiDesktopPerformance, sq2.prevPsiDesktopPerformance)
   }
-  else if (filter === 'declining') {
+  else if (filters.includes('declining')) {
     finalWhere = gt(sq2.prevPsiDesktopPerformance, sq.psiDesktopPerformance)
   }
-
-  const offset = ((Number(page) || 1) - 1) * 10
 
   const pagesSelect = useDrizzle().select({
     path: sq.path,
@@ -114,15 +110,15 @@ export default defineEventHandler(async (e) => {
     prevPsiMobileScore: sq2.prevPsiMobileScore,
   })
     .from(sq)
-    .leftJoin(sq2, filter === 'top-level' ? sql`sq.topLevelPath1 = sq2.topLevelPath2` : eq(sq.path, sq2.path))
+    .leftJoin(sq2, eq(sq.path, sq2.path))
     .where(finalWhere)
-    .orderBy(desc(sq.path))
+    .orderBy(sort.column ? (sort.direction === 'asc' ? asc(sq[sort.column]) : desc(sq[sort.column])) : desc(sq.path))
     .as('pagesSelect')
 
   const pages = await useDrizzle().select()
     .from(pagesSelect)
     .offset(offset)
-    .limit(10)
+    .limit(pageSize)
 
   const totals = await useDrizzle().select({
     count: count().as('total'),

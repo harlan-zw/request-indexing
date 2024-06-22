@@ -34,7 +34,7 @@ const columns = computed(() => [
   },
   {
     key: 'clicks',
-    label: 'Clicks',
+    label: 'C',
     sortable: props.sortable,
   },
   {
@@ -44,7 +44,7 @@ const columns = computed(() => [
   },
   {
     key: 'impressions',
-    label: 'Impressions',
+    label: 'I',
     sortable: props.sortable,
   },
   {
@@ -120,13 +120,19 @@ function pageUrlToPath(url: string) {
 
 <template>
   <TableAsyncData :key="filter" :sort="sort" :filter="filter" :pagination="pagination" :searchable="searchable" :page-size="pageSize" :path="`/api/sites/${site.siteId}/pages`" :columns="columns" :filters="filters" :expandable="expandable" @page-change="p => page = p" @update:expanded="updateExpandedData">
+    <template #clicks-header>
+    <IconClicks />
+    </template>
+    <template #impressions-header>
+    <IconImpressions />
+    </template>
     <template #page-data="{ row, value: totals, expanded }">
       <div class="flex items-center">
-        <div class="relative group w-[260px] max-w-full">
+        <div class="relative group w-[220px] max-w-full">
           <ProgressPercent class="" :value="row.clicks" :total="totals?.totalClicks">
             <div class="">
               <NuxtLink :href="`/dashboard/site/${site.siteId}/pages/${encodeURIComponent(row.path)}`" :title="`Open ${row.path}`" class="max-w-[260px] flex items-center justify-between transition py-1 rounded text-xs hover:bg-gray-100 block" color="gray">
-                <div class="text-black max-w-[260px] truncate text-ellipsis">
+                <div class="text-gray-900 dark:text-white max-w-[220px] truncate text-ellipsis">
                   {{ pageUrlToPath(row.path) }}
                 </div>
                 <UBadge v-if="!row.isIndexed" color="gray" size="xs" variant="subtle">
@@ -194,8 +200,7 @@ function pageUrlToPath(url: string) {
           <template v-else>
             <ProgressPercent class="" :value="useHumanFriendlyNumber(row.ctr * 100)" :total="100" :tooltip="`${useHumanFriendlyNumber(row.ctr * 100)}% click through rate`">
               <div class="flex items-center gap-1">
-                <IconClicks class="opacity-70 !w-3 !h-3" />
-                <div class="flex mb-1 items-center justify-center gap-2">
+                <div class="flex items-center justify-center gap-2 text-gray-600 font-mono">
                   {{ useHumanFriendlyNumber(row.clicks) }}
                 </div>
               </div>
@@ -213,8 +218,7 @@ function pageUrlToPath(url: string) {
       <template v-else>
         <ProgressPercent color="purple" :value="10 - row.position" :total="10" :tooltip="`Avg. position ${useHumanFriendlyNumber(row.position)}`">
           <div class="flex items-center gap-1">
-            <IconImpressions class="opacity-70 !w-3 !h-3" />
-            <div class="flex mb-1 items-center justify-center gap-2">
+            <div class="flex items-center justify-center gap-2 text-gray-600 font-mono">
               {{ useHumanFriendlyNumber(row.impressions) }}
             </div>
           </div>

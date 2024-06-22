@@ -25,6 +25,7 @@ export function useSiteData(site: SiteSelect) {
     crux: () => factory<{ dates: number[], cls: { value: number, time: number }[], inp: { value: number, time: number }[], lcp: { value: number, time: number }[] }>('crux/origin'),
     indexing: () => factory<{ nonIndexedUrls: Set<string> }>('alt/indexing'),
     gscStats: () => factory<{ nonIndexedUrls: Set<string> }>('alt/gsc-stats'),
+    usages: () => factory<{ nonIndexedUrls: Set<string> }>('usages'),
     keywordDateAnalytics: (options?: { query?: { filter?: string } }) => factory<{ period: SiteDateAnalyticsSelect, prevPeriod: SiteDateAnalyticsSelect, dates: SiteDateAnalyticsSelect[] }>('alt/keyword-analytics', options),
     pathDateAnalytics: (options?: { query?: { filter?: string } }) => factory<{ period: SiteDateAnalyticsSelect, prevPeriod: SiteDateAnalyticsSelect, dates: SiteDateAnalyticsSelect[] }>('alt/path-analytics', options),
     dateAnalytics: (options?: { query?: { path?: string } }) => factory<{ period: SiteDateAnalyticsSelect, prevPeriod: SiteDateAnalyticsSelect, dates: SiteDateAnalyticsSelect[] }>('alt/date-analytics', options),

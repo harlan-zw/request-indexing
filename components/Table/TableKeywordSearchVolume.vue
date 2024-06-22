@@ -40,7 +40,7 @@ function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
 </script>
 
 <template>
-  <TableAsyncData :sort="sort" :path="`/api/sites/${site.siteId}/keyword-search-volumes`" :searchable="searchable" :page-size="pageSize" :columns="columns" :filter="filter" :filters="filters" expandable>
+  <TableAsyncData :sort="sort" :path="`/api/sites/${site.siteId}/keyword-search-volumes`" :searchable="searchable" :page-size="pageSize" :columns="columns" :filter="filter" :filters="filters" :expandable="expandable">
     <template #keyword-data="{ row, value: totals, expanded }">
       <div class="flex items-center">
         <div class="relative group w-[225px] truncate text-ellipsis">

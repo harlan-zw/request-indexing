@@ -8,9 +8,10 @@ const props = defineProps<{ site: any }>()
 // const { user } = useUserSession()
 
 definePageMeta({
+  layout: 'dashboard',
   title: 'Dashboards',
   subTitle: 'Organic Search',
-  icon: 'i-heroicons-home',
+  icon: 'i-ph-app-window-duotone',
 })
 
 const siteData = useSiteData(props.site)
@@ -35,10 +36,14 @@ const dates = computed(() => {
 
 const sortFunction = (a, b) => a - b
 
-const tabItems = [{ label: 'Top', icon: 'i-ph-chart-bar-duotone' }, { label: 'Trending', icon: 'i-ph-chart-line-up-duotone', filter: 'improving,with-clicks' }, { label: 'Declining', icon: 'i-ph-chart-line-down-duotone', filter: 'declining,with-clicks' }]
+const tabItems = [
+  { label: 'Most Clicked', icon: 'i-ph-chart-bar-duotone', description: 'Show data by most clicks.' },
+  { label: 'Improving', icon: 'i-ph-chart-line-up-duotone', filter: 'improving,with-clicks', description: 'Clicks improving compared to the previous period.' },
+  { label: 'Declining', icon: 'i-ph-chart-line-down-duotone', filter: 'declining,with-clicks', description: 'Clicks diminishing compared to the previous period.' }
+]
 const tab = ref(0)
-const currentTabLabel = computed(() => {
-  return tabItems[tab.value].label
+const currentTab = computed(() => {
+  return tabItems[tab.value]
 })
 const currentTabFilter = computed(() => {
   return tabItems[tab.value].filter
@@ -52,103 +57,92 @@ const totalDeviceClicks = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-7">
-    <div class="grid grid-cols-3 gap-7  items-center justify-center">
-      <UCard :ui="{ body: { padding: 'sm:px-2 sm:py-2' } }">
-        <CardGoogleSearchConsole :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['clicks', 'impressions']" />
-      </UCard>
-      <UCard :ui="{ body: { padding: 'sm:px-2 sm:py-2' } }">
-        <CardKeywords v-if="dates" :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['keywords']" />
-      </UCard>
-      <UCard :ui="{ body: { padding: 'sm:px-2 sm:py-2' } }">
-        <CardWebIndexing v-if="dates" :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['keywords']" />
-      </UCard>
-    </div>
-    <div class="max-w-lg">
-      <UTabs v-model="tab" :items="tabItems">
-        <template #default="{ item }">
-          <div class="flex items-center gap-2 relative truncate min-w-[150px] justify-center">
-            <UIcon :name="item.icon" class="w-4 h-4 flex-shrink-0" />
-            <span class="truncate">{{ item.label }}</span>
+<div class="space-y-7">
+  <div class="flex items-center gap-3">
+    <div class="border border-dashed rounded-lg">
+      <div class="max-w-sm">
+        <UPopover :popper="{ placement: 'bottom-end' }">
+          <template #default="{ open }">
+          <UButton size="xs" color="gray" :icon="currentTab.icon" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
+            <span class="truncate">{{ currentTab.label }}</span>
+          </UButton>
+          </template>
+          <template #panel>
+          <div v-for="(item, i) in tabItems" :key="i">
+            <UButton   size="lg" color="gray" :icon="item.icon" variant="ghost" :class="[tab === i && 'bg-gray-50 dark:bg-gray-800']" @click="tab = i">
+              <div class="flex flex-col items-start">
+                <div class="truncate">{{ item.label }}</div>
+                <div class="text-xs text-gray-500 max-w-[200px] text-left">{{ item.description }}</div>
+              </div>
+            </UButton>
           </div>
-        </template>
-      </UTabs>
-    </div>
-    <div class="grid grid-cols-12 gap-7">
-      <div class="col-span-8 space-y-5">
-        <div>
-          <div class="flex items-center mb-3 gap-3">
-            <div class="text-sm font-bold">
-              {{ currentTabLabel }} Pages
-            </div>
-            <NuxtLink :to="`/dashboard/site/${site.siteId}/pages`" class="text-[11px] hover:underline font-normal">
-              View All
-            </NuxtLink>
-          </div>
-          <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
-            <TablePagesNext :sort="tab === 0 ? undefined : { column: 'clicksPercent', direction: tab === 1 ? 'desc' : 'asc' }" :exclude-columns="['psiScore', 'actions']" :filter="currentTabFilter" :sortable="false" :pagination="false" :searchable="false" :expandable="false" :site="site" :filters="[]" :page-size="5" />
-          </UCard>
-        </div>
-        <div>
-          <div class="flex items-center mb-3 gap-3">
-            <div class="text-sm font-bold">
-              {{ currentTabLabel }} Keywords
-            </div>
-            <NuxtLink :to="`/dashboard/site/${site.siteId}/keywords`" class="text-[11px] hover:underline font-normal">
-              View All
-            </NuxtLink>
-          </div>
-          <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
-            <TableKeywordsNext :filter="currentTabFilter" :sort="tab === 0 ? undefined : { column: 'clicksPercent', direction: tab === 1 ? 'desc' : 'asc' }" :exclude-columns="['actions', 'position', 'actions', 'positionPercent', 'competitionIndex']" :sortable="false" :pagination="false" :searchable="false" :expandable="false" :site="site" :filters="[]" :page-size="5" />
-          </UCard>
-        </div>
+          </template>
+        </UPopover>
       </div>
-      <div class="col-span-4 space-y-5">
-        <div>
-          <div class="flex items-center mb-3 gap-3">
-            <div class="text-sm font-bold">
-              {{ currentTabLabel }} Countries
-            </div>
-            <NuxtLink :to="`/dashboard/site/${site.siteId}/countries`" class="text-[11px] hover:underline font-normal">
-              View All
-            </NuxtLink>
-          </div>
-          <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
-            <TableCountries :sort="tab === 0 ? undefined : { column: 'clicksPercent', direction: tab === 1 ? 'desc' : 'asc' }" :exclude-columns="['page', 'keyword', 'actions', 'impressions', 'impressionsPercent']" :filter="currentTabFilter" :sortable="false" :pagination="false" :searchable="false" :expandable="false" :site="site" :filters="[]" :page-size="5" />
-          </UCard>
-        </div>
-        <div>
-          <div class="flex items-center mb-3 gap-3">
-            <div class="text-sm font-bold">
-              Devices
-            </div>
-          </div>
-          <UCard v-if="dates?.devices" :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
-            <div class="grid grid-cols-2 gap-10 flex">
-              <div class="h-[150px] flex flex-col justify-center items-center">
-                <VisSingleContainer :data="Object.values(dates?.devices).filter(Boolean)" height="125">
-                  <VisDonut :color="(d: number, i: number) => ['#f97316', '#3b82f6', '#ec4899'][i]" :value="(d: number) => d" radius="50" :arc-width="12" :corner-radius="12" :pad-angle="0.1" />
-                </VisSingleContainer>
+    </div>
+    <div class="border border-dashed rounded-lg">
+      <CalenderFilter />
+    </div>
+    <div class="border border-dashed rounded-lg">
+      <LocationFilter />
+    </div>
+  </div>
+  <div class="grid grid-cols-12 gap-7">
+    <div class="col-span-9 space-y-10">
+      <div>
+        <CardTitle>
+          <NuxtLink :to="`/dashboard/site/${site.siteId}/pages`" class="hover:underline">
+            Pages
+          </NuxtLink>
+        </CardTitle>
+        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <CardGoogleSearchConsole :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['clicks', 'impressions']" />
+          <TablePagesNext :sort="tab === 0 ? undefined : { column: 'clicksPercent', direction: tab === 1 ? 'desc' : 'asc' }" :exclude-columns="['psiScore', 'actions']" :filter="currentTabFilter" :sortable="false" :searchable="false" :expandable="false" :site="site" :filters="[]" :page-size="5" />
+        </UCard>
+      </div>
+      <div>
+        <CardTitle>
+          <NuxtLink class="hover:underline" :to="`/dashboard/site/${site.siteId}/keywords`">
+            Keywords
+          </NuxtLink>
+        </CardTitle>
+        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <CardKeywords v-if="dates" :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['keywords']" />
+          <TableKeywordsNext :filter="currentTabFilter" :sort="tab === 0 ? undefined : { column: 'clicksPercent', direction: tab === 1 ? 'desc' : 'asc' }" :exclude-columns="['actions', 'impressionsPercent', 'position', 'actions', 'positionPercent', 'competitionIndex']" :sortable="false" :searchable="false" :expandable="false" :site="site" :filters="[]" :page-size="5" />
+        </UCard>
+      </div>
+    </div>
+    <div class="col-span-3 space-y-10">
+      <div>
+        <CardTitle>
+          <NuxtLink class="hover:underline" :to="`/dashboard/site/${site.siteId}/countries`">
+            Countries
+          </NuxtLink>
+        </CardTitle>
+        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <TableCountries :sort="tab === 0 ? undefined : { column: 'clicksPercent', direction: tab === 1 ? 'desc' : 'asc' }" :exclude-columns="['page', 'clicks', 'keyword', 'actions', 'impressions', 'impressionsPercent']" :filter="currentTabFilter" :sortable="false" :pagination="false" :searchable="false" :expandable="false" :site="site" :filters="[]" :page-size="5" />
+        </UCard>
+      </div>
+      <div>
+        <CardTitle>
+          Devices
+        </CardTitle>
+        <UCard v-if="dates?.devices" :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <div class="space-y-3">
+            <div v-for="(key, device) in dates?.devices">
+              <div class="flex items-center gap-1 text-sm">
+                <span class="capitalize text-xs text-gray-500">{{ device.replace('Clicks', '') }}</span>
               </div>
-              <div class="flex flex-col justify-center items-center">
-                <div class="max-w-sm w-full grid grid-cols-2 gap-5">
-                  <div v-for="(key, device) in dates?.devices">
-                    <div class="flex items-center gap-1 text-sm">
-                      <div v-if="device === 'mobileClicks'" class="bg-orange-500 rounded-full w-2 h-2" />
-                      <div v-else-if="device === 'desktopClicks'" class="bg-blue-500 rounded-full w-2 h-2" />
-                      <div v-else-if="device === 'tabletClicks'" class="bg-pink-500 rounded-full w-2 h-2" />
-                      <span class="capitalize text-xs text-gray-500">{{ device.replace('Clicks', '') }}</span>
-                    </div>
-                    <div class="text-lg">
-                      {{ useHumanFriendlyNumber(key / totalDeviceClicks * 100) }}%
-                    </div>
-                  </div>
-                </div>
+              <div class="text-lg font-mono">
+                <ProgressPercent :value="key" :total="totalDeviceClicks">
+                {{ useHumanFriendlyNumber(key / totalDeviceClicks * 100, 0) }}%
+                </ProgressPercent>
               </div>
             </div>
-          </UCard>
-        </div>
+          </div>
+        </UCard>
       </div>
     </div>
   </div>
+</div>
 </template>

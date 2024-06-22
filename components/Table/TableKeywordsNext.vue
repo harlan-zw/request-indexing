@@ -43,33 +43,48 @@ const columns = computed(() => {
     key: 'keyword',
     label: 'Keyword',
     sortable: props.sortable,
-  }, {
+  },
+    {
+      key: 'currentMonthSearchVolume',
+      label: 'Volume',
+      sortable: props.sortable,
+    },
+    {
+      key: 'position',
+      label: 'Position',
+      sortable: props.sortable,
+    }, {
+      key: 'positionPercent',
+      label: '%',
+      sortable: props.sortable,
+    },
+    {
     key: 'clicks',
     label: 'Clicks',
     sortable: props.sortable,
-  }, {
+  },
+    {
+      key: 'clicksPercent',
+      label: '%',
+      sortable: props.sortable,
+    },
+    {
     key: 'impressions',
     label: 'Impressions',
     sortable: props.sortable,
-  }, props.filter?.startsWith('path')
+  },
+    {
+      key: 'impressionsPercent',
+      label: '%',
+      sortable: props.sortable,
+    },
+    props.filter?.startsWith('path')
     ? undefined
     : {
         key: 'page',
         label: 'Top Page',
         sortable: props.sortable,
       }, {
-    key: 'position',
-    label: 'Position',
-    sortable: props.sortable,
-  }, {
-    key: 'positionPercent',
-    label: '%',
-    sortable: props.sortable,
-  }, {
-    key: 'currentMonthSearchVolume',
-    label: 'Volume',
-    sortable: props.sortable,
-  }, {
     key: 'competitionIndex',
     label: 'Competition',
     sortable: props.sortable,
@@ -187,19 +202,28 @@ function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
     case 'HIGH':
       return 'red'
   }
+  return 'gray'
 }
 </script>
 
 <template>
-  <div>
-    <TableAsyncData :key="filter" :sort="sort" :pagination="pagination" :searchable="searchable" :page-size="pageSize" :path="`/api/sites/${site.siteId}/keywords`" :columns="columns" :filter="filter" :filters="filters" :expandable="expandable" @update:expanded="updateExpandedData">
+  <TableAsyncData :key="filter" :sort="sort" :pagination="pagination" :searchable="searchable" :page-size="pageSize" :path="`/api/sites/${site.siteId}/keywords`" :columns="columns" :filter="filter" :filters="filters" :expandable="expandable" @update:expanded="updateExpandedData">
+    <template #clicks-header>
+    <IconClicks />
+    </template>
+    <template #impressions-header>
+    <IconImpressions />
+    </template>
+    <template #position-header>
+    <IconPosition />
+    </template>
       <template #keyword-data="{ row, value: totals, expanded }">
         <div class="flex items-center">
-          <div class="relative group w-[225px] truncate text-ellipsis">
+          <div class="relative group w-[200px] truncate text-ellipsis">
             <ProgressPercent class="" :value="row.clicks" :total="totals?.totalClicks">
               <div class="">
-                <NuxtLink :href="`/dashboard/site/${site.siteId}/keywords/${encodeURIComponent(row.keyword)}`" :title="`Open ${row.path}`" class="max-w-[260px] transition py-1 rounded text-xs hover:bg-gray-100 block" color="gray">
-                  <div class="text-black max-w-[260px] truncate text-ellipsis">
+                <NuxtLink :href="`/dashboard/site/${site.siteId}/keywords/${encodeURIComponent(row.keyword)}`" :title="`Open ${row.path}`" class="max-w-[200px] transition py-1 rounded text-xs hover:bg-gray-100 block" color="gray">
+                  <div class="text-black max-w-[200px] truncate text-ellipsis">
                     {{ row.keyword }}
                   </div>
                   <UBadge v-if="!row.prevImpressions" size="xs" variant="subtle">
@@ -217,11 +241,23 @@ function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
           <GraphKeywords v-if="graph" :key="graph.key" :value="graph.position" :value2="graph.ctr" height="200" />
         </div>
       </template>
+    <template #clicksPercent-data="{ row }">
+    <UDivider v-if="!row.prevClicks" />
+    <TrendPercentage v-else :value="row.clicks" compact :prev-value="row.prevClicks" />
+    </template>
+    <template #impressionsPercent-data="{ row }">
+    <UDivider v-if="!row.prevImpressions" />
+    <TrendPercentage v-else :value="row.impressions" compact :prev-value="row.prevImpressions" />
+    </template>
       <template #currentMonthSearchVolume-data="{ row }">
-        <span class="">{{ useHumanFriendlyNumber(row.currentMonthSearchVolume) }}</span>
+      <EmptyPlaceholder v-if="Number(row.currentMonthSearchVolume) === 0" />
+      <ProgressPercent v-else :value="100 - row.competitionIndex" :color="colorForCompetition(row.competition)" class="w-[44px]">
+        <span class="font-mono">{{ useHumanFriendlyNumber(row.currentMonthSearchVolume) }}</span>
+      </ProgressPercent>
       </template>
       <template #competitionIndex-data="{ row }">
-        <ProgressPercent :value="row.competitionIndex" :color="colorForCompetition(row.competition)" class="w-[100px]">
+      <EmptyPlaceholder v-if="Number(row.currentMonthSearchVolume) === 0" />
+      <ProgressPercent v-else :value="row.competitionIndex" :color="colorForCompetition(row.competition)" class="w-[100px]">
           <span class="text-xs text-gray-400">{{ row.competition }}</span>
         </ProgressPercent>
       </template>
@@ -229,11 +265,11 @@ function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
       <template #page-data="{ row, expanded }">
         <div v-if="!expanded" class="flex items-center">
           <NuxtLink v-if="row.pages?.[0]" :title="row.pages[0].path" variant="link" size="xs" :to="`/dashboard/site/${site.domain}/pages?q=${encodeURIComponent(row.pages[0].path)}`" color="gray">
-            <div class="flex items-center">
+            <div class="flex items-center gap-1">
+              <PositionMetric :value="row.pages[0].position" size="sm" />
               <div class="max-w-[175px] text-[11px] text-xs truncate text-ellipsis">
                 {{ row.pages[0].path }}
               </div>
-              <PositionMetric :value="row.pages[0].position" size="sm" />
             </div>
           </NuxtLink>
         </div>
@@ -255,37 +291,35 @@ function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
           </ul>
         </div>
       </template>
-      <template #clicks-data="{ row }">
-        <div class="text-center">
-          <UDivider v-if="row.lostKeyword" />
-          <div v-else class="flex gap-1">
-            <EmptyPlaceholder v-if="Number(row.clicks) === 0" />
-            <template v-else>
-              <ProgressPercent class="" :value="useHumanFriendlyNumber(row.ctr * 100)" :total="100" :tooltip="`${useHumanFriendlyNumber(row.ctr * 100)}% click through rate`">
-                <div class="flex items-center gap-1">
-                  <IconClicks class="opacity-70 !w-3 !h-3" />
-                  <div class="flex mb-1 items-center justify-center gap-2">
-                    {{ useHumanFriendlyNumber(row.clicks) }}
-                  </div>
-                </div>
-              </ProgressPercent>
-            </template>
-          </div>
-        </div>
-      </template>
-      <template #impressions-data="{ row }">
-        <EmptyPlaceholder v-if="Number(row.impressions) === 0" />
+    <template #clicks-data="{ row }">
+    <div class="text-center">
+      <UDivider v-if="row.lostPage" />
+      <div v-else class="flex items-center gap-1">
+        <EmptyPlaceholder v-if="Number(row.clicks) === 0" />
         <template v-else>
-          <ProgressPercent color="purple" :value="10 - row.position" :total="10" :tooltip="`Avg. position ${useHumanFriendlyNumber(row.position)}`">
-            <div class="flex items-center gap-1">
-              <IconImpressions class="opacity-70 !w-3 !h-3" />
-              <div class="flex mb-1 items-center justify-center gap-2">
-                {{ useHumanFriendlyNumber(row.impressions) }}
-              </div>
+        <ProgressPercent class="" :value="useHumanFriendlyNumber(row.ctr * 100)" :total="100" :tooltip="`${useHumanFriendlyNumber(row.ctr * 100)}% click through rate`">
+          <div class="flex items-center gap-1">
+            <div class="flex items-center justify-center gap-2 text-gray-600 font-mono">
+              {{ useHumanFriendlyNumber(row.clicks) }}
             </div>
-          </ProgressPercent>
+          </div>
+        </ProgressPercent>
         </template>
-      </template>
+      </div>
+    </div>
+    </template>
+    <template #impressions-data="{ row }">
+    <EmptyPlaceholder v-if="Number(row.impressions) === 0" />
+    <template v-else>
+    <ProgressPercent color="purple" :value="10 - row.position" :total="10" :tooltip="`Avg. position ${useHumanFriendlyNumber(row.position)}`">
+      <div class="flex items-center gap-1">
+        <div class="flex items-center justify-center gap-2 text-gray-600 font-mono">
+          {{ useHumanFriendlyNumber(row.impressions) }}
+        </div>
+      </div>
+    </ProgressPercent>
+    </template>
+    </template>
       <template #position-data="{ row }">
         <div class="text-center">
           <UDivider v-if="row.lostKeyword" />
@@ -339,5 +373,4 @@ function colorForCompetition(competition: 'MEDIUM' | 'LOW' | 'HIGH') {
         </UDropdown>
       </template>
     </TableAsyncData>
-  </div>
 </template>

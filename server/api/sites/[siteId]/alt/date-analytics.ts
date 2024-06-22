@@ -65,8 +65,11 @@ export default defineEventHandler(async (event) => {
       )),
     db
       .select({
-        psiDesktopScore: avg(sitePathDateAnalytics.psiDesktopScore),
-        psiMobileScore: avg(sitePathDateAnalytics.psiMobileScore),
+        psiDesktopPerformance: avg(sitePathDateAnalytics.psiDesktopPerformance),
+        psiMobilePerformance: avg(sitePathDateAnalytics.psiMobilePerformance),
+        psiMobileBestPractices: avg(sitePathDateAnalytics.psiMobileBestPractices),
+        psiMobileSeo: avg(sitePathDateAnalytics.psiMobileSeo),
+        psiMobileAccessibility: avg(sitePathDateAnalytics.psiMobileAccessibility),
       })
       .from(sitePathDateAnalytics)
       .where(and(

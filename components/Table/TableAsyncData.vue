@@ -126,6 +126,7 @@ const columns = computed(() => {
   return [props.expandable ? { key: 'expand' } : null, ...props.columns].filter(Boolean).map(c => ({
     ...c,
     slotName: `${c.key}-data`,
+    headerSlot: `${c.key}-header`,
   }))
 })
 
@@ -156,13 +157,14 @@ const tableUi = {
       <div class="flex justify-between">
         <slot name="header" />
         <div v-if="searchable" class="flex items-center gap-5 mb-2">
-          <div class="flex w-[300px] dark:border-gray-700">
+          <div class="flex w-[200px] dark:border-gray-700">
             <UInput
               v-model="q"
               class="w-full"
               placeholder="Search..."
               icon="i-heroicons-magnifying-glass"
               autocomplete="off"
+              size="xs"
               :ui="{ icon: { trailing: { pointer: '' } } }"
             >
               <template #trailing>
@@ -202,12 +204,42 @@ const tableUi = {
       <template v-for="column in columns.filter(c => c.key !== 'expand')" #[column.slotName]="data">
         <slot :name="column.slotName" v-bind="data" :value="value" :rows="rows" :expanded="expandedRow === data.index" />
       </template>
+      <template v-for="column in columns.filter(c => c.key !== 'expand')" #[column.headerSlot]="data">
+      <slot :name="column.headerSlot" v-bind="data" :value="value" :rows="rows" :expanded="expandedRow === data.index" />
+      </template>
     </UTable>
-    <div v-if="pagination && value?.total > pageSize" class="flex items-center justify-between mt-7 px-3 py-5 border-t border-gray-200 dark:border-gray-700">
-      <UPagination v-model="page" :page-count="pageSize" :total="value?.total" />
-      <div class="text-base dark:text-gray-300 text-gray-600 mb-2">
-        {{ value?.total }} total
-      </div>
+    <div v-if="pagination && value?.total > pageSize" class="flex items-center  gap-3 pt-3">
+<!--      <div class="text-sm dark:text-gray-300 text-gray-600">-->
+<!--        {{ value?.total }} total-->
+<!--      </div>-->
+      <UPagination
+        v-model="page"
+        :inactiveButton="{ variant: 'link' }"
+        :active-button="{ color: 'blue', variant: 'link', class: 'underline' }"
+        :prev-button="false"
+        :next-button="{ variant: 'link' }"
+        size="xs"
+        :page-count="pageSize"
+        :max="5"
+        :total="value?.total"
+      />
     </div>
   </div>
 </template>
+
+<style>
+th:first-child {
+  padding-left: 0 !important;
+}
+td:first-child {
+  padding-left: 0 !important;
+}
+
+th:last-child {
+  padding-right: 0 !important;
+}
+
+td:last-child {
+  padding-right: 0 !important;
+}
+</style>

@@ -52,25 +52,33 @@ const allSitesLoaded = computed(() => {
 </script>
 
 <template>
-  <div :key="key">
-    <div v-if="allSitesLoaded" class="max-w-2xl mb-12">
-      <div class="flex items-center justify-between gap-3 text-gray-600">
-        <div>
-          <UIcon class="w-4 h-4 flex-grow" name="i-ph-arrow-circle-left-duotone" />
-        </div>
-        <div class="flex-shrink">
-          In the last <span class="underline font-semibold">30 days</span>, your sites have received <span class="font-semibold">{{ useHumanFriendlyNumber(stats?.period.clicks || 0) }} clicks</span> and <strong>{{ useHumanFriendlyNumber(stats?.period.impressions || 0) }} impressions</strong>. Compared
-          to the <span class="underline font-semibold">previous period</span>, this is a <strong>{{ useHumanFriendlyNumber(previousPeriodClicksPercent) }}% {{ previousPeriodClicksPercent > 0 ? 'increase' : 'decrease' }}</strong> in clicks and a <strong>{{ useHumanFriendlyNumber(previousPeriodImpressionsPercent) }}% {{ previousPeriodImpressionsPercent > 0 ? 'increase' : 'decrease' }}</strong> in impressions.
-        </div>
-        <div>
-          <UIcon class="w-4 h-4" name="i-ph-arrow-circle-right-duotone" />
-        </div>
+  <div :key="key" class="space-y-7">
+    <div class="flex items-center gap-3">
+      <div class="border border-dashed rounded-lg">
+        <CalenderFilter />
+      </div>
+      <div class="border border-dashed rounded-lg">
+        <LocationFilter />
       </div>
     </div>
-    <div v-else>
+<!--    <div v-if="allSitesLoaded" class="max-w-2xl mb-12">-->
+<!--      <div class="flex items-center justify-between gap-3 text-gray-600">-->
+<!--        <div>-->
+<!--          <UIcon class="w-4 h-4 flex-grow" name="i-ph-arrow-circle-left-duotone" />-->
+<!--        </div>-->
+<!--        <div class="flex-shrink">-->
+<!--          In the last <span class="font-semibold">30 days</span>, your sites have received <span class="font-semibold">{{ useHumanFriendlyNumber(stats?.period.clicks || 0) }} clicks</span> and <strong>{{ useHumanFriendlyNumber(stats?.period.impressions || 0) }} impressions</strong>. Compared-->
+<!--          to the <span class="underline font-semibold">previous period</span>, this is a <strong>{{ useHumanFriendlyNumber(previousPeriodClicksPercent) }}% {{ previousPeriodClicksPercent > 0 ? 'increase' : 'decrease' }}</strong> in clicks and a <strong>{{ useHumanFriendlyNumber(previousPeriodImpressionsPercent) }}% {{ previousPeriodImpressionsPercent > 0 ? 'increase' : 'decrease' }}</strong> in impressions.-->
+<!--        </div>-->
+<!--        <div>-->
+<!--          <UIcon class="w-4 h-4" name="i-ph-arrow-circle-right-duotone" />-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+    <div v-if="!allSitesLoaded">
       <UAlert title="Setting up your dashboard" color="blue" variant="subtle" description="This could take some time." class="mb-10 max-w-lg" />
     </div>
-    <div class="flex flex-wrap items-center gap-7">
+    <div class="grid grid-cols-2 gap-10">
       <CardSite v-for="(site) in sites" :key="site.siteId" :site="site" :selected-charts="selectedCharts" />
     </div>
   </div>

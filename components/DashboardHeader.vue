@@ -45,7 +45,7 @@ const authDropdownItems: DropdownItem[][] = computed(() => {
 </script>
 
 <template>
-  <UDashboardNavbar>
+  <UDashboardNavbar :ui="{ container: 'max-w-4xl mx-auto' }">
     <template #left>
       <slot />
     </template>
