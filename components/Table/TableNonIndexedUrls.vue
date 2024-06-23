@@ -357,7 +357,7 @@ const filters = [
       </div>
     </template>
     <template #actions-data="{ row }">
-      <UDropdown :items="[[{ label: 'Open URL', click: () => openUrl(row.url, '_blank'), icon: 'i-heroicons-arrow-up-right' }]]">
+      <UDropdown :items="[[{ label: 'Open URL', click: () => openUrl(joinURL(`https://${siteUrlFriendly}`, row.url), '_blank'), icon: 'i-heroicons-arrow-up-right' }]]">
         <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="gray" />
       </UDropdown>
     </template>
