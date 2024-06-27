@@ -41,10 +41,13 @@ async function recursiveQuery(api: searchconsole_v1.Searchconsole, query: search
       startRow: (page - 1) * rowLimit,
     },
   })
-  // add res rows
-  rows.push(...res.data.rows!)
-  if (res.data.rows!.length === rowLimit && res.data.rows!.length < maxRows && page <= 4)
-    await recursiveQuery(api, query, maxRows, page + 1, rows)
+  const newRows = res.data?.rows || []
+  if (newRows.length) {
+    // add res rows
+    rows.push(...newRows)
+    if (res.data.rows!.length === rowLimit && res.data.rows!.length < maxRows && page <= 4)
+      await recursiveQuery(api, query, maxRows, page + 1, rows)
+  }
 
   return { data: { rows } }
 }
