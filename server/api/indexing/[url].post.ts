@@ -2,12 +2,12 @@ import { indexing } from '@googleapis/indexing'
 import type { GaxiosError } from 'googleapis-common'
 import { OAuth2Client } from 'googleapis-common'
 import type { indexing_v3 } from '@googleapis/indexing/v3'
-import { getUserToken, updateUserSite } from '~/server/utils/storage'
-import { getUserQuotaUsage, incrementUserQuota } from '~/server/utils/quota'
-import type { SitePage, UserSession } from '~/types'
+import type { SitePage } from '~/types'
+import { authenticateUser } from '~/server/app/utils/auth'
+// import { getUserQuotaUsage, incrementUserQuota } from '~/server/app/models/user/quota'
 
 export default defineEventHandler(async (event) => {
-  const { user } = event.context.authenticatedData
+  const user = await authenticateUser(event)
 
   const { url } = getRouterParams(event, { decode: true })
 
@@ -17,18 +17,18 @@ export default defineEventHandler(async (event) => {
 
   const tokens = await getUserToken(user.userId, 'indexing')
 
-  const { indexing: indexingConfig } = useRuntimeConfig().public
-  const quotaLimit = user.access === 'pro' ? 200 : indexingConfig.usageLimitPerUser
+  // const { indexing: } = useRuntimeConfig().public
+  // const quotaLimit = user.access === 'pro' ? 200 : indexingConfig.usageLimitPerUser
   // increment users usage
-  const quota = await getUserQuotaUsage(user.userId, 'indexingApi')
-  if (quota >= quotaLimit) {
-    return sendError(event, createError({
-      statusCode: 429,
-      statusText: 'Daily API Quota exceeded.',
-    }))
-  }
-  const pool = createOAuthPool().get(user.indexingOAuthIdNext || '')
-  if (!user.indexingOAuthIdNext || !pool) {
+  // const quota = await getUserQuotaUsage(user.userId, 'indexingApi')
+  // if (quota >= quotaLimit) {
+  //   return sendError(event, createError({
+  //     statusCode: 429,
+  //     statusText: 'Daily API Quota exceeded.',
+  //   }))
+  // }
+  const pool = createOAuthPool().get(user.indexingOAuthId || '')
+  if (!user.indexingOAuthId || !pool) {
     return sendError(event, createError({
       statusCode: 401,
       statusText: 'Invalid Google account. Please reconnect your account.',
@@ -76,15 +76,15 @@ export default defineEventHandler(async (event) => {
     },
   })
     .then(res => res.data)
-
-  await setUserSession(event, <UserSession> {
-    // public data only!
-    user: {
-      quota: {
-        indexingApi: await incrementUserQuota(user.userId, 'indexingApi'),
-      },
-    },
-  })
+  //
+  // await setUserSession(event, <UserSession> {
+  //   // public data only!
+  //   user: {
+  //     quota: {
+  //       indexingApi: await incrementUserQuota(user.userId, 'indexingApi'),
+  //     },
+  //   },
+  // })
 
   const page: SitePage = { ...res, url }
   await updateUserSite(user.userId, siteUrl, { urls: [page] })

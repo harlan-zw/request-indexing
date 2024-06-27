@@ -2,9 +2,15 @@ import type { searchconsole_v1 } from '@googleapis/searchconsole/v1'
 import type { indexing_v3 } from '@googleapis/indexing/v3'
 import type { RequiredNonNullable } from '~/types/util'
 
-export interface IndexedUrl extends RequiredNonNullable<searchconsole_v1.Schema$ApiDataRow> {
+export interface GscDataRow extends RequiredNonNullable<searchconsole_v1.Schema$ApiDataRow> {
 }
-export interface SitePage {
+
+export interface GscDataComparison<T extends GscDataRow> {
+  period: T[]
+  prevPeriod: T[]
+}
+
+export interface SitePage extends GscDataRow {
   url: string
   lastInspected?: number
   // inspect url gsc response
@@ -21,9 +27,15 @@ export interface UserSite {
   }
 }
 
-export interface GoogleSearchConsoleSite {
-  siteUrl: string
-  permissionLevel: 'siteOwner' | 'siteRestrictedUser' | 'siteFullUser'
+export interface ResolvedAnalyticsRange {
+  period: {
+    start: Date | string
+    end: Date | string
+  }
+  prevPeriod?: {
+    start: Date
+    end: Date
+  }
 }
 
 export interface SiteAnalytics {
@@ -67,6 +79,17 @@ export interface SiteAnalytics {
 }
 
 export interface SiteExpanded extends SiteAnalytics, GoogleSearchConsoleSite {
-  nonIndexedPercent: number
+  requiresActionPercent: number
   nonIndexedUrls: SitePage[]
 }
+
+export interface SitePreview {
+  sitemaps: searchconsole_v1.Schema$WmxSitemap[]
+  siteId: string
+  domain: string
+  pageCount30Day: number
+  startOfData: string
+  isLosingData: boolean
+}
+
+export type SitesPreview = SitePreview[]

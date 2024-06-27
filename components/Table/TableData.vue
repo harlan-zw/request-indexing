@@ -2,17 +2,19 @@
 import { useUrlSearchParams } from '@vueuse/core'
 import { get } from '#ui/utils'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   value: T[]
   columns: any[]
   filters?: { key: string, label: string, filter: (rows: T[]) => T[] }[]
   expandable?: boolean
-  pageCount?: number
-}>()
+  searchable?: boolean
+}>(), {
+  searchable: true,
+})
 
 const emit = defineEmits<{
   'update:expanded': [id: number]
-  'update:rows': [rows: T[]]
+  'pageChange': [page: number]
 }>()
 
 const params = useUrlSearchParams('history', {
@@ -66,7 +68,6 @@ const filters = computed(() => {
     {
       key: 'default',
       label: 'Show all',
-      description: 'Show all results',
       filter: (rows: T[]) => {
         return rows
       },
@@ -100,6 +101,10 @@ const paginatedRows = computed<T[]>(() => {
   return queriedRows.value.slice((page.value - 1) * pageCount, (page.value) * pageCount)
 })
 
+watch(page, () => {
+  emit('pageChange', page.value)
+})
+
 function updateSort(_sort: any) {
   if (_sort.column === null) {
     sort.value = null
@@ -122,57 +127,68 @@ watch(expandedRow, () => {
   emit('update:expanded', expandedRow.value ? paginatedRows.value[expandedRow.value] : null)
 })
 
-watch(paginatedRows, () => {
-  emit('update:rows', paginatedRows.value)
-})
+const tableUi = {
+  default: {
+    sortButton: {
+      size: 'xs',
+    },
+  },
+  th: {
+    padding: 'px-2 py-2',
+    size: 'text-xs',
+    font: 'font-normal',
+  },
+  td: {
+    padding: 'px-2 py-1',
+  },
+}
 </script>
 
 <template>
   <div>
-    <div class="flex justify-between">
-      <div class="flex items-center gap-5 mb-5">
-        <div class="flex w-[300px] dark:border-gray-700">
-          <UInput
-            v-model="q"
-            class="w-full"
-            placeholder="Search..."
-            icon="i-heroicons-magnifying-glass"
-            autocomplete="off"
-            :ui="{ icon: { trailing: { pointer: '' } } }"
-          >
-            <template #trailing>
-              <UButton
-                v-show="q !== ''"
-                color="gray"
-                variant="link"
-                icon="i-heroicons-x-mark"
-                :padded="false"
-                @click="q = ''"
-              />
-            </template>
-          </UInput>
+    <template v-if="searchable || $slots.header">
+      <div class="flex justify-between">
+        <slot name="header" />
+        <div v-if="searchable" class="flex items-center gap-5 mb-2">
+          <div class="flex w-[300px] dark:border-gray-700">
+            <UInput
+              v-model="q"
+              class="w-full"
+              placeholder="Search..."
+              icon="i-heroicons-magnifying-glass"
+              autocomplete="off"
+              :ui="{ icon: { trailing: { pointer: '' } } }"
+            >
+              <template #trailing>
+                <UButton
+                  v-show="q !== ''"
+                  color="gray"
+                  variant="link"
+                  icon="i-heroicons-x-mark"
+                  :padded="false"
+                  @click="q = ''"
+                />
+              </template>
+            </UInput>
+          </div>
         </div>
-      </div>
-      <div>
-        <div class="flex items-center gap-3 mb-3">
+        <div v-if="filters.length > 1" class="flex items-center gap-3 mb-3">
+          <UBadge v-for="_filter in filters.filter(f => f.special)" :key="_filter.key" class="cursor-pointer" :ui="{ rounded: 'rounded-full' }" :color="filter === _filter.key ? 'green' : 'gray'" :variant="filter === _filter.key ? 'subtle' : 'soft'" @click="toggleFilter(_filter.key)">
+            <UTooltip :text="_filter.description || ''" class="flex gap-1 items-center">
+              <UIcon name="i-heroicons-sparkles" class="w-4 h-4" />
+              {{ _filter.label }} <span v-if="_filter.key === filter"> - {{ queriedRows.length }}</span>
+            </UTooltip>
+          </UBadge>
           <UBadge v-for="_filter in filters.filter(f => !f.special)" :key="_filter.key" class="cursor-pointer" :ui="{ rounded: 'rounded-full' }" :color="filter === _filter.key ? 'green' : 'gray'" :variant="filter === _filter.key ? 'subtle' : 'soft'" @click="toggleFilter(_filter.key)">
             <UTooltip :text="_filter.description || ''" class="flex gap-1 items-center">
               {{ _filter.label }} <span v-if="_filter.key === filter"> - {{ queriedRows.length }}</span>
             </UTooltip>
           </UBadge>
         </div>
-        <div>
-          <UBadge v-for="_filter in filters.filter(f => f.special)" :key="_filter.key" class="cursor-pointer" :ui="{ rounded: 'rounded-full' }" :color="filter === _filter.key ? 'green' : 'gray'" :variant="filter === _filter.key ? 'subtle' : 'soft'" @click="toggleFilter(_filter.key)">
-            <UTooltip :text="_filter.description || ''" :ui="{ width: 'max-w-lg' }" class="flex gap-1 items-center">
-              <UIcon name="i-heroicons-sparkles" class="w-4 h-4" />
-              {{ _filter.label }} <span v-if="_filter.key === filter"> - {{ queriedRows.length }}</span>
-            </UTooltip>
-          </UBadge>
-        </div>
       </div>
-    </div>
-    <UDivider />
-    <UTable :loading="!value" :rows="paginatedRows" :columns="columns" @update:sort="updateSort">
+      <UDivider />
+    </template>
+    <UTable :loading="!value" :rows="paginatedRows" :columns="columns" :ui="tableUi" @update:sort="updateSort">
       <template #expand-data="{ index }">
         <UButton :icon="expandedRow === index ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'" color="gray" size="xs" variant="ghost" @click="toggleExpandedRow(index)" />
       </template>
@@ -181,7 +197,7 @@ watch(paginatedRows, () => {
         <slot :name="column.slotName" v-bind="data" :rows="paginatedRows" :expanded="expandedRow === data.index" />
       </template>
     </UTable>
-    <div v-if="queriedRows.length > pageCount" class="flex items-center justify-between mt-7 px-3 py-5 border-t border-gray-200 dark:border-gray-700">
+    <div v-if="queriedRows.length > 8" class="flex items-center justify-between mt-7 px-3 py-5 border-t border-gray-200 dark:border-gray-700">
       <UPagination v-model="page" :page-count="pageCount" :total="queriedRows.length" />
       <div class="text-base dark:text-gray-300 text-gray-600 mb-2">
         {{ queriedRows.length }} total

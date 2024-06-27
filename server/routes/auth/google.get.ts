@@ -1,15 +1,15 @@
-import { defu } from 'defu'
-import { getUser, getUserToken, incrementMetric, updateUserToken } from '~/server/utils/storage'
-import { googleAuthEventHandler } from '~/server/utils/auth/googleAuthEventHandler'
-import { getHashSecure } from '~/server/composables/auth'
-import type { UserSession } from '~/types'
-import { getUserQuota } from '~/server/utils/quota'
-import { sendWelcomeEmail } from '~/server/email/welcome'
+import type { CredentialRequest } from 'google-auth-library/build/src/auth/credentials'
+import { googleAuthEventHandler } from '~/server/app/utils/auth'
+import { createGoogleOAuthClient } from '~/server/app/services/gsc'
+import type { GoogleOAuthClientsSelect } from '~/server/database/schema'
+import { googleAccounts, sessions, teamUser, teams, users } from '~/server/database/schema'
+import type { RequiredNonNullable } from '~/types/util'
 
 export default googleAuthEventHandler({
   config: {
     redirectUrl: '/auth/google',
     scope: [
+      'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/webmasters.readonly',
     ],
@@ -18,39 +18,117 @@ export default googleAuthEventHandler({
       access_type: 'offline',
     },
   },
-  async onSuccess(event, { user: _user, tokens }) {
-    const user = _user as { sub: string, picture: string, email: string }
-    // sub is an openid claim that is unique to the user, we don't want to expose this to the client
-    const userId = `user-${getHashSecure(user.sub)}`
-    if (!(await getUser(userId))) {
-      // TODO handle sign up login (emails, etc)
-      await incrementMetric('signups')
-      await sendWelcomeEmail(event, user.email)
+  async onSuccess(event, payload) {
+    const { tokens, user: oauth, client: _client } = payload as any as {
+      client: GoogleOAuthClientsSelect
+      tokens: RequiredNonNullable<CredentialRequest>
+      user: {
+        sub: string
+        name: string
+        email: string
+        picture: string
+        given_name: string
+      }
     }
-    const quota = await getUserQuota(userId)
-    await updateUser(userId, {
-      email: user.email,
+    // use the google services to see what scopes the user has
+    const client = createGoogleOAuthClient({ ...tokens, googleOAuthClient: _client })
+    const tokenInfo = await client.getTokenInfo(tokens.access_token)
+    if (!tokenInfo.scopes.includes('https://www.googleapis.com/auth/webmasters.readonly')) {
+      await setUserSession(event, {
+        authError: 'missing-scope',
+      })
+      return sendRedirect(event, '/get-started?error=missing-scope')
+    }
+
+    const db = useDrizzle()
+    // sub is an openid claim that is unique to the user, we don't want to expose this to the client
+    let user = await db.query.users.findFirst({
+      where: eq(users.sub, oauth.sub),
     })
-    const userPublicPersistentData = await getUser(userId)
+    let currentTeam
+    if (!user) {
+      currentTeam = (await db.insert(teams)
+        .values({
+          personalTeam: true,
+          name: `${oauth.given_name}'s Personal Team`,
+        }).returning())[0]!
+      user = (await db.insert(users)
+        .values({
+          name: oauth.name,
+          avatar: oauth.picture,
+          sub: oauth.sub,
+          email: oauth.email,
+          lastLogin: Date.now(),
+          // loginTokens: tokens,
+          // authPayload: oauth,
+          currentTeamId: currentTeam.teamId,
+        })
+        .returning())[0]!
+      // create google account
+      await db.insert(googleAccounts).values({
+        tokens,
+        userId: user.userId,
+        payload: oauth,
+        type: 'auth',
+        tokenInfo,
+        googleOAuthClientId: _client.googleOAuthClientId,
+      })
+      await db.insert(teamUser).values({
+        teamId: currentTeam.teamId,
+        userId: user.userId,
+        role: 'owner',
+      })
+
+      const nitro = useNitroApp()
+      await nitro.hooks.callHook('app:user:created', { userId: user.userId })
+    }
+    else {
+      user = (await db.update(users)
+        .set({
+          lastLogin: Date.now(),
+          loginTokens: tokens,
+          authPayload: oauth,
+        })
+        .where(eq(users.sub, oauth.sub))
+        .returning())![0]
+      currentTeam = await db.query.teams.findFirst({
+        where: eq(teams.teamId, user.currentTeamId),
+      })
+    }
+
+    // create a new session
+    const session = (await db
+      .insert(sessions)
+      .values({
+        userId: user.userId,
+        ipAddress: getRequestIP(event, { xForwardedFor: true }),
+        userAgent: getHeader(event, 'user-agent'),
+        lastActivity: Date.now(),
+      }).onConflictDoUpdate({
+        target: [sessions.userId, sessions.ipAddress, sessions.userAgent],
+        set: { lastActivity: Date.now() },
+      })
+      .returning()
+    )[0]
 
     await setUserSession(event, {
+      // we can force expire the session using this id record
+      sessionId: session.sessionId,
       // public data only!
+      team: {
+        onboardedStep: currentTeam.onboardedStep,
+        name: currentTeam.name,
+      },
       user: {
+        name: user.name,
+        userId: user.publicId,
         email: user.email,
-        quota,
-        userId,
-        picture: user.picture,
-        analyticsPeriod: '28d',
-        ...userPublicPersistentData, // contains analyticsPeriod if changed
-      } satisfies UserSession['user'],
+        picture: user.avatar,
+        analyticsPeriod: '30d',
+      },
     })
-    const { tokens: currentTokens } = await getUserToken(userId, 'login') || {}
-    await updateUserToken(userId, 'login', {
-      updatedAt: Date.now(),
-      sub: user.sub,
-      tokens: defu(tokens, currentTokens), // avoid refresh token getting deleted
-    })
-    return sendRedirect(event, '/dashboard')
+
+    return sendRedirect(event, currentTeam.onboardedStep !== 'sites-and-backup' ? '/dashboard/team/setup' : '/dashboard')
   },
   // Optional, will return a json error and 401 status code by default
   onError(event, error) {

@@ -1,44 +1,66 @@
+import { resolve } from 'path'
 import { env } from 'std-env'
-import { hash } from 'ohash'
+import { globbySync } from 'globby'
+import NuxtMessageQueue from './lib/nuxt-ttyl/module'
 import type { OAuthPoolToken } from '~/types'
 
-let tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
-const privateTokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_PRIVATE_POOL ? JSON.parse(env.NUXT_OAUTH_PRIVATE_POOL) : false
+const tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
+
+// read all the folders at the server/app path
+const recursiveServerAppFolders = globbySync('**/*', {
+  cwd: resolve('./server/app'),
+  onlyDirectories: true,
+  deep: 4,
+  absolute: true,
+})
 
 export default defineNuxtConfig({
   extends: ['@nuxt/ui-pro'],
   modules: [
+    '@nuxthub/core',
     'nuxt-auth-utils',
     'dayjs-nuxt',
     '@nuxt/image',
+    '@nuxt/fonts',
     '@nuxt/ui',
-    '@nuxtjs/fontaine',
-    '@nuxtjs/google-fonts',
     '@vueuse/nuxt',
     '@nuxtjs/seo',
+    '@nuxt/scripts',
+    NuxtMessageQueue,
     (_, nuxt) => {
-      // seed the main tokens if there isn't a pool available
-      if (!tokens) {
-        tokens = [{
-          label: 'primary',
-          client_id: env.NUXT_OAUTH_GOOGLE_CLIENT_ID!,
-          client_secret: env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET!,
-        }]
-      }
       nuxt.options.nitro!.virtual = nuxt.options.nitro!.virtual || {}
-      nuxt.options.nitro.virtual['#app/token-pool.mjs']
-        = [
-          `export const tokens = ${JSON.stringify(tokens.map((t) => {
-        t.id = t.id || hash(t)
-        return t
-      }))}`,
-          `export const privateTokens = ${JSON.stringify(privateTokens.map((t) => {
-            t.id = t.id || hash(t)
-            return t
-          }))}`,
-        ].join('\n')
+      nuxt.options.nitro.virtual['#app/token-pool.mjs'] = `export const tokens = ${JSON.stringify(tokens)}`
     },
   ],
+  future: {
+    // compatibilityVersion: 4,
+  },
+  uiPro: {
+    routerOptions: false,
+  },
+  ogImage: {
+    enabled: false,
+  },
+  hooks: {
+    'nitro:config': function (config) {
+      config.typescript = config.typescript || {}
+      config.typescript.tsConfig = config.typescript.tsConfig || {}
+      config.typescript.tsConfig.include = config.typescript.tsConfig.include || []
+      config.typescript.tsConfig.include.push(resolve('./server/hooks.d.ts'))
+    },
+  },
+  messageQueue: {
+    devMessageQueue: {
+      // driver: 'cloudflare',
+      // queue: 'google-search-console',
+      // binding: 'QUEUE_GOOGLE_SEARCH_CONSOLE',
+      driver: 'unstorage',
+      storage: {
+        base: '.db/queue',
+        driver: 'fs',
+      },
+    },
+  },
   runtimeConfig: {
     key: '', // .env NUXT_KEY
     session: {
@@ -46,14 +68,18 @@ export default defineNuxtConfig({
         maxAge: 60 * 60 * 24 * 90, // 3mo
       },
     },
+    google: {
+      adsCustomerId: '', // .env NUXT_GOOGLE_ADS_CUSTOMER_ID
+      adsApiToken: '', // .env NUXT_GOOGLE_ADS_API_TOKEN
+      cruxApiToken: '', // .env NUXT_GOOGLE_CRUX_API_TOKEN
+      adsClientId: '', // NUXT_GOOGLE_ADS_CLIENT_ID,
+      adsClientSecret: '', // NUXT_GOOGLE_ADS_CLIENT_SECRET
+      adsRefreshToken: '', // NUXT_GOOGLE_ADS_REFRESH_TOKEN
+    },
     postmark: {
       apiKey: '', // .env NUXT_POSTMARK_API_KEY
     },
     public: {
-      features: {
-        keyLogin: false,
-        crawler: false,
-      },
       indexing: {
         usageLimitPerUser: 15,
       },
@@ -63,10 +89,17 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
-    vercel: {
-      functions: {
-        maxDuration: 90, // second timeout for API calls
-      },
+    preset: 'cloudflare-pages',
+    experimental: {
+      websocket: true,
+      tasks: true,
+    },
+    scheduledTasks: {
+      // Run `cms:update` task every minute
+      '0 0 * * *': ['sync.daily'],
+    },
+    imports: {
+      dirs: recursiveServerAppFolders,
     },
     devStorage: {
       app: {
@@ -74,14 +107,9 @@ export default defineNuxtConfig({
         driver: 'fs',
       },
     },
-    storage: {
-      app: {
-        driver: 'vercelKV',
-      },
-    },
   },
   ui: {
-    icons: ['heroicons', 'simple-icons', 'ph'],
+    icons: ['heroicons', 'logos', 'carbon', 'simple-icons', 'ph', 'circle-flags'],
   },
   app: {
     pageTransition: {
@@ -108,24 +136,25 @@ export default defineNuxtConfig({
       ],
     },
   },
+  // $development: {
+  //   hub: {
+  //     remote: 'preview',
+  //   },
+  // },
+  hub: {
+    database: true,
+    kv: true,
+    blob: true,
+    cache: true,
+    remote: false,
+  },
   site: {
     name: 'Request Indexing',
     url: 'requestindexing.com',
   },
-  // Fonts
-  fontMetrics: {
-    fonts: ['DM Sans'],
-  },
-  googleFonts: {
-    display: 'swap',
-    download: true,
-    families: {
-      'DM+Sans': [300, 400, 500, 600, 700],
-    },
-  },
   dayjs: {
     locales: ['en'],
-    plugins: ['relativeTime', 'utc'],
+    plugins: ['relativeTime', 'utc', 'isSameOrBefore', 'advancedFormat'],
     defaultLocale: 'en',
   },
   devtools: { enabled: true },

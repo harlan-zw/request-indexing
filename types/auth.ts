@@ -1,18 +1,13 @@
 import type { Credentials } from 'google-auth-library'
 import type { RequiredNonNullable } from '~/types/util'
+import type { UserSelect } from '~/server/database/schema'
 
 export interface NitroAuthData {
-  tokens: TokenPayload['tokens']
-  user: User
+  tokens: UserModel['loginTokens']
+  user: UserModel
 }
 
 export type UserOAuthToken = RequiredNonNullable<Credentials>
-
-export interface TokenPayload {
-  updatedAt: number
-  sub: string
-  tokens: RequiredNonNullable<UserOAuthToken>
-}
 
 export interface OAuthPoolPayload {
   id: string
@@ -26,27 +21,24 @@ export interface OAuthPoolToken {
   label: string
 }
 
-export interface UserQuota {
-  indexingApi: number
-}
-
-export interface User {
-  email: string
-  quota: UserQuota
-  userId: string
-  access?: 'pro'
-  picture: string
-  // legacy
-  indexingOAuthId?: string
-  indexingOAuthIdNext?: string
-  lastIndexingOAuthIdNext?: string
-  analyticsPeriod: string
-  hiddenSites?: string[]
-}
+// export interface User {
+//   email: string
+//   userId: string
+//   access?: 'pro'
+//   picture: string
+//   indexingOAuthId?: string
+//   lastIndexingOAuthId?: string
+//   analyticsRange?: { start: Date, end: Date }
+//   analyticsPeriod?: 'all' | '30d' | string
+//   // onboarding
+//   selectedSites?: string[]
+//   backupsEnabled?: boolean
+// }
 
 export interface UserSession {
+  sessionId: number
   sub: string
-  user: User
+  user: UserSelect
   // used when redirecting to Web Indexing API OAuth
   googleIndexingAuth?: {
     indexingOAuthId: string

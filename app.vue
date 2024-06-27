@@ -42,7 +42,7 @@ defineOgImageComponent('Home')
 </script>
 
 <template>
-  <div>
+  <div class="dark:bg-gray-900">
     <NuxtLoadingIndicator />
 
     <NuxtLayout>
@@ -97,5 +97,10 @@ pre {
   opacity: 0;
   transform: translateY(1rem);
   filter: blur(0.2rem);
+}
+
+:root {
+  --header-height: 4rem;
+  --ui-background: transparent;
 }
 </style>

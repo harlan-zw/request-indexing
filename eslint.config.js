@@ -5,5 +5,6 @@ export default antfu({
     'unicorn/prefer-node-protocol': 'off',
     'node/prefer-global': 'off',
     'node/prefer-global/buffer': 'off',
+    'no-restricted-globals': 'off',
   },
 })

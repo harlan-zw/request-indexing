@@ -1,6 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
-  layout: 'account',
+  layout: 'user-dashboard',
+  title: 'Request Indexing Pro',
+  icon: 'i-heroicons-star',
 })
 
 const user = useAuthenticatedUser()
@@ -9,44 +11,47 @@ const user = useAuthenticatedUser()
 <template>
   <div>
     <div v-if="user.access === 'pro'">
-      <UPageHeader title="Request Indexing Pro" icon="i-heroicons-star" description="You are currently a Pro User." headline="Your Account" />
-      <UPageBody>
-        <UButton to="https://billing.stripe.com/p/login/00g16Gas1gID8jCcMM">
-          Manage my subscription
-        </UButton>
-      </UPageBody>
+      <UButton to="https://billing.stripe.com/p/login/00g16Gas1gID8jCcMM">
+        Manage my subscription
+      </UButton>
     </div>
     <template v-else>
-      <UPageHeader title="Upgrade To Pro" icon="i-heroicons-star" description="Take your account to the next level with Request Indexing Pro." headline="Your Account" />
-      <UPageBody>
-        <ULandingSection :ui="{ wrapper: ['py-12 sm:py-16'], container: ['px-0 lg:px-0 sm:px-0'] }" title="Features" description="More API credits, less manual work with Request Indexing Pro.">
-          <div class="grid grid-cols-3 gap-5 mt-10">
-            <ULandingCard icon="i-heroicons-sparkles" color="purple" title="200 API Quota" description="Quota of 200 Request Indexing credits per day. Use sites with more than 2500 pages." />
-            <ULandingCard class="relative" icon="i-heroicons-bug-ant" color="purple" title="Automatic Indexing" description="Set and forget, always have your latest links indexed straight away.">
-              <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
-                Coming Soon
-              </UBadge>
-            </ULandingCard>
-            <ULandingCard class="relative" icon="i-heroicons-bolt" color="purple" title="AI Backlink Finder" description="Backlinks are improving your web presence, automatically find opportunities.">
-              <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
-                Coming Soon
-              </UBadge>
-            </ULandingCard>
-          </div>
-        </ULandingSection>
-        <div class="mt-10">
-          <UPricingCard class="mt-10" title="Pro Plan" price="$30 USD" cycle="month" :button="{ label: 'Purchase Pro Plan', color: 'purple', variant: 'solid' }" description="Unlock more API credits and new features by upgrading to pro.">
-            <template #footer>
-              <UBadge variant="soft" color="orange">
-                0 left
-              </UBadge>
-              <div class="text-gray-500 dark:text-gray-400 text-sm mt-1 mx-2 max-w-sm">
-                The Pro Plan is currently sold out.
-              </div>
-            </template>
-          </UPricingCard>
+      <ul>
+        <li>Track up to 60 sites with backups of GSC data.</li>
+        <li>Double your daily request indexing API limit to 30.</li>
+        <li>Access new features</li>
+      </ul>
+      <ULandingSection :ui="{ wrapper: ['py-12 sm:py-16'], container: ['px-0 lg:px-0 sm:px-0'] }" title="Pro Only Features" description="More API credits, less manual work with Request Indexing Pro.">
+        <div class="grid grid-cols-3 gap-5 mt-10">
+          <ULandingCard class="relative" icon="i-heroicons-bug-ant" color="purple" title="Automatic Indexing" description="Set and forget, always have your latest links indexed straight away.">
+            <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
+              Coming Soon
+            </UBadge>
+          </ULandingCard>
+          <ULandingCard class="relative" icon="i-heroicons-bolt" color="purple" title="Daily Backlink Report" description="See the sites that are linking to your domains and see if they're trusted.">
+            <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
+              Coming Soon
+            </UBadge>
+          </ULandingCard>
+          <ULandingCard class="relative" icon="i-heroicons-bolt" color="purple" title="Keyword Research" description="See the sites that are linking to your domains and see if they're trusted.">
+            <UBadge class="absolute top-5 right-5" color="blue" variant="soft">
+              Coming Soon
+            </UBadge>
+          </ULandingCard>
         </div>
-      </UPageBody>
+      </ULandingSection>
+      <div class="mt-10">
+        <UPricingCard class="mt-10" title="Pro Plan" price="$12" cycle="month" :button="{ to: `https://buy.stripe.com/bIY3gd9U62xjbUA001?client_reference_id=${user.userId}`, label: 'Purchase Pro Plan', color: 'purple', variant: 'solid' }" description="Unlock more API credits and new features by upgrading to pro.">
+          <template #footer>
+            <UBadge variant="soft" color="orange">
+              3 left
+            </UBadge>
+            <div class="text-gray-500 dark:text-gray-400 text-sm mt-1 mx-2 max-w-sm">
+              Due to the restrictions on Google's Web Indexing API there is limited availability for the Pro Plan.
+            </div>
+          </template>
+        </UPricingCard>
+      </div>
     </template>
   </div>
 </template>

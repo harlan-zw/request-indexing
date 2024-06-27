@@ -12,6 +12,8 @@ useHead({
 
     <UButton icon="i-heroicons-home" label="Home" to="/" color="white" class="absolute top-4" />
 
-    <slot />
+    <div>
+      <slot />
+    </div>
   </div>
 </template>

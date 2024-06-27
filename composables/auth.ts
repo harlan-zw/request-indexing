@@ -1,5 +1,5 @@
 import type { ComputedRef } from 'vue'
-import type { User } from '~/types'
+import type { UserSelect } from '~/server/database/schema'
 
 export function useAuthenticatedUser() {
   const { loggedIn, user } = useUserSession()
@@ -9,7 +9,7 @@ export function useAuthenticatedUser() {
       message: 'Unauthorized',
     })
   }
-  return user as ComputedRef<User>
+  return user as ComputedRef<UserSelect>
 }
 
 export function createSessionReloader() {
@@ -36,10 +36,9 @@ export function createLogoutHandler() {
     await nextTickFn(() => {
       // can't access clear API here
       $fetch('/api/_auth/session', { method: 'DELETE' })
-        .then(() => {
-          session.value = {}
+        .finally(() => {
+          session.value = { user: null }
         })
-        .catch(() => {})
     })
   }
 }
