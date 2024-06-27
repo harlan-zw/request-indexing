@@ -1,8 +1,9 @@
 {
   "name": "requestindexing.com",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "packageManager": "pnpm@9.4.0",
   "scripts": {
     "db:generate": "drizzle-kit generate",
