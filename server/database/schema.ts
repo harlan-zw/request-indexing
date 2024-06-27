@@ -318,7 +318,6 @@ export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
   mobileLoadingExperience: text('loading_experience', { mode: 'json' }).$type<pagespeedonline_v5.Schema$PagespeedApiLoadingExperienceV5>(),
   desktopLoadingExperience: text('loading_experience', { mode: 'json' }).$type<pagespeedonline_v5.Schema$PagespeedApiLoadingExperienceV5>(),
 
-
   // google search console (query by date and path)
   ...timestamps,
 }, t => ({

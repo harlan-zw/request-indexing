@@ -112,16 +112,6 @@ export default defineJobHandler(async (event) => {
   // const totalPageCtr = totalPageImpressions ? totalPageClicks / totalPageImpressions : 0
   // const totalPagePosition = pages.reduce((acc, row) => acc + row.position, 0) / pages.length
   // store analytics for the day
-  // await db.insert(siteDateAnalytics).values({
-  //   siteId,
-  //   date,
-  //   keywords: keywords.length, // keep track of total pages being shown each day
-  // }).onConflictDoUpdate({
-  //   target: [siteDateAnalytics.siteId, siteDateAnalytics.date],
-  //   set: {
-  //     keywords: keywords.length,
-  //   },
-  // })
 
   // queue another job while we still have pages
   if (hasNextPage) {

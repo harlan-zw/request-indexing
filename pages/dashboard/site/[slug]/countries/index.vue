@@ -10,7 +10,7 @@ defineProps<{ site: SiteSelect }>()
 // }
 definePageMeta({
   title: 'Country',
-  subTitle: 'Map',
+  subTitle: 'Countries',
   icon: 'i-ph-globe-hemisphere-east-duotone',
 })
 
@@ -34,7 +34,7 @@ const data = computed(() => ({
 
 <template>
   <div class="space-y-7">
-    <div>
+    <div class="flex items-center gap-3">
       <div class="border border-dashed rounded-lg">
         <CalenderFilter />
       </div>

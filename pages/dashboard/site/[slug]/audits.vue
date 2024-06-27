@@ -49,18 +49,6 @@ onMounted(async () => {
 const lastPsiEntry = computed(() => {
   return psiDates.value[psiDates.value.length - 1]
 })
-const tabItems = [
-  {
-    label: 'Mobile',
-    icon: 'i-ph-device-mobile-duotone',
-    slot: 'mobile',
-  },
-  {
-    label: 'Desktop',
-    icon: 'i-ph-desktop-duotone',
-    slot: 'desktop',
-  },
-]
 const connector = ref()
 provide('tableAsyncDataProvider', connector)
 

@@ -17,7 +17,7 @@ export default defineTask({
     //   entityId: payload.siteId,
     //   entityType: 'site',
     // })
-    await queueJob('sites/syncWebIndexing', {
+    await queueJob('sites/syncPeriodStats', {
       payload: { siteId: payload.siteId },
       entityId: payload.siteId,
       entityType: 'site',

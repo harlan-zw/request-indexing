@@ -84,11 +84,11 @@ const columns = computed(() => {
         key: 'page',
         label: 'Top Page',
         sortable: props.sortable,
-      }, {
+      }, /*{
     key: 'competitionIndex',
     label: 'Competition',
     sortable: props.sortable,
-  },
+  },*/
   /* {
     key: 'ctr',
     label: 'CTR',

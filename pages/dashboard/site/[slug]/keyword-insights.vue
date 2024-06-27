@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-defineProps<{ site: any }>()
+import {useSiteData} from "~/composables/fetch";
+
+const props = defineProps<{ site: any }>()
 
 // const { user } = useUserSession()
 
@@ -9,6 +11,8 @@ definePageMeta({
   subTitle: 'Keyword Insights',
   icon: 'i-ph-lightning-duotone',
 })
+const connector = ref()
+provide('tableAsyncDataProvider', connector)
 
 // const siteData = useSiteData(props.site)
 // // const { data: dates } = siteData.dates()
@@ -94,27 +98,24 @@ definePageMeta({
 //     },
 //   },
 // ]
+const siteData = useSiteData(props.site)
+const { data: dates } = siteData.dateAnalytics()
 </script>
 
 <template>
 <div class="grid grid-cols-3 w-full gap-10">
   <div class="col-span-2 space-y-10">
     <div class="space-y-10">
-      <div>
-        <CardTitle>
+      <CardKeywords v-if="dates" :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['keywords']" />
+      <div v-show="!connector || connector.rows?.length">
+      <CardTitle>
           Long-tail keywords
         </CardTitle>
         <UCard>
           <TableKeywordSearchVolume :exclude-columns="['lastSynced']" :site="site" filter="long-tail" :filters="false" :sort="{ column: 'currentMonthSearchVolume', direction: 'desc' }" :searchable="false" :page-size="6" />
         </UCard>
       </div>
-      <div>
-        <CardTitle>
-          Long-tail keywords
-        </CardTitle>
-      </div>
-      <UCard>
-      </UCard>
+      <UAlert v-if="connector?.rows && !connector.rows.length" color="blue" variant="soft" title="No insights yet" description="You need to rank for more keywords before you can get keyword insights." />
     </div>
   </div>
   <div class="col-span-1 space-y-7">

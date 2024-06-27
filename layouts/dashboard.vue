@@ -81,7 +81,7 @@ const dashboards = computed(() => !site.value
       icon: 'i-ph-app-window-duotone',
     },
     {
-      label: 'Keywords Insights',
+      label: 'Keyword Insights',
       to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keyword-insights'),
       icon: 'i-ph-lightning-duotone',
     },
@@ -114,53 +114,16 @@ const siteLinks = computed(() => !site.value
       label: 'Pages',
       icon: 'i-heroicons-folder',
       to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
-      collapsible: false,
-      children: (route.path.includes('pages')
-        ? [
-          {
-            label: 'Overview',
-            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages'),
-          },
-          {
-            label: 'Lighthouse Audits',
-            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'page-audits'),
-          },
-          {
-            label: 'Web Vitals',
-            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages', 'web-vitals'),
-          },
-        ]
-        : []),
     },
     {
       label: 'Keywords',
       icon: 'i-heroicons-magnifying-glass-circle',
       to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
-      children: (route.path.includes('keywords')
-        ? [
-          {
-            label: 'Overview',
-            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords'),
-          },
-          {
-            label: 'Search Volumes',
-            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords', 'search-volumes'),
-          },
-        ]
-        : []),
     },
     {
       label: 'Countries',
       icon: 'i-ph-globe-hemisphere-east-duotone',
       to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries'),
-      children: (route.path.includes('countries')
-        ? [
-          {
-            label: 'Overview',
-            to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries'),
-          },
-        ]
-        : []),
     },
   ])
 
@@ -453,12 +416,6 @@ const allCountries = countries.map(country => ({
       <!--            <div>Dashboards</div> -->
       <!--          </div> -->
       <!--          <UDivider /> -->
-      <div class="mx-3 mt-4">
-        <div class="text-xs font-semibold text-gray-600 mb-0.5">
-          <div>Dashboards</div>
-        </div>
-        <UDivider />
-      </div>
       <UDashboardSidebarLinks :links="onlyDashboardLinks" />
       <div class="mx-3 mt-4">
         <div class="text-xs font-semibold text-gray-600 mb-0.5">
@@ -467,12 +424,6 @@ const allCountries = countries.map(country => ({
         <UDivider />
       </div>
       <UDashboardSidebarLinks :links="onlySiteLinks" />
-      <div class="mx-3 mt-4">
-        <div class="text-xs font-semibold text-gray-600 mb-0.5">
-          <div>Usage</div>
-        </div>
-        <UDivider />
-      </div>
       <div class="flex flex-grow" />
       <div class="mx-3 mt-4">
         <div class="text-xs font-semibold text-gray-600 mb-0.5">

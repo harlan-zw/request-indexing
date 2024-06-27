@@ -162,7 +162,7 @@ export default defineJobHandler(async (event) => {
         },
       })),
       {
-        name: 'sites/syncWebIndexing',
+        name: 'sites/syncPeriodStats',
         queue: 'default',
         entityId: siteId,
         entityType: 'site',

@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { SiteSelect } from '~/server/database/schema'
-import { formatPageSpeedInsightScore } from '~/composables/formatting'
 
-defineProps<{ site: SiteSelect }>()
+const props = defineProps<{ site: SiteSelect }>()
 
 definePageMeta({
   layout: 'dashboard',
@@ -11,18 +10,6 @@ definePageMeta({
   icon: 'i-ph-speedometer-duotone',
 })
 
-const tabItems = [
-  {
-    label: 'Mobile',
-    icon: 'i-ph-device-mobile-duotone',
-    slot: 'mobile',
-  },
-  {
-    label: 'Desktop',
-    icon: 'i-ph-desktop-duotone',
-    slot: 'desktop',
-  },
-]
 const connector = ref()
 provide('tableAsyncDataProvider', connector)
 
@@ -38,6 +25,13 @@ function getLastEntrySynthetic(key: string, allowZero?: boolean) {
     }
   }
 }
+const psiDates = ref([])
+onMounted(async () => {
+  psiDates.value = await $fetch(`/api/sites/${props.site.siteId}/psi-dates`)
+})
+const lastPsiEntry = computed(() => {
+  return psiDates.value[psiDates.value.length - 1]
+})
 </script>
 
 <template>
@@ -69,64 +63,61 @@ function getLastEntrySynthetic(key: string, allowZero?: boolean) {
     <div class="border border-dashed rounded-lg">
       <CalenderFilter />
     </div>
-    <div class="border border-dashed rounded-lg">
-      <LocationFilter />
-    </div>
   </div>
-  <div class=" space-y-7">
-    <div>
-      <div class="text-sm mb-1 font-semibold text-gray-600">
-        Performance
-      </div>
-      <UCard v-if="connector?.totals?.totalAvgMobile" :ui="{ body: { padding: 'sm:px-2 sm:py-2' } }">
-        <div class="flex items-center gap-5">
-          <div class="w-[100px]">
-            <div>
-              <span class="font-mono text-4xl">{{ useHumanFriendlyNumber(connector.totals?.totalAvgMobile) }}</span>
-              <LighthouseBenchmark :value="connector.totals?.totalAvgMobile" />
+  <div class="space-y-7">
+    <div v-if="lastPsiEntry" class="grid grid-cols-3 gap-5">
+      <div>
+        <div class="text-sm mb-1 font-semibold text-gray-600">
+          Mobile Performance
+        </div>
+        <UCard :ui="{ body: { padding: 'sm:px-2 sm:py-2' } }">
+          <div class="flex items-center gap-5">
+            <div class="w-[100px]">
+              <div>
+                <span class="font-mono text-4xl">{{ useHumanFriendlyNumber(lastPsiEntry.psiMobilePerformance) }}</span>
+                <LighthouseBenchmark :value="lastPsiEntry.psiMobilePerformance" />
+              </div>
+            </div>
+            <div class="h-[66px] w-[75px]">
+              <GraphLighthouseScore height="66" :value="psiDates.map(r => ({ time: r.date, value: r.psiMobilePerformance }))" />
             </div>
           </div>
-          <div class="h-[66px] w-[75px]">
-            <!--          <GraphLighthouseScore height="66" :value="psiDates.map(r => ({ time: r.date, value: r[group.key] }))" />-->
-          </div>
-        </div>
-      </UCard>
+        </UCard>
+      </div>
     </div>
     <div v-if="connector?.syntheticWebVitals?.length">
       <CardTitle>Synthetic Origin Web Vitals</CardTitle>
-      <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }" class="relative">
-        <div :key="tab" class="grid grid-cols-3 w-full gap-5">
-          <WebVital
-            id="first-contentful-paint"
-            :value="getLastEntrySynthetic('Fcp')"
-            :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileFcp : r.desktopFcp })).filter(r => r.value)"
-          />
-          <WebVital
-            id="largest-contentful-paint"
-            :value="getLastEntrySynthetic('Lcp')"
-            :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileLcp : r.desktopLcp })).filter(r => r.value)"
-          />
-          <WebVital
-            id="total-blocking-time"
-            :value="getLastEntrySynthetic('Tbt')"
-            :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileTbt : r.desktopTbt })).filter(r => r.value)"
-          />
-          <WebVital
-            id="cumulative-layout-shift"
-            :value="getLastEntrySynthetic('Cls', true)"
-            :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileCls : r.desktopCls }))"
-          />
-          <WebVital
-            id="speed-index"
-            :value="getLastEntrySynthetic('Si')"
-            :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileSi : r.desktopSi }))"
-          />
-        </div>
-      </UCard>
+      <div :key="tab" class="grid grid-cols-3 w-full gap-5">
+        <WebVital
+          id="first-contentful-paint"
+          :value="getLastEntrySynthetic('Fcp')"
+          :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileFcp : r.desktopFcp })).filter(r => r.value)"
+        />
+        <WebVital
+          id="largest-contentful-paint"
+          :value="getLastEntrySynthetic('Lcp')"
+          :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileLcp : r.desktopLcp })).filter(r => r.value)"
+        />
+        <WebVital
+          id="total-blocking-time"
+          :value="getLastEntrySynthetic('Tbt')"
+          :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileTbt : r.desktopTbt })).filter(r => r.value)"
+        />
+        <WebVital
+          id="cumulative-layout-shift"
+          :value="getLastEntrySynthetic('Cls', true)"
+          :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileCls : r.desktopCls }))"
+        />
+        <WebVital
+          id="speed-index"
+          :value="getLastEntrySynthetic('Si')"
+          :graph="connector.syntheticWebVitals.map(r => ({ time: r.date, value: tab === 0 ? r.mobileSi : r.desktopSi }))"
+        />
+      </div>
     </div>
     <div>
       <CardTitle>
-        Slowest Pages
+        Pages
       </CardTitle>
       <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
         <TablePsiPerformance :page-size="5" :sort="{ column: tab === 0 ? 'psiMobilePerformance' : 'psiDesktopPerformance', direction: 'asc' }" :pagination="false" :filters="[]" :searchable="false" :sortable="false" :exclude-columns="['actions']" :expandable="false" :site="site" :device="tab === 0 ? 'mobile' : 'desktop'" />

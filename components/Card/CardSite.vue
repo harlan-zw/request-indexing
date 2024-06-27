@@ -124,8 +124,9 @@ const dropdownItems = [
       </div>
     </NuxtLink>
   </CardTitle>
-  <div class="flex gap-2">
-    <div v-if="!isSynced" class="flex w-full p-5">
+  <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+  <div class="flex gap-5 items-center">
+    <div v-if="!isSynced" class="flex items-center w-full p-5">
       <div>
         <ProgressPercent :value="completedPercentSynced" class="text-sm mb-2 font-semibold text-gray-600">
           <div class="mb-2">
@@ -152,105 +153,9 @@ const dropdownItems = [
       <UIcon name="i-ph-spinner-gap-duotone" class="w-12 h-12 animate-spin" />
     </div>
     <template v-else>
-    <div class="space-y-1 flex-grow w-full">
-      <CardGoogleSearchConsole :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" />
-      <div class="flex items-center justify-between">
-        <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pagespeed-insights`" class="transition rounded group hover:bg-gray-100 flex group text-[11px] items-center text-gray-500/80 gap-4 mt-1">
-          <div class="flex gap-[3px]">
-            <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiMobilePerformance)}-500`" />
-            <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiDesktopPerformance)}-500`" />
-            <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiMobileBestPractices)}-500`" />
-            <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiMobileSeo)}-500`" />
-            <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiMobileAccessibility)}-500`" />
-          </div>
-<!--          <div class="  py-1 rounded text-[11px] flex items-center gap-1 text-gray-500/80 ">-->
-<!--            <div class="flex gap-1">-->
-<!--              <UIcon name="i-ph-device-mobile-duotone" class="w-4 h-4 opacity-80 text-gray-500" />-->
-<!--              <div class="text-[11px] flex items-center gap-1 text-gray-500/80">-->
-<!--                Mobile-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div class="flex items-center gap-1 font-bold" :class="formatPageSpeedInsightScore(dates?.psiData?.psiMobileScore)">-->
-<!--              {{ useHumanFriendlyNumber(dates?.psiData?.psiMobileScore) }}-->
-<!--            </div>-->
-<!--          </div>-->
-
-<!--          <div class="  py-1 rounded text-[11px] flex items-center gap-1 text-gray-500/80 ">-->
-<!--            <div class="flex gap-1">-->
-<!--              <UIcon name="i-ph-desktop-duotone" class="w-4 h-4 opacity-80 text-gray-500" />-->
-<!--              <div class="text-[11px] flex items-center text-gray-500/80">-->
-<!--                Desktop-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div class="flex items-center font-bold" :class="formatPageSpeedInsightScore(dates?.psiData?.psiDesktopScore)">-->
-<!--              {{ useHumanFriendlyNumber(dates?.psiData?.psiDesktopScore) }}-->
-<!--            </div>-->
-<!--          </div>-->
-        </NuxtLink>
-        <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pagespeed-insights`" class="transition rounded group hover:bg-gray-100 flex group text-[11px] items-center text-gray-500/80 gap-1 px-2">
-          <UTooltip v-for="(country, i) in dates.countries.slice(0, 3)" :key="i" :text="`#${(i + 1)} Clicks - ${country.country}`">
-            <Icon :name="`circle-flags:${country.countryCode.toLowerCase()}`" class="w-3 h-3" />
-          </UTooltip>
-        </NuxtLink>
-      </div>
-    </div>
-    <div class="flex flex-col h-full space-y-2 min-w-[75px]">
-      <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition group hover:bg-gray-50 rounded flex items-center">
-        <UPopover mode="hover" :popper="{ placement: 'left' }">
-          <div>
-            <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
-              Indexed %
-            </div>
-            <div class="flex items-center gap-1">
-                  <span class="text-xl font-semibold" :class="indexingPercentColor(dates?.period.indexedPercent)">
-                    {{ useHumanFriendlyNumber(dates?.period.indexedPercent) }}
-                  </span>
-              <UIcon v-if="dates?.period.indexedPercent >= 50 && dates?.period.indexedPercent < 100" name="i-ph-info-duotone" class="w-4 h-4 text-yellow-500" />
-              <UIcon v-else-if="dates?.period.indexedPercent < 50" name="i-ph-warning-duotone" class="w-4 h-4 text-red-500" />
-            </div>
-          </div>
-          <template #panel>
-          <div class="p-4 text-sm">
-            <div>
-              <div class="text-gray-800 dark:text-gray-100 font-semibold mb-2">
-                {{ dates?.period.indexedPercent }}% Pages Indexed
-              </div>
-              <!--                  <div class="flex gap-3 justify-between mb-1"> -->
-              <!--                    <div class="text-gray-700 dark:text-gray-200"> -->
-              <!--                      Verdict -->
-              <!--                    </div> -->
-              <!--                    <div>{{ dates?.period.indexedPercent >= 50 ? 'Good' : 'Bad' }}</div> -->
-              <!--                  </div> -->
-              <div class="flex gap-3 justify-between mb-1">
-                <div class="text-gray-700 dark:text-gray-200">
-                  Indexed Pages
-                </div>
-                <div>{{ dates?.period.indexedPagesCount }}</div>
-              </div>
-              <div class="flex gap-3 justify-between mb-1">
-                <div class="text-gray-700 dark:text-gray-200">
-                  Total Pages
-                </div>
-                <div>{{ dates?.period.totalPagesCount }}</div>
-              </div>
-            </div>
-          </div>
-          </template>
-        </UPopover>
-      </NuxtLink>
-      <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pages`" class="transition group hover:bg-gray-50 rounded flex items-center">
-        <div>
-          <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
-            Pages
-          </div>
-          <div class="flex items-center gap-1">
-                <span class="text-xl font-semibold">
-                  {{ useHumanFriendlyNumber(dates?.period.pages) }}
-                </span>
-            <TrendPercentage compact :value="dates?.period.pages" :prev-value="dates?.prevPeriod?.pages" />
-          </div>
-        </div>
-      </NuxtLink>
+    <CardGoogleSearchConsole class="w-full flex-grow" :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="selectedCharts" />
+    <div class="flex items-start">
+    <div class="px-5 w-[250px] items-start justify-center grid grid-cols-3 gap-3">
       <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/keywords`" class="transition group hover:bg-gray-50 rounded flex items-center">
         <div>
           <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
@@ -264,8 +169,92 @@ const dropdownItems = [
           </div>
         </div>
       </NuxtLink>
+      <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pages`" class="transition group hover:bg-gray-50 rounded flex items-center">
+        <div>
+          <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
+            Pages
+          </div>
+          <div class="flex items-center gap-1">
+              <span class="text-xl font-semibold">
+                {{ useHumanFriendlyNumber(dates?.period.indexedPagesCount) }}
+              </span>
+            <TrendPercentage compact :value="dates?.period.indexedPagesCount" :prev-value="dates?.prevPeriod?.indexedPagesCount" />
+          </div>
+        </div>
+      </NuxtLink>
+      <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`" class="transition leading-none group hover:bg-gray-50 rounded flex items-center">
+          <UPopover mode="hover" :popper="{ placement: 'left' }">
+            <div>
+              <div class="text-[11px] flex items-center gap-1 text-gray-500/80">
+                Indexed
+              </div>
+              <div class="flex items-center gap-1">
+              <span class="text-xl font-semibold">
+               {{ useHumanFriendlyNumber(Math.min(100, dates?.period.indexedPercent)) }}%
+              </span>
+                <UIcon v-if="dates?.period.indexedPercent >= 50 && dates?.period.indexedPercent < 100" name="i-ph-info-duotone" class="w-4 h-4 text-yellow-500" />
+                <UIcon v-else-if="dates?.period.indexedPercent < 50" name="i-ph-warning-duotone" class="w-4 h-4 text-red-500" />
+              </div>
+            </div>
+            <template #panel>
+            <div class="p-4 text-sm">
+              <div>
+                <div class="text-gray-800 dark:text-gray-100 font-semibold mb-2">
+                  {{ dates?.period.indexedPercent }}% Pages Indexed
+                </div>
+                <!--                  <div class="flex gap-3 justify-between mb-1"> -->
+                <!--                    <div class="text-gray-700 dark:text-gray-200"> -->
+                <!--                      Verdict -->
+                <!--                    </div> -->
+                <!--                    <div>{{ dates?.period.indexedPercent >= 50 ? 'Good' : 'Bad' }}</div> -->
+                <!--                  </div> -->
+                <div class="flex gap-3 justify-between mb-1">
+                  <div class="text-gray-700 dark:text-gray-200">
+                    Indexed Pages
+                  </div>
+                  <div>{{ dates?.period.indexedPagesCount }}</div>
+                </div>
+                <div class="flex gap-3 justify-between mb-1">
+                  <div class="text-gray-700 dark:text-gray-200">
+                    Total Pages
+                  </div>
+                  <div>{{ dates?.period.totalPagesCount }}</div>
+                </div>
+              </div>
+            </div>
+            </template>
+          </UPopover>
+        </NuxtLink>
+      <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/pagespeed-insights`" class="transition rounded group hover:bg-gray-100 flex group text-[11px] items-center text-gray-500/80 gap-4">
+        <div>
+          <div class="text-[11px] flex items-center gap-1 mb-1 text-gray-500/80">
+            Audits
+          </div>
+        <div class="flex gap-[3px]">
+          <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiMobilePerformance)}-500`" />
+          <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiDesktopPerformance)}-500`" />
+          <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiMobileBestPractices)}-500`" />
+          <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiMobileSeo)}-500`" />
+          <div class="w-1 h-3" :class="`bg-${psiScoreToColor(dates?.psiData?.psiMobileAccessibility)}-500`" />
+        </div>
+        </div>
+      </NuxtLink>
+      <NuxtLink :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/countries`" class="transition group hover:bg-gray-50 rounded flex items-center">
+          <div>
+            <div class="text-[11px] flex items-center gap-1 mb-1 text-gray-500/80">
+              Top Countries
+            </div>
+            <div class="flex items-center gap-1">
+              <UTooltip v-for="(country, i) in dates.countries.slice(0, 5)" :key="i" :text="`#${(i + 1)} Clicks - ${country.country}`">
+                <Icon :name="`circle-flags:${country.countryCode.toLowerCase()}`" class="w-3 h-3" />
+              </UTooltip>
+            </div>
+          </div>
+        </NuxtLink>
+    </div>
     </div>
     </template>
   </div>
+  </UCard>
 </div>
 </template>

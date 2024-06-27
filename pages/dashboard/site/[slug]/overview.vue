@@ -9,9 +9,8 @@ const props = defineProps<{ site: any }>()
 
 definePageMeta({
   layout: 'dashboard',
-  title: 'Dashboards',
-  subTitle: 'Organic Search',
-  icon: 'i-ph-app-window-duotone',
+  title: 'Overview',
+  icon: 'i-ph-chart-bar-duotone',
 })
 
 const siteData = useSiteData(props.site)
@@ -88,7 +87,10 @@ const totalDeviceClicks = computed(() => {
     </div>
   </div>
   <div class="grid grid-cols-12 gap-7">
-    <div class="col-span-9 space-y-10">
+    <div class="col-span-9 space-y-7">
+      <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+      <CardGoogleSearchConsole :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['clicks', 'impressions']" />
+      </UCard>
       <div>
         <CardTitle>
           <NuxtLink :to="`/dashboard/site/${site.siteId}/pages`" class="hover:underline">
@@ -96,7 +98,6 @@ const totalDeviceClicks = computed(() => {
           </NuxtLink>
         </CardTitle>
         <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
-          <CardGoogleSearchConsole :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['clicks', 'impressions']" />
           <TablePagesNext :sort="tab === 0 ? undefined : { column: 'clicksPercent', direction: tab === 1 ? 'desc' : 'asc' }" :exclude-columns="['psiScore', 'actions']" :filter="currentTabFilter" :sortable="false" :searchable="false" :expandable="false" :site="site" :filters="[]" :page-size="5" />
         </UCard>
       </div>
@@ -107,7 +108,6 @@ const totalDeviceClicks = computed(() => {
           </NuxtLink>
         </CardTitle>
         <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
-          <CardKeywords v-if="dates" :key="site.siteId" :dates="dates?.dates" :period="dates?.period" :prev-period="dates?.prevPeriod" :site="site" :selected-charts="['keywords']" />
           <TableKeywordsNext :filter="currentTabFilter" :sort="tab === 0 ? undefined : { column: 'clicksPercent', direction: tab === 1 ? 'desc' : 'asc' }" :exclude-columns="['actions', 'impressionsPercent', 'position', 'actions', 'positionPercent', 'competitionIndex']" :sortable="false" :searchable="false" :expandable="false" :site="site" :filters="[]" :page-size="5" />
         </UCard>
       </div>
@@ -127,8 +127,8 @@ const totalDeviceClicks = computed(() => {
         <CardTitle>
           Devices
         </CardTitle>
-        <UCard v-if="dates?.devices" :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
-          <div class="space-y-3">
+        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <div v-if="dates?.devices?.mobileClicks || dates?.devices?.desktopClicks" class="space-y-3">
             <div v-for="(key, device) in dates?.devices">
               <div class="flex items-center gap-1 text-sm">
                 <span class="capitalize text-xs text-gray-500">{{ device.replace('Clicks', '') }}</span>
@@ -140,6 +140,7 @@ const totalDeviceClicks = computed(() => {
               </div>
             </div>
           </div>
+          <div class="text-sm text-gray-600">No data yet, check back soon.</div>
         </UCard>
       </div>
     </div>

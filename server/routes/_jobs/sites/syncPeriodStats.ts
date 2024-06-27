@@ -1,6 +1,6 @@
 import { count, lte } from 'drizzle-orm'
 import {
-  siteDateAnalytics,
+  siteDateAnalytics, siteKeywordDateAnalytics,
   sitePaths,
   sites,
 } from '~/server/database/schema'
@@ -29,7 +29,7 @@ export default defineJobHandler(async (event) => {
 
   // for the last 90 days, we inspect each day and calculate the total number of pages indexed
   // we calculate this from the count of sitePaths which have firstSeenIndexed <= date and isIndexed = true
-  let updates = []
+  let updates: any[] = []
   const start = dayjsPst().subtract(90, 'days').startOf('day')
   for (let i = 0; i < 91; i++) {
     const date = start.clone().add(i, 'days')
@@ -41,8 +41,16 @@ export default defineJobHandler(async (event) => {
         lte(sitePaths.firstSeenIndexed, date.format('YYYY-MM-DD')),
         eq(sitePaths.isIndexed, true),
       ))
+    const keywordCount = await db.select({
+      keywordCount: count().as('keywordCount'),
+    }).from(siteKeywordDateAnalytics)
+      .where(and(
+        eq(siteKeywordDateAnalytics.siteId, siteId),
+        eq(siteKeywordDateAnalytics.date, date.format('YYYY-MM-DD')),
+      ))
     updates.push(db.update(siteDateAnalytics).set({
       indexedPagesCount: indexedCountSq[0].indexedPagesCount,
+      keywords: keywordCount[0].keywordCount,
     }).where(and(
       eq(siteDateAnalytics.siteId, siteId),
       eq(siteDateAnalytics.date, date.format('YYYY-MM-DD')),

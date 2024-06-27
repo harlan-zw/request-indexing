@@ -89,6 +89,12 @@ const buttons = computed<GraphButton[]>(() => [
     value: typeof tooltipData.value?.position !== 'undefined' ? tooltipData.value.position : props.period?.position,
     color: 'orange',
   },
+  {
+    key: 'ctr',
+    label: 'CTR',
+    value: (typeof tooltipData.value?.ctr !== 'undefined' ? tooltipData.value.ctr : props.period?.ctr) * 100,
+    color: 'green',
+  },
 ])
 </script>
 
@@ -112,6 +118,9 @@ const buttons = computed<GraphButton[]>(() => [
       </template>
       <template #position-trend>
         <TrendPercentage v-if="!tooltipData && period" compact negative :value="period.position" :prev-value="prevPeriod?.position" />
+      </template>
+      <template #ctr-trend>
+      <TrendPercentage v-if="!tooltipData && period" compact negative :value="period.ctr" :prev-value="prevPeriod?.ctr" />
       </template>
     </GraphButtonGroup>
     <!--    <GraphData v-if="site.domain !== 'https://nuxtseo.com'" :height="fill ? 300 : 100" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" /> -->

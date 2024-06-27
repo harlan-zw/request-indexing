@@ -86,43 +86,44 @@ function getLastEntrySynthetic(key: string, allowZero?: boolean) {
   </div>
   <div class="space-y-10">
     <div v-if="connector?.crux?.length">
-      <CardTitle>Real-world Origin Web Vitals</CardTitle>
-      <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }" class="relative">
-        <div :key="tab" class="grid grid-cols-3 w-full gap-5">
-          <WebVital
-            id="largest-contentful-paint"
-            :value="getLastEntryCrux('Lcp75')"
-            :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginLcp75 : r.desktopOriginLcp75 })).filter(r => r.value)"
-          />
-          <WebVital
-            id="interaction-next-paint"
-            :value="getLastEntryCrux('Inp75')"
-            :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginInp75 : r.desktopOriginInp75 })).filter(r => r.value)"
-          />
-          <WebVital
-            id="cumulative-layout-shift"
-            :value="getLastEntryCrux('Cls75', true)"
-            :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginCls75 : r.desktopOriginCls75 }))"
-          />
-          <WebVital
-            id="first-contentful-paint"
-            :value="getLastEntryCrux('Fcp75')"
-            :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginFcp75 : r.desktopOriginFcp75 })).filter(r => r.value)"
-          />
-          <WebVital
-            id="time-to-first-byte"
-            :value="getLastEntryCrux('Ttfb75')"
-            :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginTtfb75 : r.desktopOriginTtfb75 })).filter(r => r.value)"
-          />
-        </div>
-      </UCard>
+      <CardTitle class="mb-5">Real-world Origin Web Vitals</CardTitle>
+      <div :key="tab" class="grid grid-cols-3 w-full gap-5">
+        <WebVital
+          id="largest-contentful-paint"
+          :value="getLastEntryCrux('Lcp75')"
+          :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginLcp75 : r.desktopOriginLcp75 })).filter(r => r.value)"
+        />
+        <WebVital
+          id="interaction-next-paint"
+          :value="getLastEntryCrux('Inp75')"
+          :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginInp75 : r.desktopOriginInp75 })).filter(r => r.value)"
+        />
+        <WebVital
+          id="cumulative-layout-shift"
+          :value="getLastEntryCrux('Cls75', true)"
+          :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginCls75 : r.desktopOriginCls75 }))"
+        />
+        <WebVital
+          id="first-contentful-paint"
+          :value="getLastEntryCrux('Fcp75')"
+          :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginFcp75 : r.desktopOriginFcp75 })).filter(r => r.value)"
+        />
+        <WebVital
+          id="time-to-first-byte"
+          :value="getLastEntryCrux('Ttfb75')"
+          :graph="connector.crux.map(r => ({ time: r.date, value: tab === 0 ? r.mobileOriginTtfb75 : r.desktopOriginTtfb75 })).filter(r => r.value)"
+        />
+      </div>
     </div>
-    <div>
-      <CardTitle>Real-world Page Web Vitals</CardTitle>
+    <div v-show="!connector || connector.rows?.length">
+      <CardTitle>
+        Pages
+      </CardTitle>
       <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
         <TableCruxPerformance :page-size="8" :sort="{ column: tab === 0 ? 'mobileCls75' : 'mobileCls75', direction: 'asc' }" :filters="[]" :searchable="false" :sortable="false" :exclude-columns="['actions']" :expandable="false" :site="site" :device="tab === 0 ? 'mobile' : 'desktop'" />
       </UCard>
     </div>
+    <UAlert v-if="connector?.rows && !connector.rows.length" color="blue" variant="soft" title="No real-world data yet" description="Your origin does not currently have any real-world data. Check back again soon." />
   </div>
 </div>
 </template>

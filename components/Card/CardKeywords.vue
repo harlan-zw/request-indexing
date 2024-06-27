@@ -49,12 +49,6 @@ const buttons = computed<GraphButton[]>(() => [
     value: typeof tooltipEntry.value?.keywords !== 'undefined' ? tooltipEntry.value.keywords : props.period?.keywords,
     color: 'blue',
   },
-  {
-    key: 'ctr',
-    label: 'CTR',
-    value: `${typeof tooltipEntry.value?.ctr !== 'undefined' ? tooltipEntry.value.ctr : props.period?.ctr * 100}`,
-    color: 'orange',
-  },
 ])
 
 const selectedCharts = ref(['keywords', 'ctr'])
@@ -85,6 +79,6 @@ function toggleChart(chart: string) {
         <UIcon name="i-ph-cursor" class="w-4 h-4 opacity-80" />
       </template>
     </GraphButtonGroup>
-    <GraphData v-if="!graphless" class="w-full" :value="graph!" :columns="selectedCharts" :colors="graphColours" @tooltip="e => tooltipData = e" />
+    <GraphData v-if="!graphless" class="w-full" :value="graph!" :columns="['keywords']" :colors="graphColours" @tooltip="e => tooltipData = e" />
   </div>
 </template>
