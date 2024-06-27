@@ -228,7 +228,7 @@ async function pollForRequestIndex() {
 }
 
 watch([visibleRows, autoRequestIndex], () => {
-  if (autoRequestIndex.value && user.value.indexingOAuthIdNext)
+  if (autoRequestIndex.value && user.value.indexingOAuthIdNext2)
     resumeAutoRequestIndex()
 }, {
   immediate: true,
@@ -344,7 +344,7 @@ const filters = [
     <template #requestIndexing-data="{ row }">
       <div class="flex justify-end">
         <div v-if="getUrlNotificationLatestUpdate(row)?.type !== 'URL_UPDATED' && getUpdatedRow(row)?.inspectionResult?.indexStatusResult.verdict === 'NEUTRAL'" class="flex items-center gap-2">
-          <UButton :disabled="!mock && (!user?.indexingOAuthIdNext || site.permissionLevel !== 'siteOwner')" size="xs" :loading="submitIndexingLoading.includes(row.url)" icon="i-heroicons-arrow-up-circle" variant="outline" @click="submitForIndexing(row)">
+          <UButton :disabled="!mock && (!user?.indexingOAuthIdNext2 || site.permissionLevel !== 'siteOwner')" size="xs" :loading="submitIndexingLoading.includes(row.url)" icon="i-heroicons-arrow-up-circle" variant="outline" @click="submitForIndexing(row)">
             Request Indexing
           </UButton>
         </div>

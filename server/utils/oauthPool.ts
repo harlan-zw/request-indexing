@@ -6,7 +6,7 @@ import { appStorage } from '~/server/utils/storage'
 // @ts-expect-error runtime
 import { tokens as _tokens, privateTokens } from '#app/token-pool.mjs'
 
-export const oAuthPoolStorage = prefixStorage(appStorage as Storage<OAuthPoolPayload>, 'auth:pool')
+export const oAuthPoolStorage = prefixStorage(appStorage as Storage<OAuthPoolPayload>, 'auth:pool2')
 
 export function createOAuthPool() {
   const tokens = _tokens as OAuthPoolToken[]

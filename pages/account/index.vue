@@ -96,7 +96,7 @@ async function showSite(site: string) {
             Web Indexing API
           </h2>
         </div>
-        <template v-if="user.indexingOAuthIdNext">
+        <template v-if="user.indexingOAuthIdNext2">
           <p class="text-gray-600 dark:text-gray-300 mb-3">
             You have provided authenticated access to the Web Indexing API. You
             can safely revoke access at any time.

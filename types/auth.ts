@@ -37,9 +37,8 @@ export interface User {
   access?: 'pro'
   picture: string
   // legacy
-  indexingOAuthId?: string
-  indexingOAuthIdNext?: string
-  lastIndexingOAuthIdNext?: string
+  indexingOAuthIdNext2?: string
+  lastIndexingOAuthIdNext2?: string
   analyticsPeriod: string
   hiddenSites?: string[]
 }
@@ -49,7 +48,7 @@ export interface UserSession {
   user: User
   // used when redirecting to Web Indexing API OAuth
   googleIndexingAuth?: {
-    indexingOAuthId: string
+    indexingOAuthIdNext2: string
     referrer: string
     state: string
   }
