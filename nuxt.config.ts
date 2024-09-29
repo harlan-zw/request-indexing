@@ -2,8 +2,8 @@ import { env } from 'std-env'
 import { hash } from 'ohash'
 import type { OAuthPoolToken } from '~/types'
 
-let tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
-const privateTokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_PRIVATE_POOL ? JSON.parse(env.NUXT_OAUTH_PRIVATE_POOL) : false
+let tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : []
+const privateTokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_PRIVATE_POOL ? JSON.parse(env.NUXT_OAUTH_PRIVATE_POOL) : []
 
 export default defineNuxtConfig({
   extends: ['@nuxt/ui-pro'],
@@ -18,7 +18,7 @@ export default defineNuxtConfig({
     '@nuxtjs/seo',
     (_, nuxt) => {
       // seed the main tokens if there isn't a pool available
-      if (!tokens) {
+      if (tokens.length === 0) {
         tokens = [{
           label: 'primary',
           client_id: env.NUXT_OAUTH_GOOGLE_CLIENT_ID!,
@@ -29,9 +29,9 @@ export default defineNuxtConfig({
       nuxt.options.nitro.virtual['#app/token-pool.mjs']
         = [
           `export const tokens = ${JSON.stringify(tokens.map((t) => {
-        t.id = t.id || hash(t)
-        return t
-      }))}`,
+            t.id = t.id || hash(t)
+            return t
+          }))}`,
           `export const privateTokens = ${JSON.stringify(privateTokens.map((t) => {
             t.id = t.id || hash(t)
             return t
