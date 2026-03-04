@@ -137,16 +137,9 @@ const authDropdownItems = computed(() => {
             <GuidesMenu />
           </template>
         </UNavigationMenu>
-        <UNavigationMenu :ui="{ viewport: 'min-w-[320px]' }" :items="[toolsNavItem]" class="justify-center">
-          <template #item-content="{ item }">
-            <ul class="p-2 space-y-1">
-              <li v-for="tool in item.children" :key="tool.to">
-                <UButton variant="ghost" :to="tool.to" class="w-full justify-start text-left">
-                  <UIcon :name="tool.icon" class="w-4 h-4 opacity-85 shrink-0" />
-                  <span class="text-sm">{{ tool.label }}</span>
-                </UButton>
-              </li>
-            </ul>
+        <UNavigationMenu :ui="{ viewport: 'min-w-[520px]' }" :items="[toolsNavItem]" class="justify-center">
+          <template #item-content>
+            <ToolsMenu />
           </template>
         </UNavigationMenu>
       </div>
