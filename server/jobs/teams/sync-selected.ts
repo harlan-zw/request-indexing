@@ -34,7 +34,6 @@ export default defineJob({
             payload: { siteId: row.siteId },
           },
         }, [
-          { name: 'sites/sync-sitemap-pages', payload: { siteId: row.siteId } },
           { name: 'crux/history', payload: { siteId: row.siteId, strategy: 'DESKTOP' } },
           { name: 'crux/history', payload: { siteId: row.siteId, strategy: 'PHONE' } },
           { name: 'paths/run-psi', payload: { siteId: row.siteId, path: '/', strategy: 'mobile' }, queue: 'psi' },

@@ -1,9 +1,8 @@
 import { count } from 'drizzle-orm'
-import { authenticateAdmin } from '~/server/app/utils/auth'
 import { jobs, sitePaths, sites } from '~/server/db/schema'
 
 export default defineEventHandler(async (e) => {
-  await authenticateAdmin(e)
+  await requireAdminAuth(e)
   const { siteId } = getRouterParams(e, { decode: true })
   const site = await useDrizzle().query.sites.findFirst({
     where: eq(sites.publicId, siteId),

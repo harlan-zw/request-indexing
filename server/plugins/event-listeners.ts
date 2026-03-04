@@ -1,5 +1,5 @@
-import type { NitroRuntimeHooks } from 'nitropack'
 import type { TaskMap, TaskName } from '#shared/types/tasks'
+import type { NitroRuntimeHooks } from 'nitropack'
 import { queueJob } from '../utils/event-service'
 
 interface JobInsertOpts { siteId?: number, userId?: number }
@@ -33,7 +33,6 @@ export default defineNitroPlugin(async (nitro) => {
   nitro.hooks.addHooks({
     ...listeners('app:user:created', [
       'users/send-welcome-email',
-      'users/sync-gsc-sites',
     ], ctx => ({
       payload: { userId: ctx.userId },
       opts: {},

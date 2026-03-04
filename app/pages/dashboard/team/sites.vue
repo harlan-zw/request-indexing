@@ -97,10 +97,6 @@ async function connect() {
   ws.addEventListener('message', ({ data }) => {
     const job = JSON.parse(data) as { name: keyof TaskMap, payload: any }
     const payload = JSON.parse(job.payload)
-    if (job.name === 'users/sync-gsc-sites') {
-      totalSites.value = payload.sites.length
-      isSetup.value = true
-    }
     if (job.name === 'sites/setup') {
       if (payload.sites.length > 1)
         totalSites.value += payload.sites.length

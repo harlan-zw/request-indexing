@@ -1,6 +1,6 @@
 import { count, inArray } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
-import { jobs, siteDateAnalytics, sitePaths, sites, userSites } from '~/server/db/schema'
+import { siteDateAnalytics, sitePaths, sites, userSites } from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)
@@ -48,19 +48,7 @@ export default defineEventHandler(async (event) => {
     .where(whereQuery)
     .as('sq3')
 
-  // Check if user has a pending sync job (not completed, not failed)
-  const pendingJob = await db.select({ id: jobs.id })
-    .from(jobs)
-    .where(and(
-      eq(jobs.userId, user.userId),
-      sql`json_extract(${jobs.payload}, '$._task') = 'users/sync-gsc-sites'`,
-      sql`${jobs.completedAt} IS NULL`,
-      sql`${jobs.failedAt} IS NULL`,
-    ))
-    .get()
-
   return {
-    jobStatus: pendingJob ? 'pending' : 'completed',
     sites: await db.select({
       property: sites.property,
       sitemaps: sites.sitemaps,

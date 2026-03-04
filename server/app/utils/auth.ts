@@ -16,17 +16,6 @@ import { ofetch } from 'ofetch'
 import { parsePath, withQuery } from 'ufo'
 import { sessions } from '~/server/db/schema'
 
-export async function authenticateAdmin(event: H3Event) {
-  const user = await authenticateUser(event)
-  if (user.email !== 'harlan@harlanzw.com') {
-    throw createError({
-      statusCode: 401,
-      message: 'Unauthorized',
-    })
-  }
-  return user
-}
-
 export async function authenticateUser(event: H3Event): Promise<UserSelect> {
   const session = (await getUserSession(event)) as UserSession
   if (!session?.user) {

@@ -40,6 +40,23 @@ const links = [
     ],
   },
   {
+    label: 'Tools',
+    children: [
+      {
+        label: 'Google Index Checker',
+        to: '/tools/google-indexing-checker',
+      },
+      {
+        label: 'Bulk Indexing Checker',
+        to: '/tools/bulk-indexing-checker',
+      },
+      {
+        label: 'Site Indexing Report',
+        to: '/tools/site-indexing-report',
+      },
+    ],
+  },
+  {
     label: 'Resources',
     children: [
       {

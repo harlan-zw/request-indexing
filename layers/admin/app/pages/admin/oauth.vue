@@ -2,9 +2,8 @@
 import type { GoogleOAuthClientsSelect } from '#shared/types/database'
 
 definePageMeta({
-  layout: 'admin-dashboard',
+  layout: 'admin',
   title: 'Admin OAuth Clients',
-  icon: 'i-ph-lock-duotone',
 })
 
 const data = ref<{ usage: GoogleOAuthClientsSelect[], free: GoogleOAuthClientsSelect }>()
@@ -14,30 +13,23 @@ onMounted(async () => {
 })
 
 const columns: { key: keyof GoogleOAuthClientsSelect | 'count', label: string }[] = [
-  {
-    key: 'googleOAuthClientId',
-    label: 'ID',
-  },
-  {
-    key: 'label',
-    label: 'Name',
-  },
-  {
-    key: 'count',
-    label: 'Auth Count',
-  },
-  {
-    key: 'reserved',
-    label: 'Reserved',
-  },
+  { key: 'googleOAuthClientId', label: 'ID' },
+  { key: 'label', label: 'Name' },
+  { key: 'count', label: 'Auth Count' },
+  { key: 'reserved', label: 'Reserved' },
 ]
 </script>
 
 <template>
   <div>
-    <UDashboardCard v-if="data?.free" title="Next Free" description="The next free OAuth client." class="mb-5">
-      {{ data.free.label }}
-    </UDashboardCard>
+    <UCard v-if="data?.free" variant="subtle" class="mb-5">
+      <template #header>
+        <h3 class="font-semibold">
+          Next Free
+        </h3>
+      </template>
+      <p>{{ data.free.label }}</p>
+    </UCard>
     <TableData :value="data?.usage || []" :columns="columns" />
   </div>
 </template>

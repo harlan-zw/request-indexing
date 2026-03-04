@@ -1,4 +1,3 @@
-import { authenticateAdmin } from '~/server/app/utils/auth'
 import {
   siteDateAnalytics,
   siteKeywordDateAnalytics,
@@ -10,7 +9,7 @@ import {
 } from '~/server/db/schema'
 
 export default defineEventHandler(async (e) => {
-  await authenticateAdmin(e)
+  await requireAdminAuth(e)
   const { siteId } = getRouterParams(e, { decode: true })
   const db = useDrizzle()
 

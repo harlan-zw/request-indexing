@@ -54,7 +54,6 @@ export default defineNuxtConfig({
   sitemap: {
     exclude: [
       '/dashboard/**',
-      '/admin/**',
       '/api/**',
       '/auth/**',
     ],
@@ -63,7 +62,6 @@ export default defineNuxtConfig({
   robots: {
     disallow: [
       '/dashboard/**',
-      '/admin/**',
       '/api/**',
       '/auth/**',
     ],
@@ -101,7 +99,6 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/dashboard/**': { prerender: false },
-    '/admin/**': { prerender: false },
     '/account/**': { prerender: false },
     '/auth/**': { prerender: false },
     '/api/**': { prerender: false },
@@ -240,6 +237,10 @@ export default defineNuxtConfig({
     gscdump: {
       apiKey: '',
       webhookSecret: '',
+    },
+    dataforseo: {
+      login: '',
+      password: '',
     },
     public: {
       baseUrl: 'https://requestindexing.com',

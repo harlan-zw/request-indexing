@@ -3,23 +3,18 @@ import type { JobDefinition, JobHandler, QueueName } from './_types'
 
 // Import all job handlers
 import cruxHistory from './crux/history'
-import keywordsAdwords from './keywords/adwords'
 import pathsRunPsi from './paths/run-psi'
 import sitesSetup from './sites/setup'
 import sitesSyncFinished from './sites/sync-finished'
-import sitesSyncSitemapPages from './sites/sync-sitemap-pages'
 import teamsSyncSelected from './teams/sync-selected'
 import usersSendWelcomeEmail from './users/send-welcome-email'
-import usersSyncGscSites from './users/sync-gsc-sites'
 
 export const jobs: JobDefinition<any>[] = [
   // Users
   usersSendWelcomeEmail,
-  usersSyncGscSites,
 
   // Sites
   sitesSetup,
-  sitesSyncSitemapPages,
   sitesSyncFinished,
 
   // Teams
@@ -28,9 +23,6 @@ export const jobs: JobDefinition<any>[] = [
   // PSI / CrUX (external APIs)
   pathsRunPsi,
   cruxHistory,
-
-  // Keywords
-  keywordsAdwords,
 ]
 
 // Lookup map for fast dispatch

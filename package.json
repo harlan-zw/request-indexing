@@ -17,7 +17,8 @@
     "preview": "wrangler dev",
     "deploy": "wrangler deploy",
     "postinstall": "nuxt prepare",
-    "release": "bumpp"
+    "release": "bumpp",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "@googleapis/indexing": "^6.0.1",

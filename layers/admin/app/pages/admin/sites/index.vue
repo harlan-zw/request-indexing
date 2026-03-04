@@ -1,39 +1,23 @@
 <script setup lang="ts">
-import type { SiteSelect, UserSelect } from '#shared/types/database'
+import type { SiteSelect } from '#shared/types/database'
 
 definePageMeta({
-  layout: 'admin-dashboard',
+  layout: 'admin',
   title: 'Admin Sites',
-  icon: 'i-ph-app-window-duotone',
 })
 
-const data = ref<UserSelect[]>([])
+const data = ref<SiteSelect[]>([])
 
 onMounted(async () => {
   data.value = await $fetch('/api/admin/sites')
 })
 
-const columns: { key: keyof SiteSelect, label: string }[] = [
-  {
-    key: 'publicId',
-    label: 'Public ID',
-  },
-  {
-    key: 'domain',
-    label: 'Domain',
-  },
-  {
-    key: 'createdAt',
-    label: 'Created At',
-  },
-  {
-    key: 'updatedAt',
-    label: 'Updated At',
-  },
-  {
-    key: 'actions',
-    label: 'Actions',
-  },
+const columns: { key: string, label: string }[] = [
+  { key: 'publicId', label: 'Public ID' },
+  { key: 'domain', label: 'Domain' },
+  { key: 'createdAt', label: 'Created At' },
+  { key: 'updatedAt', label: 'Updated At' },
+  { key: 'actions', label: 'Actions' },
 ]
 
 function deleteSite(site: SiteSelect) {

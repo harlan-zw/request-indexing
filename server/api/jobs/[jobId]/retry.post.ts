@@ -1,9 +1,8 @@
-import { authenticateAdmin } from '~/server/app/utils/auth'
 import { dispatchToQueue } from '~/server/utils/event-service'
 import { retryFailedJob } from '~/server/utils/jobs'
 
 export default defineEventHandler(async (e) => {
-  await authenticateAdmin(e)
+  await requireAdminAuth(e)
   const { jobId } = getRouterParams(e, { decode: true })
   const db = useDrizzle()
   const env = (e.context.cloudflare?.env ?? {}) as Record<string, unknown>

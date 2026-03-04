@@ -1,7 +1,5 @@
-import { authenticateAdmin } from '~/server/app/utils/auth'
-
 export default defineEventHandler(async (e) => {
-  await authenticateAdmin(e)
+  await requireAdminAuth(e)
   const pool = createOAuthPool()
   const [usage, free] = await Promise.all([
     pool.usage(),

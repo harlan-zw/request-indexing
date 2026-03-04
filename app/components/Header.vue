@@ -22,16 +22,26 @@ const sitesNavItem = computed(() => ({
   })) || [],
 }))
 
-const learnNavItem = computed(() => ({
+const guidesNavItem = computed(() => ({
   label: 'Guides',
   icon: 'i-ph-books-duotone',
   children: [
-    { label: 'Google Indexing API', title: 'Google Indexing API Complete Guide', icon: 'i-ph-google-logo-duotone', to: '/google-indexing-api', path: '/google-indexing-api' },
-    { label: 'Setup Tutorial', title: 'Step-by-Step Setup Guide', icon: 'i-ph-graduation-cap-duotone', to: '/google-indexing-api-tutorial', path: '/google-indexing-api-tutorial' },
-    { label: 'Node.js Implementation', title: 'Node.js Implementation Guide', icon: 'i-ph-file-code-duotone', to: '/google-indexing-api-node-js', path: '/google-indexing-api-node-js' },
-    { label: 'Bulk Submit URLs', title: 'How to Bulk Submit URLs', icon: 'i-ph-copy-duotone', to: '/bulk-submit-urls-google-indexing-api', path: '/bulk-submit-urls-google-indexing-api' },
-    { label: 'For Blog Posts', title: 'Using the API for Blog Posts', icon: 'i-ph-article-duotone', to: '/indexing-api-for-blog-posts', path: '/indexing-api-for-blog-posts' },
-    { label: 'Quota & Limits', title: 'Quota Limits & Strategies', icon: 'i-ph-chart-pie-slice-duotone', to: '/google-indexing-api-quota', path: '/google-indexing-api-quota' },
+    { label: 'Google Indexing API', to: '/google-indexing-api' },
+    { label: 'Setup Tutorial', to: '/google-indexing-api-tutorial' },
+    { label: 'Node.js Implementation', to: '/google-indexing-api-node-js' },
+    { label: 'Bulk Submit URLs', to: '/bulk-submit-urls-google-indexing-api' },
+    { label: 'For Blog Posts', to: '/indexing-api-for-blog-posts' },
+    { label: 'Quota & Limits', to: '/google-indexing-api-quota' },
+  ],
+}))
+
+const toolsNavItem = computed(() => ({
+  label: 'Tools',
+  icon: 'i-ph-wrench-duotone',
+  children: [
+    { label: 'Google Index Checker', to: '/tools/google-indexing-checker', icon: 'i-heroicons-magnifying-glass' },
+    { label: 'Bulk Indexing Checker', to: '/tools/bulk-indexing-checker', icon: 'i-heroicons-queue-list' },
+    { label: 'Site Indexing Report', to: '/tools/site-indexing-report', icon: 'i-heroicons-document-chart-bar' },
   ],
 }))
 
@@ -122,19 +132,18 @@ const authDropdownItems = computed(() => {
             </ul>
           </template>
         </UNavigationMenu>
-        <UNavigationMenu :ui="{ viewport: 'min-w-[320px]' }" :items="[learnNavItem]" class="justify-center">
+        <UNavigationMenu :ui="{ viewport: 'min-w-[520px]' }" :items="[guidesNavItem]" class="justify-center">
+          <template #item-content>
+            <GuidesMenu />
+          </template>
+        </UNavigationMenu>
+        <UNavigationMenu :ui="{ viewport: 'min-w-[320px]' }" :items="[toolsNavItem]" class="justify-center">
           <template #item-content="{ item }">
-            <ul class="grid grid-cols-1 p-2 gap-2">
-              <li
-                v-for="section in item.children"
-                :key="section.to"
-                class="text-left"
-              >
-                <UButton variant="ghost" :to="section.to" class="w-full justify-start text-left">
-                  <div class="flex items-center gap-2">
-                    <UIcon :name="section.icon" class="w-5 h-5 opacity-85 shrink-0" />
-                    <span class="text-sm font-medium">{{ section.label }}</span>
-                  </div>
+            <ul class="p-2 space-y-1">
+              <li v-for="tool in item.children" :key="tool.to">
+                <UButton variant="ghost" :to="tool.to" class="w-full justify-start text-left">
+                  <UIcon :name="tool.icon" class="w-4 h-4 opacity-85 shrink-0" />
+                  <span class="text-sm">{{ tool.label }}</span>
                 </UButton>
               </li>
             </ul>
@@ -156,7 +165,13 @@ const authDropdownItems = computed(() => {
           <div class="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
             Guides
           </div>
-          <UContentNavigation :navigation="learnNavItem.children" />
+          <UContentNavigation :navigation="guidesNavItem.children" />
+        </div>
+        <div>
+          <div class="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
+            Tools
+          </div>
+          <UContentNavigation :navigation="toolsNavItem.children" />
         </div>
       </div>
     </template>
