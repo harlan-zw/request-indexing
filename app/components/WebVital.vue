@@ -26,7 +26,7 @@ const definition = webVitals[props.id]
       </PopoverWebVital>
     </div>
     <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }" class="relative">
-    <GraphWebVital
+      <GraphWebVital
         :value="graph"
         :fast="definition.score.good"
         :moderate="definition.score.moderate"

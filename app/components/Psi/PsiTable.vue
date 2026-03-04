@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { GoogleSearchConsoleSite, GscDataRow } from '~/types/data'
+import { callFnSyncToggleRef } from '~/composables/loader'
 import { exponentialMovingAverage } from '~/utils/time-smoothing/exponentialMovingAverage'
 import { simpleMovingAverage } from '~/utils/time-smoothing/simpleMovingAverage'
-import { callFnSyncToggleRef } from '~/composables/loader'
 
 const props = withDefaults(
   defineProps<{ mock?: boolean, value?: GscDataRow[], site: GoogleSearchConsoleSite, pending?: boolean, pageCount?: number }>(),

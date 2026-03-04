@@ -37,7 +37,7 @@ const mockUrls = [
   <div>
     <!-- Hero -->
     <div class="dark:bg-neutral-950 gradient top-slice">
-      <div class="dark:hidden gradient-after" />
+      <div class="gradient-after" />
       <UContainer class="z-1 relative max-w-8xl xl:max-w-[1400px]" :ui="{ container: 'max-w-8xl xl:max-w-[1335px]!' }">
         <section class="py-5 sm:py-12 xl:py-20">
           <div class="xl:grid gap-8 lg:gap-12 xl:grid-cols-12 mx-auto w-full sm:px-6 lg:px-0 px-0">
@@ -392,8 +392,7 @@ const mockUrls = [
 }
 
 .dark .gradient {
-  opacity: 0.1;
-  background-color: transparent;
+  background-image: none !important;
 }
 
 .dark .gradient-after {
@@ -403,6 +402,7 @@ const mockUrls = [
   #669a8c 75%,
   #9c6e99 100%
   ) !important;
+  opacity: 0.15;
 }
 
 .top-slice {

@@ -7,11 +7,10 @@ export function incrementUsage(siteId: number, key: string) {
     date: currentPstDate(),
     key,
     usage: 1,
+  }).onConflictDoUpdate({
+    target: [usages.siteId, usages.date, usages.key],
+    set: {
+      usage: sql`${usages.usage} + 1`,
+    },
   })
-    .onConflictDoUpdate({
-      target: [usages.siteId, usages.date, usages.key],
-      set: {
-        usage: sql`${usages.usage} + 1`,
-      },
-    })
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { PropType } from 'vue'
 import type { HeaderLink } from '#ui-pro/types'
+import type { PropType } from 'vue'
 
 defineOptions({
   inheritAttrs: false,

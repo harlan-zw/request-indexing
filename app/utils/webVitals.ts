@@ -1,4 +1,4 @@
-import audits from "~/audits-clean.json";
+import audits from '~/audits-clean.json'
 
 function simpleMarkdownIt(s: string) {
   // we need to convert links into html for example
@@ -99,5 +99,5 @@ export const webVitals = {
       moderate: '600 - 1200 milliseconds',
       poor: 'More than 1200 milliseconds',
     },
-  }
+  },
 } as const

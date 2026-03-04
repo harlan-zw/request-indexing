@@ -1,7 +1,7 @@
-import {withBase, withHttps, withTrailingSlash} from 'ufo'
 import type { FetchError } from 'ofetch'
-import { $fetch } from 'ofetch'
 import { useRuntimeConfig } from '#imports'
+import { $fetch } from 'ofetch'
+import { withBase, withHttps, withTrailingSlash } from 'ufo'
 
 const cwvKeys = [
   'largest_contentful_paint',
@@ -18,9 +18,10 @@ export async function fetchCrux(domain: string, formFactor: 'PHONE' | 'TABLET' |
     formFactor: formFactor.toUpperCase(),
   }
   if (path) {
-    body['url'] = withHttps(withBase(path, domain))
-  } else {
-    body['origin'] = origin
+    body.url = withHttps(withBase(path, domain))
+  }
+  else {
+    body.origin = origin
   }
   const results = await $fetch(`/records:queryHistoryRecord`, {
     baseURL: 'https://chromeuxreport.googleapis.com/v1',

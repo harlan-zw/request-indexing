@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { SiteSelect } from '#shared/types/database'
-import { formatPageSpeedInsightScore } from '~/composables/formatting'
 
 defineProps<{ site: SiteSelect }>()
 

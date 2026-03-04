@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { SiteSelect } from '#shared/types/database'
 import type { GscDataRow } from '~/types/data'
 import { callFnSyncToggleRef } from '~/composables/loader'
-import type { SiteSelect } from '#shared/types/database'
 
 const props = withDefaults(
   defineProps<{ site: SiteSelect, pageCount?: number }>(),

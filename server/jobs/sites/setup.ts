@@ -1,5 +1,5 @@
 import { withoutTrailingSlash } from 'ufo'
-import { sites, users } from '~/server/db/schema'
+import { sites } from '~/server/db/schema'
 import { broadcastToUser } from '~/server/utils/event-service'
 import { defineJob } from '../_types'
 

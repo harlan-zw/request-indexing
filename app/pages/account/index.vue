@@ -32,7 +32,8 @@ async function revokeIndexingAuth() {
         toast.add({ title: 'Google Token Revoked', description: 'You have revoked access to the Web Indexing API.', color: 'green' })
         fetch()
       }, 500) // make sure user knows we actually did something (it's too quick)
-    }).catch(() => {
+    })
+    .catch(() => {
       toast.add({ title: 'Failed to revoke Google Token', description: 'Sorry about that, maybe try again later.', color: 'red' })
     })
 }

@@ -1,4 +1,5 @@
 import { asc, between, count, desc, gt, ilike, inArray, max, sum } from 'drizzle-orm'
+import { userPeriodRange } from '~/server/app/models/User'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
   siteKeywordDatePathAnalytics,
@@ -6,7 +7,6 @@ import {
   sitePaths,
   sites,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -133,36 +133,21 @@ export default defineEventHandler(async (e) => {
     prevPosition: sq2.prevPosition,
     // prevPsiScore: sq2.prevPsiScore,
     // pages: sq3.path,
-  })
-    .from(sitePaths) // we want to get non-indexed pages as well
-    .leftJoin(sq, filters.includes('top-level') ? sql`sq.topLevelPath1 = sq.topLevelPath2` : eq(sitePaths.path, sq.path))
-    .leftJoin(sq2, filters.includes('top-level') ? sql`sq.topLevelPath1 = sq2.topLevelPath2` : eq(sitePaths.path, sq2.path))
-    // .leftJoin(keywordSq, eq(sitePaths.path, keywordSq.path))
-    .where(and(
-      eq(sitePaths.siteId, site.siteId),
-      finalWhere,
-    ))
-    .orderBy(desc(sq.clicks))
-    .as('pagesSelect')
+  }).from(sitePaths).leftJoin(sq, filters.includes('top-level') ? sql`sq.topLevelPath1 = sq.topLevelPath2` : eq(sitePaths.path, sq.path)).leftJoin(sq2, filters.includes('top-level') ? sql`sq.topLevelPath1 = sq2.topLevelPath2` : eq(sitePaths.path, sq2.path)).where(and(
+    eq(sitePaths.siteId, site.siteId),
+    finalWhere,
+  )).orderBy(desc(sq.clicks)).as('pagesSelect')
 
-  const pages = await useDrizzle().select()
-    .from(pagesSelect)
-    .orderBy(sort.column ? (sort.direction === 'asc' ? asc(pagesSelect[sort.column]) : desc(pagesSelect[sort.column])) : desc(pagesSelect.clicks))
-    .offset(offset)
-    .limit(pageSize)
+  const pages = await useDrizzle().select().from(pagesSelect).orderBy(sort.column ? (sort.direction === 'asc' ? asc(pagesSelect[sort.column]) : desc(pagesSelect[sort.column])) : desc(pagesSelect.clicks)).offset(offset).limit(pageSize)
 
   if (pages.length) {
     // for each keyword find the top pages
-    const keywords = await useDrizzle().select()
-      .from(siteKeywordDatePathAnalytics)
-      .where(and(
-        eq(siteKeywordDatePathAnalytics.siteId, site.siteId),
-        between(siteKeywordDatePathAnalytics.date, range.period.startDate, range.period.endDate),
-        // filter for keywords
-        inArray(siteKeywordDatePathAnalytics.path, pages.map(row => row.path)),
-      ))
-      .groupBy(siteKeywordDatePathAnalytics.path)
-      .orderBy(desc(max(siteKeywordDatePathAnalytics.clicks)))
+    const keywords = await useDrizzle().select().from(siteKeywordDatePathAnalytics).where(and(
+      eq(siteKeywordDatePathAnalytics.siteId, site.siteId),
+      between(siteKeywordDatePathAnalytics.date, range.period.startDate, range.period.endDate),
+      // filter for keywords
+      inArray(siteKeywordDatePathAnalytics.path, pages.map(row => row.path)),
+    )).groupBy(siteKeywordDatePathAnalytics.path).orderBy(desc(max(siteKeywordDatePathAnalytics.clicks)))
 
     // apply keywords to pages
     for (const page of pages) {
@@ -177,8 +162,7 @@ export default defineEventHandler(async (e) => {
   const totals = await useDrizzle().select({
     count: count().as('total'),
     clicks: sum(sq.clicks).as('clicks'),
-  })
-    .from(pagesSelect)
+  }).from(pagesSelect)
   return {
     rows: pages,
     total: totals[0].count,

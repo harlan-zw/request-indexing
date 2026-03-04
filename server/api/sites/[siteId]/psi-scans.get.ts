@@ -1,11 +1,11 @@
 import { between, count, desc, ilike } from 'drizzle-orm'
 import { getQuery } from 'h3'
+import { userPeriodRange } from '~/server/app/models/User'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
   sitePageSpeedInsightScans,
   sites,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -43,20 +43,13 @@ export default defineEventHandler(async (e) => {
 
   const offset = ((Number(page) || 1) - 1) * 10
 
-  const pagesSelect = useDrizzle().select()
-    .from(sq)
-    .orderBy(desc(sq.path))
-    .as('pagesSelect')
+  const pagesSelect = useDrizzle().select().from(sq).orderBy(desc(sq.path)).as('pagesSelect')
 
-  const pages = await useDrizzle().select()
-    .from(pagesSelect)
-    .offset(offset)
-    .limit(10)
+  const pages = await useDrizzle().select().from(pagesSelect).offset(offset).limit(10)
 
   const totals = await useDrizzle().select({
     count: count().as('total'),
-  })
-    .from(pagesSelect)
+  }).from(pagesSelect)
 
   return {
     rows: pages,

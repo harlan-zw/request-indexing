@@ -224,7 +224,7 @@ If you exceed your quota, the API returns a `429 Too Many Requests` error. For s
 
 Google's official documentation states:
 
-> "Currently, the Indexing API can only be used to crawl pages with either `JobPosting` or `BroadcastEvent` embedded in a `VideoObject`."
+> "Currently, the Indexing API can only be used to crawl pages with either `JobPosting` or `BroadcastEvent` embedded in a `VideoObject`." ([Source](https://developers.google.com/search/apis/indexing-api/v3/quickstart))
 
 In practice, the API has been widely used for all types of content — blog posts, e-commerce pages, documentation sites, and more. However, Google has been tightening enforcement:
 

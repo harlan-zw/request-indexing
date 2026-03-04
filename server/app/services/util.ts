@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
 import type { UserSelect } from '~/server/db/schema'
-import { sites, teamSites, teams } from '~/server/db/schema'
+import { sites, teams, teamSites } from '~/server/db/schema'
 
 export async function requireEventSite(event: H3Event, user: UserSelect) {
   const params = getRouterParams(event, { decode: true })

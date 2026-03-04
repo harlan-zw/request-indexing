@@ -29,26 +29,17 @@ export default defineEventHandler(async (e) => {
   let uniqueKeywords
   if (filters.some(f => f.startsWith('related'))) {
     const relatedFilter = filters.find(f => f.startsWith('related'))!.split(':')[1]
-    const keywordId = (await useDrizzle().select({ keywordId: keywords.keywordId })
-      .from(keywords)
-      .where(eq(keywords.keyword, relatedFilter)))[0]?.keywordId
+    const keywordId = (await useDrizzle().select({ keywordId: keywords.keywordId }).from(keywords).where(eq(keywords.keyword, relatedFilter)))[0]?.keywordId
     if (!keywordId) {
       return { rows: [] }
     }
     // we need to do a subquery on relatedKeywords
     const sqRelatedKeywords = useDrizzle().select({
       relatedKeywordId: relatedKeywords.relatedKeywordId,
-    })
-      .from(relatedKeywords)
-      .where(eq(relatedKeywords.keywordId, keywordId))
-      .as('sqRelatedKeywords')
+    }).from(relatedKeywords).where(eq(relatedKeywords.keywordId, keywordId)).as('sqRelatedKeywords')
     uniqueKeywords = useDrizzle().select({
       keyword: keywords.keyword,
-    })
-      .from(keywords)
-      .rightJoin(sqRelatedKeywords, eq(keywords.keywordId, sqRelatedKeywords.relatedKeywordId))
-      .where(q.length ? like(keywords.keyword, `%${q}%`) : null)
-      .as('uniqueKeywords')
+    }).from(keywords).rightJoin(sqRelatedKeywords, eq(keywords.keywordId, sqRelatedKeywords.relatedKeywordId)).where(q.length ? like(keywords.keyword, `%${q}%`) : null).as('uniqueKeywords')
     // filterWhere.push(eq(siteKeywordDateAnalytics.keyword, filter.split(':')[1]))
   }
   else {
@@ -67,17 +58,10 @@ export default defineEventHandler(async (e) => {
     //   .as('uniqueKeywords')
     const sqRelatedKeywords = useDrizzle().select({
       relatedKeywordId: relatedKeywords.relatedKeywordId,
-    })
-      .from(relatedKeywords)
-      .where(eq(relatedKeywords.siteId, site.siteId))
-      .as('sqRelatedKeywords')
+    }).from(relatedKeywords).where(eq(relatedKeywords.siteId, site.siteId)).as('sqRelatedKeywords')
     uniqueKeywords = useDrizzle().select({
       keyword: keywords.keyword,
-    })
-      .from(keywords)
-      .rightJoin(sqRelatedKeywords, eq(keywords.keywordId, sqRelatedKeywords.relatedKeywordId))
-      .where(q.length ? like(keywords.keyword, `%${q}%`) : null)
-      .as('uniqueKeywords')
+    }).from(keywords).rightJoin(sqRelatedKeywords, eq(keywords.keywordId, sqRelatedKeywords.relatedKeywordId)).where(q.length ? like(keywords.keyword, `%${q}%`) : null).as('uniqueKeywords')
   }
 
   const finalWhere = []
@@ -103,26 +87,16 @@ export default defineEventHandler(async (e) => {
     avgMonthlySearches: keywords.avgMonthlySearches,
     lastSynced: keywords.lastSynced,
     monthlySearchVolumes: keywords.monthlySearchVolumes,
-  })
-    .from(keywords)
-    .where(and(
-      isNotNull(keywords.keyword),
-      ...finalWhere,
-    ))
-    .rightJoin(uniqueKeywords, eq(keywords.keyword, uniqueKeywords.keyword))
-    .groupBy(keywords.keyword)
-    .as('selectedKeywords')
+  }).from(keywords).where(and(
+    isNotNull(keywords.keyword),
+    ...finalWhere,
+  )).rightJoin(uniqueKeywords, eq(keywords.keyword, uniqueKeywords.keyword)).groupBy(keywords.keyword).as('selectedKeywords')
 
-  const rows = await useDrizzle().select()
-    .from(selectedKeywords)
-    .orderBy(sort.column ? (sort.direction === 'asc' ? asc(selectedKeywords[sort.column]) : desc(selectedKeywords[sort.column])) : null)
-    .offset(offset)
-    .limit(pageSize || 10)
+  const rows = await useDrizzle().select().from(selectedKeywords).orderBy(sort.column ? (sort.direction === 'asc' ? asc(selectedKeywords[sort.column]) : desc(selectedKeywords[sort.column])) : null).offset(offset).limit(pageSize || 10)
 
   const totals = await useDrizzle().select({
     count: count().as('total'),
-  })
-    .from(selectedKeywords)
+  }).from(selectedKeywords)
 
   return {
     rows,

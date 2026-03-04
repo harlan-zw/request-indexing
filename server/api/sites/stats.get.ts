@@ -1,7 +1,7 @@
-import { defineEventHandler } from 'h3'
 import { avg, between, desc, inArray, sum } from 'drizzle-orm'
-import { authenticateUser } from '~/server/app/utils/auth'
+import { defineEventHandler } from 'h3'
 import { userPeriodRange } from '~/server/app/models/User'
+import { authenticateUser } from '~/server/app/utils/auth'
 import { siteDateAnalytics, siteDateCountryAnalytics, teamSites } from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
@@ -42,9 +42,9 @@ export default defineEventHandler(async (event) => {
     )),
     user.analyticsPeriod !== 'all'
       ? db.select(periodSelect).from(siteDateAnalytics).where(and(
-        inArray(siteDateAnalytics.siteId, mySitesQuery.map(s => s.siteId)),
-        between(siteDateAnalytics.date, range.prevPeriod.startDate, range.prevPeriod.endDate),
-      ))
+          inArray(siteDateAnalytics.siteId, mySitesQuery.map(s => s.siteId)),
+          between(siteDateAnalytics.date, range.prevPeriod.startDate, range.prevPeriod.endDate),
+        ))
       : [],
   ])
 

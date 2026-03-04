@@ -1,6 +1,6 @@
 <script lang="ts" setup generic="T extends Record<string, any>">
-import { useUrlSearchParams } from '@vueuse/core'
 import { get } from '#ui/utils'
+import { useUrlSearchParams } from '@vueuse/core'
 
 const props = withDefaults(defineProps<{
   value: T[]
@@ -79,10 +79,10 @@ const filters = computed(() => {
 const queriedRows = computed<T[]>(() => {
   const queried = q.value
     ? sortedRows.value.filter((row) => {
-      return Object.values(row).some((value) => {
-        return String(value).toLowerCase().includes(q.value.toLowerCase())
+        return Object.values(row).some((value) => {
+          return String(value).toLowerCase().includes(q.value.toLowerCase())
+        })
       })
-    })
     : sortedRows.value
   const applyFilter = filters.value.find(f => f.key === filter.value)
   if (applyFilter)

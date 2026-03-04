@@ -1,11 +1,11 @@
-import { asc, avg, between, count, desc, gt, ilike, isNotNull } from 'drizzle-orm'
+import { asc, avg, between, count, desc, isNotNull } from 'drizzle-orm'
+import { userPeriodRange } from '~/server/app/models/User'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
-  siteDateAnalytics, sitePageSpeedInsightScanAudits, sitePageSpeedInsightScans,
+  siteDateAnalytics,
   sitePathDateAnalytics,
   sites,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -92,25 +92,15 @@ export default defineEventHandler(async (e) => {
     // prevPsiDesktopAccessibility: sq2.prevPsiDesktopAccessibility,
     // prevPsiDesktopBestPractices: sq2.prevPsiDesktopBestPractices,
     // prevPsiDesktopScore: sq2.prevPsiDesktopScore,
-  })
-    .from(sq)
-    // .leftJoin(sq2, filter === 'top-level' ? sql`sq.topLevelPath1 = sq2.topLevelPath2` : eq(sq.path, sq2.path))
-    // .where(finalWhere)
-    .orderBy(desc(sq.path))
-    .as('pagesSelect')
+  }).from(sq).orderBy(desc(sq.path)).as('pagesSelect')
 
-  const pages = await useDrizzle().select()
-    .from(pagesSelect)
-    .orderBy(sort.column ? (sort.direction === 'asc' ? asc(pagesSelect[sort.column]) : desc(pagesSelect[sort.column])) : asc(pagesSelect.path))
-    .offset(offset)
-    .limit(pageSize)
+  const pages = await useDrizzle().select().from(pagesSelect).orderBy(sort.column ? (sort.direction === 'asc' ? asc(pagesSelect[sort.column]) : desc(pagesSelect[sort.column])) : asc(pagesSelect.path)).offset(offset).limit(pageSize)
 
   const totals = await useDrizzle().select({
     count: count().as('total'),
     // totalAvgDesktop: avg(sq.psiDesktopPerformance).as('psiDesktopScore'),
     // totalAvgMobile: avg(sq.psiMobilePerformance).as('psiMobilePerformance'),
-  })
-    .from(pagesSelect)
+  }).from(pagesSelect)
 
   const crux = await useDrizzle().select({
     date: siteDateAnalytics.date,
@@ -124,20 +114,18 @@ export default defineEventHandler(async (e) => {
     desktopOriginFcp75: siteDateAnalytics.desktopOriginFcp75,
     desktopOriginLcp75: siteDateAnalytics.desktopOriginLcp75,
     desktopOriginInp75: siteDateAnalytics.desktopOriginInp75,
-  })
-    .from(siteDateAnalytics)
-    .where(and(
-      eq(siteDateAnalytics.siteId, site.siteId),
-      // between(siteDateAnalytics.date, range.period.startDate, range.period.endDate),
-      // make sure we have values for at least one of them
-      or(
-        isNotNull(siteDateAnalytics.mobileOriginCls75),
-        isNotNull(siteDateAnalytics.mobileOriginTtfb75),
-        isNotNull(siteDateAnalytics.mobileOriginFcp75),
-        isNotNull(siteDateAnalytics.mobileOriginLcp75),
-        isNotNull(siteDateAnalytics.mobileOriginInp75),
-      ),
-    ))
+  }).from(siteDateAnalytics).where(and(
+    eq(siteDateAnalytics.siteId, site.siteId),
+    // between(siteDateAnalytics.date, range.period.startDate, range.period.endDate),
+    // make sure we have values for at least one of them
+    or(
+      isNotNull(siteDateAnalytics.mobileOriginCls75),
+      isNotNull(siteDateAnalytics.mobileOriginTtfb75),
+      isNotNull(siteDateAnalytics.mobileOriginFcp75),
+      isNotNull(siteDateAnalytics.mobileOriginLcp75),
+      isNotNull(siteDateAnalytics.mobileOriginInp75),
+    ),
+  ))
   // let syntheticWebVitals = []
   //
   // // TODO use hasCruxOriginData
@@ -161,33 +149,33 @@ export default defineEventHandler(async (e) => {
   //     ))
   //     .groupBy(sitePathDateAnalytics.date)
   //     .having(isNotNull(sitePathDateAnalytics.psiDesktopCls))
-    // const sq = useDrizzle().select()
-    //   .from(sitePageSpeedInsightScanAudits)
-    //   .leftJoin(sitePathDateAnalytics, eq(sitePageSpeedInsightScanAudits.sitePageSpeedInsightScanId, sitePageSpeedInsightScans.sitePageSpeedInsightScanId))
-    //   .where(and(
-    //     eq(sitePageSpeedInsightScans.siteId, site.siteId),
-    //   ))
-    //   .as('sq')
-    // const clsSq = useDrizzle()
-    //   .select({
-    //     cls: avg(sitePageSpeedInsightScanAudits.numericValue).as('cls'),
-    //   })
-    //   .from(sq)
-    //   .where(and(
-    //     eq(sitePageSpeedInsightScanAudits.auditId, 'cumulative-layout-shift'),
-    //   ))
-    //   .as('clsSq')
-    // // we can use sitePageSpeedInsightScanAudits data
-    // syntheticWebVitals = await useDrizzle().select({
-    //   // need to convert createdAt to date in format yyyy-mm-dd
-    //   date: sql`DATE_FORMAT(${sitePageSpeedInsightScanAudits.createdAt}, '%Y-%m-%d')`.as('date'),
-    //   cls: clsSq,
-    // })
-    //   .from(sq)
-    //   .leftJoin(sitePathDateAnalytics, eq(sitePageSpeedInsightScanAudits.sitePageSpeedInsightScanId, sitePageSpeedInsightScans.sitePageSpeedInsightScanId))
-    //   .where(and(
-    //     eq(sitePageSpeedInsightScans.siteId, site.siteId),
-    //   ))
+  // const sq = useDrizzle().select()
+  //   .from(sitePageSpeedInsightScanAudits)
+  //   .leftJoin(sitePathDateAnalytics, eq(sitePageSpeedInsightScanAudits.sitePageSpeedInsightScanId, sitePageSpeedInsightScans.sitePageSpeedInsightScanId))
+  //   .where(and(
+  //     eq(sitePageSpeedInsightScans.siteId, site.siteId),
+  //   ))
+  //   .as('sq')
+  // const clsSq = useDrizzle()
+  //   .select({
+  //     cls: avg(sitePageSpeedInsightScanAudits.numericValue).as('cls'),
+  //   })
+  //   .from(sq)
+  //   .where(and(
+  //     eq(sitePageSpeedInsightScanAudits.auditId, 'cumulative-layout-shift'),
+  //   ))
+  //   .as('clsSq')
+  // // we can use sitePageSpeedInsightScanAudits data
+  // syntheticWebVitals = await useDrizzle().select({
+  //   // need to convert createdAt to date in format yyyy-mm-dd
+  //   date: sql`DATE_FORMAT(${sitePageSpeedInsightScanAudits.createdAt}, '%Y-%m-%d')`.as('date'),
+  //   cls: clsSq,
+  // })
+  //   .from(sq)
+  //   .leftJoin(sitePathDateAnalytics, eq(sitePageSpeedInsightScanAudits.sitePageSpeedInsightScanId, sitePageSpeedInsightScans.sitePageSpeedInsightScanId))
+  //   .where(and(
+  //     eq(sitePageSpeedInsightScans.siteId, site.siteId),
+  //   ))
   // }
 
   return {

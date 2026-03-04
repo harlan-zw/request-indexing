@@ -1,4 +1,5 @@
 import { asc, avg, between, count, desc, gt, inArray, like, lt, notLike, sum } from 'drizzle-orm'
+import { userPeriodRange } from '~/server/app/models/User'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
   keywords,
@@ -6,7 +7,6 @@ import {
   siteKeywordDatePathAnalytics,
   sites,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -129,19 +129,9 @@ export default defineEventHandler(async (e) => {
     prevImpressions: sq2.prevImpressions,
     prevPosition: sq2.position,
     // pages: sq3.path,
-  })
-    .from(sq)
-    .leftJoin(sq2, eq(sq.keyword, sq2.keyword))
-    .leftJoin(keywords, eq(keywords.keyword, sq.keyword))
-    .where(finalWhere)
-    .orderBy(desc(sq.clicks))
-    .as('keywordsSelect')
+  }).from(sq).leftJoin(sq2, eq(sq.keyword, sq2.keyword)).leftJoin(keywords, eq(keywords.keyword, sq.keyword)).where(finalWhere).orderBy(desc(sq.clicks)).as('keywordsSelect')
 
-  const _keywords = await useDrizzle().select()
-    .from(keywordsSelect)
-    .offset(offset)
-    .orderBy(sort.column ? (sort.direction === 'asc' ? asc(keywordsSelect[sort.column]) : desc(keywordsSelect[sort.column])) : desc(keywordsSelect.clicks))
-    .limit(pageSize)
+  const _keywords = await useDrizzle().select().from(keywordsSelect).offset(offset).orderBy(sort.column ? (sort.direction === 'asc' ? asc(keywordsSelect[sort.column]) : desc(keywordsSelect[sort.column])) : desc(keywordsSelect.clicks)).limit(pageSize)
 
   if (_keywords.length) {
     // for each keyword find the top pages
@@ -151,16 +141,12 @@ export default defineEventHandler(async (e) => {
       path: siteKeywordDatePathAnalytics.path,
       position: avg(siteKeywordDatePathAnalytics.position).as('position'),
       ctr: avg(siteKeywordDatePathAnalytics.ctr).as('ctr'),
-    })
-      .from(siteKeywordDatePathAnalytics)
-      .where(and(
-        eq(siteKeywordDatePathAnalytics.siteId, site.siteId),
-        between(siteKeywordDatePathAnalytics.date, range.period.startDate, range.period.endDate),
-        // filter for _keywords
-        inArray(siteKeywordDatePathAnalytics.keyword, _keywords.map(row => row.keyword)),
-      ))
-      .groupBy(siteKeywordDatePathAnalytics.keyword, siteKeywordDatePathAnalytics.path)
-      .orderBy(desc(sum(siteKeywordDatePathAnalytics.clicks)))
+    }).from(siteKeywordDatePathAnalytics).where(and(
+      eq(siteKeywordDatePathAnalytics.siteId, site.siteId),
+      between(siteKeywordDatePathAnalytics.date, range.period.startDate, range.period.endDate),
+      // filter for _keywords
+      inArray(siteKeywordDatePathAnalytics.keyword, _keywords.map(row => row.keyword)),
+    )).groupBy(siteKeywordDatePathAnalytics.keyword, siteKeywordDatePathAnalytics.path).orderBy(desc(sum(siteKeywordDatePathAnalytics.clicks)))
 
     // apply _keywords to pages
     for (const keyword of _keywords)
@@ -170,8 +156,7 @@ export default defineEventHandler(async (e) => {
   const totals = await useDrizzle().select({
     count: count().as('total'),
     clicks: sum(keywordsSelect.clicks).as('clicks'),
-  })
-    .from(keywordsSelect)
+  }).from(keywordsSelect)
   return {
     rows: _keywords.map((row) => {
       row.clicks = Number(row.clicks)

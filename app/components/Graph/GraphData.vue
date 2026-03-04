@@ -1,5 +1,6 @@
 <script lang="ts" setup generic="T extends Record<string, any>[], I extends T[0]">
-import { type MouseEventParams, createChart } from 'lightweight-charts'
+import type { MouseEventParams } from 'lightweight-charts'
+import { createChart } from 'lightweight-charts'
 
 const props = defineProps<{
   value: T

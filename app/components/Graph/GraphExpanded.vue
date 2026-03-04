@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { type SeriesMarker, createChart } from 'lightweight-charts'
+import type { SeriesMarker } from 'lightweight-charts'
+import { createChart } from 'lightweight-charts'
 
 const props = defineProps<{
   clicks?: { time: string, value: number }[]

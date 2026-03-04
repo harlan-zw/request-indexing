@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { withBase, withoutBase } from 'ufo'
 import { useFetch } from '#imports'
+import { withBase, withoutBase } from 'ufo'
 
 const props = defineProps<{
   repo: string

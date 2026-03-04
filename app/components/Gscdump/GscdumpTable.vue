@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { GscComparisonFilter, GscdumpDataRow, GscdumpTableResponse } from '~/composables/useGscdump'
+import type { GscComparisonFilter } from '~/composables/useGscdump'
 
 const props = withDefaults(defineProps<{
   siteId: string

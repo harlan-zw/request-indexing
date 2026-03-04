@@ -1,3 +1,10 @@
+import type { OAuthConfig } from '#auth-utils'
+import type { H3Event } from 'h3'
+import type { OAuthGoogleConfig } from 'nuxt-auth-utils/dist/runtime/server/lib/oauth/google'
+import type { UserSelect } from '~/server/db/schema'
+import type { UserSession } from '~/types'
+import { clearUserSession, createOAuthPool, useRuntimeConfig } from '#imports'
+import { defu } from 'defu'
 import {
   createError,
   eventHandler,
@@ -5,15 +12,8 @@ import {
   getRequestURL,
   sendRedirect,
 } from 'h3'
-import { parsePath, withQuery } from 'ufo'
 import { ofetch } from 'ofetch'
-import { defu } from 'defu'
-import type { OAuthGoogleConfig } from 'nuxt-auth-utils/dist/runtime/server/lib/oauth/google'
-import type { H3Event } from 'h3'
-import { clearUserSession, createOAuthPool, useRuntimeConfig } from '#imports'
-import type { OAuthConfig } from '#auth-utils'
-import type { UserSession } from '~/types'
-import type { UserSelect } from '~/server/db/schema'
+import { parsePath, withQuery } from 'ufo'
 import { sessions } from '~/server/db/schema'
 
 export async function authenticateAdmin(event: H3Event) {

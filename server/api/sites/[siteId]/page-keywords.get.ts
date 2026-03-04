@@ -1,11 +1,11 @@
 import { avg, between, count, desc, gt, ilike, lt, sum } from 'drizzle-orm'
 import { getQuery } from 'h3'
+import { userPeriodRange } from '~/server/app/models/User'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
   siteKeywordDatePathAnalytics,
   sites,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -109,18 +109,10 @@ export default defineEventHandler(async (e) => {
     prevImpressions: sq2.prevImpressions,
     prevPosition: sq2.position,
     // pages: sq3.path,
-  })
-    .from(sq)
-    .leftJoin(sq2, eq(sq.keyword, sq2.keyword))
-    .where(finalWhere)
-    .orderBy(desc(sq.clicks))
-    .as('keywordsSelect')
+  }).from(sq).leftJoin(sq2, eq(sq.keyword, sq2.keyword)).where(finalWhere).orderBy(desc(sq.clicks)).as('keywordsSelect')
 
   const offset = ((Number(page) || 1) - 1) * 10
-  const keywords = await useDrizzle().select()
-    .from(keywordsSelect)
-    .offset(offset)
-    .limit(10)
+  const keywords = await useDrizzle().select().from(keywordsSelect).offset(offset).limit(10)
 
   // if (keywords.length) {
   //   // for each keyword find the top pages
@@ -149,8 +141,7 @@ export default defineEventHandler(async (e) => {
   const totals = await useDrizzle().select({
     count: count().as('total'),
     // clicks: sum(keywordsSelect.clicks).as('clicks'),
-  })
-    .from(keywordsSelect)
+  }).from(keywordsSelect)
   return {
     rows: keywords,
     total: totals[0].count,

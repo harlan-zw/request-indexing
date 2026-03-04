@@ -1,11 +1,11 @@
 import { asc, avg, between, count, desc, gt, like, sum } from 'drizzle-orm'
+import { userPeriodRange } from '~/server/app/models/User'
 import { authenticateUser } from '~/server/app/utils/auth'
+import countries from '~/server/data/countries'
 import {
   siteDateCountryAnalytics,
   sites,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
-import countries from '~/server/data/countries'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -111,19 +111,12 @@ export default defineEventHandler(async (e) => {
   }
   console.log({ sort })
 
-  const rows = await useDrizzle().select()
-    .from(countriesSq)
-    .orderBy(sort.column ? (sort.direction === 'asc' ? asc(countriesSq[sort.column]) : desc(countriesSq[sort.column])) : desc(countriesSq.clicks))
-    .offset(offset)
-    .where(finalWhere)
-    .limit(pageSize)
+  const rows = await useDrizzle().select().from(countriesSq).orderBy(sort.column ? (sort.direction === 'asc' ? asc(countriesSq[sort.column]) : desc(countriesSq[sort.column])) : desc(countriesSq.clicks)).offset(offset).where(finalWhere).limit(pageSize)
 
   const totals = await useDrizzle().select({
     count: count().as('total'),
     clicks: sum(countriesSq.clicks).as('clicks'),
-  })
-    .from(countriesSq)
-    .where(finalWhere)
+  }).from(countriesSq).where(finalWhere)
   return {
     rows: rows.map((row) => {
       const alpha3Code = row.country

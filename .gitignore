@@ -31,3 +31,5 @@ kv-dump.json
 
 # Skilld references (recreated by `skilld install`)
 .skilld
+
+.wrangler

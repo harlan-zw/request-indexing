@@ -1,4 +1,4 @@
-import { count, inArray, isNotNull } from 'drizzle-orm'
+import { count, inArray } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import { jobs, siteDateAnalytics, sitePaths, sites, userSites } from '~/server/db/schema'
 

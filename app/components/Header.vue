@@ -26,7 +26,12 @@ const learnNavItem = computed(() => ({
   label: 'Guides',
   icon: 'i-ph-books-duotone',
   children: [
-    { label: 'Google Indexing API', title: 'Google Indexing API', icon: 'i-ph-google-logo-duotone', to: '/google-indexing-api', path: '/google-indexing-api' },
+    { label: 'Google Indexing API', title: 'Google Indexing API Complete Guide', icon: 'i-ph-google-logo-duotone', to: '/google-indexing-api', path: '/google-indexing-api' },
+    { label: 'Setup Tutorial', title: 'Step-by-Step Setup Guide', icon: 'i-ph-graduation-cap-duotone', to: '/google-indexing-api-tutorial', path: '/google-indexing-api-tutorial' },
+    { label: 'Node.js Implementation', title: 'Node.js Implementation Guide', icon: 'i-ph-file-code-duotone', to: '/google-indexing-api-node-js', path: '/google-indexing-api-node-js' },
+    { label: 'Bulk Submit URLs', title: 'How to Bulk Submit URLs', icon: 'i-ph-copy-duotone', to: '/bulk-submit-urls-google-indexing-api', path: '/bulk-submit-urls-google-indexing-api' },
+    { label: 'For Blog Posts', title: 'Using the API for Blog Posts', icon: 'i-ph-article-duotone', to: '/indexing-api-for-blog-posts', path: '/indexing-api-for-blog-posts' },
+    { label: 'Quota & Limits', title: 'Quota Limits & Strategies', icon: 'i-ph-chart-pie-slice-duotone', to: '/google-indexing-api-quota', path: '/google-indexing-api-quota' },
   ],
 }))
 

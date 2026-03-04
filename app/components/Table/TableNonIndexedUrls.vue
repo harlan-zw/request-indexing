@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { joinURL, withBase, withHttps } from 'ufo'
-import { defu } from 'defu'
-import { useTimeAgo } from '~/composables/formatting'
-import { createLogoutHandler, createSessionReloader, useAuthenticatedUser } from '~/composables/auth'
 import type { GoogleSearchConsoleSite, SitePage } from '~/types'
+import { defu } from 'defu'
+import { joinURL, withBase, withHttps } from 'ufo'
+import { createLogoutHandler, createSessionReloader, useAuthenticatedUser } from '~/composables/auth'
+import { useTimeAgo } from '~/composables/formatting'
 
 const props = defineProps<{ mock?: boolean, value: SitePage[], site: GoogleSearchConsoleSite }>()
 
@@ -57,7 +57,8 @@ async function inspectUrl(row: SitePage) {
   })
     .finally(() => {
       inspectionsLoading.value = inspectionsLoading.value.filter(url => url !== row.url)
-    }).then((data) => {
+    })
+    .then((data) => {
       toast.add({
         color: 'green',
         title: `Inspected URL Successfully`,

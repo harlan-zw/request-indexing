@@ -1,11 +1,10 @@
-import {asc, avg, between, count, desc, gt, ilike, isNotNull} from 'drizzle-orm'
-import { getQuery } from 'h3'
+import { asc, avg, between, count, desc, gt, ilike, isNotNull } from 'drizzle-orm'
+import { userPeriodRange } from '~/server/app/models/User'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
   sitePathDateAnalytics,
   sites,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -108,17 +107,9 @@ export default defineEventHandler(async (e) => {
     prevPsiMobileBestPractices: sq2.prevPsiMobileBestPractices,
     prevPsiDesktopScore: sq2.prevPsiDesktopScore,
     prevPsiMobileScore: sq2.prevPsiMobileScore,
-  })
-    .from(sq)
-    .leftJoin(sq2, eq(sq.path, sq2.path))
-    .where(finalWhere)
-    .orderBy(sort.column ? (sort.direction === 'asc' ? asc(sq[sort.column]) : desc(sq[sort.column])) : desc(sq.path))
-    .as('pagesSelect')
+  }).from(sq).leftJoin(sq2, eq(sq.path, sq2.path)).where(finalWhere).orderBy(sort.column ? (sort.direction === 'asc' ? asc(sq[sort.column]) : desc(sq[sort.column])) : desc(sq.path)).as('pagesSelect')
 
-  const pages = await useDrizzle().select()
-    .from(pagesSelect)
-    .offset(offset)
-    .limit(pageSize)
+  const pages = await useDrizzle().select().from(pagesSelect).offset(offset).limit(pageSize)
 
   const totals = await useDrizzle().select({
     count: count().as('total'),
@@ -127,8 +118,7 @@ export default defineEventHandler(async (e) => {
     totalAvgAccessibility: avg(sq.psiMobileAccessibility).as('psiMobileAccessibility'),
     totalAvgBestPractices: avg(sq.psiMobileAccessibility).as('psiMobileBestPractices'),
     totalAvgSeo: avg(sq.psiMobileAccessibility).as('psiMobileBestPractices'),
-  })
-    .from(pagesSelect)
+  }).from(pagesSelect)
   return {
     rows: pages.map((row) => {
       row.psiDesktopPerformance = Number(row.psiDesktopPerformance)

@@ -19,15 +19,7 @@ export function createOAuthPool() {
         clientSecret: googleOAuthClients.clientSecret,
         count: sql<number>`count(${googleAccounts.googleOAuthClientId})`,
         label: googleOAuthClients.label,
-      }).from(googleOAuthClients)
-        // make sure it's not reserved
-        .where(eq(googleOAuthClients.reserved, false))
-        .leftJoin(googleAccounts, eq(googleOAuthClients.googleOAuthClientId, googleAccounts.googleOAuthClientId))
-        .groupBy(googleOAuthClients.googleOAuthClientId)
-        .having(lt(sql<number>`count(${googleAccounts.googleOAuthClientId})`, maxUsersPerOAuth))
-        .orderBy(sql<number>`count(${googleAccounts.googleOAuthClientId})`)
-        .limit(1)
-        .then(rows => rows?.[0] || null)
+      }).from(googleOAuthClients).where(eq(googleOAuthClients.reserved, false)).leftJoin(googleAccounts, eq(googleOAuthClients.googleOAuthClientId, googleAccounts.googleOAuthClientId)).groupBy(googleOAuthClients.googleOAuthClientId).having(lt(sql<number>`count(${googleAccounts.googleOAuthClientId})`, maxUsersPerOAuth)).orderBy(sql<number>`count(${googleAccounts.googleOAuthClientId})`).limit(1).then(rows => rows?.[0] || null)
     },
     // async claim(id: number, user: UserSelect) {
     //   const token = tokens.find(t => t.id === id)

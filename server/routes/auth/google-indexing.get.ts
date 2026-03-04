@@ -1,3 +1,5 @@
+import type { OAuthPoolToken } from '~/types'
+import { setUserSession } from '#imports'
 import {
   createError,
   defineEventHandler,
@@ -5,12 +7,10 @@ import {
   getRequestURL,
   sendRedirect,
 } from 'h3'
-import { parsePath, withQuery } from 'ufo'
 import { ofetch } from 'ofetch'
 import { hash } from 'ohash'
+import { parsePath, withQuery } from 'ufo'
 import { createOAuthPool } from '~/server/app/services/oauthPool'
-import { setUserSession } from '#imports'
-import type { OAuthPoolToken } from '~/types'
 
 // this is a copy of the googleEventHandler from nuxt-auth-utils
 // we need to provide runtime config for the client id and client secret

@@ -1,10 +1,10 @@
-import {between, sum} from 'drizzle-orm'
+import { between, sum } from 'drizzle-orm'
+import { userPeriodRange } from '~/server/app/models/User'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
-  sitePathDateAnalytics,
-  sites, usages,
+  sites,
+  usages,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
 
 export default defineEventHandler(async (e) => {
   // extract from db

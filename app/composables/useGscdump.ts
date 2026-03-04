@@ -382,19 +382,24 @@ export function useGscdumpData(
 
   const key = computed(() => {
     const parts = ['gscdump', 'data', _siteId.value, JSON.stringify(_state.value)]
-    if (_comparison.value) parts.push(JSON.stringify(_comparison.value))
-    if (_filter.value) parts.push(_filter.value)
+    if (_comparison.value)
+      parts.push(JSON.stringify(_comparison.value))
+    if (_filter.value)
+      parts.push(_filter.value)
     return parts.join(':')
   })
 
   return useAsyncData<GscdumpDataResponse>(
     key,
     async () => {
-      if (!_siteId.value) return null as unknown as GscdumpDataResponse
+      if (!_siteId.value)
+        return null as unknown as GscdumpDataResponse
       const { fetchGscdump } = useGscdump()
       const query: Record<string, string> = { q: encodeURIComponent(JSON.stringify(_state.value)) }
-      if (_comparison.value) query.qc = encodeURIComponent(JSON.stringify(_comparison.value))
-      if (_filter.value) query.filter = _filter.value
+      if (_comparison.value)
+        query.qc = encodeURIComponent(JSON.stringify(_comparison.value))
+      if (_filter.value)
+        query.filter = _filter.value
       return fetchGscdump(`/sites/${_siteId.value}/data`, { query })
     },
     {
@@ -420,17 +425,20 @@ export function useGscdumpDataDetail(
 
   const key = computed(() => {
     const parts = ['gscdump', 'detail', _siteId.value, JSON.stringify(_state.value)]
-    if (_comparison.value) parts.push(JSON.stringify(_comparison.value))
+    if (_comparison.value)
+      parts.push(JSON.stringify(_comparison.value))
     return parts.join(':')
   })
 
   return useAsyncData<GscdumpDataDetailResponse>(
     key,
     async () => {
-      if (!_siteId.value) return null as unknown as GscdumpDataDetailResponse
+      if (!_siteId.value)
+        return null as unknown as GscdumpDataDetailResponse
       const { fetchGscdump } = useGscdump()
       const query: Record<string, string> = { q: encodeURIComponent(JSON.stringify(_state.value)) }
-      if (_comparison.value) query.qc = encodeURIComponent(JSON.stringify(_comparison.value))
+      if (_comparison.value)
+        query.qc = encodeURIComponent(JSON.stringify(_comparison.value))
       return fetchGscdump(`/sites/${_siteId.value}/data/detail`, { query })
     },
     {
@@ -453,7 +461,8 @@ export function useGscdumpAnalysis(
   return useAsyncData<GscdumpAnalysisResponse>(
     key,
     async () => {
-      if (!_siteId.value) return null as unknown as GscdumpAnalysisResponse
+      if (!_siteId.value)
+        return null as unknown as GscdumpAnalysisResponse
       const { fetchGscdump } = useGscdump()
       return fetchGscdump(`/sites/${_siteId.value}/analysis`, { query: _params.value as any })
     },
@@ -475,7 +484,8 @@ export function useGscdumpSitemaps(
   return useAsyncData<GscdumpSitemapsResponse>(
     key,
     async () => {
-      if (!_siteId.value) return null as unknown as GscdumpSitemapsResponse
+      if (!_siteId.value)
+        return null as unknown as GscdumpSitemapsResponse
       const { fetchGscdump } = useGscdump()
       return fetchGscdump(`/sites/${_siteId.value}/sitemaps`)
     },
@@ -499,7 +509,8 @@ export function useGscdumpIndexing(
   return useAsyncData<GscdumpIndexingResponse>(
     key,
     async () => {
-      if (!_siteId.value) return null as unknown as GscdumpIndexingResponse
+      if (!_siteId.value)
+        return null as unknown as GscdumpIndexingResponse
       const { fetchGscdump } = useGscdump()
       return fetchGscdump(`/sites/${_siteId.value}/indexing`, { query: { days: _days.value } })
     },
@@ -529,7 +540,8 @@ export function useGscdumpIndexingUrls(
   return useAsyncData<GscdumpIndexingUrlsResponse>(
     key,
     async () => {
-      if (!_siteId.value) return null as unknown as GscdumpIndexingUrlsResponse
+      if (!_siteId.value)
+        return null as unknown as GscdumpIndexingUrlsResponse
       const { fetchGscdump } = useGscdump()
       return fetchGscdump(`/sites/${_siteId.value}/indexing/urls`, { query: _params.value as any })
     },
@@ -551,7 +563,8 @@ export function useGscdumpIndexingDiagnostics(
   return useAsyncData<GscdumpIndexingDiagnosticsResponse>(
     key,
     async () => {
-      if (!_siteId.value) return null as unknown as GscdumpIndexingDiagnosticsResponse
+      if (!_siteId.value)
+        return null as unknown as GscdumpIndexingDiagnosticsResponse
       const { fetchGscdump } = useGscdump()
       return fetchGscdump(`/sites/${_siteId.value}/indexing/diagnostics`)
     },
@@ -577,7 +590,8 @@ export function useGscdumpConnectedSites(options?: { immediate?: boolean }) {
     async () => {
       const { fetchGscdump, ensureCredentials } = useGscdump()
       const creds = await ensureCredentials()
-      if (!creds.userId) return { sites: [] }
+      if (!creds.userId)
+        return { sites: [] }
       return fetchGscdump(`/users/${creds.userId}/sites`)
     },
     {
@@ -648,7 +662,8 @@ export function useGscdumpTableData<T = GscdumpDataRow>(options: GscdumpTableOpt
 
   async function refresh() {
     const siteIdVal = _siteId.value
-    if (!siteIdVal) return
+    if (!siteIdVal)
+      return
 
     _isLoading.value = true
     error.value = null
@@ -696,7 +711,8 @@ export function useGscdumpTableData<T = GscdumpDataRow>(options: GscdumpTableOpt
       })
       .finally(() => { _isLoading.value = false })
 
-    if (!result) return
+    if (!result)
+      return
 
     const oldestSynced = result.meta?.oldestDateSynced
     const prevStartDate = daysAgo(days * 2 + 2)
@@ -735,11 +751,13 @@ export function useGscdumpTableData<T = GscdumpDataRow>(options: GscdumpTableOpt
   }
 
   watch([q, filter, page, sort, _siteId, _period, _extraFilters], () => {
-    if (_siteId.value) refresh()
+    if (_siteId.value)
+      refresh()
   }, { deep: true })
 
   watch(_siteId, (id) => {
-    if (id) refresh()
+    if (id)
+      refresh()
   }, { immediate: true })
 
   return {
@@ -774,7 +792,8 @@ export function useGscdumpDates(
     key,
     async () => {
       const siteIdVal = _siteId.value
-      if (!siteIdVal) return null
+      if (!siteIdVal)
+        return null
 
       const { fetchGscdump } = useGscdump()
       const days = periodToDays(_period.value)

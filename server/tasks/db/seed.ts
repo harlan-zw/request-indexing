@@ -1,7 +1,7 @@
+import type { OAuthPoolToken } from '~/types'
+import { tokens } from '#app/token-pool.mjs'
 import { consola } from 'consola'
 import { googleOAuthClients } from '~/server/db/schema'
-import { tokens } from '#app/token-pool.mjs'
-import type { OAuthPoolToken } from '~/types'
 
 export default defineTask({
   meta: {

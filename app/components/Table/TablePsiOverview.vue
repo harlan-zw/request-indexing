@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { SiteSelect } from '#shared/types/database'
+import type { TableAsyncDataProps } from '~/components/Table/TableAsyncData.vue'
 import type { GscDataRow } from '~/types/data'
 import { callFnSyncToggleRef } from '~/composables/loader'
-import type { SiteSelect } from '#shared/types/database'
-import type {TableAsyncDataProps} from "~/components/Table/TableAsyncData.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -133,41 +133,41 @@ function pageUrlToPath(url: string) {
 </script>
 
 <template>
-<TableAsyncData :key="filter" :filter="filter" :sort="sort" :pagination="pagination" :searchable="searchable" :page-size="pageSize" :columns="columns" :filters="filters" :expandable="expandable" :path="`/api/sites/${site.siteId}/psi`" @page-change="p => page = p" @update:expanded="updateExpandedData">
-  <template #page-data="{ row, expanded }">
-  <div class="flex items-center">
-    <div class="relative group w-[260px] max-w-full">
-      <div class="flex items-center gap-2">
-        <button type="button" :title="`Open ${row.path}`" class="max-w-[260px] text-xs">
-          <div class="text-black max-w-[260px] truncate text-ellipsis">
-            {{ pageUrlToPath(row.path) }}
+  <TableAsyncData :key="filter" :filter="filter" :sort="sort" :pagination="pagination" :searchable="searchable" :page-size="pageSize" :columns="columns" :filters="filters" :expandable="expandable" :path="`/api/sites/${site.siteId}/psi`" @page-change="p => page = p" @update:expanded="updateExpandedData">
+    <template #page-data="{ row, expanded }">
+      <div class="flex items-center">
+        <div class="relative group w-[260px] max-w-full">
+          <div class="flex items-center gap-2">
+            <button type="button" :title="`Open ${row.path}`" class="max-w-[260px] text-xs">
+              <div class="text-black max-w-[260px] truncate text-ellipsis">
+                {{ pageUrlToPath(row.path) }}
+              </div>
+            </button>
           </div>
-        </button>
+          <!--            <div v-if="row.inspectionResult" class="text-xs text-gray-500 flex items-center"> -->
+          <!--              <UTooltip v-if="row.inspectionResult?.inspectionResultLink" mode="hover" text="View Inspection Result" size="xs"> -->
+          <!--                <UButton target="_blank" :to="row.inspectionResult?.inspectionResultLink" icon="i-heroicons-document-magnifying-glass" color="neutral" variant="link" size="xs" /> -->
+          <!--              </UTooltip> -->
+          <!--              Crawled {{ useTimeAgo(row.inspectionResult.indexStatusResult.lastCrawlTime) }} -->
+          <!--            </div> -->
+        </div>
       </div>
-      <!--            <div v-if="row.inspectionResult" class="text-xs text-gray-500 flex items-center"> -->
-      <!--              <UTooltip v-if="row.inspectionResult?.inspectionResultLink" mode="hover" text="View Inspection Result" size="xs"> -->
-      <!--                <UButton target="_blank" :to="row.inspectionResult?.inspectionResultLink" icon="i-heroicons-document-magnifying-glass" color="neutral" variant="link" size="xs" /> -->
-      <!--              </UTooltip> -->
-      <!--              Crawled {{ useTimeAgo(row.inspectionResult.indexStatusResult.lastCrawlTime) }} -->
-      <!--            </div> -->
-    </div>
-  </div>
-  <div v-if="expanded" class="">
-    <div class="relative w-[350px] h-[200px] mb-2">
-      <div v-if="expandedRowDataPending" class="w-full h-full flex items-center justify-center">
-        <UIcon name="i-heroicons-arrow-path" class="animate-spin w-12 h-12" />
+      <div v-if="expanded" class="">
+        <div class="relative w-[350px] h-[200px] mb-2">
+          <div v-if="expandedRowDataPending" class="w-full h-full flex items-center justify-center">
+            <UIcon name="i-heroicons-arrow-path" class="animate-spin w-12 h-12" />
+          </div>
+          graph
+        </div>
       </div>
-      graph
-    </div>
-  </div>
-  </template>
-  <template #psiMobileScore-data="{ row }">
-  {{ useHumanFriendlyNumber(row.psiMobileScore) }}
-  </template>
-  <template #actions-data="{ row }">
-  <UDropdown :items="[[{ label: 'Open Page', click: () => openUrl(row.path, '_blank') }], [{ label: 'Page Inspections', icon: 'i-heroicons-document-magnifying-glass', disabled: true }, (row.inspectionResult?.inspectionResultLink ? { label: 'View Inspection Result' } : undefined), { label: 'Inspect Index Status' }].filter(Boolean)]">
-    <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="neutral" />
-  </UDropdown>
-  </template>
-</TableAsyncData>
+    </template>
+    <template #psiMobileScore-data="{ row }">
+      {{ useHumanFriendlyNumber(row.psiMobileScore) }}
+    </template>
+    <template #actions-data="{ row }">
+      <UDropdown :items="[[{ label: 'Open Page', click: () => openUrl(row.path, '_blank') }], [{ label: 'Page Inspections', icon: 'i-heroicons-document-magnifying-glass', disabled: true }, (row.inspectionResult?.inspectionResultLink ? { label: 'View Inspection Result' } : undefined), { label: 'Inspect Index Status' }].filter(Boolean)]">
+        <UButton variant="link" icon="i-heroicons-ellipsis-vertical" color="neutral" />
+      </UDropdown>
+    </template>
+  </TableAsyncData>
 </template>

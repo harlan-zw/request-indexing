@@ -38,7 +38,7 @@ This is a critical detail that many guides get wrong: **batch requests don't sav
 
 Google's documentation is explicit:
 
-> "Quota is counted at the URL level. For example, if you combine 10 requests into a single HTTP request, it still counts as 10 requests for your quota."
+> "Quota is counted at the URL level. For example, if you combine 10 requests into a single HTTP request, it still counts as 10 requests for your quota." ([Source](https://developers.google.com/search/apis/indexing-api/v3/using-api))
 
 A batch of 100 URLs uses 100 quota. The batch endpoint only reduces HTTP overhead (fewer connections, less latency) — it doesn't reduce quota consumption.
 
@@ -228,7 +228,7 @@ Google monitors for this pattern and considers it abuse. Risks include:
 - **Detection through shared service accounts** — if the same service account email appears across multiple projects
 - **Detection through submission patterns** — if multiple projects submit URLs for the same Search Console property
 
-The Indexing API documentation warns that *"any attempt to bypass quotas or use the API for invalid content types may result in access being revoked."*
+The Indexing API documentation warns that *"any attempt to bypass quotas or use the API for invalid content types may result in access being revoked."* ([Source](https://developers.google.com/search/apis/indexing-api/v3/quickstart))
 
 If you genuinely need more than 200/day, request a quota increase through the official process rather than stacking projects.
 

@@ -1,6 +1,6 @@
 import _dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 
 // Use the plugins
 _dayjs.extend(utc)

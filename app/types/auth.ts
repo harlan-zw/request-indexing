@@ -1,6 +1,6 @@
+import type { UserSelect } from '#shared/types/database'
 import type { Credentials } from 'google-auth-library'
 import type { RequiredNonNullable } from '~/types/util'
-import type { UserSelect } from '#shared/types/database'
 
 export interface NitroAuthData {
   tokens: UserModel['loginTokens']

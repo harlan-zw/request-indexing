@@ -205,16 +205,16 @@ const tableUi = {
         <slot :name="column.slotName" v-bind="data" :value="value" :rows="rows" :expanded="expandedRow === data.index" />
       </template>
       <template v-for="column in columns.filter(c => c.key !== 'expand')" #[column.headerSlot]="data">
-      <slot :name="column.headerSlot" v-bind="data" :value="value" :rows="rows" :expanded="expandedRow === data.index" />
+        <slot :name="column.headerSlot" v-bind="data" :value="value" :rows="rows" :expanded="expandedRow === data.index" />
       </template>
     </UTable>
     <div v-if="pagination && value?.total > pageSize" class="flex items-center  gap-3 pt-3">
-<!--      <div class="text-sm dark:text-gray-300 text-gray-600">-->
-<!--        {{ value?.total }} total-->
-<!--      </div>-->
+      <!--      <div class="text-sm dark:text-gray-300 text-gray-600"> -->
+      <!--        {{ value?.total }} total -->
+      <!--      </div> -->
       <UPagination
         v-model="page"
-        :inactiveButton="{ variant: 'link' }"
+        :inactive-button="{ variant: 'link' }"
         :active-button="{ color: 'blue', variant: 'link', class: 'underline' }"
         :prev-button="false"
         :next-button="{ variant: 'link' }"

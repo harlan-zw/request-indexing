@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useTimeAgo } from '~/composables/formatting'
 import type { SitePage } from '~/types'
+import { useTimeAgo } from '~/composables/formatting'
 
 const props = defineProps<{
   value: Required<SitePage>

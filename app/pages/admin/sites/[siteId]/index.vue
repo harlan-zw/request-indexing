@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { useHumanFriendlyNumber } from '../../../../composables/formatting'
 import type { JobSelect, SiteSelect } from '#shared/types/database'
+import { useHumanFriendlyNumber } from '../../../../composables/formatting'
 
 definePageMeta({
   layout: 'admin-dashboard',

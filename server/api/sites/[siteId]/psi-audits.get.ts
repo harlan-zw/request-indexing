@@ -1,13 +1,10 @@
-import {avg, between, count, desc, gt, ilike, isNotNull, max, notInArray} from 'drizzle-orm'
-import { getQuery } from 'h3'
+import { avg, count, desc, gt, isNotNull, max, notInArray } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import {
   sitePageSpeedInsightScanAudits,
   sitePageSpeedInsightScans,
-  sitePathDateAnalytics,
   sites,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -46,17 +43,12 @@ export default defineEventHandler(async (e) => {
       numericValue: avg(sitePageSpeedInsightScanAudits.numericValue).as('numericValue'),
       count: count(),
       path: sitePageSpeedInsightScans.path,
-    }).from(sitePageSpeedInsightScans)
-      .innerJoin(sitePageSpeedInsightScanAudits, eq(sitePageSpeedInsightScans.sitePageSpeedInsightScanId, sitePageSpeedInsightScanAudits.sitePageSpeedInsightScanId))
-      .where(and(
-        eq(sitePageSpeedInsightScans.siteId, site.siteId),
-        gt(sitePageSpeedInsightScanAudits.weight, 0),
-        notInArray(sitePageSpeedInsightScanAudits.auditId, ['first-contentful-paint', 'largest-contentful-paint', 'speed-index', 'total-blocking-time']),
-        ...where,
-      ))
-      .orderBy(desc(count()))
-      .groupBy(sitePageSpeedInsightScanAudits.auditId)
-      .having(isNotNull(sitePageSpeedInsightScanAudits.auditId)),
+    }).from(sitePageSpeedInsightScans).innerJoin(sitePageSpeedInsightScanAudits, eq(sitePageSpeedInsightScans.sitePageSpeedInsightScanId, sitePageSpeedInsightScanAudits.sitePageSpeedInsightScanId)).where(and(
+      eq(sitePageSpeedInsightScans.siteId, site.siteId),
+      gt(sitePageSpeedInsightScanAudits.weight, 0),
+      notInArray(sitePageSpeedInsightScanAudits.auditId, ['first-contentful-paint', 'largest-contentful-paint', 'speed-index', 'total-blocking-time']),
+      ...where,
+    )).orderBy(desc(count())).groupBy(sitePageSpeedInsightScanAudits.auditId).having(isNotNull(sitePageSpeedInsightScanAudits.auditId)),
   }
   //
   // const _where = [

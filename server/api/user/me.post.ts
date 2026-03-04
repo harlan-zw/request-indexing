@@ -1,5 +1,5 @@
-import { authenticateUser } from '~/server/app/utils/auth'
 import type { UserSelect } from '~/server/db/schema'
+import { authenticateUser } from '~/server/app/utils/auth'
 import { users } from '~/server/db/schema'
 
 export default defineEventHandler(async (e) => {
@@ -11,8 +11,7 @@ export default defineEventHandler(async (e) => {
   const _user = (await useDrizzle().update(users).set({
     analyticsRange,
     analyticsPeriod,
-  }).where(eq(users.userId, user.userId))
-    .returning())[0]
+  }).where(eq(users.userId, user.userId)).returning())[0]
 
   await setUserSession(e, {
     user: {

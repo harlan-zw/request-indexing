@@ -1,11 +1,11 @@
 import { between, count, desc, gt, sum } from 'drizzle-orm'
+import { userPeriodRange } from '~/server/app/models/User'
 import { authenticateUser } from '~/server/app/utils/auth'
+import countries from '~/server/data/countries'
 import {
   siteDateCountryAnalytics,
   sites,
 } from '~/server/db/schema'
-import { userPeriodRange } from '~/server/app/models/User'
-import countries from '~/server/data/countries'
 
 export default defineEventHandler(async (e) => {
   // extract from db
@@ -42,16 +42,12 @@ export default defineEventHandler(async (e) => {
     .groupBy(siteDateCountryAnalytics.country)
     .as('sq')
 
-  const rows = await useDrizzle().select()
-    .from(sq)
-    .orderBy(desc(sq.clicks))
-    .limit(5)
+  const rows = await useDrizzle().select().from(sq).orderBy(desc(sq.clicks)).limit(5)
 
   const totals = await useDrizzle().select({
     count: count().as('total'),
     clicks: sum(sq.clicks).as('clicks'),
-  })
-    .from(sq)
+  }).from(sq)
   return {
     rows: rows.map((row) => {
       const alpha3Code = row.country

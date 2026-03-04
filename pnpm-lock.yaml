@@ -145,8 +145,8 @@ importers:
         specifier: ^1.8.0
         version: 1.8.0
       node-fetch:
-        specifier: ^2.7.0
-        version: 2.7.0(encoding@0.1.13)
+        specifier: ^3.3.2
+        version: 3.3.2
       nuxt-og-image:
         specifier: 6.0.0-beta.46
         version: 6.0.0-beta.46(@resvg/resvg-js@2.6.2)(@resvg/resvg-wasm@2.6.2)(@takumi-rs/core@0.70.3)(@takumi-rs/wasm@0.70.3)(@unhead/vue@2.1.2(vue@3.5.29(typescript@5.9.3)))(fontless@0.2.1(db0@0.3.4(@libsql/client@0.17.0(encoding@0.1.13))(better-sqlite3@12.6.2)(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260301.1)(@libsql/client@0.17.0(encoding@0.1.13))(@opentelemetry/api@1.9.0)(better-sqlite3@12.6.2)))(ioredis@5.9.2)(vite@7.3.1(@types/node@25.1.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2)))(playwright-core@1.58.0)(sharp@0.32.6)(tailwindcss@4.2.1)(unifont@0.7.4)(unstorage@1.17.4(db0@0.3.4(@libsql/client@0.17.0(encoding@0.1.13))(better-sqlite3@12.6.2)(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260301.1)(@libsql/client@0.17.0(encoding@0.1.13))(@opentelemetry/api@1.9.0)(better-sqlite3@12.6.2)))(ioredis@5.9.2))(vite@7.3.1(@types/node@25.1.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.2))(vue@3.5.29(typescript@5.9.3))

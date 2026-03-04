@@ -1,6 +1,6 @@
 <script lang="ts" setup generic="T extends Record<string, any>[], I extends T[0]">
-import { VisArea, VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue'
 import { Area, Scale } from '@unovis/ts'
+import { VisArea, VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue'
 import { graphLineMode } from '~/composables/state'
 
 const props = defineProps<{
@@ -92,10 +92,10 @@ const impressions = (d: I) => d.impressions
 
 <template>
   <div class="relative">
-<!--    <UButton-->
-<!--      size="xs" color="neutral" variant="link" class="absolute -top-12 -right-2" icon="i-ph-chart-line"-->
-<!--      @click="graphLineMode = 'step'"-->
-<!--    />-->
+    <!--    <UButton -->
+    <!--      size="xs" color="neutral" variant="link" class="absolute -top-12 -right-2" icon="i-ph-chart-line" -->
+    <!--      @click="graphLineMode = 'step'" -->
+    <!--    /> -->
     <VisXYContainer height="100" :data="value" :svg-defs="svgDefs" class="graph-next">
       <!--  impressions  -->
       <VisLine v-if="columns.includes('impressions')" :curve-type="graphLineMode" :data="value" :x="(d, i) => i" color="rgba(156, 39, 176, 0.7)" :y="impressions" :events="events" />

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { GscDataRow } from '~/types/data'
-import { callFnSyncToggleRef } from '~/composables/loader'
 import type { SiteSelect } from '#shared/types/database'
-import { formatPageSpeedInsightScore } from '~/composables/formatting'
 import type { TableAsyncDataProps } from '~/components/Table/TableAsyncData.vue'
+import type { GscDataRow } from '~/types/data'
+import { formatPageSpeedInsightScore } from '~/composables/formatting'
+import { callFnSyncToggleRef } from '~/composables/loader'
 
 const props = withDefaults(
   defineProps<{

@@ -1,9 +1,9 @@
-import { defineEventHandler } from 'h3'
 import { asc, avg, between, isNull, not } from 'drizzle-orm'
-import { authenticateUser } from '~/server/app/utils/auth'
+import { defineEventHandler } from 'h3'
 import { userPeriodRange } from '~/server/app/models/User'
-import { sitePathDateAnalytics } from '~/server/db/schema'
 import { requireEventSite } from '~/server/app/services/util'
+import { authenticateUser } from '~/server/app/utils/auth'
+import { sitePathDateAnalytics } from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)
@@ -21,7 +21,5 @@ export default defineEventHandler(async (event) => {
     not(isNull(sitePathDateAnalytics.psiDesktopSeo)),
     eq(sitePathDateAnalytics.siteId, site.siteId),
     between(sitePathDateAnalytics.date, range.period.startDate, range.period.endDate),
-  ))
-    .groupBy(sitePathDateAnalytics.date)
-    .orderBy(asc(sitePathDateAnalytics.date))
+  )).groupBy(sitePathDateAnalytics.date).orderBy(asc(sitePathDateAnalytics.date))
 })

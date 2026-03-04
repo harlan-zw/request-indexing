@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useFriendlySiteUrl, useHumanFriendlyNumber } from '~/composables/formatting'
 import type { SiteSelect } from '#shared/types/database'
 import type { SitesPreview } from '~/types'
+import { useFriendlySiteUrl, useHumanFriendlyNumber } from '~/composables/formatting'
 
 const props = defineProps<{
   sites: SitesPreview
@@ -49,8 +49,7 @@ const siteRows = computed<SiteSelect[]>(() => {
       sitemapWarningsCount,
       sitemapErrorsCount,
     }
-  })
-    .sort((a, b) => b.pageCount30Day - a.pageCount30Day)
+  }).sort((a, b) => b.pageCount30Day - a.pageCount30Day)
 })
 
 const paginatedSites = computed<SiteSelect[]>(() => {

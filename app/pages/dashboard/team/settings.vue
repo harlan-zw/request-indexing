@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {fetchSites} from "~/composables/fetch";
+import { fetchSites } from '~/composables/fetch'
 
 definePageMeta({
   layout: 'dashboard',
