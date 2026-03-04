@@ -1,9 +1,9 @@
 import type { H3Event } from 'h3'
-import { pagespeedonline } from '@googleapis/pagespeedonline'
 import { withBase, withHttps } from 'ufo'
 import { requireEventSite } from '~/server/app/services/util'
 
-function runPsi(url: string) {
+async function runPsi(url: string) {
+  const { pagespeedonline } = await import('@googleapis/pagespeedonline')
   const api = pagespeedonline({
     version: 'v5',
     auth: useRuntimeConfig().google.pagespeedApiToken,

@@ -1,6 +1,5 @@
-import { GoogleAdsApi } from 'google-ads-api'
-
 export async function fetchKeywordHistorialData(keywords: string[]) {
+  const { GoogleAdsApi } = await import('google-ads-api')
   const { adsApiToken: developer_token, adsCustomerId: customer_id, adsClientId: client_id, adsClientSecret: client_secret, adsRefreshToken: refresh_token } = useRuntimeConfig().google
   const client = new GoogleAdsApi({
     client_id,
@@ -24,14 +23,8 @@ export async function fetchKeywordHistorialData(keywords: string[]) {
 }
 
 export async function fetchKeywordIdeas(keyword: string | string[]) {
+  const { GoogleAdsApi } = await import('google-ads-api')
   const { adsApiToken: developer_token, adsCustomerId: customer_id, adsClientId: client_id, adsClientSecret: client_secret, adsRefreshToken: refresh_token } = useRuntimeConfig().google
-  console.log({
-    client_id,
-    client_secret,
-    developer_token,
-    customer_id,
-    refresh_token,
-  })
 
   const client = new GoogleAdsApi({
     client_id,

@@ -27,3 +27,7 @@ logs
 
 .tokens.js
 .db
+kv-dump.json
+
+# Skilld references (recreated by `skilld install`)
+.skilld

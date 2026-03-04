@@ -1,0 +1,26 @@
+name = "request-indexing"
+account_id = "5904138d55ca25d5670dca6adf99894e"
+compatibility_date = "2025-01-15"
+main = ".output/server/index.mjs"
+
+[assets]
+directory = ".output/public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "request-indexin-bw2z"
+database_id = "233eb802-c278-4900-9dcb-7f0316eed6b4"
+
+[[r2_buckets]]
+binding = "BLOB"
+bucket_name = "request-indexin-bw2z"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "9ba09cd123b948f6835f5d20b2d97f6c"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "9aa5f0d4250c45ffa75d7bed3646ea30"
+
+# Rest of config (crons, vars, etc.) is in nuxt.config.ts

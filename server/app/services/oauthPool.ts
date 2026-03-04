@@ -1,5 +1,5 @@
 import { lt } from 'drizzle-orm'
-import { googleAccounts, googleOAuthClients } from '~/server/database/schema'
+import { googleAccounts, googleOAuthClients } from '~/server/db/schema'
 // import { tokens as _tokens, privateTokens } from '#app/token-pool.mjs'
 
 // export const oAuthPoolStorage = prefixStorage(appStorage as Storage<OAuthPoolPayload>, 'auth:pool')

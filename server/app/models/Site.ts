@@ -1,7 +1,7 @@
-import type { SiteInsert, SiteSelect, UserSelect, UserSitesInsert } from '~/server/database/schema'
-import { sites, userSites } from '~/server/database/schema'
+import type { SiteInsert, SiteSelect, UserSelect, UserSitesInsert } from '~/server/db/schema'
+import { sites, userSites } from '~/server/db/schema'
 
-export async function createSites(data: { sites: SiteInsert[], userSites: Partial<UserSitesInsert>[] }, user: UserSelect): Promise<SiteSelect[]> {
+export async function createSites(data: { sites: SiteInsert[], userSites: Partial<UserSitesInsert>[] }, user: UserSelect, env?: Record<string, unknown>): Promise<SiteSelect[]> {
   const db = useDrizzle()
   const childSites: SiteSelect[] = (await db.batch(
     data.sites.map(site => db.insert(sites).values(site).returning()),
@@ -15,22 +15,15 @@ export async function createSites(data: { sites: SiteInsert[], userSites: Partia
     }
   })
   await db.batch(newUserSites.map(data => db.insert(userSites).values(data).returning()))
-  //
+
   const nitro = useNitroApp()
-  await Promise.all(childSites.map(((site, i) => ({
+  await Promise.all(childSites.map((site, i) => ({
     ...site,
+    env: env ?? {},
     permissionLevel: data.userSites[i]?.permissionLevel,
     userId: user.userId,
-  }))).map((site) => {
+  })).map((site) => {
     return nitro.hooks.callHookParallel('app:site:created', site)
   }))
-  // await nitro.hooks.callHook(
-  //   'app:site:created',
-  //   ...childSites.map(((site, i) => ({
-  //     ...site,
-  //     permissionLevel: data.userSites[i]?.permissionLevel,
-  //     userId: user.userId,
-  //   }))),
-  // )
   return childSites
 }

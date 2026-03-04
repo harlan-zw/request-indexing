@@ -1,6 +1,6 @@
 import { isNull, not } from 'drizzle-orm'
 import { authenticateAdmin } from '~/server/app/utils/auth'
-import { sites } from '~/server/database/schema'
+import { sites } from '~/server/db/schema'
 
 export default defineEventHandler(async (e) => {
   await authenticateAdmin(e)

@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import type { UserSelect } from '~/server/database/schema'
+import type { UserSelect } from '~/server/db/schema'
 
 // const encryptKeys = ['loginTokens', 'indexingTokens']
 

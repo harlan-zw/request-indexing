@@ -1,5 +1,5 @@
 import { authenticateUser } from '~/server/app/utils/auth'
-import { sites, teamSites } from '~/server/database/schema'
+import { sites, teamSites } from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)

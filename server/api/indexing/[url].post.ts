@@ -1,12 +1,11 @@
-import { indexing } from '@googleapis/indexing'
-import type { GaxiosError } from 'googleapis-common'
-import { OAuth2Client } from 'googleapis-common'
 import type { indexing_v3 } from '@googleapis/indexing/v3'
+import type { GaxiosError } from 'googleapis-common'
 import type { SitePage } from '~/types'
 import { authenticateUser } from '~/server/app/utils/auth'
-// import { getUserQuotaUsage, incrementUserQuota } from '~/server/app/models/user/quota'
 
 export default defineEventHandler(async (event) => {
+  const { indexing } = await import('@googleapis/indexing')
+  const { OAuth2Client } = await import('googleapis-common')
   const user = await authenticateUser(event)
 
   const { url } = getRouterParams(event, { decode: true })

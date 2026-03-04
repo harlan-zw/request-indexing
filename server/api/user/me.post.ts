@@ -1,6 +1,6 @@
 import { authenticateUser } from '~/server/app/utils/auth'
-import type { UserSelect } from '~/server/database/schema'
-import { users } from '~/server/database/schema'
+import type { UserSelect } from '~/server/db/schema'
+import { users } from '~/server/db/schema'
 
 export default defineEventHandler(async (e) => {
   // TODO re-implement

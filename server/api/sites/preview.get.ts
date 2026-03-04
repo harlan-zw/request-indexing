@@ -1,6 +1,6 @@
-import { count, inArray } from 'drizzle-orm'
+import { count, inArray, isNotNull } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
-import { jobs, siteDateAnalytics, sitePaths, sites, userSites } from '~/server/database/schema'
+import { jobs, siteDateAnalytics, sitePaths, sites, userSites } from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)
@@ -9,13 +9,6 @@ export default defineEventHandler(async (event) => {
   const force = String(_force) === 'true'
 
   if (force) {
-    // await queueJob('users/syncGscSites', {
-    //   userId: user.userId,
-    // }, {
-    //   queue: 'gsc',
-    //   priority: 2, // higher priority
-    // })
-    // await mq.message('/api/_mq/ingest/sites', { userId: user.userId })
     return { sites: [], isPending: true }
   }
 
@@ -47,7 +40,6 @@ export default defineEventHandler(async (event) => {
     .groupBy(siteDateAnalytics.siteId)
     .where(inArray(siteDateAnalytics.siteId, mySitesQuery))
     .as('sq2')
-  // sq3 is for the user site permission
   const sq3 = db.select({
     siteId: userSites.siteId,
     permissionLevel: userSites.permissionLevel,
@@ -55,15 +47,20 @@ export default defineEventHandler(async (event) => {
     .from(userSites)
     .where(whereQuery)
     .as('sq3')
-  const jobQuery = (await db.select({
-    status: jobs.status,
-  }).from(jobs)
+
+  // Check if user has a pending sync job (not completed, not failed)
+  const pendingJob = await db.select({ id: jobs.id })
+    .from(jobs)
     .where(and(
-      eq(jobs.entityId, user.userId),
-      eq(jobs.name, 'users/syncGscSites'),
-    )))[0]
+      eq(jobs.userId, user.userId),
+      sql`json_extract(${jobs.payload}, '$._task') = 'users/sync-gsc-sites'`,
+      sql`${jobs.completedAt} IS NULL`,
+      sql`${jobs.failedAt} IS NULL`,
+    ))
+    .get()
+
   return {
-    jobStatus: jobQuery.status,
+    jobStatus: pendingJob ? 'pending' : 'completed',
     sites: await db.select({
       property: sites.property,
       sitemaps: sites.sitemaps,

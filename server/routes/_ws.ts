@@ -1,7 +1,7 @@
 import type { Peer } from 'crossws'
 import { getQuery } from 'ufo'
 import { stringify } from 'devalue'
-import { users } from '~/server/database/schema'
+import { users } from '~/server/db/schema'
 
 const wsHooks = new Map<string, () => void>()
 

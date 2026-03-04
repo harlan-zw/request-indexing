@@ -1,4 +1,4 @@
-import { sessions } from '~/server/database/schema'
+import { sessions } from '~/server/db/schema'
 
 export default defineNitroPlugin(() => {
   // Called when the session is fetched during SSR for the Vue composable (/api/_auth/session)

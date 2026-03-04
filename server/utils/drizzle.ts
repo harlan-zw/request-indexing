@@ -1,13 +1,35 @@
+import type { H3Event } from 'h3'
 import { drizzle } from 'drizzle-orm/d1'
+import * as schema from '../db/schema'
 
-import * as schema from '../database/schema'
-
-export { sql, eq, and, or } from 'drizzle-orm'
+export { and, eq, or, sql } from 'drizzle-orm'
 
 export const tables = schema
 
-export function useDrizzle() {
-  return drizzle(hubDatabase(), { schema })
+let _db: ReturnType<typeof drizzle<typeof schema>> | null = null
+
+export function useDrizzle(event?: H3Event) {
+  if (_db)
+    return _db
+
+  // In production/CF Workers, get D1 from cloudflare env
+  if (event) {
+    const d1 = (event.context.cloudflare?.env as { DB?: D1Database })?.DB
+    if (d1) {
+      _db = drizzle(d1, { schema })
+      return _db
+    }
+  }
+
+  // Try to get from global context (for background tasks, etc.)
+  // @ts-expect-error - globalThis may have cloudflare context
+  const globalD1 = globalThis.__env__?.DB || globalThis.DB
+  if (globalD1) {
+    _db = drizzle(globalD1, { schema })
+    return _db
+  }
+
+  throw new Error('D1 database not available. Make sure DB binding is configured in wrangler.toml')
 }
 
 /**

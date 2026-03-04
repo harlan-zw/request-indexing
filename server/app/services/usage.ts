@@ -1,4 +1,4 @@
-import { usages } from '~/server/database/schema'
+import { usages } from '~/server/db/schema'
 import { currentPstDate } from '~/server/utils/dayjs'
 
 export function incrementUsage(siteId: number, key: string) {

@@ -2,7 +2,7 @@ import { defineEventHandler } from 'h3'
 import { asc, avg, between, isNull, not } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import { userPeriodRange } from '~/server/app/models/User'
-import { sitePathDateAnalytics } from '~/server/database/schema'
+import { sitePathDateAnalytics } from '~/server/db/schema'
 import { requireEventSite } from '~/server/app/services/util'
 
 export default defineEventHandler(async (event) => {

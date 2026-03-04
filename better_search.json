@@ -1,0 +1,210 @@
+{
+  "npm": [
+    {
+      "name": "@googleapis/indexing",
+      "date": "2025-12-09T17:53:27.024Z",
+      "links": "https://www.npmjs.com/package/@googleapis/indexing",
+      "description": "indexing",
+      "downloads": 8407
+    },
+    {
+      "name": "fractional-indexing",
+      "date": "2023-02-06T14:38:38.284Z",
+      "links": "https://www.npmjs.com/package/fractional-indexing",
+      "description": "Provides functions for generating ordering strings",
+      "downloads": 583906
+    },
+    {
+      "name": "index-to-position",
+      "date": "2025-09-25T04:03:35.523Z",
+      "links": "https://www.npmjs.com/package/index-to-position",
+      "description": "Convert a string index to its line and column position",
+      "downloads": 7204030
+    },
+    {
+      "name": "@redis/search",
+      "date": "2026-02-16T14:35:21.210Z",
+      "links": "https://www.npmjs.com/package/@redis/search",
+      "description": "This package provides support for the [RediSearch](https://redis.io/docs/interact/search-and-query/) module, which adds indexing and querying support for data stored in Redis Hashes or as JSON documents with the [RedisJSON](https://redis.io/docs/data-type",
+      "downloads": 6234515
+    },
+    {
+      "name": "zero-knowledge-indexing",
+      "date": "2026-01-04T15:06:49.241Z",
+      "links": "https://www.npmjs.com/package/zero-knowledge-indexing",
+      "description": "Zero-Knowledge Indexing: A secure Node.js library for Google Indexing API with automatic batching, caching, and CLI setup wizard.",
+      "downloads": 0
+    },
+    {
+      "name": "fractional-indexing-jittered",
+      "date": "2025-01-12T20:17:25.671Z",
+      "links": "https://www.npmjs.com/package/fractional-indexing-jittered",
+      "description": "Fractional index library with jittering and generator",
+      "downloads": 73881
+    },
+    {
+      "name": "google-indexing-script",
+      "date": "2024-07-08T17:45:25.329Z",
+      "links": "https://www.npmjs.com/package/google-indexing-script",
+      "description": "Script to get your site indexed on Google in less than 48 hours",
+      "downloads": 747
+    },
+    {
+      "name": "jittered-fractional-indexing",
+      "date": "2026-02-13T20:10:10.185Z",
+      "links": "https://www.npmjs.com/package/jittered-fractional-indexing",
+      "description": "Provides functions for generating ordering strings with random jitter to minimize the likelihood of collisions",
+      "downloads": 94872
+    },
+    {
+      "name": "kdbush",
+      "date": "2023-04-27T19:30:39.739Z",
+      "links": "https://www.npmjs.com/package/kdbush",
+      "description": "A very fast static 2D index for points based on kd-tree.",
+      "downloads": 6774451
+    },
+    {
+      "name": "hugo-lunr-indexer",
+      "date": "2019-06-09T04:58:55.761Z",
+      "links": "https://www.npmjs.com/package/hugo-lunr-indexer",
+      "description": "Generate Lunr indices for Hugo static sites by parsing front matter.",
+      "downloads": 29768
+    },
+    {
+      "name": "storyblok-algolia-indexer",
+      "date": "2023-03-20T07:44:18.999Z",
+      "links": "https://www.npmjs.com/package/storyblok-algolia-indexer",
+      "description": "Index Algolia with Storyblok content",
+      "downloads": 5124
+    },
+    {
+      "name": "@0xsequence/indexer",
+      "date": "2026-02-16T15:32:50.141Z",
+      "links": "https://www.npmjs.com/package/@0xsequence/indexer",
+      "description": "indexer sub-package for Sequence",
+      "downloads": 6632
+    }
+  ],
+  "github": [
+    {
+      "name": "goenning/google-indexing-script",
+      "stars": 7558,
+      "url": "https://github.com/goenning/google-indexing-script",
+      "language": "TypeScript",
+      "description": "Script to get your site indexed on Google in less than 48 hours",
+      "pushed_at": "2024-10-10T18:39:11Z"
+    },
+    {
+      "name": "nusquama/n8nworkflows.xyz",
+      "stars": 2054,
+      "url": "https://github.com/nusquama/n8nworkflows.xyz",
+      "language": null,
+      "description": "N8N Workflows Catalog",
+      "pushed_at": "2026-03-03T04:01:07Z"
+    },
+    {
+      "name": "melbahja/seo",
+      "stars": 345,
+      "url": "https://github.com/melbahja/seo",
+      "language": "PHP",
+      "description": "🐘 Simple PHP library to help developers 🍻 do better on-page SEO optimization 🤖",
+      "pushed_at": "2026-02-25T22:25:34Z"
+    },
+    {
+      "name": "swalker-888/google-indexing-api-bulk",
+      "stars": 200,
+      "url": "https://github.com/swalker-888/google-indexing-api-bulk",
+      "language": "JavaScript",
+      "description": "Submit URLs in bulk to Google's Indexing API using a batch request",
+      "pushed_at": "2023-07-24T23:42:57Z"
+    },
+    {
+      "name": "lete114/Hexo-SEO-AutoPush",
+      "stars": 92,
+      "url": "https://github.com/lete114/Hexo-SEO-AutoPush",
+      "language": "JavaScript",
+      "description": "Daily automatic submission of urls to baidu and Google bing | 每天自动提交url到百度和谷歌必应",
+      "pushed_at": "2024-07-07T12:42:29Z"
+    },
+    {
+      "name": "ookyet/web3-identity-seo",
+      "stars": 91,
+      "url": "https://github.com/ookyet/web3-identity-seo",
+      "language": "Shell",
+      "description": "Making ENS domains Google-visible - Open-source architecture for Web3 identity SEO and Knowledge   Panel optimization",
+      "pushed_at": "2025-10-22T02:17:07Z"
+    },
+    {
+      "name": "m3m3nto/giaa",
+      "stars": 52,
+      "url": "https://github.com/m3m3nto/giaa",
+      "language": "JavaScript",
+      "description": "Google Indexing API automator",
+      "pushed_at": "2024-02-26T08:38:00Z"
+    },
+    {
+      "name": "Famdirksen/laravel-google-indexing",
+      "stars": 40,
+      "url": "https://github.com/Famdirksen/laravel-google-indexing",
+      "language": "PHP",
+      "description": null,
+      "pushed_at": "2023-03-22T13:29:10Z"
+    },
+    {
+      "name": "wp-seopress/wp-seopress-public",
+      "stars": 38,
+      "url": "https://github.com/wp-seopress/wp-seopress-public",
+      "language": "PHP",
+      "description": "SEOPress, the best WordPress SEO plugin available on the market to rank higher in search engines.",
+      "pushed_at": "2026-02-05T10:04:50Z"
+    },
+    {
+      "name": "Suganthan-Mohanadasan/awesome-seo-tools",
+      "stars": 33,
+      "url": "https://github.com/Suganthan-Mohanadasan/awesome-seo-tools",
+      "language": null,
+      "description": "A curated list of 208+ awesome SEO tools from an SEO Professional",
+      "pushed_at": "2026-02-24T14:42:29Z"
+    },
+    {
+      "name": "marekfoltanski/indexingapi",
+      "stars": 28,
+      "url": "https://github.com/marekfoltanski/indexingapi",
+      "language": "JavaScript",
+      "description": null,
+      "pushed_at": "2024-05-25T13:49:44Z"
+    },
+    {
+      "name": "drkwng/google-search-console-api",
+      "stars": 22,
+      "url": "https://github.com/drkwng/google-search-console-api",
+      "language": "Python",
+      "description": null,
+      "pushed_at": "2022-02-18T13:22:47Z"
+    },
+    {
+      "name": "quickseo-io/quickindex-python",
+      "stars": 18,
+      "url": "https://github.com/quickseo-io/quickindex-python",
+      "language": "Python",
+      "description": "A Python script to quickly index your pages in Google Search",
+      "pushed_at": "2024-05-31T11:41:26Z"
+    },
+    {
+      "name": "berkaycatak/php-google-indexing-api",
+      "stars": 13,
+      "url": "https://github.com/berkaycatak/php-google-indexing-api",
+      "language": "CSS",
+      "description": "Indexing project written in PHP, using Google Indexing Api. PHP Google Indexing API.",
+      "pushed_at": "2022-04-06T16:03:10Z"
+    },
+    {
+      "name": "Piekario/google-indexing-api-go-bulk",
+      "stars": 12,
+      "url": "https://github.com/Piekario/google-indexing-api-go-bulk",
+      "language": "Go",
+      "description": "Submit URLs in bulk to Google's Indexing API using Go",
+      "pushed_at": "2024-04-19T12:30:38Z"
+    }
+  ]
+}

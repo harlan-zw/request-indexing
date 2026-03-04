@@ -3,7 +3,7 @@ import { authenticateUser } from '~/server/app/utils/auth'
 import {
   sitePathDateAnalytics,
   sites, usages,
-} from '~/server/database/schema'
+} from '~/server/db/schema'
 import { userPeriodRange } from '~/server/app/models/User'
 
 export default defineEventHandler(async (e) => {

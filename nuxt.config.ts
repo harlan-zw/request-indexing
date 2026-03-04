@@ -1,8 +1,7 @@
+import type { OAuthPoolToken } from './app/types'
 import { resolve } from 'path'
-import { env } from 'std-env'
 import { globbySync } from 'globby'
-import NuxtMessageQueue from './lib/nuxt-ttyl/module'
-import type { OAuthPoolToken } from '~/types'
+import { env } from 'std-env'
 
 const tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
 
@@ -15,32 +14,26 @@ const recursiveServerAppFolders = globbySync('**/*', {
 })
 
 export default defineNuxtConfig({
-  extends: ['@nuxt/ui-pro'],
   modules: [
-    '@nuxthub/core',
     'nuxt-auth-utils',
     'dayjs-nuxt',
     '@nuxt/image',
-    '@nuxt/fonts',
     '@nuxt/ui',
     '@vueuse/nuxt',
+    '@nuxt/content',
     '@nuxtjs/seo',
     '@nuxt/scripts',
-    NuxtMessageQueue,
+    'nitro-cloudflare-dev',
     (_, nuxt) => {
       nuxt.options.nitro!.virtual = nuxt.options.nitro!.virtual || {}
       nuxt.options.nitro.virtual['#app/token-pool.mjs'] = `export const tokens = ${JSON.stringify(tokens)}`
     },
   ],
-  future: {
-    // compatibilityVersion: 4,
-  },
-  uiPro: {
-    routerOptions: false,
-  },
-  ogImage: {
-    enabled: false,
-  },
+
+  compatibilityDate: '2026-03-03',
+
+  css: ['~/assets/css/main.css'],
+
   hooks: {
     'nitro:config': function (config) {
       config.typescript = config.typescript || {}
@@ -49,68 +42,151 @@ export default defineNuxtConfig({
       config.typescript.tsConfig.include.push(resolve('./server/hooks.d.ts'))
     },
   },
-  messageQueue: {
-    devMessageQueue: {
-      // driver: 'cloudflare',
-      // queue: 'google-search-console',
-      // binding: 'QUEUE_GOOGLE_SEARCH_CONSOLE',
-      driver: 'unstorage',
-      storage: {
-        base: '.db/queue',
-        driver: 'fs',
+
+  site: {
+    url: 'https://requestindexing.com',
+    name: 'Request Indexing',
+    description: 'Monitor and request Google indexing for your pages',
+    defaultLocale: 'en',
+    indexable: true,
+  },
+
+  sitemap: {
+    exclude: [
+      '/dashboard/**',
+      '/admin/**',
+      '/api/**',
+      '/auth/**',
+    ],
+  },
+
+  robots: {
+    disallow: [
+      '/dashboard/**',
+      '/admin/**',
+      '/api/**',
+      '/auth/**',
+    ],
+  },
+
+  schemaOrg: {
+    identity: {
+      type: 'Organization',
+      name: 'Request Indexing',
+      logo: '/favicon.svg',
+    },
+  },
+
+  content: {
+    build: {
+      markdown: {
+        highlight: {
+          theme: { default: 'github-light', dark: 'github-dark' },
+          langs: ['typescript', 'javascript', 'python', 'bash', 'json', 'yaml'],
+        },
       },
     },
   },
-  runtimeConfig: {
-    key: '', // .env NUXT_KEY
-    session: {
-      cookie: {
-        maxAge: 60 * 60 * 24 * 90, // 3mo
-      },
-    },
-    google: {
-      adsCustomerId: '', // .env NUXT_GOOGLE_ADS_CUSTOMER_ID
-      adsApiToken: '', // .env NUXT_GOOGLE_ADS_API_TOKEN
-      cruxApiToken: '', // .env NUXT_GOOGLE_CRUX_API_TOKEN
-      adsClientId: '', // NUXT_GOOGLE_ADS_CLIENT_ID,
-      adsClientSecret: '', // NUXT_GOOGLE_ADS_CLIENT_SECRET
-      adsRefreshToken: '', // NUXT_GOOGLE_ADS_REFRESH_TOKEN
-    },
-    postmark: {
-      apiKey: '', // .env NUXT_POSTMARK_API_KEY
-    },
-    public: {
-      indexing: {
-        usageLimitPerUser: 15,
-      },
-    },
-    indexing: {
-      maxUsersPerOAuth: 15, // we over provision slightly (25 over),
-    },
+
+  linkChecker: {
+    enabled: false,
+    runOnBuild: false,
   },
+
+  seo: {
+    redirectToCanonicalSiteUrl: false,
+  },
+
+  devtools: { enabled: true },
+
+  routeRules: {
+    '/dashboard/**': { prerender: false },
+    '/admin/**': { prerender: false },
+    '/account/**': { prerender: false },
+    '/auth/**': { prerender: false },
+    '/api/**': { prerender: false },
+    '/ws/**': { prerender: false },
+  },
+
   nitro: {
-    preset: 'cloudflare-pages',
+    alias: {
+      '~/server': resolve('./server'),
+    },
+    prerender: {
+      crawlLinks: true,
+      routes: ['/'],
+      failOnError: false,
+    },
+    preset: 'cloudflare-durable',
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true,
+      wrangler: {
+        name: 'request-indexing',
+        compatibility_date: '2025-01-15',
+        observability: {
+          enabled: true,
+          head_sampling_rate: 1,
+        },
+        logpush: true,
+        triggers: {
+          crons: ['0 0 * * *'], // Daily at midnight UTC
+        },
+        vars: {
+          NUXT_PUBLIC_BASE_URL: 'https://requestindexing.com',
+        },
+        durable_objects: {
+          bindings: [
+            { name: '$DurableObject', class_name: '$DurableObject' },
+          ],
+        },
+        migrations: [
+          { tag: 'v1', new_classes: ['$DurableObject'] },
+        ],
+        queues: {
+          producers: [
+            { queue: 'ri-default', binding: 'QUEUE_DEFAULT' },
+            { queue: 'ri-psi', binding: 'QUEUE_PSI' },
+            { queue: 'ri-dlq', binding: 'QUEUE_DLQ' },
+          ],
+          consumers: [
+            { queue: 'ri-default', max_batch_size: 1, max_batch_timeout: 10, max_concurrency: 5, max_retries: 5, dead_letter_queue: 'ri-dlq' },
+            { queue: 'ri-psi', max_batch_size: 1, max_batch_timeout: 30, max_concurrency: 3, max_retries: 3, dead_letter_queue: 'ri-dlq' },
+            { queue: 'ri-dlq', max_batch_size: 1, max_batch_timeout: 60, max_concurrency: 1, max_retries: 3 },
+          ],
+        },
+      },
+    },
+    storage: {
+      cache: { driver: 'cloudflare-kv-binding', binding: 'CACHE' },
+    },
+    devStorage: {
+      cache: { driver: 'memory' },
+    },
+    sourceMap: false,
     experimental: {
+      asyncContext: true,
       websocket: true,
       tasks: true,
     },
     scheduledTasks: {
-      // Run `cms:update` task every minute
       '0 0 * * *': ['sync.daily'],
     },
     imports: {
       dirs: recursiveServerAppFolders,
     },
-    devStorage: {
-      app: {
-        base: '.db',
-        driver: 'fs',
-      },
+    externals: {
+      inline: ['drizzle-orm'],
     },
   },
-  ui: {
-    icons: ['heroicons', 'logos', 'carbon', 'simple-icons', 'ph', 'circle-flags'],
+
+  icon: {
+    serverBundle: 'remote',
+    clientBundle: {
+      scan: true,
+    },
   },
+
   app: {
     pageTransition: {
       name: 'page',
@@ -136,26 +212,43 @@ export default defineNuxtConfig({
       ],
     },
   },
-  // $development: {
-  //   hub: {
-  //     remote: 'preview',
-  //   },
-  // },
-  hub: {
-    database: true,
-    kv: true,
-    blob: true,
-    cache: true,
-    remote: false,
-  },
-  site: {
-    name: 'Request Indexing',
-    url: 'requestindexing.com',
-  },
+
   dayjs: {
     locales: ['en'],
     plugins: ['relativeTime', 'utc', 'isSameOrBefore', 'advancedFormat'],
     defaultLocale: 'en',
   },
-  devtools: { enabled: true },
+
+  runtimeConfig: {
+    key: '', // .env NUXT_KEY
+    session: {
+      cookie: {
+        maxAge: 60 * 60 * 24 * 90, // 3mo
+      },
+    },
+    google: {
+      adsCustomerId: '',
+      adsApiToken: '',
+      cruxApiToken: '',
+      adsClientId: '',
+      adsClientSecret: '',
+      adsRefreshToken: '',
+    },
+    postmark: {
+      apiKey: '',
+    },
+    gscdump: {
+      apiKey: '',
+      webhookSecret: '',
+    },
+    public: {
+      baseUrl: 'https://requestindexing.com',
+      indexing: {
+        usageLimitPerUser: 15,
+      },
+    },
+    indexing: {
+      maxUsersPerOAuth: 15,
+    },
+  },
 })

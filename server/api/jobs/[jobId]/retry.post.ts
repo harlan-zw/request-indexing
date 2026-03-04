@@ -1,21 +1,16 @@
 import { authenticateAdmin } from '~/server/app/utils/auth'
-import { jobs } from '~/server/database/schema'
+import { dispatchToQueue } from '~/server/utils/event-service'
+import { retryFailedJob } from '~/server/utils/jobs'
 
 export default defineEventHandler(async (e) => {
   await authenticateAdmin(e)
   const { jobId } = getRouterParams(e, { decode: true })
   const db = useDrizzle()
-  const job = await db.query.jobs.findFirst({
-    where: eq(jobs.jobId, Number(jobId)),
-  })
-  if (job) {
-    await db.update(jobs).set({
-      attempts: job.attempts - 1,
-      status: 'pending',
-    }).where(eq(jobs.jobId, Number(jobId)))
-    // retry
-    // const mq = useMessageQueue()
-    // await mq.message(`/_jobs/run`, { jobId: job.jobId })
+  const env = (e.context.cloudflare?.env ?? {}) as Record<string, unknown>
+
+  const result = await retryFailedJob(db, jobId)
+  if (result) {
+    await dispatchToQueue(env, result.id, result.queue)
     return 'OK'
   }
   return '404'

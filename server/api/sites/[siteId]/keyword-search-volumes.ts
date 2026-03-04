@@ -3,7 +3,7 @@ import {
   keywords,
   relatedKeywords,
   sites,
-} from '~/server/database/schema'
+} from '~/server/db/schema'
 import { getQueryAsyncDataTable } from '~/server/utils/asyncDataTable'
 
 export default defineEventHandler(async (e) => {

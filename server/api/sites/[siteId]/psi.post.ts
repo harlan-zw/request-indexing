@@ -1,11 +1,8 @@
 import { authenticateUser } from '~/server/app/utils/auth'
-import {
-  sites,
-} from '~/server/database/schema'
-import { batchJobs } from '~/server/plugins/eventServiceProvider'
+import { sites } from '~/server/db/schema'
+import { batchJobs } from '~/server/utils/event-service'
 
 export default defineEventHandler(async (e) => {
-  // extract from db
   const user = await authenticateUser(e)
   const { siteId } = getRouterParams(e, { decode: true })
   const site = await useDrizzle().query.sites.findFirst({
@@ -18,52 +15,21 @@ export default defineEventHandler(async (e) => {
     })
   }
 
-  // TODO validate
+  const body = await readBody<{ path: string }>(e)
+  const db = useDrizzle()
+  const env = (e.context.cloudflare?.env ?? {}) as Record<string, unknown>
 
-  const body = await readBody<{
-    path: string
-  }>(e)
-
-  await batchJobs({
+  await batchJobs(db, env, {
     name: 'psi:page',
+    siteId: site.siteId,
   }, [
-    // {
-    //   name: 'paths/runPsi',
-    //   queue: 'psi',
-    //   payload: {
-    //     siteId: site.siteId,
-    //     path: body.path,
-    //     strategy: 'desktop',
-    //   },
-    // },
-    // {
-    //   name: 'paths/runPsi',
-    //   queue: 'psi',
-    //   payload: {
-    //     siteId: site.siteId,
-    //     path: body.path,
-    //     strategy: 'mobile',
-    //   },
-    // },
     {
       name: 'crux/history',
-      entityId: site.siteId,
-      entityType: 'site',
-      payload: {
-        siteId: site.siteId,
-        path: body.path,
-        strategy: 'PHONE',
-      },
+      payload: { siteId: site.siteId, path: body.path, strategy: 'PHONE' },
     },
     {
       name: 'crux/history',
-      entityId: site.siteId,
-      entityType: 'site',
-      payload: {
-        siteId: site.siteId,
-        path: body.path,
-        strategy: 'DESKTOP',
-      },
+      payload: { siteId: site.siteId, path: body.path, strategy: 'DESKTOP' },
     },
   ])
 

@@ -2,7 +2,7 @@ import { defineEventHandler } from 'h3'
 import { avg, between, desc, inArray, sum } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
 import { userPeriodRange } from '~/server/app/models/User'
-import { siteDateAnalytics, siteDateCountryAnalytics, teamSites } from '~/server/database/schema'
+import { siteDateAnalytics, siteDateCountryAnalytics, teamSites } from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
   const user = await authenticateUser(event)

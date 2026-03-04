@@ -3,7 +3,7 @@ import { authenticateUser } from '~/server/app/utils/auth'
 import {
   siteDateCountryAnalytics,
   sites,
-} from '~/server/database/schema'
+} from '~/server/db/schema'
 import { userPeriodRange } from '~/server/app/models/User'
 import countries from '~/server/data/countries'
 

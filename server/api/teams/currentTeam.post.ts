@@ -1,7 +1,7 @@
+import type { TeamSelect } from '~/server/db/schema'
 import { inArray } from 'drizzle-orm'
 import { authenticateUser } from '~/server/app/utils/auth'
-import type { TeamSelect } from '~/server/database/schema'
-import { sites, teamSites, teams } from '~/server/database/schema'
+import { sites, teams, teamSites } from '~/server/db/schema'
 
 export default defineEventHandler(async (event) => {
   const _user = await authenticateUser(event)
@@ -23,8 +23,7 @@ export default defineEventHandler(async (event) => {
     db.update(teams).set({
       backupsEnabled,
       onboardedStep,
-    }).where(eq(teams.teamId, _user.currentTeamId))
-      .returning(),
+    }).where(eq(teams.teamId, _user.currentTeamId)).returning(),
 
     db.delete(teamSites).where(eq(teamSites.teamId, _user.currentTeamId)),
 
@@ -44,7 +43,8 @@ export default defineEventHandler(async (event) => {
   })
 
   const nitroApp = useNitroApp()
-  await nitroApp.hooks.callHook('app:team:sites-selected', team[0])
+  const env = (event.context.cloudflare?.env ?? {}) as Record<string, unknown>
+  await nitroApp.hooks.callHook('app:team:sites-selected', { ...team[0], env })
 
   return 'OK'
 

@@ -1,7 +1,7 @@
+import type { SitemapperResponse } from 'sitemapper'
+import type { ParsedRobotsTxt } from './robotsTxt'
 import { $fetch } from 'ofetch'
 import { withBase } from 'ufo'
-import Sitemapper, { type SitemapperResponse } from 'sitemapper'
-import type { ParsedRobotsTxt } from './robotsTxt'
 import { parseRobotsTxt } from './robotsTxt'
 
 export interface CrawlOptions {
@@ -116,6 +116,7 @@ export async function fetchRobots(options: { siteUrl: string }) {
 export async function fetchSitemapUrls(options: { siteUrl: string, sitemapPaths: string[], robots?: ParsedRobotsTxt }) {
   const sitemaps = options.sitemapPaths || options.robots?.sitemaps || []
   // make sure we're working from the host name
+  const { default: Sitemapper } = await import('sitemapper')
   const sitemapper = new Sitemapper({
     timeout: 15000, // 15 seconds
   })

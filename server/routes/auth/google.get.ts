@@ -1,9 +1,9 @@
 import type { CredentialRequest } from 'google-auth-library/build/src/auth/credentials'
-import { googleAuthEventHandler } from '~/server/app/utils/auth'
-import { createGoogleOAuthClient } from '~/server/app/services/gsc'
-import type { GoogleOAuthClientsSelect } from '~/server/database/schema'
-import { googleAccounts, sessions, teamUser, teams, users } from '~/server/database/schema'
+import type { GoogleOAuthClientsSelect } from '~/server/db/schema'
 import type { RequiredNonNullable } from '~/types/util'
+import { createGoogleOAuthClient } from '~/server/app/services/gsc'
+import { googleAuthEventHandler } from '~/server/app/utils/auth'
+import { googleAccounts, sessions, teams, teamUser, users } from '~/server/db/schema'
 
 export default googleAuthEventHandler({
   config: {
@@ -31,7 +31,7 @@ export default googleAuthEventHandler({
       }
     }
     // use the google services to see what scopes the user has
-    const client = createGoogleOAuthClient({ ...tokens, googleOAuthClient: _client })
+    const client = await createGoogleOAuthClient({ ...tokens, googleOAuthClient: _client })
     const tokenInfo = await client.getTokenInfo(tokens.access_token)
     if (!tokenInfo.scopes.includes('https://www.googleapis.com/auth/webmasters.readonly')) {
       await setUserSession(event, {
@@ -51,7 +51,8 @@ export default googleAuthEventHandler({
         .values({
           personalTeam: true,
           name: `${oauth.given_name}'s Personal Team`,
-        }).returning())[0]!
+        })
+        .returning())[0]!
       user = (await db.insert(users)
         .values({
           name: oauth.name,
@@ -79,15 +80,48 @@ export default googleAuthEventHandler({
         role: 'owner',
       })
 
+      // Register user with gscdump
+      const gscdump = useGscdumpClient()
+      const gscdumpRegistration = await gscdump.registerUser({
+        userGoogleId: oauth.sub,
+        userEmail: oauth.email,
+        userName: oauth.name,
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        tokenExpiresAt: tokens.expiry_date || (Date.now() + 3600 * 1000),
+      }).catch((e) => {
+        console.error('gscdump registerUser failed:', e)
+        return null
+      })
+      if (gscdumpRegistration) {
+        await db.update(users).set({
+          gscdumpUserId: gscdumpRegistration.userId,
+          gscdumpApiKey: gscdumpRegistration.apiKey,
+        }).where(eq(users.userId, user.userId))
+        user.gscdumpUserId = gscdumpRegistration.userId
+        user.gscdumpApiKey = gscdumpRegistration.apiKey
+      }
+
       const nitro = useNitroApp()
-      await nitro.hooks.callHook('app:user:created', { userId: user.userId })
+      const env = (event.context.cloudflare?.env ?? {}) as Record<string, unknown>
+      await nitro.hooks.callHook('app:user:created', { env, userId: user.userId })
     }
     else {
+      // Update tokens on gscdump for returning user
+      if (user.gscdumpUserId) {
+        const gscdump = useGscdumpClient()
+        await gscdump.updateUserTokens(user.gscdumpUserId, {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          tokenExpiresAt: tokens.expiry_date || (Date.now() + 3600 * 1000),
+        }).catch((e) => {
+          console.error('gscdump updateUserTokens failed:', e)
+        })
+      }
+
       user = (await db.update(users)
         .set({
           lastLogin: Date.now(),
-          loginTokens: tokens,
-          authPayload: oauth,
         })
         .where(eq(users.sub, oauth.sub))
         .returning())![0]
@@ -104,7 +138,8 @@ export default googleAuthEventHandler({
         ipAddress: getRequestIP(event, { xForwardedFor: true }),
         userAgent: getHeader(event, 'user-agent'),
         lastActivity: Date.now(),
-      }).onConflictDoUpdate({
+      })
+      .onConflictDoUpdate({
         target: [sessions.userId, sessions.ipAddress, sessions.userAgent],
         set: { lastActivity: Date.now() },
       })
