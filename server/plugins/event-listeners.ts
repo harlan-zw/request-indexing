@@ -1,5 +1,5 @@
-import type { TaskMap, TaskName } from '#shared/types/tasks'
 import type { NitroRuntimeHooks } from 'nitropack'
+import type { TaskMap, TaskName } from '#shared/types/tasks'
 import { queueJob } from '../utils/event-service'
 
 interface JobInsertOpts { siteId?: number, userId?: number }

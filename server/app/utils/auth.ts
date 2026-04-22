@@ -1,9 +1,8 @@
-import type { OAuthConfig } from '#auth-utils'
 import type { H3Event } from 'h3'
 import type { OAuthGoogleConfig } from 'nuxt-auth-utils/dist/runtime/server/lib/oauth/google'
+import type { OAuthConfig } from '#auth-utils'
 import type { UserSelect } from '~/server/db/schema'
 import type { UserSession } from '~/types'
-import { clearUserSession, createOAuthPool, useRuntimeConfig } from '#imports'
 import { defu } from 'defu'
 import {
   createError,
@@ -14,6 +13,7 @@ import {
 } from 'h3'
 import { ofetch } from 'ofetch'
 import { parsePath, withQuery } from 'ufo'
+import { clearUserSession, createOAuthPool, useRuntimeConfig } from '#imports'
 import { sessions } from '~/server/db/schema'
 
 export async function authenticateUser(event: H3Event): Promise<UserSelect> {

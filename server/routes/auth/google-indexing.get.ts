@@ -1,5 +1,4 @@
 import type { OAuthPoolToken } from '~/types'
-import { setUserSession } from '#imports'
 import {
   createError,
   defineEventHandler,
@@ -10,6 +9,7 @@ import {
 import { ofetch } from 'ofetch'
 import { hash } from 'ohash'
 import { parsePath, withQuery } from 'ufo'
+import { setUserSession } from '#imports'
 import { createOAuthPool } from '~/server/app/services/oauthPool'
 
 // this is a copy of the googleEventHandler from nuxt-auth-utils

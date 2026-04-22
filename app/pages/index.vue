@@ -24,6 +24,12 @@ const faqItems = [
   },
 ]
 
+const quickFeatures = [
+  { icon: 'i-heroicons-bolt-solid', title: 'Request Indexing', description: 'Submit directly to Google\'s Indexing API.' },
+  { icon: 'i-heroicons-chart-bar-square-solid', title: 'Unified Dashboard', description: 'All your Search Console sites in one view.' },
+  { icon: 'i-heroicons-circle-stack-solid', title: 'Data Retention', description: 'Keep your historical insights forever.' },
+]
+
 const mockUrls = [
   { url: '/blog/getting-started', status: 'Submitted and indexed', verdict: 'pass', ago: '2 min ago' },
   { url: '/docs/configuration', status: 'Discovered - currently not indexed', verdict: 'neutral', ago: '5 min ago' },
@@ -36,21 +42,18 @@ const mockUrls = [
 <template>
   <div>
     <!-- Hero -->
-    <div class="dark:bg-neutral-950 gradient top-slice">
-      <div class="gradient-after" />
+    <div class="bg-verdant divider-tilt">
       <UContainer class="z-1 relative max-w-8xl xl:max-w-[1400px]" :ui="{ container: 'max-w-8xl xl:max-w-[1335px]!' }">
         <section class="py-5 sm:py-12 xl:py-20">
           <div class="xl:grid gap-8 lg:gap-12 xl:grid-cols-12 mx-auto w-full sm:px-6 lg:px-0 px-0">
             <div class="text-pretty mx-auto max-w-[50rem] xl:col-span-7 xl:ml-0 mb-10 xl:mb-0 flex flex-col justify-center">
-              <div>
-                <div style="letter-spacing: -3px;" class="font-title font-bold leading-tight text-neutral-900 dark:text-neutral-100 text-center text-5xl sm:text-6xl lg:text-left mb-5">
-                  <span>Get your pages <span class="underline">indexed</span>
-                    <HeroSvg />
-                    <span class="whitespace-nowrap">in 48 hours</span>.</span>
-                </div>
-              </div>
-              <p class="text-neutral-700 dark:text-neutral-300 max-w-3xl text-center text-xl lg:text-left mb-8">
-                A free, open-source tool to request pages to be indexed using the <NuxtLink to="https://developers.google.com/search/apis/indexing-api/v3/quickstart" target="_blank" class="font-semibold hover:underline text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-1 rounded">
+              <h1 class="font-title font-bold leading-[1.05] tracking-[-0.03em] text-default text-center text-5xl sm:text-6xl lg:text-left mb-5">
+                Get your pages <span class="underline decoration-primary/50 underline-offset-4">indexed</span>
+                <HeroSvg />
+                <span class="whitespace-nowrap">in 48 hours</span>.
+              </h1>
+              <p class="text-toned max-w-3xl text-center text-xl lg:text-left mb-8">
+                A free, open-source tool to request pages to be indexed using the <NuxtLink to="https://developers.google.com/search/apis/indexing-api/v3/quickstart" target="_blank" class="font-semibold hover:underline text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-1 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-default">
                   Web Search Indexing API
                 </NuxtLink> and view your Google Search Console data.
               </p>
@@ -72,104 +75,61 @@ const mockUrls = [
                 </UButton>
               </div>
 
-              <!-- Quick features -->
-              <div class="grid grid-cols-2 gap-5 mb-5 max-w-2xl mx-auto lg:mx-0 text-left">
-                <div class="flex items-start gap-3">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-5 max-w-2xl mx-auto lg:mx-0 text-left">
+                <div v-for="feature in quickFeatures" :key="feature.title" class="flex items-start gap-3">
+                  <UIcon :name="feature.icon" class="text-primary w-6 h-6 mt-0.5 shrink-0" />
                   <div>
-                    <UIcon name="i-heroicons-bolt-solid" class="text-primary-500 w-6 h-6 mt-0.5" />
-                  </div>
-                  <div>
-                    <div class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-0.5">
-                      Request Indexing
+                    <div class="text-base font-semibold text-default mb-0.5">
+                      {{ feature.title }}
                     </div>
-                    <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                      Submit directly to Google's Indexing API.
-                    </div>
-                  </div>
-                </div>
-                <div class="flex items-start gap-3">
-                  <div>
-                    <UIcon name="i-heroicons-chart-bar-square-solid" class="text-primary-500 w-6 h-6 mt-0.5" />
-                  </div>
-                  <div>
-                    <div class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-0.5">
-                      Unified Dashboard
-                    </div>
-                    <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                      All your Search Console sites in one view.
-                    </div>
-                  </div>
-                </div>
-                <div class="flex items-start gap-3">
-                  <div>
-                    <UIcon name="i-heroicons-circle-stack-solid" class="text-primary-500 w-6 h-6 mt-0.5" />
-                  </div>
-                  <div>
-                    <div class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-0.5">
-                      Data Retention
-                    </div>
-                    <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                      Keep your historical insights forever.
-                    </div>
-                  </div>
-                </div>
-                <div class="flex items-start gap-3">
-                  <div>
-                    <UIcon name="i-heroicons-check-badge-solid" class="text-primary-500 w-6 h-6 mt-0.5" />
-                  </div>
-                  <div>
-                    <div class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-0.5">
-                      Open Source
-                    </div>
-                    <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                      Built by developers, for everyone.
+                    <div class="text-sm text-muted">
+                      {{ feature.description }}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Right Side Graphic / Dashboard Mock -->
-            <div class="xl:col-span-5 max-w-full sticky top-10 flex items-center justify-center">
+            <div class="hidden xl:flex xl:col-span-5 max-w-full sticky top-10 items-center justify-center">
               <div class="w-full max-w-lg">
-                <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-2xl shadow-primary-500/10 overflow-hidden relative z-10">
+                <div class="rounded-xl border border-default bg-elevated shadow-2xl shadow-primary-500/10 overflow-hidden relative z-10">
                   <!-- Card header -->
-                  <div class="px-5 py-4 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between bg-white dark:bg-neutral-900">
+                  <div class="px-5 py-4 border-b border-default flex items-center justify-between bg-elevated">
                     <div class="flex items-center gap-2.5">
                       <img src="https://www.google.com/s2/favicons?domain=https://nuxtseo.com" alt="" class="size-4 rounded-sm">
-                      <span class="font-semibold text-neutral-900 dark:text-neutral-100">nuxtseo.com</span>
+                      <span class="font-semibold text-default">nuxtseo.com</span>
                       <UBadge color="primary" variant="subtle" size="xs">
                         91% indexed
                       </UBadge>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <span class="size-2 rounded-full bg-primary-400 animate-pulse" />
-                      <span class="text-xs text-neutral-400">Live</span>
+                      <span class="text-xs text-muted">Live</span>
                     </div>
                   </div>
                   <!-- Mock URL rows -->
-                  <div class="divide-y divide-neutral-100 dark:divide-neutral-800 bg-white dark:bg-neutral-900">
+                  <div class="divide-y divide-default bg-elevated">
                     <div
                       v-for="(item, i) in mockUrls"
                       :key="i"
-                      class="px-5 py-3 flex items-center justify-between gap-4 text-sm group hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors animate-fade-in"
-                      :style="{ animationDelay: `${i * 100}ms` }"
+                      class="px-5 py-3 flex items-center justify-between gap-4 text-sm group hover:bg-muted transition-colors animate-fade-in"
+                      :style="{ '--stagger-index': i }"
                     >
                       <div class="flex items-center gap-2.5 min-w-0">
                         <UIcon
                           :name="item.verdict === 'pass' ? 'i-heroicons-check-circle' : 'i-heroicons-clock'"
                           class="size-4 shrink-0"
-                          :class="item.verdict === 'pass' ? 'text-primary-500' : 'text-amber-400'"
+                          :class="item.verdict === 'pass' ? 'text-primary' : 'text-amber-400'"
                         />
-                        <span class="truncate text-neutral-700 dark:text-neutral-300 font-mono text-xs">{{ item.url }}</span>
+                        <span class="truncate text-toned font-mono text-xs">{{ item.url }}</span>
                       </div>
-                      <span class="text-neutral-400 text-xs whitespace-nowrap hidden sm:block">{{ item.ago }}</span>
+                      <span class="text-muted text-xs whitespace-nowrap hidden sm:block">{{ item.ago }}</span>
                     </div>
                   </div>
                   <!-- Card footer -->
-                  <div class="px-5 py-3 bg-neutral-50 dark:bg-neutral-800/50 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
-                    <span class="text-xs text-neutral-400">5 of 119 pages</span>
-                    <span class="text-xs text-primary-500 font-medium">3 indexed today</span>
+                  <div class="px-5 py-3 bg-muted border-t border-default flex items-center justify-between">
+                    <span class="text-xs text-muted">5 of 119 pages</span>
+                    <span class="text-xs text-primary font-medium">3 indexed today</span>
                   </div>
                 </div>
               </div>
@@ -179,7 +139,7 @@ const mockUrls = [
       </UContainer>
     </div>
 
-    <div class="bg-white dark:bg-neutral-900 pt-20">
+    <div class="bg-default pt-20">
       <!-- Features -->
       <UPageSection
         headline="Features"
@@ -270,17 +230,17 @@ const mockUrls = [
           { title: 'Own your data', description: 'Export it, access it via an API, or delete it. It is yours.', icon: 'i-heroicons-finger-print' },
         ]"
       >
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-lg max-w-md mx-auto">
+        <div class="rounded-xl border border-default bg-elevated p-6 shadow-lg max-w-md mx-auto">
           <div class="flex items-start gap-3">
             <UIcon name="i-simple-icons-google" class="size-6 text-blue-500 shrink-0 mt-0.5" />
             <div>
-              <p class="text-neutral-700 dark:text-neutral-300 text-sm leading-relaxed italic">
+              <p class="text-toned text-sm leading-relaxed italic">
                 "Search Console keeps data for the last 16 months. As a result, SEO reports in Analytics also include a maximum of 16 months of data."
               </p>
               <NuxtLink
                 to="https://support.google.com/analytics/answer/1308621"
                 target="_blank"
-                class="text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 mt-3 inline-block transition-colors"
+                class="text-xs text-muted hover:text-default mt-3 inline-block transition-colors"
               >
                 - Google Analytics Documentation
               </NuxtLink>
@@ -341,85 +301,3 @@ const mockUrls = [
     </div>
   </div>
 </template>
-
-<style>
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in {
-  animation: fade-in 0.4s ease-out both;
-}
-
-@keyframes moveBackground {
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
-.gradient {
-  position: relative;
-  background-size: 400% 400%;
-  animation: moveBackground 30s ease infinite;
-  background-image: linear-gradient(47deg,
-  var(--color-primary-50) 0%,
-  #fae8ff 15%,
-  var(--color-primary-50) 30%,
-  #e0e7ff 45%,
-  var(--color-primary-50) 60%,
-  #ccfbf1 75%,
-  var(--color-primary-50) 90%,
-  #fae8ff 100%
-  ) !important;
-}
-
-.gradient-after {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  background-size: 300% 300%;
-  animation: moveBackground 10s ease infinite;
-  background-image: linear-gradient(0deg,
-  var(--color-primary-50) 0%,
-  #fae8ff 15%,
-  var(--color-primary-50) 30%,
-  #e0e7ff 45%,
-  var(--color-primary-50) 60%,
-  #ccfbf1 75%,
-  var(--color-primary-50) 90%,
-  #fae8ff 100%
-  ) !important;
-  opacity: 0.5;
-}
-
-.dark .gradient {
-  background-image: none !important;
-}
-
-.dark .gradient-after {
-  background-image: linear-gradient(0deg,
-  #9c6e99 15%,
-  #8089a6 45%,
-  #669a8c 75%,
-  #9c6e99 100%
-  ) !important;
-  opacity: 0.15;
-}
-
-.top-slice {
-  position: relative;
-}
-.top-slice:after {
-  content: "";
-  position: absolute;
-  bottom: -70px;
-  background-color: white;
-  height: 140px;
-  width: 120vw;
-  left: -10px;
-  transform: rotate(-2deg);
-  z-index: 5;
-}
-.dark .top-slice:after {
-  background-color: var(--color-neutral-900); /* neutral-900 to match background of the next section */
-}
-</style>

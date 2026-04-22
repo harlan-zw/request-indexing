@@ -114,7 +114,6 @@ function toaster() {
     key: 'confetti',
     src: 'https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js',
   }, {
-    skipEarlyConnections: true,
     use() {
       return new window.JSConfetti()
     },
@@ -147,10 +146,10 @@ function toaster() {
     </template>
 
     <template #left>
-      <p class="text-gray-500 dark:text-gray-400 text-sm mr-5">
+      <p class="text-muted text-sm mr-5">
         Copyright © {{ new Date().getFullYear() }}. All rights reserved.
       </p>
-      <p class="text-gray-500 dark:text-gray-400 text-sm">
+      <p class="text-muted text-sm">
         Credits for the idea to <a href="https://seogets.com/" target="_blank" class="underline">SEO Gets</a>.
       </p>
     </template>

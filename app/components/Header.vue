@@ -100,14 +100,13 @@ const authDropdownItems = computed(() => {
 </script>
 
 <template>
-  <UHeader :ui="{ root: 'border-none bg-transparent pt-2 mb-3 px-5 h-auto', container: 'max-w-[1452px] lg:bg-white/3 lg:border border-[var(--ui-border)] lg:dark:bg-neutral-900/10 mx-auto py-0 px-0 lg:px-5 sm:px-0 rounded-lg' }">
+  <UHeader :ui="{ root: 'border-none bg-transparent pt-2 mb-3 px-5 h-auto', container: 'max-w-[1452px] lg:bg-elevated/40 lg:border border-default mx-auto py-0 px-0 lg:px-5 sm:px-0 rounded-lg' }">
     <template #left>
       <NuxtLink
         to="/"
         title="Home"
         aria-label="Request Indexing"
-        class="flex mr-4 items-center gap-2 font-bold text-xl text-neutral-900 dark:text-white"
-        style="letter-spacing: -1.5px;"
+        class="flex mr-4 items-center gap-2 font-bold text-xl text-default tracking-[-1.5px]"
       >
         <span class="text-primary italic">Request</span> Indexing
       </NuxtLink>
@@ -149,19 +148,19 @@ const authDropdownItems = computed(() => {
       <div class="space-y-5">
         <UContentNavigation :navigation="navigation" />
         <div v-if="loggedIn && sites.length">
-          <div class="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
+          <div class="text-muted text-sm mb-3">
             Sites
           </div>
           <UContentNavigation :navigation="sitesNavItem.children" />
         </div>
         <div>
-          <div class="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
+          <div class="text-muted text-sm mb-3">
             Guides
           </div>
           <UContentNavigation :navigation="guidesNavItem.children" />
         </div>
         <div>
-          <div class="text-neutral-500 dark:text-neutral-400 text-sm mb-3">
+          <div class="text-muted text-sm mb-3">
             Tools
           </div>
           <UContentNavigation :navigation="toolsNavItem.children" />

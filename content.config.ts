@@ -1,5 +1,8 @@
 import { defineCollection, defineContentConfig } from '@nuxt/content'
-import { asSeoCollection } from '@nuxtjs/seo/content'
+import { defineRobotsSchema } from '@nuxtjs/robots/content'
+import { defineSitemapSchema } from '@nuxtjs/sitemap/content'
+import { defineOgImageSchema } from 'nuxt-og-image/content'
+import { defineSchemaOrgSchema } from 'nuxt-schema-org/content'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -12,11 +15,15 @@ const schema = z.object({
     path: z.string(),
     title: z.string(),
   })).optional(),
+  robots: defineRobotsSchema(),
+  sitemap: defineSitemapSchema(),
+  ogImage: defineOgImageSchema(),
+  schemaOrg: defineSchemaOrgSchema(),
 })
 
 export default defineContentConfig({
   collections: {
-    guides: defineCollection(asSeoCollection({
+    guides: defineCollection({
       schema,
       type: 'page',
       source: {
@@ -24,6 +31,6 @@ export default defineContentConfig({
         cwd: 'content/guides',
         prefix: '/',
       },
-    })),
+    }),
   },
 })

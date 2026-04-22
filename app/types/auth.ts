@@ -1,5 +1,5 @@
-import type { UserSelect } from '#shared/types/database'
 import type { Credentials } from 'google-auth-library'
+import type { UserSelect } from '#shared/types/database'
 import type { RequiredNonNullable } from '~/types/util'
 
 export interface NitroAuthData {

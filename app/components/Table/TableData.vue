@@ -1,6 +1,6 @@
 <script lang="ts" setup generic="T extends Record<string, any>">
-import { get } from '#ui/utils'
 import { useUrlSearchParams } from '@vueuse/core'
+import { get } from '#ui/utils'
 
 const props = withDefaults(defineProps<{
   value: T[]

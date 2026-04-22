@@ -1,5 +1,5 @@
-import type { UserSelect } from '#shared/types/database'
 import type { ComputedRef } from 'vue'
+import type { UserSelect } from '#shared/types/database'
 
 export function useAuthenticatedUser() {
   const { loggedIn, user } = useUserSession()

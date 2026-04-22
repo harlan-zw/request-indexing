@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Domain is required' })
 
   // Clean domain input
-  let domain = body.domain.trim()
+  const domain = body.domain.trim()
     .replace(/^https?:\/\//, '')
     .replace(/\/.*$/, '')
     .toLowerCase()
