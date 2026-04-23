@@ -132,6 +132,23 @@ export default defineNuxtConfig({
         },
         vars: {
           NUXT_PUBLIC_BASE_URL: 'https://requestindexing.com',
+          NUXT_KEY: process.env.NUXT_KEY || '',
+          NUXT_SESSION_PASSWORD: process.env.NUXT_SESSION_PASSWORD || '',
+          NUXT_OAUTH_POOL: process.env.NUXT_OAUTH_POOL || '',
+          NUXT_OAUTH_PRIVATE_POOL: process.env.NUXT_OAUTH_PRIVATE_POOL || '',
+          NUXT_OAUTH_GOOGLE_CLIENT_ID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
+          NUXT_OAUTH_GOOGLE_CLIENT_SECRET: process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET || '',
+          NUXT_POSTMARK_API_KEY: process.env.NUXT_POSTMARK_API_KEY || '',
+          NUXT_GOOGLE_ADS_CUSTOMER_ID: process.env.NUXT_GOOGLE_ADS_CUSTOMER_ID || '',
+          NUXT_GOOGLE_ADS_API_TOKEN: process.env.NUXT_GOOGLE_ADS_API_TOKEN || '',
+          NUXT_GOOGLE_ADS_CLIENT_ID: process.env.NUXT_GOOGLE_ADS_CLIENT_ID || '',
+          NUXT_GOOGLE_ADS_CLIENT_SECRET: process.env.NUXT_GOOGLE_ADS_CLIENT_SECRET || '',
+          NUXT_GOOGLE_ADS_REFRESH_TOKEN: process.env.NUXT_GOOGLE_ADS_REFRESH_TOKEN || '',
+          NUXT_GOOGLE_CRUX_API_TOKEN: process.env.NUXT_GOOGLE_CRUX_API_TOKEN || '',
+          NUXT_GSCDUMP_API_KEY: process.env.NUXT_GSCDUMP_API_KEY || '',
+          NUXT_GSCDUMP_WEBHOOK_SECRET: process.env.NUXT_GSCDUMP_WEBHOOK_SECRET || '',
+          NUXT_DATAFORSEO_LOGIN: process.env.NUXT_DATAFORSEO_LOGIN || '',
+          NUXT_DATAFORSEO_PASSWORD: process.env.NUXT_DATAFORSEO_PASSWORD || '',
         },
         durable_objects: {
           bindings: [

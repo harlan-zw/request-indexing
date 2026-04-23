@@ -1,0 +1,60 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm i
+
+      - name: Cache for Nuxt SEO
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/nuxt-seo
+          key: nuxt-skew-${{ github.sha }}
+          restore-keys: |
+            nuxt-skew-
+
+      - run: pnpm build
+        timeout-minutes: 30
+        env:
+          NODE_OPTIONS: --max-old-space-size=16384
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NUXT_UI_PRO_LICENSE: ${{ secrets.NUXT_UI_PRO_LICENSE }}
+          NUXT_KEY: ${{ secrets.NUXT_KEY }}
+          NUXT_SESSION_PASSWORD: ${{ secrets.NUXT_SESSION_PASSWORD }}
+          NUXT_OAUTH_POOL: ${{ secrets.NUXT_OAUTH_POOL }}
+          NUXT_OAUTH_PRIVATE_POOL: ${{ secrets.NUXT_OAUTH_PRIVATE_POOL }}
+          NUXT_OAUTH_GOOGLE_CLIENT_ID: ${{ secrets.NUXT_OAUTH_GOOGLE_CLIENT_ID }}
+          NUXT_OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.NUXT_OAUTH_GOOGLE_CLIENT_SECRET }}
+          NUXT_POSTMARK_API_KEY: ${{ secrets.NUXT_POSTMARK_API_KEY }}
+          NUXT_GOOGLE_ADS_CUSTOMER_ID: ${{ secrets.NUXT_GOOGLE_ADS_CUSTOMER_ID }}
+          NUXT_GOOGLE_ADS_API_TOKEN: ${{ secrets.NUXT_GOOGLE_ADS_API_TOKEN }}
+          NUXT_GOOGLE_ADS_CLIENT_ID: ${{ secrets.NUXT_GOOGLE_ADS_CLIENT_ID }}
+          NUXT_GOOGLE_ADS_CLIENT_SECRET: ${{ secrets.NUXT_GOOGLE_ADS_CLIENT_SECRET }}
+          NUXT_GOOGLE_ADS_REFRESH_TOKEN: ${{ secrets.NUXT_GOOGLE_ADS_REFRESH_TOKEN }}
+          NUXT_GOOGLE_CRUX_API_TOKEN: ${{ secrets.NUXT_GOOGLE_CRUX_API_TOKEN }}
+          NUXT_GSCDUMP_API_KEY: ${{ secrets.NUXT_GSCDUMP_API_KEY }}
+          NUXT_GSCDUMP_WEBHOOK_SECRET: ${{ secrets.NUXT_GSCDUMP_WEBHOOK_SECRET }}
+          NUXT_DATAFORSEO_LOGIN: ${{ secrets.NUXT_DATAFORSEO_LOGIN }}
+          NUXT_DATAFORSEO_PASSWORD: ${{ secrets.NUXT_DATAFORSEO_PASSWORD }}
+
+      - run: npx wrangler --cwd .output deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
