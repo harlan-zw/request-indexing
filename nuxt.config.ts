@@ -28,6 +28,7 @@ export default defineNuxtConfig({
       nuxt.options.nitro!.virtual = nuxt.options.nitro!.virtual || {}
       nuxt.options.nitro.virtual['#app/token-pool.mjs'] = `export const tokens = ${JSON.stringify(tokens)}`
     },
+    '@nuxt/fonts',
   ],
 
   compatibilityDate: '2026-03-03',
@@ -249,7 +250,7 @@ export default defineNuxtConfig({
       },
     },
     indexing: {
-      maxUsersPerOAuth: 15,
+      maxUsersPerOAuth: 100,
     },
   },
 })

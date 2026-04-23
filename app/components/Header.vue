@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuRoot, NavigationMenuTrigger, NavigationMenuViewport } from 'reka-ui'
 import { withoutTrailingSlash } from 'ufo'
 import { createLogoutHandler } from '~/composables/auth'
 import { fetchSites } from '~/composables/fetch'
@@ -12,62 +13,51 @@ const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboar
 
 const sites = ref((loggedIn.value && !isOnWelcome.value) ? await fetchSites().then(res => res.data.value?.sites) : [])
 
-const sitesNavItem = computed(() => ({
-  label: 'Sites',
-  icon: 'i-ph-globe-duotone',
-  children: sites.value?.map(site => ({
-    label: withoutTrailingSlash(site.domain.replace('https://', '')),
-    to: `/dashboard/site/${encodeURIComponent(site.siteId)}/overview`,
-    icon: 'i-ph-browser-duotone',
-  })) || [],
-}))
+const hasSites = computed(() => loggedIn.value && !isOnWelcome.value && (sites.value?.length ?? 0) > 0)
 
-const guidesNavItem = computed(() => ({
-  label: 'Guides',
-  icon: 'i-ph-books-duotone',
-  children: [
-    { label: 'Google Indexing API', to: '/google-indexing-api' },
-    { label: 'Setup Tutorial', to: '/google-indexing-api-tutorial' },
-    { label: 'Node.js Implementation', to: '/google-indexing-api-node-js' },
-    { label: 'Bulk Submit URLs', to: '/bulk-submit-urls-google-indexing-api' },
-    { label: 'For Blog Posts', to: '/indexing-api-for-blog-posts' },
-    { label: 'Quota & Limits', to: '/google-indexing-api-quota' },
-  ],
-}))
-
-const toolsNavItem = computed(() => ({
-  label: 'Tools',
-  icon: 'i-ph-wrench-duotone',
-  children: [
-    { label: 'Google Index Checker', to: '/tools/google-indexing-checker', icon: 'i-heroicons-magnifying-glass' },
-    { label: 'Bulk Indexing Checker', to: '/tools/bulk-indexing-checker', icon: 'i-heroicons-queue-list' },
-    { label: 'Site Indexing Report', to: '/tools/site-indexing-report', icon: 'i-heroicons-document-chart-bar' },
-  ],
-}))
-
-const navigation = computed(() => {
-  const items = [
-    {
-      label: 'Pricing',
-      title: 'Pricing',
-      icon: 'i-ph-tag-duotone',
-      to: '/pricing',
-      path: '/pricing',
-      children: [],
-    },
-  ]
+const megaMenuItems = computed(() => {
+  const items: Array<{ value: string, label: string, icon: string, to: string, hasDropdown: boolean }> = []
   if (loggedIn.value && !isOnWelcome.value) {
-    items.unshift({
-      label: 'Dashboard',
-      title: 'Dashboard',
-      icon: 'i-ph-chart-bar-duotone',
-      to: '/dashboard',
-      path: '/dashboard',
-      children: [],
-    })
+    items.push({ value: 'dashboard', label: 'Dashboard', icon: 'i-ph-chart-bar-duotone', to: '/dashboard', hasDropdown: false })
   }
+  if (hasSites.value) {
+    items.push({ value: 'sites', label: 'Sites', icon: 'i-ph-globe-duotone', to: '/dashboard', hasDropdown: true })
+  }
+  items.push(
+    { value: 'guides', label: 'Guides', icon: 'i-ph-books-duotone', to: '/guides', hasDropdown: true },
+    { value: 'tools', label: 'Tools', icon: 'i-ph-wrench-duotone', to: '/tools', hasDropdown: true },
+    { value: 'pricing', label: 'Pricing', icon: 'i-ph-tag-duotone', to: '/pricing', hasDropdown: false },
+  )
   return items
 })
+
+// Mobile nav data
+const mobileGuides = [
+  { label: 'Google Indexing API', icon: 'i-heroicons-book-open', to: '/google-indexing-api' },
+  { label: 'Setup Tutorial', icon: 'i-heroicons-academic-cap', to: '/google-indexing-api-tutorial' },
+  { label: 'Node.js Implementation', icon: 'i-simple-icons-nodedotjs', to: '/google-indexing-api-node-js' },
+  { label: 'Bulk Submit URLs', icon: 'i-heroicons-arrow-up-tray', to: '/bulk-submit-urls-google-indexing-api' },
+  { label: 'For Blog Posts', icon: 'i-heroicons-document-text', to: '/indexing-api-for-blog-posts' },
+  { label: 'Quota & Limits', icon: 'i-heroicons-chart-bar', to: '/google-indexing-api-quota' },
+]
+
+const mobileTools = [
+  { label: 'Google Index Checker', icon: 'i-heroicons-magnifying-glass', to: '/tools/google-indexing-checker' },
+  { label: 'Bulk Indexing Checker', icon: 'i-heroicons-queue-list', to: '/tools/bulk-indexing-checker' },
+  { label: 'Site Indexing Report', icon: 'i-heroicons-document-chart-bar', to: '/tools/site-indexing-report' },
+]
+
+const mobileSites = computed(() =>
+  (sites.value ?? []).map(site => ({
+    label: withoutTrailingSlash(site.domain.replace('https://', '')),
+    icon: 'i-ph-browser-duotone',
+    to: `/dashboard/site/${encodeURIComponent(site.siteId)}/overview`,
+  })),
+)
+
+function withTitle<T extends { label: string }>(items: T[]) {
+  return items.map(m => ({ ...m, title: m.label }))
+}
 
 const authDropdownItems = computed(() => {
   if (isOnWelcome.value) {
@@ -113,57 +103,66 @@ const authDropdownItems = computed(() => {
     </template>
 
     <template #default>
-      <div class="hidden lg:flex items-center gap-1">
-        <UNavigationMenu :items="navigation" class="justify-center" />
-        <UNavigationMenu v-if="loggedIn && sites.length" :ui="{ viewport: 'min-w-[320px]' }" :items="[sitesNavItem]" class="justify-center">
-          <template #item-content="{ item }">
-            <ul class="grid grid-cols-2 p-2 gap-2">
-              <li
-                v-for="section in item.children"
-                :key="section.to"
-                class="text-left"
+      <NavigationMenuRoot class="hidden lg:flex justify-center relative py-2">
+        <NavigationMenuList class="flex items-center gap-0.5">
+          <NavigationMenuItem v-for="item in megaMenuItems" :key="item.value" :value="item.value">
+            <template v-if="item.hasDropdown">
+              <NavigationMenuTrigger as-child>
+                <NuxtLink
+                  :to="item.to"
+                  class="group relative flex items-center gap-1.5 font-medium text-sm px-2.5 py-1.5 before:absolute before:z-[-1] before:rounded-md before:inset-x-px before:inset-y-0 data-[state=open]:before:bg-elevated data-[state=open]:text-highlighted before:transition-colors transition-colors"
+                >
+                  <UIcon :name="item.icon" class="shrink-0 size-4 opacity-50 group-hover:opacity-80 group-data-[state=open]:opacity-90 transition-opacity" />
+                  {{ item.label }}
+                </NuxtLink>
+              </NavigationMenuTrigger>
+              <NavigationMenuContent
+                class="absolute top-0 left-0 w-auto data-[motion=from-start]:animate-[enter-from-left_200ms_ease] data-[motion=from-end]:animate-[enter-from-right_200ms_ease] data-[motion=to-start]:animate-[exit-to-left_200ms_ease] data-[motion=to-end]:animate-[exit-to-right_200ms_ease]"
               >
-                <UButton variant="ghost" :to="section.to" class="w-full justify-start text-left truncate">
-                  <UIcon :name="section.icon" class="w-4 h-4 opacity-85 shrink-0" />
-                  <span class="truncate text-sm">{{ section.label }}</span>
-                </UButton>
-              </li>
-            </ul>
-          </template>
-        </UNavigationMenu>
-        <UNavigationMenu :ui="{ viewport: 'min-w-[520px]' }" :items="[guidesNavItem]" class="justify-center">
-          <template #item-content>
-            <GuidesMenu />
-          </template>
-        </UNavigationMenu>
-        <UNavigationMenu :ui="{ viewport: 'min-w-[520px]' }" :items="[toolsNavItem]" class="justify-center">
-          <template #item-content>
-            <ToolsMenu />
-          </template>
-        </UNavigationMenu>
-      </div>
+                <HeaderSitesMenu v-if="item.value === 'sites'" :sites="sites ?? []" />
+                <HeaderGuidesMenu v-else-if="item.value === 'guides'" />
+                <HeaderToolsMenu v-else-if="item.value === 'tools'" />
+              </NavigationMenuContent>
+            </template>
+
+            <NuxtLink
+              v-else
+              :to="item.to"
+              class="group relative flex items-center gap-1.5 font-medium text-sm px-2.5 py-1.5 before:absolute before:z-[-1] before:rounded-md before:inset-x-px before:inset-y-0 before:transition-colors transition-colors"
+            >
+              <UIcon :name="item.icon" class="shrink-0 size-4 opacity-50 group-hover:opacity-80 transition-opacity" />
+              {{ item.label }}
+            </NuxtLink>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+
+        <Teleport to="body">
+          <NavigationMenuViewport
+            class="fixed top-[60px] left-1/2 -translate-x-1/2 overflow-hidden bg-elevated shadow-xl rounded-md ring-1 ring-[var(--ui-border-accented)] h-(--reka-navigation-menu-viewport-height) w-(--reka-navigation-menu-viewport-width) transition-[width,height] duration-200 origin-[top_center] data-[state=open]:animate-[scale-in_100ms_ease-out] data-[state=closed]:animate-[scale-out_100ms_ease-in] z-[100]"
+          />
+        </Teleport>
+      </NavigationMenuRoot>
     </template>
 
     <template #body>
       <div class="space-y-5">
-        <UContentNavigation :navigation="navigation" />
-        <div v-if="loggedIn && sites.length">
+        <div v-if="hasSites">
           <div class="text-muted text-sm mb-3">
             Sites
           </div>
-          <UContentNavigation :navigation="sitesNavItem.children" />
+          <UContentNavigation :navigation="withTitle(mobileSites)" />
         </div>
         <div>
           <div class="text-muted text-sm mb-3">
             Guides
           </div>
-          <UContentNavigation :navigation="guidesNavItem.children" />
+          <UContentNavigation :navigation="withTitle(mobileGuides)" />
         </div>
         <div>
           <div class="text-muted text-sm mb-3">
             Tools
           </div>
-          <UContentNavigation :navigation="toolsNavItem.children" />
+          <UContentNavigation :navigation="withTitle(mobileTools)" />
         </div>
       </div>
     </template>

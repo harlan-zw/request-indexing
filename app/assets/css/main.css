@@ -81,3 +81,61 @@
   animation: fade-in 0.4s ease-out both;
   animation-delay: calc(var(--stagger-index, 0) * 100ms);
 }
+
+/* ------------------------------------------------------------------ */
+/* Header mega menu — shared across all header dropdown menus         */
+/* ------------------------------------------------------------------ */
+@keyframes mega-menu-enter {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes mega-column-stagger {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes mega-item-fade {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.mega-menu {
+  animation: mega-menu-enter 0.2s ease-out;
+}
+
+.mega-column {
+  animation: mega-column-stagger 0.25s ease-out backwards;
+  animation-delay: calc(var(--stagger) * 40ms);
+}
+
+.mega-item {
+  animation: mega-item-fade 0.2s ease-out backwards;
+  animation-delay: calc(var(--stagger, 0) * 40ms + var(--item-delay) * 30ms + 80ms);
+}
+
+/* reka-ui NavigationMenu viewport / content motion */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes scale-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.96); }
+}
+@keyframes enter-from-left {
+  from { opacity: 0; transform: translateX(-20%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes enter-from-right {
+  from { opacity: 0; transform: translateX(20%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes exit-to-left {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-20%); }
+}
+@keyframes exit-to-right {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(20%); }
+}

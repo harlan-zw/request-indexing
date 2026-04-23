@@ -12,7 +12,7 @@ import {
   sendRedirect,
 } from 'h3'
 import { ofetch } from 'ofetch'
-import { parsePath, withQuery } from 'ufo'
+import { withQuery } from 'ufo'
 import { clearUserSession, createOAuthPool, useRuntimeConfig } from '#imports'
 import { sessions } from '~/server/db/schema'
 
@@ -80,11 +80,23 @@ export function googleAuthEventHandler({
       tokenURL: 'https://oauth2.googleapis.com/token',
     })
     const { code } = getQuery(event)
-    const redirectUrl = getRequestURL(event).href
+    const requestUrl = getRequestURL(event)
+    // redirect_uri must match exactly between the initial auth and token exchange,
+    // and must be a registered URI in Google Cloud — use origin+pathname (no query).
+    const redirectUrl = `${requestUrl.origin}${requestUrl.pathname}`
     if (!code) {
       // let's query the oauth pools
       const pool = createOAuthPool()
       const oauth = await pool.free()
+      if (!oauth) {
+        const error = createError({
+          statusCode: 503,
+          message: 'Google login unavailable: OAuth pool exhausted',
+        })
+        if (!onError)
+          throw error
+        return onError(event, error)
+      }
       config.clientId = oauth.clientId
       config.clientSecret = oauth.clientSecret
       await setUserSession(event, {
@@ -118,7 +130,7 @@ export function googleAuthEventHandler({
 
     const body = {
       grant_type: 'authorization_code',
-      redirect_uri: parsePath(redirectUrl).pathname,
+      redirect_uri: redirectUrl,
       client_id: client.clientId,
       client_secret: client.clientSecret,
       code,

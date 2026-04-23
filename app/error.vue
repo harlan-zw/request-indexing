@@ -21,17 +21,11 @@ useHead({
 </script>
 
 <template>
-  <div>
+  <UApp>
     <Header />
 
-    <UMain>
-      <UContainer>
-        <UPage>
-          <UPageError :error="error" />
-        </UPage>
-      </UContainer>
-    </UMain>
+    <UError :error="error" />
 
     <Footer />
-  </div>
+  </UApp>
 </template>

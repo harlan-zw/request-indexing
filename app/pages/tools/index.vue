@@ -20,105 +20,162 @@ useSchemaOrg([
 const tools = [
   {
     title: 'Google Index Checker',
-    description: 'Check if a specific URL is indexed by Google. Instantly see whether your page appears in Google\'s search results.',
+    description: 'Check if a single URL is indexed by Google. Instantly see whether your page appears in search results.',
     icon: 'i-heroicons-magnifying-glass',
     to: '/tools/google-indexing-checker',
-    color: 'emerald',
-    tags: ['Single URL', 'Instant Check', 'Free'],
+    tags: ['Single URL', 'Instant', 'No signup'],
+    featured: true,
   },
   {
     title: 'Bulk Indexing Checker',
-    description: 'Check indexing status for up to 50 URLs at once. Paste a list or provide your sitemap URL to audit index coverage in bulk.',
+    description: 'Audit up to 50 URLs at once. Paste a list or connect your sitemap, then export the report as CSV.',
     icon: 'i-heroicons-queue-list',
     to: '/tools/bulk-indexing-checker',
-    color: 'blue',
-    tags: ['Bulk Check', 'Sitemap Support', 'CSV Export'],
+    tags: ['Bulk', 'Sitemap', 'CSV'],
   },
   {
     title: 'Site Indexing Report',
-    description: 'Get a full indexing health report for any domain. See estimated indexed pages, organic traffic, ranking keywords, and actionable recommendations.',
+    description: 'Full indexing health report for any domain. Estimated indexed pages, keyword coverage, and actionable recommendations.',
     icon: 'i-heroicons-document-chart-bar',
     to: '/tools/site-indexing-report',
-    color: 'amber',
-    tags: ['Domain Audit', 'Health Score', 'Recommendations'],
+    tags: ['Domain audit', 'Health score', 'Recommendations'],
   },
 ]
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <section class="relative pt-12 pb-8 lg:pt-16 lg:pb-12">
-      <div class="max-w-4xl mx-auto px-6 text-center">
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.1] text-[var(--ui-text-highlighted)] mb-4" style="letter-spacing: -2px;">
-          Indexing
-          <span class="text-primary">Tools</span>
-        </h1>
-        <p class="text-lg text-[var(--ui-text-muted)] max-w-2xl mx-auto">
-          Free tools to check, audit, and fix your Google indexing. No signup required.
-        </p>
+  <div>
+    <!-- Hero -->
+    <div class="bg-verdant divider-tilt">
+      <UContainer>
+        <section class="py-16 sm:py-20 lg:py-24 text-center">
+          <div class="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.15em] mb-6">
+            <UIcon name="i-heroicons-wrench-screwdriver" class="size-3.5" />
+            Free tools
+          </div>
+          <h1 class="font-title font-bold text-5xl sm:text-6xl lg:text-7xl tracking-[-0.04em] leading-[1] text-default mb-6 max-w-4xl mx-auto">
+            Indexing answers,
+            <span class="block italic text-primary">without the signup.</span>
+          </h1>
+          <p class="text-toned text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+            Three single-purpose tools to check, audit, and diagnose your Google indexing. No account, no email, no tracking — just answers.
+          </p>
+        </section>
+      </UContainer>
+    </div>
+
+    <!-- Tools grid -->
+    <section class="max-w-7xl mx-auto px-6 lg:px-8 py-16 sm:py-20">
+      <div class="grid lg:grid-cols-6 gap-4 lg:gap-5">
+        <NuxtLink
+          v-for="tool in tools"
+          :key="tool.to"
+          :to="tool.to"
+          class="rounded-2xl border border-default bg-elevated p-8 sm:p-10 group relative overflow-hidden flex flex-col" :class="[
+            tool.featured ? 'lg:col-span-6 lg:flex-row lg:items-center lg:gap-10 lg:p-12' : 'lg:col-span-3',
+          ]"
+        >
+          <div v-if="tool.featured" class="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-transparent pointer-events-none" />
+          <div
+            class="relative shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 lg:mb-0" :class="[
+              tool.featured ? 'size-16 lg:size-20' : 'size-14',
+            ]"
+          >
+            <UIcon
+              :name="tool.icon"
+              class="text-primary" :class="[
+                tool.featured ? 'size-8 lg:size-10' : 'size-7',
+              ]"
+            />
+          </div>
+          <div class="relative flex-1 min-w-0">
+            <div class="flex items-center gap-3 mb-3">
+              <h2
+                class="font-title font-semibold text-default tracking-[-0.02em] leading-[1.1]" :class="[
+                  tool.featured ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-xl sm:text-2xl',
+                ]"
+              >
+                {{ tool.title }}
+              </h2>
+              <UBadge v-if="tool.featured" color="primary" variant="subtle" size="sm">
+                Most used
+              </UBadge>
+            </div>
+            <p
+              class="text-toned leading-relaxed mb-5 max-w-xl" :class="[
+                tool.featured ? 'text-base sm:text-lg' : 'text-sm sm:text-base',
+              ]"
+            >
+              {{ tool.description }}
+            </p>
+            <div class="flex flex-wrap items-center gap-2 mb-6">
+              <span
+                v-for="tag in tool.tags"
+                :key="tag"
+                class="inline-flex items-center rounded-full border border-default bg-default px-2.5 py-1 text-xs text-muted font-medium"
+              >
+                {{ tag }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 text-primary font-medium">
+              <span :class="tool.featured ? 'text-base' : 'text-sm'">Open tool</span>
+              <UIcon
+                name="i-heroicons-arrow-right"
+                class="group-hover:translate-x-1 transition-transform" :class="[
+                  tool.featured ? 'size-4' : 'size-3.5',
+                ]"
+              />
+            </div>
+          </div>
+        </NuxtLink>
       </div>
     </section>
 
-    <section class="px-4 sm:px-6 lg:px-8 pb-16">
-      <div class="max-w-4xl mx-auto">
-        <div class="grid gap-6">
-          <NuxtLink
-            v-for="tool in tools"
-            :key="tool.to"
-            :to="tool.to"
-            class="group relative p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-[var(--ui-border)] transition-all hover:shadow-lg"
-            :class="{
-              'hover:border-emerald-300 dark:hover:border-emerald-700': tool.color === 'emerald',
-              'hover:border-blue-300 dark:hover:border-blue-700': tool.color === 'blue',
-              'hover:border-amber-300 dark:hover:border-amber-700': tool.color === 'amber',
-            }"
-          >
-            <div class="flex items-start gap-4">
-              <div
-                class="p-3 rounded-xl"
-                :class="{
-                  'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400': tool.color === 'emerald',
-                  'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400': tool.color === 'blue',
-                  'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400': tool.color === 'amber',
-                }"
-              >
-                <UIcon :name="tool.icon" class="size-6" />
-              </div>
-              <div class="flex-1">
-                <h2
-                  class="text-xl font-semibold mb-2 transition-colors"
-                  :class="{
-                    'group-hover:text-emerald-600 dark:group-hover:text-emerald-400': tool.color === 'emerald',
-                    'group-hover:text-blue-600 dark:group-hover:text-blue-400': tool.color === 'blue',
-                    'group-hover:text-amber-600 dark:group-hover:text-amber-400': tool.color === 'amber',
-                  }"
-                >
-                  {{ tool.title }}
-                </h2>
-                <p class="text-[var(--ui-text-muted)] mb-3">
-                  {{ tool.description }}
-                </p>
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    v-for="tag in tool.tags"
-                    :key="tag"
-                    class="px-2 py-0.5 text-xs font-medium rounded-full bg-[var(--ui-bg-elevated)] text-[var(--ui-text-muted)]"
-                  >
-                    {{ tag }}
-                  </span>
-                </div>
-              </div>
-              <UIcon
-                name="i-heroicons-arrow-right"
-                class="size-5 text-[var(--ui-text-dimmed)] group-hover:translate-x-1 transition-all"
-                :class="{
-                  'group-hover:text-emerald-500': tool.color === 'emerald',
-                  'group-hover:text-blue-500': tool.color === 'blue',
-                  'group-hover:text-amber-500': tool.color === 'amber',
-                }"
-              />
+    <!-- How these tools fit -->
+    <section class="max-w-7xl mx-auto px-6 lg:px-8 py-12 sm:py-16 border-y border-default">
+      <div class="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+        <div class="lg:col-span-5">
+          <span class="text-xs text-primary font-semibold uppercase tracking-[0.2em] mb-5 block">
+            Workflow
+          </span>
+          <h2 class="font-title text-3xl sm:text-4xl font-semibold text-default tracking-[-0.03em] leading-[1.1]">
+            Start free. Automate when it stops scaling.
+          </h2>
+        </div>
+        <div class="lg:col-span-7 grid sm:grid-cols-3 gap-8 lg:gap-10">
+          <div>
+            <div class="inline-flex size-8 rounded-full bg-primary/10 text-primary font-mono text-xs font-semibold items-center justify-center mb-4">
+              01
             </div>
-          </NuxtLink>
+            <div class="font-title text-base font-semibold text-default mb-1.5 tracking-[-0.01em]">
+              Spot-check URLs
+            </div>
+            <p class="text-muted text-sm leading-relaxed">
+              Start with the single-URL checker. Confirm indexed status in seconds.
+            </p>
+          </div>
+          <div>
+            <div class="inline-flex size-8 rounded-full bg-primary/10 text-primary font-mono text-xs font-semibold items-center justify-center mb-4">
+              02
+            </div>
+            <div class="font-title text-base font-semibold text-default mb-1.5 tracking-[-0.01em]">
+              Audit your site
+            </div>
+            <p class="text-muted text-sm leading-relaxed">
+              Run bulk + site report to see where coverage is leaking across the whole property.
+            </p>
+          </div>
+          <div>
+            <div class="inline-flex size-8 rounded-full bg-primary/10 text-primary font-mono text-xs font-semibold items-center justify-center mb-4">
+              03
+            </div>
+            <div class="font-title text-base font-semibold text-default mb-1.5 tracking-[-0.01em]">
+              Automate submission
+            </div>
+            <p class="text-muted text-sm leading-relaxed">
+              When spot-checks aren't enough, sign up and push URLs through the Indexing API.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -127,11 +184,11 @@ const tools = [
     <UPageSection :ui="{ container: 'max-w-4xl' }">
       <UPageCTA
         title="Need to fix indexing at scale?"
-        description="Request Indexing submits your pages directly to Google's Indexing API. Free, open-source, and takes less than a minute to set up."
+        description="Request Indexing submits your pages directly to Google's Indexing API. Free, open-source, and set up in under a minute."
         variant="subtle"
         :links="[
           { label: 'Get Started Free', to: '/get-started', color: 'primary', size: 'xl', trailingIcon: 'i-heroicons-arrow-right' },
-          { label: 'View Guides', to: '/guides', variant: 'ghost', color: 'neutral', size: 'xl' },
+          { label: 'Read the guides', to: '/guides', variant: 'ghost', color: 'neutral', size: 'xl' },
         ]"
       />
     </UPageSection>

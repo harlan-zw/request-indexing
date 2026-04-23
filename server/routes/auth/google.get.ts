@@ -1,7 +1,6 @@
 import type { CredentialRequest } from 'google-auth-library/build/src/auth/credentials'
 import type { GoogleOAuthClientsSelect } from '~/server/db/schema'
 import type { RequiredNonNullable } from '~/types/util'
-import { createGoogleOAuthClient } from '~/server/app/services/gsc'
 import { googleAuthEventHandler } from '~/server/app/utils/auth'
 import { googleAccounts, sessions, teams, teamUser, users } from '~/server/db/schema'
 
@@ -30,10 +29,14 @@ export default googleAuthEventHandler({
         given_name: string
       }
     }
-    // use the google services to see what scopes the user has
-    const client = await createGoogleOAuthClient({ ...tokens, googleOAuthClient: _client })
-    const tokenInfo = await client.getTokenInfo(tokens.access_token)
-    if (!tokenInfo.scopes.includes('https://www.googleapis.com/auth/webmasters.readonly')) {
+    // read granted scopes from the token response (googleapis-common triggers a CF node-compat bug)
+    const scopes = (tokens.scope as unknown as string || '').split(' ').filter(Boolean)
+    const tokenInfo = {
+      scopes,
+      scope: tokens.scope,
+      expiry_date: tokens.expiry_date ?? (Date.now() + (tokens.expires_in || 3600) * 1000),
+    }
+    if (!scopes.includes('https://www.googleapis.com/auth/webmasters.readonly')) {
       await setUserSession(event, {
         authError: 'missing-scope',
       })
