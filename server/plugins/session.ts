@@ -4,10 +4,12 @@ export default defineNitroPlugin(() => {
   // Called when the session is fetched during SSR for the Vue composable (/api/_auth/session)
   // Or when we call useUserSession().fetch()
   sessionHooks.hook('fetch', async (session) => {
-    // extend User Session by calling your database
-    // or
-    // throw createError({ ... }) if session is invalid for example
-    // console.log('fetch session', session)
+    // skip during prerender: no cookies, no DB binding, nothing to hydrate
+    if (import.meta.prerender)
+      return
+    // no sessionId means no persisted session to hydrate
+    if (!session.sessionId)
+      return
     const _session = await useDrizzle().query.sessions.findFirst({
       where: eq(sessions.sessionId, session.sessionId),
       with: {

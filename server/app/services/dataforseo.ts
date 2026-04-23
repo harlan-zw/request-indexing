@@ -185,16 +185,14 @@ export async function getDomainOverview(domain: string): Promise<DomainOverviewR
   }
 }
 
-export async function fetchSitemapUrls(sitemapUrl: string): Promise<string[]> {
+export async function fetchSitemapUrlsFromXml(sitemapUrl: string): Promise<string[]> {
   const response = await $fetch<string>(sitemapUrl, { responseType: 'text' })
   const urls: string[] = []
 
-  // Check if it's a sitemap index
   if (response.includes('<sitemapindex')) {
     const sitemapMatches = response.match(/<loc>\s*(.*?)\s*<\/loc>/g) || []
     const childUrls = sitemapMatches.map(m => m.replace(/<\/?loc>/g, '').trim())
 
-    // Fetch each child sitemap (limit to first 5 to avoid overload)
     for (const childUrl of childUrls.slice(0, 5)) {
       const childResponse = await $fetch<string>(childUrl, { responseType: 'text' }).catch(() => '')
       const childMatches = childResponse.match(/<loc>\s*(.*?)\s*<\/loc>/g) || []

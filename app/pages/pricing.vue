@@ -59,7 +59,7 @@ const faqItems = [
   },
   {
     label: 'How do Google\'s quotas affect pricing?',
-    icon: 'i-heroicons-gauge',
+    icon: 'i-lucide-gauge',
     content: 'Google\'s Indexing API caps you at 200 publish requests per day per project. Pro does not raise that cap — no one can, it is Google\'s limit. Pro adds room for scheduling, retries, and multi-project orchestration around that quota, not more quota itself.',
   },
   {

@@ -576,7 +576,7 @@ const marketingTools = [
             to="/google-indexing-api-quota"
             class="rounded-2xl border border-default bg-elevated p-6 sm:p-7 group"
           >
-            <UIcon name="i-heroicons-gauge" class="size-7 text-primary mb-5" />
+            <UIcon name="i-lucide-gauge" class="size-7 text-primary mb-5" />
             <h3 class="font-title text-lg font-semibold text-default tracking-[-0.015em] mb-1.5">
               Quota & rate limits
             </h3>

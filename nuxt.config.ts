@@ -234,6 +234,13 @@ export default defineNuxtConfig({
     defaultLocale: 'en',
   },
 
+  fonts: {
+    families: [
+      { name: 'DM Sans', weights: [400, 500, 600, 700], global: true },
+      { name: 'Poppins', weights: [600, 700], global: true },
+    ],
+  },
+
   runtimeConfig: {
     key: '', // .env NUXT_KEY
     session: {

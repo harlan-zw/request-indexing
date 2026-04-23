@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   if (body?.sitemapUrl?.trim()) {
     // Fetch URLs from sitemap
     try {
-      const sitemapUrls = await fetchSitemapUrls(body.sitemapUrl.trim())
+      const sitemapUrls = await fetchSitemapUrlsFromXml(body.sitemapUrl.trim())
       urls = sitemapUrls.slice(0, 50) // Limit to 50 for public use
     }
     catch {

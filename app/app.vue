@@ -38,7 +38,7 @@ useSeoMeta({
   twitterTitle: 'Get your pages indexed within 48 hours.',
 })
 
-defineOgImage('Home')
+defineOgImage('Splash')
 </script>
 
 <template>

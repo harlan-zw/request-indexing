@@ -15,7 +15,7 @@ export function useToolSeo(opts: ToolSeoOptions) {
     description: opts.description,
   })
 
-  defineOgImage('Home', {
+  defineOgImage('Tool', {
     title: opts.title,
     description: opts.description,
   })

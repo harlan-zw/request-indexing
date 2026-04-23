@@ -4,9 +4,10 @@ useSeoMeta({
   description: 'Free tools to check if your pages are indexed by Google, audit your site\'s index coverage, and diagnose indexing problems. No signup required.',
 })
 
-defineOgImage('Home', {
+defineOgImage('Page', {
+  headline: 'Tools',
   title: 'Free Google Indexing Tools',
-  description: 'Check, audit, and fix your Google indexing',
+  description: 'Check, audit, and fix your Google indexing.',
 })
 
 useSchemaOrg([

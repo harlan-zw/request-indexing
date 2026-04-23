@@ -3,19 +3,24 @@ definePageMeta({
   layout: 'default',
 })
 
-const { data: guides } = await useAsyncData('all-guides', () =>
-  queryCollection('guides')
-    .order('navigation.order', 'ASC')
-    .all())
+const { data: guides } = await useAsyncData('all-guides', async () => {
+  const items = await queryCollection('guides').all()
+  return items.slice().sort((a, b) => {
+    const ao = (a as any).navigation?.order ?? Number.POSITIVE_INFINITY
+    const bo = (b as any).navigation?.order ?? Number.POSITIVE_INFINITY
+    return ao - bo
+  })
+})
 
 useSeoMeta({
   title: 'Google Indexing API Guides',
   description: 'Learn how to use the Google Indexing API with step-by-step tutorials, code examples, and best practices for Node.js, Python, bulk submission, and more.',
 })
 
-defineOgImage('Home', {
+defineOgImage('Page', {
+  headline: 'Guides',
   title: 'Google Indexing API Guides',
-  description: 'Tutorials, code examples, and best practices',
+  description: 'Tutorials, code examples, and best practices.',
 })
 
 useSchemaOrg([

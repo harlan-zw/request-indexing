@@ -38,6 +38,8 @@ useHead({
 defineOgImage('Guide', {
   title: page.value?.title,
   description: page.value?.description,
+  readTime: page.value?.readTime,
+  publishedAt: page.value?.publishedAt,
 })
 
 const articlePublishedTime = computed(() => page.value?.publishedAt ? `${page.value.publishedAt}T12:00:00Z` : undefined)
