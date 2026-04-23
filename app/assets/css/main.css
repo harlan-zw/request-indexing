@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-title: 'Poppins', system-ui, sans-serif;
+}
+
+/* Olive palette override: Tailwind ships an olive scale at chroma ~0.003 which
+   reads as near-gray. Design principle asks for visibly warm surfaces, so anchor
+   the scale to the DESIGN.md hex tokens (#f7f7eb, #e6e7d2, #67713a, #1c1f0e) and
+   force emission with `@theme static` since no utility references these vars. */
+@theme static {
+  --color-olive-50: oklch(97.5% 0.014 105);
+  --color-olive-100: oklch(95.5% 0.022 105);
+  --color-olive-200: oklch(91% 0.035 105);
+  --color-olive-300: oklch(85% 0.052 105);
+  --color-olive-400: oklch(72% 0.070 108);
+  --color-olive-500: oklch(54% 0.082 111);
+  --color-olive-600: oklch(44% 0.076 110);
+  --color-olive-700: oklch(36% 0.065 108);
+  --color-olive-800: oklch(27% 0.050 106);
+  --color-olive-900: oklch(20% 0.038 105);
+  --color-olive-950: oklch(14% 0.028 105);
+}
+
+:root {
+  --ui-radius: 0.625rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Theme signature utilities                                          */
+/* Verdant Console — warm developer console, emerald growth on olive  */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Verdant wash — organic emerald glow on warm cream surface.
+ * Replaces the rainbow hero gradient. Two soft radial blooms keep
+ * energy in the corners without adding non-brand hues.
+ */
+.bg-verdant {
+  background:
+    radial-gradient(70% 80% at 85% 0%, color-mix(in oklab, var(--ui-primary) 18%, transparent), transparent 65%),
+    radial-gradient(55% 70% at 0% 100%, color-mix(in oklab, var(--ui-primary) 10%, transparent), transparent 60%),
+    var(--ui-bg-muted);
+}
+.dark .bg-verdant {
+  background:
+    radial-gradient(70% 80% at 85% 0%, color-mix(in oklab, var(--ui-primary) 14%, transparent), transparent 65%),
+    radial-gradient(55% 70% at 0% 100%, color-mix(in oklab, var(--ui-primary) 8%, transparent), transparent 60%),
+    var(--ui-bg);
+}
+
+/*
+ * Section divider — tilted slice that lets a hero band bleed into the
+ * next section. Matches the brand's "growing into" motif.
+ */
+.divider-tilt {
+  position: relative;
+  overflow-x: clip;
+}
+.divider-tilt::after {
+  content: "";
+  position: absolute;
+  inset: auto -10px -70px -10px;
+  height: 140px;
+  background-color: var(--ui-bg);
+  transform: rotate(-2deg);
+  z-index: 5;
+}
+
+/*
+ * Staggered fade-in for list rows. Index is passed via `--stagger-index`
+ * so markup avoids a per-item :style binding.
+ */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+  animation-delay: calc(var(--stagger-index, 0) * 100ms);
+}
+
+/* ------------------------------------------------------------------ */
+/* Header mega menu — shared across all header dropdown menus         */
+/* ------------------------------------------------------------------ */
+@keyframes mega-menu-enter {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes mega-column-stagger {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes mega-item-fade {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.mega-menu {
+  animation: mega-menu-enter 0.2s ease-out;
+}
+
+.mega-column {
+  animation: mega-column-stagger 0.25s ease-out backwards;
+  animation-delay: calc(var(--stagger) * 40ms);
+}
+
+.mega-item {
+  animation: mega-item-fade 0.2s ease-out backwards;
+  animation-delay: calc(var(--stagger, 0) * 40ms + var(--item-delay) * 30ms + 80ms);
+}
+
+/* reka-ui NavigationMenu viewport / content motion */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes scale-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.96); }
+}
+@keyframes enter-from-left {
+  from { opacity: 0; transform: translateX(-20%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes enter-from-right {
+  from { opacity: 0; transform: translateX(20%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes exit-to-left {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-20%); }
+}
+@keyframes exit-to-right {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(20%); }
+}

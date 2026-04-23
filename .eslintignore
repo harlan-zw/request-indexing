@@ -1,7 +1,0 @@
-dist
-node_modules
-test/fixtures
-playground/*
-
-saas
-.unlighthouse

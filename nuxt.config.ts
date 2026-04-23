@@ -1,88 +1,190 @@
+import type { OAuthPoolToken } from './app/types'
+import { resolve } from 'path'
+import { globbySync } from 'globby'
 import { env } from 'std-env'
-import { hash } from 'ohash'
-import type { OAuthPoolToken } from '~/types'
 
-let tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : []
-const privateTokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_PRIVATE_POOL ? JSON.parse(env.NUXT_OAUTH_PRIVATE_POOL) : []
+const tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
+
+// read all the folders at the server/app path
+const recursiveServerAppFolders = globbySync('**/*', {
+  cwd: resolve('./server/app'),
+  onlyDirectories: true,
+  deep: 4,
+  absolute: true,
+})
 
 export default defineNuxtConfig({
-  extends: ['@nuxt/ui-pro'],
   modules: [
     'nuxt-auth-utils',
     'dayjs-nuxt',
     '@nuxt/image',
     '@nuxt/ui',
-    '@nuxtjs/fontaine',
-    '@nuxtjs/google-fonts',
     '@vueuse/nuxt',
+    '@nuxt/content',
     '@nuxtjs/seo',
+    '@nuxt/scripts',
+    'nitro-cloudflare-dev',
     (_, nuxt) => {
-      // seed the main tokens if there isn't a pool available
-      if (tokens.length === 0) {
-        tokens = [{
-          label: 'primary',
-          client_id: env.NUXT_OAUTH_GOOGLE_CLIENT_ID!,
-          client_secret: env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET!,
-        }]
-      }
       nuxt.options.nitro!.virtual = nuxt.options.nitro!.virtual || {}
-      nuxt.options.nitro.virtual['#app/token-pool.mjs']
-        = [
-          `export const tokens = ${JSON.stringify(tokens.map((t) => {
-            t.id = t.id || hash(t)
-            return t
-          }))}`,
-          `export const privateTokens = ${JSON.stringify(privateTokens.map((t) => {
-            t.id = t.id || hash(t)
-            return t
-          }))}`,
-        ].join('\n')
+      nuxt.options.nitro.virtual['#app/token-pool.mjs'] = `export const tokens = ${JSON.stringify(tokens)}`
     },
+    '@nuxt/fonts',
   ],
-  runtimeConfig: {
-    key: '', // .env NUXT_KEY
-    session: {
-      cookie: {
-        maxAge: 60 * 60 * 24 * 90, // 3mo
-      },
-    },
-    postmark: {
-      apiKey: '', // .env NUXT_POSTMARK_API_KEY
-    },
-    public: {
-      features: {
-        keyLogin: false,
-        crawler: false,
-      },
-      indexing: {
-        usageLimitPerUser: 15,
-      },
-    },
-    indexing: {
-      maxUsersPerOAuth: 15, // we over provision slightly (25 over),
+
+  compatibilityDate: '2026-03-03',
+
+  css: ['~/assets/css/main.css'],
+
+  hooks: {
+    'nitro:config': function (config) {
+      config.typescript = config.typescript || {}
+      config.typescript.tsConfig = config.typescript.tsConfig || {}
+      config.typescript.tsConfig.include = config.typescript.tsConfig.include || []
+      config.typescript.tsConfig.include.push(resolve('./server/hooks.d.ts'))
     },
   },
-  nitro: {
-    vercel: {
-      functions: {
-        maxDuration: 90, // second timeout for API calls
+
+  site: {
+    url: 'https://requestindexing.com',
+    name: 'Request Indexing',
+    description: 'Monitor and request Google indexing for your pages',
+    defaultLocale: 'en',
+    indexable: true,
+  },
+
+  sitemap: {
+    exclude: [
+      '/dashboard/**',
+      '/api/**',
+      '/auth/**',
+    ],
+  },
+
+  robots: {
+    disallow: [
+      '/dashboard/**',
+      '/api/**',
+      '/auth/**',
+    ],
+  },
+
+  schemaOrg: {
+    identity: {
+      type: 'Organization',
+      name: 'Request Indexing',
+      logo: '/favicon.svg',
+    },
+  },
+
+  content: {
+    build: {
+      markdown: {
+        highlight: {
+          theme: { default: 'github-light', dark: 'github-dark' },
+          langs: ['typescript', 'javascript', 'python', 'bash', 'json', 'yaml'],
+        },
       },
     },
-    devStorage: {
-      app: {
-        base: '.db',
-        driver: 'fs',
+  },
+
+  linkChecker: {
+    enabled: false,
+    runOnBuild: false,
+  },
+
+  seo: {
+    redirectToCanonicalSiteUrl: false,
+  },
+
+  devtools: { enabled: true },
+
+  routeRules: {
+    '/dashboard/**': { prerender: false },
+    '/account/**': { prerender: false },
+    '/auth/**': { prerender: false },
+    '/api/**': { prerender: false },
+    '/ws/**': { prerender: false },
+  },
+
+  nitro: {
+    alias: {
+      '~/server': resolve('./server'),
+    },
+    prerender: {
+      crawlLinks: true,
+      routes: ['/'],
+      failOnError: false,
+    },
+    preset: 'cloudflare-durable',
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true,
+      wrangler: {
+        name: 'request-indexing',
+        compatibility_date: '2025-01-15',
+        observability: {
+          enabled: true,
+          head_sampling_rate: 1,
+        },
+        logpush: true,
+        triggers: {
+          crons: ['0 0 * * *'], // Daily at midnight UTC
+        },
+        vars: {
+          NUXT_PUBLIC_BASE_URL: 'https://requestindexing.com',
+        },
+        durable_objects: {
+          bindings: [
+            { name: '$DurableObject', class_name: '$DurableObject' },
+          ],
+        },
+        migrations: [
+          { tag: 'v1', new_classes: ['$DurableObject'] },
+        ],
+        queues: {
+          producers: [
+            { queue: 'ri-default', binding: 'QUEUE_DEFAULT' },
+            { queue: 'ri-psi', binding: 'QUEUE_PSI' },
+            { queue: 'ri-dlq', binding: 'QUEUE_DLQ' },
+          ],
+          consumers: [
+            { queue: 'ri-default', max_batch_size: 1, max_batch_timeout: 10, max_concurrency: 5, max_retries: 5, dead_letter_queue: 'ri-dlq' },
+            { queue: 'ri-psi', max_batch_size: 1, max_batch_timeout: 30, max_concurrency: 3, max_retries: 3, dead_letter_queue: 'ri-dlq' },
+            { queue: 'ri-dlq', max_batch_size: 1, max_batch_timeout: 60, max_concurrency: 1, max_retries: 3 },
+          ],
+        },
       },
     },
     storage: {
-      app: {
-        driver: 'vercelKV',
-      },
+      cache: { driver: 'cloudflare-kv-binding', binding: 'CACHE' },
+    },
+    devStorage: {
+      cache: { driver: 'memory' },
+    },
+    sourceMap: false,
+    experimental: {
+      asyncContext: true,
+      websocket: true,
+      tasks: true,
+    },
+    scheduledTasks: {
+      '0 0 * * *': ['sync.daily'],
+    },
+    imports: {
+      dirs: recursiveServerAppFolders,
+    },
+    externals: {
+      inline: ['drizzle-orm'],
     },
   },
-  ui: {
-    icons: ['heroicons', 'simple-icons', 'ph'],
+
+  icon: {
+    serverBundle: 'remote',
+    clientBundle: {
+      scan: true,
+    },
   },
+
   app: {
     pageTransition: {
       name: 'page',
@@ -108,25 +210,47 @@ export default defineNuxtConfig({
       ],
     },
   },
-  site: {
-    name: 'Request Indexing',
-    url: 'requestindexing.com',
-  },
-  // Fonts
-  fontMetrics: {
-    fonts: ['DM Sans'],
-  },
-  googleFonts: {
-    display: 'swap',
-    download: true,
-    families: {
-      'DM+Sans': [300, 400, 500, 600, 700],
-    },
-  },
+
   dayjs: {
     locales: ['en'],
-    plugins: ['relativeTime', 'utc'],
+    plugins: ['relativeTime', 'utc', 'isSameOrBefore', 'advancedFormat'],
     defaultLocale: 'en',
   },
-  devtools: { enabled: true },
+
+  runtimeConfig: {
+    key: '', // .env NUXT_KEY
+    session: {
+      cookie: {
+        maxAge: 60 * 60 * 24 * 90, // 3mo
+      },
+    },
+    google: {
+      adsCustomerId: '',
+      adsApiToken: '',
+      cruxApiToken: '',
+      adsClientId: '',
+      adsClientSecret: '',
+      adsRefreshToken: '',
+    },
+    postmark: {
+      apiKey: '',
+    },
+    gscdump: {
+      apiKey: '',
+      webhookSecret: '',
+    },
+    dataforseo: {
+      login: '',
+      password: '',
+    },
+    public: {
+      baseUrl: 'https://requestindexing.com',
+      indexing: {
+        usageLimitPerUser: 15,
+      },
+    },
+    indexing: {
+      maxUsersPerOAuth: 100,
+    },
+  },
 })

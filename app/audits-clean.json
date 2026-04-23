@@ -1,0 +1,767 @@
+{
+  "empty-heading": {
+    "id": "empty-heading",
+    "title": "All heading elements contain content.",
+    "description": "A heading with no content or inaccessible text prevent screen reader users from accessing information on the page's structure. [Learn more about headings](https://dequeuniversity.com/rules/axe/4.9/empty-heading)."
+  },
+  "object-alt": {
+    "id": "object-alt",
+    "title": "`<object>` elements have alternate text",
+    "description": "Screen readers cannot translate non-text content. Adding alternate text to `<object>` elements helps screen readers convey meaning to users. [Learn more about alt text for `object` elements](https://dequeuniversity.com/rules/axe/4.9/object-alt)."
+  },
+  "html-xml-lang-mismatch": {
+    "id": "html-xml-lang-mismatch",
+    "title": "`<html>` element has an `[xml:lang]` attribute with the same base language as the `[lang]` attribute.",
+    "description": "If the webpage does not specify a consistent language, then the screen reader might not announce the page's text correctly. [Learn more about the `lang` attribute](https://dequeuniversity.com/rules/axe/4.9/html-xml-lang-mismatch)."
+  },
+  "image-alt": {
+    "id": "image-alt",
+    "title": "Image elements have `[alt]` attributes",
+    "description": "Informative elements should aim for short, descriptive alternate text. Decorative elements can be ignored with an empty alt attribute. [Learn more about the `alt` attribute](https://dequeuniversity.com/rules/axe/4.9/image-alt)."
+  },
+  "third-party-summary": {
+    "id": "third-party-summary",
+    "title": "Minimize third-party usage",
+    "description": "Third-party code can significantly impact load performance. Limit the number of redundant third-party providers and try to load third-party code after your page has primarily finished loading. [Learn how to minimize third-party impact](https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/loading-third-party-javascript/)."
+  },
+  "network-requests": {
+    "id": "network-requests",
+    "title": "Network Requests",
+    "description": "Lists the network requests that were made during page load."
+  },
+  "label": {
+    "id": "label",
+    "title": "Form elements have associated labels",
+    "description": "Labels ensure that form controls are announced properly by assistive technologies, like screen readers. [Learn more about form element labels](https://dequeuniversity.com/rules/axe/4.9/label)."
+  },
+  "tabindex": {
+    "id": "tabindex",
+    "title": "No element has a `[tabindex]` value greater than 0",
+    "description": "A value greater than 0 implies an explicit navigation ordering. Although technically valid, this often creates frustrating experiences for users who rely on assistive technologies. [Learn more about the `tabindex` attribute](https://dequeuniversity.com/rules/axe/4.9/tabindex)."
+  },
+  "critical-request-chains": {
+    "id": "critical-request-chains",
+    "title": "Avoid chaining critical requests",
+    "description": "The Critical Request Chains below show you what resources are loaded with a high priority. Consider reducing the length of chains, reducing the download size of resources, or deferring the download of unnecessary resources to improve page load. [Learn how to avoid chaining critical requests](https://developer.chrome.com/docs/lighthouse/performance/critical-request-chains/)."
+  },
+  "video-caption": {
+    "id": "video-caption",
+    "title": "`<video>` elements contain a `<track>` element with `[kind=\"captions\"]`",
+    "description": "When a video provides a caption it is easier for deaf and hearing impaired users to access its information. [Learn more about video captions](https://dequeuniversity.com/rules/axe/4.9/video-caption)."
+  },
+  "aria-input-field-name": {
+    "id": "aria-input-field-name",
+    "title": "ARIA input fields have accessible names",
+    "description": "When an input field doesn't have an accessible name, screen readers announce it with a generic name, making it unusable for users who rely on screen readers. [Learn more about input field labels](https://dequeuniversity.com/rules/axe/4.9/aria-input-field-name)."
+  },
+  "aria-conditional-attr": {
+    "id": "aria-conditional-attr",
+    "title": "ARIA attributes are used as specified for the element's role",
+    "description": "Some ARIA attributes are only allowed on an element under certain conditions. [Learn more about conditional ARIA attributes](https://dequeuniversity.com/rules/axe/4.9/aria-conditional-attr)."
+  },
+  "aria-roles": {
+    "id": "aria-roles",
+    "title": "`[role]` values are valid",
+    "description": "ARIA roles must have valid values in order to perform their intended accessibility functions. [Learn more about valid ARIA roles](https://dequeuniversity.com/rules/axe/4.9/aria-roles)."
+  },
+  "csp-xss": {
+    "id": "csp-xss",
+    "title": "Ensure CSP is effective against XSS attacks",
+    "description": "A strong Content Security Policy (CSP) significantly reduces the risk of cross-site scripting (XSS) attacks. [Learn how to use a CSP to prevent XSS](https://developer.chrome.com/docs/lighthouse/best-practices/csp-xss/)"
+  },
+  "image-size-responsive": {
+    "id": "image-size-responsive",
+    "title": "Serves images with appropriate resolution",
+    "description": "Image natural dimensions should be proportional to the display size and the pixel ratio to maximize image clarity. [Learn how to provide responsive images](https://web.dev/articles/serve-responsive-images)."
+  },
+  "aria-deprecated-role": {
+    "id": "aria-deprecated-role",
+    "title": "Deprecated ARIA roles were not used",
+    "description": "Deprecated ARIA roles may not be processed correctly by assistive technology. [Learn more about deprecated ARIA roles](https://dequeuniversity.com/rules/axe/4.9/aria-deprecated-role)."
+  },
+  "select-name": {
+    "id": "select-name",
+    "title": "Select elements have associated label elements.",
+    "description": "Form elements without effective labels can create frustrating experiences for screen reader users. [Learn more about the `select` element](https://dequeuniversity.com/rules/axe/4.9/select-name)."
+  },
+  "aria-treeitem-name": {
+    "id": "aria-treeitem-name",
+    "title": "ARIA `treeitem` elements have accessible names",
+    "description": "When a `treeitem` element doesn't have an accessible name, screen readers announce it with a generic name, making it unusable for users who rely on screen readers. [Learn more about labeling `treeitem` elements](https://dequeuniversity.com/rules/axe/4.9/aria-treeitem-name)."
+  },
+  "definition-list": {
+    "id": "definition-list",
+    "title": "`<dl>`'s contain only properly-ordered `<dt>` and `<dd>` groups, `<script>`, `<template>` or `<div>` elements.",
+    "description": "When definition lists are not properly marked up, screen readers may produce confusing or inaccurate output. [Learn how to structure definition lists correctly](https://dequeuniversity.com/rules/axe/4.9/definition-list)."
+  },
+  "uses-text-compression": {
+    "id": "uses-text-compression",
+    "title": "Enable text compression",
+    "description": "Text-based resources should be served with compression (gzip, deflate or brotli) to minimize total network bytes. [Learn more about text compression](https://developer.chrome.com/docs/lighthouse/performance/uses-text-compression/)."
+  },
+  "offscreen-images": {
+    "id": "offscreen-images",
+    "title": "Defer offscreen images",
+    "description": "Consider lazy-loading offscreen and hidden images after all critical resources have finished loading to lower time to interactive. [Learn how to defer offscreen images](https://developer.chrome.com/docs/lighthouse/performance/offscreen-images/)."
+  },
+  "aria-valid-attr": {
+    "id": "aria-valid-attr",
+    "title": "`[aria-*]` attributes are valid and not misspelled",
+    "description": "Assistive technologies, like screen readers, can't interpret ARIA attributes with invalid names. [Learn more about valid ARIA attributes](https://dequeuniversity.com/rules/axe/4.9/aria-valid-attr)."
+  },
+  "geolocation-on-start": {
+    "id": "geolocation-on-start",
+    "title": "Avoids requesting the geolocation permission on page load",
+    "description": "Users are mistrustful of or confused by sites that request their location without context. Consider tying the request to a user action instead. [Learn more about the geolocation permission](https://developer.chrome.com/docs/lighthouse/best-practices/geolocation-on-start/)."
+  },
+  "th-has-data-cells": {
+    "id": "th-has-data-cells",
+    "title": "`<th>` elements and elements with `[role=\"columnheader\"/\"rowheader\"]` have data cells they describe.",
+    "description": "Screen readers have features to make navigating tables easier. Ensuring table headers always refer to some set of cells may improve the experience for screen reader users. [Learn more about table headers](https://dequeuniversity.com/rules/axe/4.9/th-has-data-cells)."
+  },
+  "prioritize-lcp-image": {
+    "id": "prioritize-lcp-image",
+    "title": "Preload Largest Contentful Paint image",
+    "description": "If the LCP element is dynamically added to the page, you should preload the image in order to improve LCP. [Learn more about preloading LCP elements](https://web.dev/articles/optimize-lcp#optimize_when_the_resource_is_discovered)."
+  },
+  "meta-refresh": {
+    "id": "meta-refresh",
+    "title": "The document does not use `<meta http-equiv=\"refresh\">`",
+    "description": "Users do not expect a page to refresh automatically, and doing so will move focus back to the top of the page. This may create a frustrating or confusing experience. [Learn more about the refresh meta tag](https://dequeuniversity.com/rules/axe/4.9/meta-refresh)."
+  },
+  "skip-link": {
+    "id": "skip-link",
+    "title": "Skip links are focusable.",
+    "description": "Including a skip link can help users skip to the main content to save time. [Learn more about skip links](https://dequeuniversity.com/rules/axe/4.9/skip-link)."
+  },
+  "long-tasks": {
+    "id": "long-tasks",
+    "title": "Avoid long main-thread tasks",
+    "description": "Lists the longest tasks on the main thread, useful for identifying worst contributors to input delay. [Learn how to avoid long main-thread tasks](https://web.dev/articles/long-tasks-devtools)"
+  },
+  "render-blocking-resources": {
+    "id": "render-blocking-resources",
+    "title": "Eliminate render-blocking resources",
+    "description": "Resources are blocking the first paint of your page. Consider delivering critical JS/CSS inline and deferring all non-critical JS/styles. [Learn how to eliminate render-blocking resources](https://developer.chrome.com/docs/lighthouse/performance/render-blocking-resources/)."
+  },
+  "efficient-animated-content": {
+    "id": "efficient-animated-content",
+    "title": "Use video formats for animated content",
+    "description": "Large GIFs are inefficient for delivering animated content. Consider using MPEG4/WebM videos for animations and PNG/WebP for static images instead of GIF to save network bytes. [Learn more about efficient video formats](https://developer.chrome.com/docs/lighthouse/performance/efficient-animated-content/)"
+  },
+  "uses-optimized-images": {
+    "id": "uses-optimized-images",
+    "title": "Efficiently encode images",
+    "description": "Optimized images load faster and consume less cellular data. [Learn how to efficiently encode images](https://developer.chrome.com/docs/lighthouse/performance/uses-optimized-images/)."
+  },
+  "dlitem": {
+    "id": "dlitem",
+    "title": "Definition list items are wrapped in `<dl>` elements",
+    "description": "Definition list items (`<dt>` and `<dd>`) must be wrapped in a parent `<dl>` element to ensure that screen readers can properly announce them. [Learn how to structure definition lists correctly](https://dequeuniversity.com/rules/axe/4.9/dlitem)."
+  },
+  "modern-image-formats": {
+    "id": "modern-image-formats",
+    "title": "Serve images in next-gen formats",
+    "description": "Image formats like WebP and AVIF often provide better compression than PNG or JPEG, which means faster downloads and less data consumption. [Learn more about modern image formats](https://developer.chrome.com/docs/lighthouse/performance/uses-webp-images/)."
+  },
+  "target-size": {
+    "id": "target-size",
+    "title": "Touch targets have sufficient size and spacing.",
+    "description": "Touch targets with sufficient size and spacing help users who may have difficulty targeting small controls to activate the targets. [Learn more about touch targets](https://dequeuniversity.com/rules/axe/4.9/target-size)."
+  },
+  "no-document-write": {
+    "id": "no-document-write",
+    "title": "Avoids `document.write()`",
+    "description": "For users on slow connections, external scripts dynamically injected via `document.write()` can delay page load by tens of seconds. [Learn how to avoid document.write()](https://developer.chrome.com/docs/lighthouse/best-practices/no-document-write/)."
+  },
+  "aria-hidden-focus": {
+    "id": "aria-hidden-focus",
+    "title": "`[aria-hidden=\"true\"]` elements do not contain focusable descendents",
+    "description": "Focusable descendents within an `[aria-hidden=\"true\"]` element prevent those interactive elements from being available to users of assistive technologies like screen readers. [Learn how `aria-hidden` affects focusable elements](https://dequeuniversity.com/rules/axe/4.9/aria-hidden-focus)."
+  },
+  "diagnostics": {
+    "id": "diagnostics",
+    "title": "Diagnostics",
+    "description": "Collection of useful page vitals."
+  },
+  "dom-size": {
+    "id": "dom-size",
+    "title": "Avoids an excessive DOM size",
+    "description": "A large DOM will increase memory usage, cause longer [style calculations](https://developers.google.com/web/fundamentals/performance/rendering/reduce-the-scope-and-complexity-of-style-calculations), and produce costly [layout reflows](https://developers.google.com/speed/articles/reflow). [Learn how to avoid an excessive DOM size](https://developer.chrome.com/docs/lighthouse/performance/dom-size/)."
+  },
+  "unsized-images": {
+    "id": "unsized-images",
+    "title": "Image elements have explicit `width` and `height`",
+    "description": "Set an explicit width and height on image elements to reduce layout shifts and improve CLS. [Learn how to set image dimensions](https://web.dev/articles/optimize-cls#images_without_dimensions)"
+  },
+  "paste-preventing-inputs": {
+    "id": "paste-preventing-inputs",
+    "title": "Allows users to paste into input fields",
+    "description": "Preventing input pasting is a bad practice for the UX, and weakens security by blocking password managers.[Learn more about user-friendly input fields](https://developer.chrome.com/docs/lighthouse/best-practices/paste-preventing-inputs/)."
+  },
+  "aria-meter-name": {
+    "id": "aria-meter-name",
+    "title": "ARIA `meter` elements have accessible names",
+    "description": "When a meter element doesn't have an accessible name, screen readers announce it with a generic name, making it unusable for users who rely on screen readers. [Learn how to name `meter` elements](https://dequeuniversity.com/rules/axe/4.9/aria-meter-name)."
+  },
+  "aria-allowed-role": {
+    "id": "aria-allowed-role",
+    "title": "Values assigned to `role=\"\"` are valid ARIA roles.",
+    "description": "ARIA `role`s enable assistive technologies to know the role of each element on the web page. If the `role` values are misspelled, not existing ARIA `role` values, or abstract roles, then the purpose of the element will not be communicated to users of assistive technologies. [Learn more about ARIA roles](https://dequeuniversity.com/rules/axe/4.9/aria-allowed-role)."
+  },
+  "largest-contentful-paint-element": {
+    "id": "largest-contentful-paint-element",
+    "title": "Largest Contentful Paint element",
+    "description": "This is the largest contentful element painted within the viewport. [Learn more about the Largest Contentful Paint element](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)"
+  },
+  "script-treemap-data": {
+    "id": "script-treemap-data",
+    "title": "Script Treemap Data",
+    "description": "Used for treemap app"
+  },
+  "landmark-one-main": {
+    "id": "landmark-one-main",
+    "title": "Document has a main landmark.",
+    "description": "One main landmark helps screen reader users navigate a web page. [Learn more about landmarks](https://dequeuniversity.com/rules/axe/4.9/landmark-one-main)."
+  },
+  "use-landmarks": {
+    "id": "use-landmarks",
+    "title": "HTML5 landmark elements are used to improve navigation",
+    "description": "Landmark elements (`<main>`, `<nav>`, etc.) are used to improve the keyboard navigation of the page for assistive technology. [Learn more about landmark elements](https://developer.chrome.com/docs/lighthouse/accessibility/use-landmarks/)."
+  },
+  "notification-on-start": {
+    "id": "notification-on-start",
+    "title": "Avoids requesting the notification permission on page load",
+    "description": "Users are mistrustful of or confused by sites that request to send notifications without context. Consider tying the request to user gestures instead. [Learn more about responsibly getting permission for notifications](https://developer.chrome.com/docs/lighthouse/best-practices/notification-on-start/)."
+  },
+  "table-duplicate-name": {
+    "id": "table-duplicate-name",
+    "title": "Tables have different content in the summary attribute and `<caption>`.",
+    "description": "The summary attribute should describe the table structure, while `<caption>` should have the onscreen title. Accurate table mark-up helps users of screen readers. [Learn more about summary and caption](https://dequeuniversity.com/rules/axe/4.9/table-duplicate-name)."
+  },
+  "unminified-javascript": {
+    "id": "unminified-javascript",
+    "title": "Minify JavaScript",
+    "description": "Minifying JavaScript files can reduce payload sizes and script parse time. [Learn how to minify JavaScript](https://developer.chrome.com/docs/lighthouse/performance/unminified-javascript/)."
+  },
+  "td-headers-attr": {
+    "id": "td-headers-attr",
+    "title": "Cells in a `<table>` element that use the `[headers]` attribute refer to table cells within the same table.",
+    "description": "Screen readers have features to make navigating tables easier. Ensuring `<td>` cells using the `[headers]` attribute only refer to other cells in the same table may improve the experience for screen reader users. [Learn more about the `headers` attribute](https://dequeuniversity.com/rules/axe/4.9/td-headers-attr)."
+  },
+  "color-contrast": {
+    "id": "color-contrast",
+    "title": "Background and foreground colors have a sufficient contrast ratio",
+    "description": "Low-contrast text is difficult or impossible for many users to read. [Learn how to provide sufficient color contrast](https://dequeuniversity.com/rules/axe/4.9/color-contrast)."
+  },
+  "listitem": {
+    "id": "listitem",
+    "title": "List items (`<li>`) are contained within `<ul>`, `<ol>` or `<menu>` parent elements",
+    "description": "Screen readers require list items (`<li>`) to be contained within a parent `<ul>`, `<ol>` or `<menu>` to be announced properly. [Learn more about proper list structure](https://dequeuniversity.com/rules/axe/4.9/listitem)."
+  },
+  "offscreen-content-hidden": {
+    "id": "offscreen-content-hidden",
+    "title": "Offscreen content is hidden from assistive technology",
+    "description": "Offscreen content is hidden with display: none or aria-hidden=true. [Learn how to properly hide offscreen content](https://developer.chrome.com/docs/lighthouse/accessibility/offscreen-content-hidden/)."
+  },
+  "custom-controls-roles": {
+    "id": "custom-controls-roles",
+    "title": "Custom controls have ARIA roles",
+    "description": "Custom interactive controls have appropriate ARIA roles. [Learn how to add roles to custom controls](https://developer.chrome.com/docs/lighthouse/accessibility/custom-control-roles/)."
+  },
+  "list": {
+    "id": "list",
+    "title": "Lists contain only `<li>` elements and script supporting elements (`<script>` and `<template>`).",
+    "description": "Screen readers have a specific way of announcing lists. Ensuring proper list structure aids screen reader output. [Learn more about proper list structure](https://dequeuniversity.com/rules/axe/4.9/list)."
+  },
+  "aria-allowed-attr": {
+    "id": "aria-allowed-attr",
+    "title": "`[aria-*]` attributes match their roles",
+    "description": "Each ARIA `role` supports a specific subset of `aria-*` attributes. Mismatching these invalidates the `aria-*` attributes. [Learn how to match ARIA attributes to their roles](https://dequeuniversity.com/rules/axe/4.9/aria-allowed-attr)."
+  },
+  "is-crawlable": {
+    "id": "is-crawlable",
+    "title": "Page isn’t blocked from indexing",
+    "description": "Search engines are unable to include your pages in search results if they don't have permission to crawl them. [Learn more about crawler directives](https://developer.chrome.com/docs/lighthouse/seo/is-crawlable/)."
+  },
+  "uses-long-cache-ttl": {
+    "id": "uses-long-cache-ttl",
+    "title": "Uses efficient cache policy on static assets",
+    "description": "A long cache lifetime can speed up repeat visits to your page. [Learn more about efficient cache policies](https://developer.chrome.com/docs/lighthouse/performance/uses-long-cache-ttl/)."
+  },
+  "aria-prohibited-attr": {
+    "id": "aria-prohibited-attr",
+    "title": "Elements use only permitted ARIA attributes",
+    "description": "Using ARIA attributes in roles where they are prohibited can mean that important information is not communicated to users of assistive technologies. [Learn more about prohibited ARIA roles](https://dequeuniversity.com/rules/axe/4.9/aria-prohibited-attr)."
+  },
+  "table-fake-caption": {
+    "id": "table-fake-caption",
+    "title": "Tables use `<caption>` instead of cells with the `[colspan]` attribute to indicate a caption.",
+    "description": "Screen readers have features to make navigating tables easier. Ensuring that tables use the actual caption element instead of cells with the `[colspan]` attribute may improve the experience for screen reader users. [Learn more about captions](https://dequeuniversity.com/rules/axe/4.9/table-fake-caption)."
+  },
+  "font-display": {
+    "id": "font-display",
+    "title": "All text remains visible during webfont loads",
+    "description": "Leverage the `font-display` CSS feature to ensure text is user-visible while webfonts are loading. [Learn more about `font-display`](https://developer.chrome.com/docs/lighthouse/performance/font-display/)."
+  },
+  "legacy-javascript": {
+    "id": "legacy-javascript",
+    "title": "Avoid serving legacy JavaScript to modern browsers",
+    "description": "Polyfills and transforms enable legacy browsers to use new JavaScript features. However, many aren't necessary for modern browsers. For your bundled JavaScript, adopt a modern script deployment strategy using module/nomodule feature detection to reduce the amount of code shipped to modern browsers, while retaining support for legacy browsers. [Learn how to use modern JavaScript](https://web.dev/articles/publish-modern-javascript)"
+  },
+  "bypass": {
+    "id": "bypass",
+    "title": "The page contains a heading, skip link, or landmark region",
+    "description": "Adding ways to bypass repetitive content lets keyboard users navigate the page more efficiently. [Learn more about bypass blocks](https://dequeuniversity.com/rules/axe/4.9/bypass)."
+  },
+  "doctype": {
+    "id": "doctype",
+    "title": "Page has the HTML doctype",
+    "description": "Specifying a doctype prevents the browser from switching to quirks-mode. [Learn more about the doctype declaration](https://developer.chrome.com/docs/lighthouse/best-practices/doctype/)."
+  },
+  "viewport": {
+    "id": "viewport",
+    "title": "Has a `<meta name=\"viewport\">` tag with `width` or `initial-scale`",
+    "description": "A `<meta name=\"viewport\">` not only optimizes your app for mobile screen sizes, but also prevents [a 300 millisecond delay to user input](https://developer.chrome.com/blog/300ms-tap-delay-gone-away/). [Learn more about using the viewport meta tag](https://developer.chrome.com/docs/lighthouse/pwa/viewport/)."
+  },
+  "focus-traps": {
+    "id": "focus-traps",
+    "title": "User focus is not accidentally trapped in a region",
+    "description": "A user can tab into and out of any control or region without accidentally trapping their focus. [Learn how to avoid focus traps](https://developer.chrome.com/docs/lighthouse/accessibility/focus-traps/)."
+  },
+  "identical-links-same-purpose": {
+    "id": "identical-links-same-purpose",
+    "title": "Identical links have the same purpose.",
+    "description": "Links with the same destination should have the same description, to help users understand the link's purpose and decide whether to follow it. [Learn more about identical links](https://dequeuniversity.com/rules/axe/4.9/identical-links-same-purpose)."
+  },
+  "is-on-https": {
+    "id": "is-on-https",
+    "title": "Uses HTTPS",
+    "description": "All sites should be protected with HTTPS, even ones that don't handle sensitive data. This includes avoiding [mixed content](https://developers.google.com/web/fundamentals/security/prevent-mixed-content/what-is-mixed-content), where some resources are loaded over HTTP despite the initial request being served over HTTPS. HTTPS prevents intruders from tampering with or passively listening in on the communications between your app and your users, and is a prerequisite for HTTP/2 and many new web platform APIs. [Learn more about HTTPS](https://developer.chrome.com/docs/lighthouse/pwa/is-on-https/)."
+  },
+  "robots-txt": {
+    "id": "robots-txt",
+    "title": "robots.txt is valid",
+    "description": "If your robots.txt file is malformed, crawlers may not be able to understand how you want your website to be crawled or indexed. [Learn more about robots.txt](https://developer.chrome.com/docs/lighthouse/seo/invalid-robots-txt/)."
+  },
+  "aria-text": {
+    "id": "aria-text",
+    "title": "Elements with the `role=text` attribute do not have focusable descendents.",
+    "description": "Adding `role=text` around a text node split by markup enables VoiceOver to treat it as one phrase, but the element's focusable descendents will not be announced. [Learn more about the `role=text` attribute](https://dequeuniversity.com/rules/axe/4.9/aria-text)."
+  },
+  "html-lang-valid": {
+    "id": "html-lang-valid",
+    "title": "`<html>` element has a valid value for its `[lang]` attribute",
+    "description": "Specifying a valid [BCP 47 language](https://www.w3.org/International/questions/qa-choosing-language-tags#question) helps screen readers announce text properly. [Learn how to use the `lang` attribute](https://dequeuniversity.com/rules/axe/4.9/html-lang-valid)."
+  },
+  "managed-focus": {
+    "id": "managed-focus",
+    "title": "The user's focus is directed to new content added to the page",
+    "description": "If new content, such as a dialog, is added to the page, the user's focus is directed to it. [Learn how to direct focus to new content](https://developer.chrome.com/docs/lighthouse/accessibility/managed-focus/)."
+  },
+  "max-potential-fid": {
+    "id": "max-potential-fid",
+    "title": "Max Potential First Input Delay",
+    "description": "The maximum potential First Input Delay that your users could experience is the duration of the longest task. [Learn more about the Maximum Potential First Input Delay metric](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-max-potential-fid/)."
+  },
+  "aria-hidden-body": {
+    "id": "aria-hidden-body",
+    "title": "`[aria-hidden=\"true\"]` is not present on the document `<body>`",
+    "description": "Assistive technologies, like screen readers, work inconsistently when `aria-hidden=\"true\"` is set on the document `<body>`. [Learn how `aria-hidden` affects the document body](https://dequeuniversity.com/rules/axe/4.9/aria-hidden-body)."
+  },
+  "total-blocking-time": {
+    "id": "total-blocking-time",
+    "title": "Total Blocking Time",
+    "description": "Sum of all time periods between FCP and Time to Interactive, when task length exceeded 50ms, expressed in milliseconds. [Learn more about the Total Blocking Time metric](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-total-blocking-time/)."
+  },
+  "resource-summary": {
+    "id": "resource-summary",
+    "title": "Resources Summary",
+    "description": "Aggregates all network requests and groups them by type"
+  },
+  "screenshot-thumbnails": {
+    "id": "screenshot-thumbnails",
+    "title": "Screenshot Thumbnails",
+    "description": "This is what the load of your site looked like."
+  },
+  "mainthread-work-breakdown": {
+    "id": "mainthread-work-breakdown",
+    "title": "Minimizes main-thread work",
+    "description": "Consider reducing the time spent parsing, compiling and executing JS. You may find delivering smaller JS payloads helps with this. [Learn how to minimize main-thread work](https://developer.chrome.com/docs/lighthouse/performance/mainthread-work-breakdown/)"
+  },
+  "logical-tab-order": {
+    "id": "logical-tab-order",
+    "title": "The page has a logical tab order",
+    "description": "Tabbing through the page follows the visual layout. Users cannot focus elements that are offscreen. [Learn more about logical tab ordering](https://developer.chrome.com/docs/lighthouse/accessibility/logical-tab-order/)."
+  },
+  "button-name": {
+    "id": "button-name",
+    "title": "Buttons have an accessible name",
+    "description": "When a button doesn't have an accessible name, screen readers announce it as \"button\", making it unusable for users who rely on screen readers. [Learn how to make buttons more accessible](https://dequeuniversity.com/rules/axe/4.9/button-name)."
+  },
+  "aria-progressbar-name": {
+    "id": "aria-progressbar-name",
+    "title": "ARIA `progressbar` elements have accessible names",
+    "description": "When a `progressbar` element doesn't have an accessible name, screen readers announce it with a generic name, making it unusable for users who rely on screen readers. [Learn how to label `progressbar` elements](https://dequeuniversity.com/rules/axe/4.9/aria-progressbar-name)."
+  },
+  "form-field-multiple-labels": {
+    "id": "form-field-multiple-labels",
+    "title": "No form fields have multiple labels",
+    "description": "Form fields with multiple labels can be confusingly announced by assistive technologies like screen readers which use either the first, the last, or all of the labels. [Learn how to use form labels](https://dequeuniversity.com/rules/axe/4.9/form-field-multiple-labels)."
+  },
+  "server-response-time": {
+    "id": "server-response-time",
+    "title": "Initial server response time was short",
+    "description": "Keep the server response time for the main document short because all other requests depend on it. [Learn more about the Time to First Byte metric](https://developer.chrome.com/docs/lighthouse/performance/time-to-first-byte/)."
+  },
+  "duplicate-id-aria": {
+    "id": "duplicate-id-aria",
+    "title": "ARIA IDs are unique",
+    "description": "The value of an ARIA ID must be unique to prevent other instances from being overlooked by assistive technologies. [Learn how to fix duplicate ARIA IDs](https://dequeuniversity.com/rules/axe/4.9/duplicate-id-aria)."
+  },
+  "js-libraries": {
+    "id": "js-libraries",
+    "title": "Detected JavaScript libraries",
+    "description": "All front-end JavaScript libraries detected on the page. [Learn more about this JavaScript library detection diagnostic audit](https://developer.chrome.com/docs/lighthouse/best-practices/js-libraries/)."
+  },
+  "user-timings": {
+    "id": "user-timings",
+    "title": "User Timing marks and measures",
+    "description": "Consider instrumenting your app with the User Timing API to measure your app's real-world performance during key user experiences. [Learn more about User Timing marks](https://developer.chrome.com/docs/lighthouse/performance/user-timings/)."
+  },
+  "uses-passive-event-listeners": {
+    "id": "uses-passive-event-listeners",
+    "title": "Uses passive listeners to improve scrolling performance",
+    "description": "Consider marking your touch and wheel event listeners as `passive` to improve your page's scroll performance. [Learn more about adopting passive event listeners](https://developer.chrome.com/docs/lighthouse/best-practices/uses-passive-event-listeners/)."
+  },
+  "focusable-controls": {
+    "id": "focusable-controls",
+    "title": "Interactive controls are keyboard focusable",
+    "description": "Custom interactive controls are keyboard focusable and display a focus indicator. [Learn how to make custom controls focusable](https://developer.chrome.com/docs/lighthouse/accessibility/focusable-controls/)."
+  },
+  "html-has-lang": {
+    "id": "html-has-lang",
+    "title": "`<html>` element has a `[lang]` attribute",
+    "description": "If a page doesn't specify a `lang` attribute, a screen reader assumes that the page is in the default language that the user chose when setting up the screen reader. If the page isn't actually in the default language, then the screen reader might not announce the page's text correctly. [Learn more about the `lang` attribute](https://dequeuniversity.com/rules/axe/4.9/html-has-lang)."
+  },
+  "aria-required-parent": {
+    "id": "aria-required-parent",
+    "title": "`[role]`s are contained by their required parent element",
+    "description": "Some ARIA child roles must be contained by specific parent roles to properly perform their intended accessibility functions. [Learn more about ARIA roles and required parent element](https://dequeuniversity.com/rules/axe/4.9/aria-required-parent)."
+  },
+  "duplicated-javascript": {
+    "id": "duplicated-javascript",
+    "title": "Remove duplicate modules in JavaScript bundles",
+    "description": "Remove large, duplicate JavaScript modules from bundles to reduce unnecessary bytes consumed by network activity. "
+  },
+  "network-rtt": {
+    "id": "network-rtt",
+    "title": "Network Round Trip Times",
+    "description": "Network round trip times (RTT) have a large impact on performance. If the RTT to an origin is high, it's an indication that servers closer to the user could improve performance. [Learn more about the Round Trip Time](https://hpbn.co/primer-on-latency-and-bandwidth/)."
+  },
+  "non-composited-animations": {
+    "id": "non-composited-animations",
+    "title": "Avoid non-composited animations",
+    "description": "Animations which are not composited can be janky and increase CLS. [Learn how to avoid non-composited animations](https://developer.chrome.com/docs/lighthouse/performance/non-composited-animations/)"
+  },
+  "frame-title": {
+    "id": "frame-title",
+    "title": "`<frame>` or `<iframe>` elements have a title",
+    "description": "Screen reader users rely on frame titles to describe the contents of frames. [Learn more about frame titles](https://dequeuniversity.com/rules/axe/4.9/frame-title)."
+  },
+  "td-has-header": {
+    "id": "td-has-header",
+    "title": "`<td>` elements in a large `<table>` have one or more table headers.",
+    "description": "Screen readers have features to make navigating tables easier. Ensuring that `<td>` elements in a large table (3 or more cells in width and height) have an associated table header may improve the experience for screen reader users. [Learn more about table headers](https://dequeuniversity.com/rules/axe/4.9/td-has-header)."
+  },
+  "cumulative-layout-shift": {
+    "id": "cumulative-layout-shift",
+    "title": "Cumulative Layout Shift",
+    "description": "Cumulative Layout Shift measures the movement of visible elements within the viewport. [Learn more about the Cumulative Layout Shift metric](https://web.dev/articles/cls)."
+  },
+  "unminified-css": {
+    "id": "unminified-css",
+    "title": "Minify CSS",
+    "description": "Minifying CSS files can reduce network payload sizes. [Learn how to minify CSS](https://developer.chrome.com/docs/lighthouse/performance/unminified-css/)."
+  },
+  "first-contentful-paint": {
+    "id": "first-contentful-paint",
+    "title": "First Contentful Paint",
+    "description": "First Contentful Paint marks the time at which the first text or image is painted. [Learn more about the First Contentful Paint metric](https://developer.chrome.com/docs/lighthouse/performance/first-contentful-paint/)."
+  },
+  "visual-order-follows-dom": {
+    "id": "visual-order-follows-dom",
+    "title": "Visual order on the page follows DOM order",
+    "description": "DOM order matches the visual order, improving navigation for assistive technology. [Learn more about DOM and visual ordering](https://developer.chrome.com/docs/lighthouse/accessibility/visual-order-follows-dom/)."
+  },
+  "valid-lang": {
+    "id": "valid-lang",
+    "title": "`[lang]` attributes have a valid value",
+    "description": "Specifying a valid [BCP 47 language](https://www.w3.org/International/questions/qa-choosing-language-tags#question) on elements helps ensure that text is pronounced correctly by a screen reader. [Learn how to use the `lang` attribute](https://dequeuniversity.com/rules/axe/4.9/valid-lang)."
+  },
+  "image-aspect-ratio": {
+    "id": "image-aspect-ratio",
+    "title": "Displays images with correct aspect ratio",
+    "description": "Image display dimensions should match natural aspect ratio. [Learn more about image aspect ratio](https://developer.chrome.com/docs/lighthouse/best-practices/image-aspect-ratio/)."
+  },
+  "layout-shifts": {
+    "id": "layout-shifts",
+    "title": "Avoid large layout shifts",
+    "description": "These are the largest layout shifts observed on the page. Each table item represents a single layout shift, and shows the element that shifted the most. Below each item are possible root causes that led to the layout shift. Some of these layout shifts may not be included in the CLS metric value due to [windowing](https://web.dev/articles/cls#what_is_cls). [Learn how to improve CLS](https://web.dev/articles/optimize-cls)"
+  },
+  "http-status-code": {
+    "id": "http-status-code",
+    "title": "Page has successful HTTP status code",
+    "description": "Pages with unsuccessful HTTP status codes may not be indexed properly. [Learn more about HTTP status codes](https://developer.chrome.com/docs/lighthouse/seo/http-status-code/)."
+  },
+  "aria-required-children": {
+    "id": "aria-required-children",
+    "title": "Elements with an ARIA `[role]` that require children to contain a specific `[role]` have all required children.",
+    "description": "Some ARIA parent roles must contain specific child roles to perform their intended accessibility functions. [Learn more about roles and required children elements](https://dequeuniversity.com/rules/axe/4.9/aria-required-children)."
+  },
+  "aria-toggle-field-name": {
+    "id": "aria-toggle-field-name",
+    "title": "ARIA toggle fields have accessible names",
+    "description": "When a toggle field doesn't have an accessible name, screen readers announce it with a generic name, making it unusable for users who rely on screen readers. [Learn more about toggle fields](https://dequeuniversity.com/rules/axe/4.9/aria-toggle-field-name)."
+  },
+  "bootup-time": {
+    "id": "bootup-time",
+    "title": "JavaScript execution time",
+    "description": "Consider reducing the time spent parsing, compiling, and executing JS. You may find delivering smaller JS payloads helps with this. [Learn how to reduce Javascript execution time](https://developer.chrome.com/docs/lighthouse/performance/bootup-time/)."
+  },
+  "redirects": {
+    "id": "redirects",
+    "title": "Avoid multiple page redirects",
+    "description": "Redirects introduce additional delays before the page can be loaded. [Learn how to avoid page redirects](https://developer.chrome.com/docs/lighthouse/performance/redirects/)."
+  },
+  "canonical": {
+    "id": "canonical",
+    "title": "Document has a valid `rel=canonical`",
+    "description": "Canonical links suggest which URL to show in search results. [Learn more about canonical links](https://developer.chrome.com/docs/lighthouse/seo/canonical/)."
+  },
+  "structured-data": {
+    "id": "structured-data",
+    "title": "Structured data is valid",
+    "description": "Run the [Structured Data Testing Tool](https://search.google.com/structured-data/testing-tool/) and the [Structured Data Linter](http://linter.structured-data.org/) to validate structured data. [Learn more about Structured Data](https://developer.chrome.com/docs/lighthouse/seo/structured-data/)."
+  },
+  "accesskeys": {
+    "id": "accesskeys",
+    "title": "`[accesskey]` values are unique",
+    "description": "Access keys let users quickly focus a part of the page. For proper navigation, each access key must be unique. [Learn more about access keys](https://dequeuniversity.com/rules/axe/4.9/accesskeys)."
+  },
+  "final-screenshot": {
+    "id": "final-screenshot",
+    "title": "Final Screenshot",
+    "description": "The last screenshot captured of the pageload."
+  },
+  "main-thread-tasks": {
+    "id": "main-thread-tasks",
+    "title": "Tasks",
+    "description": "Lists the toplevel main thread tasks that executed during page load."
+  },
+  "inspector-issues": {
+    "id": "inspector-issues",
+    "title": "No issues in the `Issues` panel in Chrome Devtools",
+    "description": "Issues logged to the `Issues` panel in Chrome Devtools indicate unresolved problems. They can come from network request failures, insufficient security controls, and other browser concerns. Open up the Issues panel in Chrome DevTools for more details on each issue."
+  },
+  "aria-command-name": {
+    "id": "aria-command-name",
+    "title": "`button`, `link`, and `menuitem` elements have accessible names",
+    "description": "When an element doesn't have an accessible name, screen readers announce it with a generic name, making it unusable for users who rely on screen readers. [Learn how to make command elements more accessible](https://dequeuniversity.com/rules/axe/4.9/aria-command-name)."
+  },
+  "network-server-latency": {
+    "id": "network-server-latency",
+    "title": "Server Backend Latencies",
+    "description": "Server latencies can impact web performance. If the server latency of an origin is high, it's an indication the server is overloaded or has poor backend performance. [Learn more about server response time](https://hpbn.co/primer-on-web-performance/#analyzing-the-resource-waterfall)."
+  },
+  "unused-css-rules": {
+    "id": "unused-css-rules",
+    "title": "Reduce unused CSS",
+    "description": "Reduce unused rules from stylesheets and defer CSS not used for above-the-fold content to decrease bytes consumed by network activity. [Learn how to reduce unused CSS](https://developer.chrome.com/docs/lighthouse/performance/unused-css-rules/)."
+  },
+  "meta-viewport": {
+    "id": "meta-viewport",
+    "title": "`[user-scalable=\"no\"]` is not used in the `<meta name=\"viewport\">` element and the `[maximum-scale]` attribute is not less than 5.",
+    "description": "Disabling zooming is problematic for users with low vision who rely on screen magnification to properly see the contents of a web page. [Learn more about the viewport meta tag](https://dequeuniversity.com/rules/axe/4.9/meta-viewport)."
+  },
+  "deprecations": {
+    "id": "deprecations",
+    "title": "Avoids deprecated APIs",
+    "description": "Deprecated APIs will eventually be removed from the browser. [Learn more about deprecated APIs](https://developer.chrome.com/docs/lighthouse/best-practices/deprecations/)."
+  },
+  "first-meaningful-paint": {
+    "id": "first-meaningful-paint",
+    "title": "First Meaningful Paint",
+    "description": "First Meaningful Paint measures when the primary content of a page is visible. [Learn more about the First Meaningful Paint metric](https://developer.chrome.com/docs/lighthouse/performance/first-meaningful-paint/)."
+  },
+  "label-content-name-mismatch": {
+    "id": "label-content-name-mismatch",
+    "title": "Elements with visible text labels have matching accessible names.",
+    "description": "Visible text labels that do not match the accessible name can result in a confusing experience for screen reader users. [Learn more about accessible names](https://dequeuniversity.com/rules/axe/4.9/label-content-name-mismatch)."
+  },
+  "link-text": {
+    "id": "link-text",
+    "title": "Links have descriptive text",
+    "description": "Descriptive link text helps search engines understand your content. [Learn how to make links more accessible](https://developer.chrome.com/docs/lighthouse/seo/link-text/)."
+  },
+  "font-size": {
+    "id": "font-size",
+    "title": "Document uses legible font sizes",
+    "description": "Font sizes less than 12px are too small to be legible and require mobile visitors to “pinch to zoom” in order to read. Strive to have >60% of page text ≥12px. [Learn more about legible font sizes](https://developer.chrome.com/docs/lighthouse/seo/font-size/)."
+  },
+  "heading-order": {
+    "id": "heading-order",
+    "title": "Heading elements appear in a sequentially-descending order",
+    "description": "Properly ordered headings that do not skip levels convey the semantic structure of the page, making it easier to navigate and understand when using assistive technologies. [Learn more about heading order](https://dequeuniversity.com/rules/axe/4.9/heading-order)."
+  },
+  "aria-dialog-name": {
+    "id": "aria-dialog-name",
+    "title": "Elements with `role=\"dialog\"` or `role=\"alertdialog\"` have accessible names.",
+    "description": "ARIA dialog elements without accessible names may prevent screen readers users from discerning the purpose of these elements. [Learn how to make ARIA dialog elements more accessible](https://dequeuniversity.com/rules/axe/4.9/aria-dialog-name)."
+  },
+  "third-party-facades": {
+    "id": "third-party-facades",
+    "title": "Lazy load third-party resources with facades",
+    "description": "Some third-party embeds can be lazy loaded. Consider replacing them with a facade until they are required. [Learn how to defer third-parties with a facade](https://developer.chrome.com/docs/lighthouse/performance/third-party-facades/)."
+  },
+  "custom-controls-labels": {
+    "id": "custom-controls-labels",
+    "title": "Custom controls have associated labels",
+    "description": "Custom interactive controls have associated labels, provided by aria-label or aria-labelledby. [Learn more about custom controls and labels](https://developer.chrome.com/docs/lighthouse/accessibility/custom-controls-labels/)."
+  },
+  "charset": {
+    "id": "charset",
+    "title": "Properly defines charset",
+    "description": "A character encoding declaration is required. It can be done with a `<meta>` tag in the first 1024 bytes of the HTML or in the Content-Type HTTP response header. [Learn more about declaring the character encoding](https://developer.chrome.com/docs/lighthouse/best-practices/charset/)."
+  },
+  "valid-source-maps": {
+    "id": "valid-source-maps",
+    "title": "Page has valid source maps",
+    "description": "Source maps translate minified code to the original source code. This helps developers debug in production. In addition, Lighthouse is able to provide further insights. Consider deploying source maps to take advantage of these benefits. [Learn more about source maps](https://developer.chrome.com/docs/devtools/javascript/source-maps/)."
+  },
+  "input-image-alt": {
+    "id": "input-image-alt",
+    "title": "`<input type=\"image\">` elements have `[alt]` text",
+    "description": "When an image is being used as an `<input>` button, providing alternative text can help screen reader users understand the purpose of the button. [Learn about input image alt text](https://dequeuniversity.com/rules/axe/4.9/input-image-alt)."
+  },
+  "uses-responsive-images": {
+    "id": "uses-responsive-images",
+    "title": "Properly size images",
+    "description": "Serve images that are appropriately-sized to save cellular data and improve load time. [Learn how to size images](https://developer.chrome.com/docs/lighthouse/performance/uses-responsive-images/)."
+  },
+  "aria-required-attr": {
+    "id": "aria-required-attr",
+    "title": "`[role]`s have all required `[aria-*]` attributes",
+    "description": "Some ARIA roles have required attributes that describe the state of the element to screen readers. [Learn more about roles and required attributes](https://dequeuniversity.com/rules/axe/4.9/aria-required-attr)."
+  },
+  "hreflang": {
+    "id": "hreflang",
+    "title": "Document has a valid `hreflang`",
+    "description": "hreflang links tell search engines what version of a page they should list in search results for a given language or region. [Learn more about `hreflang`](https://developer.chrome.com/docs/lighthouse/seo/hreflang/)."
+  },
+  "third-party-cookies": {
+    "id": "third-party-cookies",
+    "title": "Avoids third-party cookies",
+    "description": "Support for third-party cookies will be removed in a future version of Chrome. [Learn more about phasing out third-party cookies](https://developer.chrome.com/en/docs/privacy-sandbox/third-party-cookie-phase-out/)."
+  },
+  "image-redundant-alt": {
+    "id": "image-redundant-alt",
+    "title": "Image elements do not have `[alt]` attributes that are redundant text.",
+    "description": "Informative elements should aim for short, descriptive alternative text. Alternative text that is exactly the same as the text adjacent to the link or image is potentially confusing for screen reader users, because the text will be read twice. [Learn more about the `alt` attribute](https://dequeuniversity.com/rules/axe/4.9/image-redundant-alt)."
+  },
+  "input-button-name": {
+    "id": "input-button-name",
+    "title": "Input buttons have discernible text.",
+    "description": "Adding discernable and accessible text to input buttons may help screen reader users understand the purpose of the input button. [Learn more about input buttons](https://dequeuniversity.com/rules/axe/4.9/input-button-name)."
+  },
+  "interactive-element-affordance": {
+    "id": "interactive-element-affordance",
+    "title": "Interactive elements indicate their purpose and state",
+    "description": "Interactive elements, such as links and buttons, should indicate their state and be distinguishable from non-interactive elements. [Learn how to decorate interactive elements with affordance hints](https://developer.chrome.com/docs/lighthouse/accessibility/interactive-element-affordance/)."
+  },
+  "aria-tooltip-name": {
+    "id": "aria-tooltip-name",
+    "title": "ARIA `tooltip` elements have accessible names",
+    "description": "When a tooltip element doesn't have an accessible name, screen readers announce it with a generic name, making it unusable for users who rely on screen readers. [Learn how to name `tooltip` elements](https://dequeuniversity.com/rules/axe/4.9/aria-tooltip-name)."
+  },
+  "crawlable-anchors": {
+    "id": "crawlable-anchors",
+    "title": "Links are crawlable",
+    "description": "Search engines may use `href` attributes on links to crawl websites. Ensure that the `href` attribute of anchor elements links to an appropriate destination, so more pages of the site can be discovered. [Learn how to make links crawlable](https://support.google.com/webmasters/answer/9112205)"
+  },
+  "uses-rel-preconnect": {
+    "id": "uses-rel-preconnect",
+    "title": "Preconnect to required origins",
+    "description": "Consider adding `preconnect` or `dns-prefetch` resource hints to establish early connections to important third-party origins. [Learn how to preconnect to required origins](https://developer.chrome.com/docs/lighthouse/performance/uses-rel-preconnect/)."
+  },
+  "total-byte-weight": {
+    "id": "total-byte-weight",
+    "title": "Avoids enormous network payloads",
+    "description": "Large network payloads cost users real money and are highly correlated with long load times. [Learn how to reduce payload sizes](https://developer.chrome.com/docs/lighthouse/performance/total-byte-weight/)."
+  },
+  "document-title": {
+    "id": "document-title",
+    "title": "Document has a `<title>` element",
+    "description": "The title gives screen reader users an overview of the page, and search engine users rely on it heavily to determine if a page is relevant to their search. [Learn more about document titles](https://dequeuniversity.com/rules/axe/4.9/document-title)."
+  },
+  "meta-description": {
+    "id": "meta-description",
+    "title": "Document has a meta description",
+    "description": "Meta descriptions may be included in search results to concisely summarize page content. [Learn more about the meta description](https://developer.chrome.com/docs/lighthouse/seo/meta-description/)."
+  },
+  "unused-javascript": {
+    "id": "unused-javascript",
+    "title": "Reduce unused JavaScript",
+    "description": "Reduce unused JavaScript and defer loading scripts until they are required to decrease bytes consumed by network activity. [Learn how to reduce unused JavaScript](https://developer.chrome.com/docs/lighthouse/performance/unused-javascript/)."
+  },
+  "link-name": {
+    "id": "link-name",
+    "title": "Links have a discernible name",
+    "description": "Link text (and alternate text for images, when used as links) that is discernible, unique, and focusable improves the navigation experience for screen reader users. [Learn how to make links accessible](https://dequeuniversity.com/rules/axe/4.9/link-name)."
+  },
+  "interactive": {
+    "id": "interactive",
+    "title": "Time to Interactive",
+    "description": "Time to Interactive is the amount of time it takes for the page to become fully interactive. [Learn more about the Time to Interactive metric](https://developer.chrome.com/docs/lighthouse/performance/interactive/)."
+  },
+  "lcp-lazy-loaded": {
+    "id": "lcp-lazy-loaded",
+    "title": "Largest Contentful Paint image was not lazily loaded",
+    "description": "Above-the-fold images that are lazily loaded render later in the page lifecycle, which can delay the largest contentful paint. [Learn more about optimal lazy loading](https://web.dev/articles/lcp-lazy-loading)."
+  },
+  "link-in-text-block": {
+    "id": "link-in-text-block",
+    "title": "Links are distinguishable without relying on color.",
+    "description": "Low-contrast text is difficult or impossible for many users to read. Link text that is discernible improves the experience for users with low vision. [Learn how to make links distinguishable](https://dequeuniversity.com/rules/axe/4.9/link-in-text-block)."
+  },
+  "metrics": {
+    "id": "metrics",
+    "title": "Metrics",
+    "description": "Collects all available metrics."
+  },
+  "aria-valid-attr-value": {
+    "id": "aria-valid-attr-value",
+    "title": "`[aria-*]` attributes have valid values",
+    "description": "Assistive technologies, like screen readers, can't interpret ARIA attributes with invalid values. [Learn more about valid values for ARIA attributes](https://dequeuniversity.com/rules/axe/4.9/aria-valid-attr-value)."
+  },
+  "speed-index": {
+    "id": "speed-index",
+    "title": "Speed Index",
+    "description": "Speed Index shows how quickly the contents of a page are visibly populated. [Learn more about the Speed Index metric](https://developer.chrome.com/docs/lighthouse/performance/speed-index/)."
+  },
+  "errors-in-console": {
+    "id": "errors-in-console",
+    "title": "Browser errors were logged to the console",
+    "description": "Errors logged to the console indicate unresolved problems. They can come from network request failures and other browser concerns. [Learn more about this errors in console diagnostic audit](https://developer.chrome.com/docs/lighthouse/best-practices/errors-in-console/)"
+  },
+  "largest-contentful-paint": {
+    "id": "largest-contentful-paint",
+    "title": "Largest Contentful Paint",
+    "description": "Largest Contentful Paint marks the time at which the largest text or image is painted. [Learn more about the Largest Contentful Paint metric](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)"
+  },
+  "redirects-http": {
+    "id": "redirects-http",
+    "title": "Redirects HTTP traffic to HTTPS",
+    "description": "Make sure that you redirect all HTTP traffic to HTTPS in order to enable secure web features for all your users. [Learn more](https://developer.chrome.com/docs/lighthouse/pwa/redirects-http/)."
+  }
+}

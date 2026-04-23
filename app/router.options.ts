@@ -24,7 +24,7 @@ export default <RouterConfig>{
       // Handle Suspense resolution
       return new Promise((resolve) => {
         nuxtApp.hooks.hookOnce('page:finish', () => {
-          setTimeout(() => resolve(savedPosition), 50)
+          setTimeout(resolve, 50, savedPosition)
         })
       })
     }

@@ -1,0 +1,29 @@
+skills:
+  nuxt-skilld:
+    packageName: nuxt
+    version: 4.3.0
+    repo: nuxt/nuxt
+    source: 'https://github.com/nuxt/nuxt/tree/v4.3.0/docs'
+    syncedAt: 2026-03-03
+    generator: skilld
+  nuxt-auth-utils-skilld:
+    packageName: nuxt-auth-utils
+    version: 0.5.28
+    repo: atinux/nuxt-auth-utils
+    source: 'ungh://atinux/nuxt-auth-utils'
+    syncedAt: 2026-03-03
+    generator: skilld
+  nuxt-og-image-skilld:
+    packageName: nuxt-og-image
+    version: 6.0.0-beta.46
+    repo: nuxt-modules/og-image
+    source: 'https://github.com/nuxt-modules/og-image/tree/v6.0.0-beta.46/docs'
+    syncedAt: 2026-03-03
+    generator: skilld
+  nuxt-ui-skilld:
+    packageName: '@nuxt/ui'
+    version: 4.5.1
+    repo: nuxt/ui
+    source: 'https://ui.nuxt.com/llms.txt'
+    syncedAt: 2026-03-04
+    generator: skilld

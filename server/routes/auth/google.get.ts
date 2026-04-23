@@ -1,15 +1,14 @@
-import { defu } from 'defu'
-import { getUser, getUserToken, incrementMetric, updateUserToken } from '~/server/utils/storage'
-import { googleAuthEventHandler } from '~/server/utils/auth/googleAuthEventHandler'
-import { getHashSecure } from '~/server/composables/auth'
-import type { UserSession } from '~/types'
-import { getUserQuota } from '~/server/utils/quota'
-import { sendWelcomeEmail } from '~/server/email/welcome'
+import type { CredentialRequest } from 'google-auth-library/build/src/auth/credentials'
+import type { GoogleOAuthClientsSelect } from '~/server/db/schema'
+import type { RequiredNonNullable } from '~/types/util'
+import { googleAuthEventHandler } from '~/server/app/utils/auth'
+import { googleAccounts, sessions, teams, teamUser, users } from '~/server/db/schema'
 
 export default googleAuthEventHandler({
   config: {
     redirectUrl: '/auth/google',
     scope: [
+      'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/webmasters.readonly',
     ],
@@ -18,39 +17,156 @@ export default googleAuthEventHandler({
       access_type: 'offline',
     },
   },
-  async onSuccess(event, { user: _user, tokens }) {
-    const user = _user as { sub: string, picture: string, email: string }
-    // sub is an openid claim that is unique to the user, we don't want to expose this to the client
-    const userId = `user-${getHashSecure(user.sub)}`
-    if (!(await getUser(userId))) {
-      // TODO handle sign up login (emails, etc)
-      await incrementMetric('signups')
-      await sendWelcomeEmail(event, user.email)
+  async onSuccess(event, payload) {
+    const { tokens, user: oauth, client: _client } = payload as any as {
+      client: GoogleOAuthClientsSelect
+      tokens: RequiredNonNullable<CredentialRequest>
+      user: {
+        sub: string
+        name: string
+        email: string
+        picture: string
+        given_name: string
+      }
     }
-    const quota = await getUserQuota(userId)
-    await updateUser(userId, {
-      email: user.email,
+    // read granted scopes from the token response (googleapis-common triggers a CF node-compat bug)
+    const scopes = (tokens.scope as unknown as string || '').split(' ').filter(Boolean)
+    const tokenInfo = {
+      scopes,
+      scope: tokens.scope,
+      expiry_date: tokens.expiry_date ?? (Date.now() + (tokens.expires_in || 3600) * 1000),
+    }
+    if (!scopes.includes('https://www.googleapis.com/auth/webmasters.readonly')) {
+      await setUserSession(event, {
+        authError: 'missing-scope',
+      })
+      return sendRedirect(event, '/get-started?error=missing-scope')
+    }
+
+    const db = useDrizzle()
+    // sub is an openid claim that is unique to the user, we don't want to expose this to the client
+    let user = await db.query.users.findFirst({
+      where: eq(users.sub, oauth.sub),
     })
-    const userPublicPersistentData = await getUser(userId)
+    let currentTeam
+    if (!user) {
+      currentTeam = (await db.insert(teams)
+        .values({
+          personalTeam: true,
+          name: `${oauth.given_name}'s Personal Team`,
+        })
+        .returning())[0]!
+      user = (await db.insert(users)
+        .values({
+          name: oauth.name,
+          avatar: oauth.picture,
+          sub: oauth.sub,
+          email: oauth.email,
+          lastLogin: Date.now(),
+          // loginTokens: tokens,
+          // authPayload: oauth,
+          currentTeamId: currentTeam.teamId,
+        })
+        .returning())[0]!
+      // create google account
+      await db.insert(googleAccounts).values({
+        tokens,
+        userId: user.userId,
+        payload: oauth,
+        type: 'auth',
+        tokenInfo,
+        googleOAuthClientId: _client.googleOAuthClientId,
+      })
+      await db.insert(teamUser).values({
+        teamId: currentTeam.teamId,
+        userId: user.userId,
+        role: 'owner',
+      })
+
+      // Register user with gscdump
+      const gscdump = useGscdumpClient()
+      const gscdumpRegistration = await gscdump.registerUser({
+        userGoogleId: oauth.sub,
+        userEmail: oauth.email,
+        userName: oauth.name,
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        tokenExpiresAt: tokens.expiry_date || (Date.now() + 3600 * 1000),
+      }).catch((e) => {
+        console.error('gscdump registerUser failed:', e)
+        return null
+      })
+      if (gscdumpRegistration) {
+        await db.update(users).set({
+          gscdumpUserId: gscdumpRegistration.userId,
+          gscdumpApiKey: gscdumpRegistration.apiKey,
+        }).where(eq(users.userId, user.userId))
+        user.gscdumpUserId = gscdumpRegistration.userId
+        user.gscdumpApiKey = gscdumpRegistration.apiKey
+      }
+
+      const nitro = useNitroApp()
+      const env = (event.context.cloudflare?.env ?? {}) as Record<string, unknown>
+      await nitro.hooks.callHook('app:user:created', { env, userId: user.userId })
+    }
+    else {
+      // Update tokens on gscdump for returning user
+      if (user.gscdumpUserId) {
+        const gscdump = useGscdumpClient()
+        await gscdump.updateUserTokens(user.gscdumpUserId, {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          tokenExpiresAt: tokens.expiry_date || (Date.now() + 3600 * 1000),
+        }).catch((e) => {
+          console.error('gscdump updateUserTokens failed:', e)
+        })
+      }
+
+      user = (await db.update(users)
+        .set({
+          lastLogin: Date.now(),
+        })
+        .where(eq(users.sub, oauth.sub))
+        .returning())![0]
+      currentTeam = await db.query.teams.findFirst({
+        where: eq(teams.teamId, user.currentTeamId),
+      })
+    }
+
+    // create a new session
+    const session = (await db
+      .insert(sessions)
+      .values({
+        userId: user.userId,
+        ipAddress: getRequestIP(event, { xForwardedFor: true }),
+        userAgent: getHeader(event, 'user-agent'),
+        lastActivity: Date.now(),
+      })
+      .onConflictDoUpdate({
+        target: [sessions.userId, sessions.ipAddress, sessions.userAgent],
+        set: { lastActivity: Date.now() },
+      })
+      .returning()
+    )[0]
 
     await setUserSession(event, {
+      // we can force expire the session using this id record
+      sessionId: session.sessionId,
       // public data only!
+      team: {
+        onboardedStep: currentTeam.onboardedStep,
+        name: currentTeam.name,
+      },
       user: {
+        name: user.name,
+        userId: user.publicId,
         email: user.email,
-        quota,
-        userId,
-        picture: user.picture,
-        analyticsPeriod: '28d',
-        ...userPublicPersistentData, // contains analyticsPeriod if changed
-      } satisfies UserSession['user'],
+        picture: user.avatar,
+        analyticsPeriod: '30d',
+      },
     })
-    const { tokens: currentTokens } = await getUserToken(userId, 'login') || {}
-    await updateUserToken(userId, 'login', {
-      updatedAt: Date.now(),
-      sub: user.sub,
-      tokens: defu(tokens, currentTokens), // avoid refresh token getting deleted
-    })
-    return sendRedirect(event, '/dashboard')
+
+    return sendRedirect(event, currentTeam.onboardedStep !== 'sites-and-backup' ? '/dashboard/team/setup' : '/dashboard')
   },
   // Optional, will return a json error and 401 status code by default
   onError(event, error) {
