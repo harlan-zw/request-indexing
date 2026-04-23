@@ -1,85 +1,62 @@
 <script setup lang="ts">
-import type { DropdownItem } from '@nuxt/ui/dist/runtime/types'
+import type { DropdownMenuItem } from '@nuxt/ui'
 import { createLogoutHandler } from '~/composables/auth'
 
 const { user } = useUserSession()
-
 const logout = createLogoutHandler()
 const router = useRouter()
-// const color = useColorMode()
 
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
-// const isOnDashboard = computed(() => router.currentRoute.value.path.startsWith('/dashboard'))
 
-// const sites = ref(loggedIn.value ? await fetchSites().then(res => res.data.value?.sites) : [])
-
-const authDropdownItems: DropdownItem[][] = computed(() => {
+const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
   if (isOnWelcome.value) {
     return [[
       {
         label: 'Logout',
-        click: () => logout(),
         icon: 'i-heroicons-arrow-left-end-on-rectangle',
+        onSelect: () => logout(),
       },
     ]]
   }
-  return [
+  const groups: DropdownMenuItem[][] = [
     [
-      { label: 'Account', slot: 'account', to: '/account', icon: 'i-heroicons-user-circle' },
+      { type: 'label', label: user.value.email },
     ],
-    user.value.access === 'pro'
-      ? false
-      : [
-        // upgrade to pro item
-          { label: 'Upgrade', slot: 'pro', to: '/account/upgrade', icon: 'i-heroicons-star' },
-        ],
     [
-      {
-        label: 'Logout',
-        click: () => logout(),
-        icon: 'i-heroicons-arrow-left-end-on-rectangle',
-      },
+      { label: 'Account', to: '/account', icon: 'i-heroicons-user-circle' },
     ],
-  ].filter(Boolean)
+  ]
+  if (user.value.access !== 'pro') {
+    groups.push([
+      { label: 'Upgrade', to: '/account/upgrade', icon: 'i-heroicons-star', badge: '0 left' },
+    ])
+  }
+  groups.push([
+    {
+      label: 'Logout',
+      icon: 'i-heroicons-arrow-left-end-on-rectangle',
+      onSelect: () => logout(),
+    },
+  ])
+  return groups
 })
 </script>
 
 <template>
-  <UDashboardNavbar :ui="{ container: 'max-w-4xl mx-auto' }">
+  <UDashboardNavbar>
     <template #left>
       <slot />
     </template>
     <template #right>
-      <div class="flex items-center">
-        <UColorModeButton size="sm" class="mx-5" />
-        <UDropdown :items="authDropdownItems" mode="hover" class="flex items-center">
-          <template #account="{ item }">
-            <div class="flex flex-col w-full">
-              <div class="flex items-center gap-2">
-                <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                <span class="truncate">{{ item.label }}</span>
-              </div>
-              <div class="text-gray-400 text-xs">
-                {{ user.email }}
-              </div>
-            </div>
-          </template>
-          <template #pro="{ item }">
-            <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500" />
-            <span class="truncate">{{ item.label }}</span>
-            <UBadge label="0 left" color="purple" variant="subtle" class="ml-0.5" />
-          </template>
-          <UAvatar :src="user.picture" />
-          <div class="ml-2 flex items-center">
-            <UBadge v-if="user.access === 'pro'" label="Pro" color="purple" variant="subtle" class="ml-0.5" />
-          </div>
-          <UButton
-            icon="i-heroicons-chevron-down"
-            color="neutral"
-            size="xs"
-            variant="ghost"
-          />
-        </UDropdown>
+      <div class="flex items-center gap-2">
+        <UColorModeButton size="sm" />
+        <UDropdownMenu :items="authDropdownItems" :content="{ align: 'end' }">
+          <button class="flex items-center gap-2 rounded-md px-1 py-1 hover:bg-elevated transition-colors">
+            <UAvatar :src="user.picture" size="sm" />
+            <UBadge v-if="user.access === 'pro'" label="Pro" color="primary" variant="subtle" />
+            <UIcon name="i-heroicons-chevron-down" class="size-4 text-dimmed" />
+          </button>
+        </UDropdownMenu>
       </div>
     </template>
   </UDashboardNavbar>
