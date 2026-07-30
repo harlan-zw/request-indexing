@@ -2,8 +2,8 @@
 const { loggedIn, user } = useUserSession()
 
 useSeoMeta({
-  title: 'Request Indexing - Get Your Pages Indexed on Google Fast',
-  description: 'Free, open-source tool to request Google indexing for your pages using the Indexing API. View Search Console data, track indexing status, and retain historical data.',
+  title: 'Get Your Pages Indexed on Google Fast',
+  description: 'Free, open-source tool to request Google indexing for your pages via the Indexing API. Track status and view Search Console data.',
 })
 
 const faqItems = [
@@ -41,7 +41,7 @@ const mockUrls = [
 const mockSites = [
   { domain: 'nuxtseo.com', indexed: 91, total: 119 },
   { domain: 'harlanzw.com', indexed: 78, total: 112 },
-  { domain: 'docs.example.io', indexed: 54, total: 204 },
+  { domain: 'mdream.dev', indexed: 54, total: 204 },
 ]
 
 const walkthroughSteps = [
@@ -144,7 +144,7 @@ const marketingTools = [
                   <!-- Card header -->
                   <div class="px-5 py-4 border-b border-default flex items-center justify-between bg-elevated">
                     <div class="flex items-center gap-2.5">
-                      <img src="https://www.google.com/s2/favicons?domain=https://nuxtseo.com" alt="" class="size-4 rounded-sm">
+                      <img src="https://www.google.com/s2/favicons?domain=https://nuxtseo.com" alt="nuxtseo.com favicon" class="size-4 rounded-sm">
                       <span class="font-semibold text-default">nuxtseo.com</span>
                       <UBadge color="primary" variant="subtle" size="xs">
                         91% indexed
@@ -361,7 +361,7 @@ const marketingTools = [
                   </div>
                   <div class="divide-y divide-default">
                     <div v-for="site in mockSites" :key="site.domain" class="px-5 py-4 flex items-center gap-4 hover:bg-muted/60 transition-colors">
-                      <img :src="`https://www.google.com/s2/favicons?domain=${site.domain}&sz=64`" alt="" class="size-6 rounded shrink-0">
+                      <img :src="`https://www.google.com/s2/favicons?domain=${site.domain}&sz=64`" :alt="`${site.domain} favicon`" class="size-6 rounded shrink-0">
                       <div class="flex-1 min-w-0">
                         <div class="text-sm font-medium text-default truncate">
                           {{ site.domain }}

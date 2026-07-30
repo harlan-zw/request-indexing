@@ -43,6 +43,9 @@ const iconMap: Record<string, string> = {
 
 <template>
   <div>
+    <h1 class="sr-only">
+      Google Indexing API Guides
+    </h1>
     <UPageSection
       headline="Guides"
       title="Google Indexing API Guides"
