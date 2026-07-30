@@ -27,8 +27,8 @@ const faqs = [
 ]
 
 useToolSeo({
-  title: 'Site Indexing Report — How Well Does Google Index Your Site?',
-  description: 'Get a free indexing health report for any domain. See estimated indexed pages, organic traffic, ranking keywords, and actionable recommendations to improve Google indexing.',
+  title: 'Site Indexing Report Tool',
+  description: 'Get a free indexing health report for any domain: estimated indexed pages, organic traffic, ranking keywords, and tips to improve Google indexing.',
   faqs,
 })
 

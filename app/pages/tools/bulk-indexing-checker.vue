@@ -23,7 +23,7 @@ const faqs = [
 ]
 
 useToolSeo({
-  title: 'Bulk Indexing Checker — Audit Your Site\'s Index Coverage',
+  title: 'Bulk Indexing Checker Tool',
   description: 'Check indexing status for up to 50 URLs at once. Paste URLs or provide your sitemap to audit Google index coverage in bulk. Free, no signup required.',
   faqs,
 })

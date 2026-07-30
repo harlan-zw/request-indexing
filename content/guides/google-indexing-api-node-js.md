@@ -1,6 +1,6 @@
 ---
-title: "Google Indexing API with Node.js: Complete Implementation Guide"
-description: "Implement the Google Indexing API in Node.js and TypeScript. Covers authentication, single URL submission, batch requests, error handling, and production-ready patterns."
+title: "Google Indexing API with Node.js"
+description: "Implement the Google Indexing API in Node.js. Covers authentication, single and batch URL submission, error handling, and production-ready patterns."
 navigation:
   order: 3
   icon: i-simple-icons-nodedotjs

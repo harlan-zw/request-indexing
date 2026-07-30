@@ -1,6 +1,6 @@
 ---
-title: "How to Bulk Submit URLs to the Google Indexing API"
-description: "Submit hundreds of URLs to Google's Indexing API efficiently. Learn the batch endpoint format, build queue strategies in Node.js and Python, and manage quota across large sites."
+title: "Bulk Submit URLs to the Indexing API"
+description: "Submit hundreds of URLs to Google's Indexing API efficiently. Batch endpoint format, queue strategies in Node.js and Python, and quota management."
 navigation:
   order: 4
   icon: i-heroicons-arrow-up-tray

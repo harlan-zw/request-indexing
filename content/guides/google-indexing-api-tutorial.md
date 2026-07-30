@@ -1,6 +1,6 @@
 ---
-title: "Google Indexing API Tutorial: Step-by-Step Setup Guide"
-description: "Set up the Google Indexing API from scratch. Create a GCP project, enable the API, configure a service account, add it to Search Console, and make your first API call."
+title: "Google Indexing API Setup Tutorial"
+description: "Set up the Google Indexing API from scratch: create a GCP project, enable the API, configure a service account, and make your first call."
 navigation:
   order: 2
   icon: i-heroicons-academic-cap
