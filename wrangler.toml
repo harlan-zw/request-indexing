@@ -11,7 +11,7 @@ html_handling = "drop-trailing-slash"
 binding = "DB"
 database_name = "request-indexin-bw2z"
 database_id = "233eb802-c278-4900-9dcb-7f0316eed6b4"
-migrations_dir = "server/db/migrations"
+migrations_dir = "layers/core/server/db/migrations"
 
 [[r2_buckets]]
 binding = "BLOB"

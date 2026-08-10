@@ -1,12 +1,17 @@
 import type { OAuthPoolToken } from './layers/core/app/types'
+import { existsSync } from 'node:fs'
 import process from 'node:process'
 import { resolve } from 'path'
 // @ts-expect-error - transitive dep
 import { globbySync } from 'globby'
 // @ts-expect-error - transitive dep
 import { env } from 'std-env'
+import { SENTRY_DSN } from './shared/sentry'
 
 const tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
+const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN)
+  || existsSync('.env.sentry-build-plugin')
+const sentryRelease = process.env.SENTRY_RELEASE || process.env.GITHUB_SHA || undefined
 
 // read all the folders at the server/app path
 const recursiveServerAppFolders = globbySync('**/*', {
@@ -52,6 +57,7 @@ export default defineNuxtConfig({
       nuxt.options.nitro.virtual['#app/token-pool.mjs'] = `export const tokens = ${JSON.stringify(tokens)}`
     },
     '@nuxt/fonts',
+    '@sentry/nuxt/module',
   ],
 
   compatibilityDate: '2026-03-03',
@@ -333,6 +339,13 @@ export default defineNuxtConfig({
       login: '',
       password: '',
     },
+    sentry: {
+      dsn: SENTRY_DSN,
+      enabled: process.env.NODE_ENV === 'production',
+      environment: 'production',
+      release: sentryRelease ?? '',
+      tracesSampleRate: 0.05,
+    },
     stripe: {
       secretKey: '',
       webhookSecret: '',
@@ -359,5 +372,28 @@ export default defineNuxtConfig({
     indexing: {
       maxUsersPerOAuth: 100,
     },
+  },
+
+  sentry: {
+    enabled: process.env.NODE_ENV === 'production',
+    org: 'harlan-zw',
+    project: 'request-indexing',
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    release: { name: sentryRelease },
+    sourcemaps: {
+      disable: !hasSentryAuthToken,
+      filesToDeleteAfterUpload: ['**/*.map'],
+    },
+    bundleSizeOptimizations: {
+      excludeReplayShadowDom: true,
+      excludeReplayIframe: true,
+      excludeReplayWorker: true,
+    },
+    telemetry: false,
+  },
+
+  sourcemap: {
+    client: hasSentryAuthToken ? 'hidden' : false,
+    server: false,
   },
 })

@@ -22,6 +22,7 @@ packages:
 
 allowBuilds:
   '@parcel/watcher': true
+  '@sentry/cli': true
   better-sqlite3: true
   esbuild: true
   maplibre-gl: true
@@ -64,6 +65,7 @@ catalog:
   '@nuxtjs/robots': ^6.0.8
   '@nuxtjs/seo': ^5.3.12
   '@nuxtjs/sitemap': ^8.3.3
+  '@sentry/nuxt': ^10.69.0
   '@takumi-rs/core': ^1.2.1
   '@takumi-rs/wasm': ^1.2.1
   '@tanstack/table-core': ^8.21.3

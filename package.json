@@ -7,7 +7,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "wrangler d1 migrations apply request-indexin-bw2z",
+    "db:migrate": "wrangler d1 migrations apply request-indexin-bw2z --remote",
     "db:migrate:local": "wrangler d1 migrations apply request-indexin-bw2z --local",
     "build": "NODE_OPTIONS=--max-old-space-size=16384 nuxt build",
     "dev": "nuxt dev",
@@ -83,6 +83,7 @@
     "@harlan-zw/nuxt-dx": "catalog:",
     "@cloudflare/workers-types": "catalog:conflicts_conflicts_@cloudflare/workers-types_h4_20250510_0_h4_20260518_1",
     "@nuxt/test-utils": "catalog:",
+    "@sentry/nuxt": "catalog:",
     "@takumi-rs/wasm": "catalog:",
     "better-sqlite3": "catalog:",
     "bumpp": "catalog:",
