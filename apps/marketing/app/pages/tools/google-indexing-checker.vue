@@ -23,8 +23,8 @@ const faqs = [
 ]
 
 useToolSeo({
-  title: 'Google Index Checker — Is Your Page Indexed?',
-  description: 'Free tool to check if your URL is indexed by Google. Instantly verify your page appears in Google search results and get actionable recommendations to fix indexing issues.',
+  title: 'Google Index Checker',
+  description: 'Free tool to check if your URL is indexed by Google. Instantly verify your page appears in search results and get tips to fix indexing issues.',
   faqs,
 })
 

@@ -5,6 +5,7 @@ definePageMeta({
 
 useSeoMeta({
   title: 'Get Started',
+  description: 'Connect your Google account or self-host Request Indexing to start submitting your pages to the Google Indexing API.',
 })
 
 const error = useRoute().query.error
@@ -12,6 +13,9 @@ const error = useRoute().query.error
 
 <template>
   <div class="px-5 py-10 flex flex-col gap-4 items-center justify-center">
+    <h1 class="text-2xl font-bold text-center">
+      Get Started with Request Indexing
+    </h1>
     <UAlert v-if="error === 'missing-scope'" variant="soft" title="Missing scope." color="warning" icon="i-heroicons-exclamation-triangle">
       <template #description>
         <div>

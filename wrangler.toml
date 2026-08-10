@@ -5,6 +5,7 @@ main = ".output/server/index.mjs"
 
 [assets]
 directory = ".output/public"
+html_handling = "drop-trailing-slash"
 
 [[d1_databases]]
 binding = "DB"

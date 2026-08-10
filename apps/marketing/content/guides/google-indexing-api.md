@@ -1,6 +1,6 @@
 ---
-title: "Google Indexing API: The Complete Guide (2026)"
-description: "Learn how the Google Indexing API works, set up authentication, submit URLs with code examples in curl, TypeScript and Python, understand quotas, and get pages indexed faster."
+title: "Google Indexing API: Complete Guide"
+description: "Learn how the Google Indexing API works: authentication, code examples in curl, TypeScript and Python, quotas, and getting pages indexed faster."
 navigation:
   order: 1
   icon: i-heroicons-book-open

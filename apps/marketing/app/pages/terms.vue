@@ -1,4 +1,8 @@
 <script setup lang="ts">
+useSeoMeta({
+  title: 'Terms of Service',
+  description: 'By accessing or using our service, you\'re agreeing to these terms, so please read them carefully.',
+})
 </script>
 
 <template>

@@ -28,6 +28,17 @@
   --ui-radius: 0.625rem;
 }
 
+/* neutral-500 (text-muted) fails WCAG AA as text color on light surfaces
+   (4.37:1, needs 4.5:1); one shade darker clears it. Scoped to light mode:
+   dark surfaces already have enough contrast. NOTE: primary-500 also fails
+   as TEXT (2.47:1), but --ui-primary drives non-text surfaces sitewide
+   (CTA fills, badges, spotlight) — reassigning it is a brand-color change,
+   held for a design pass rather than shipped via a contrast ticket. */
+.light,
+:root:not(.dark) {
+  --ui-text-muted: var(--ui-color-neutral-600);
+}
+
 /* ------------------------------------------------------------------ */
 /* Theme signature utilities                                          */
 /* Verdant Console — warm developer console, emerald growth on olive  */

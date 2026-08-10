@@ -1,6 +1,6 @@
 ---
-title: "Google Indexing API Quota: Limits, Strategies & How to Request Increases"
-description: "Understand the Google Indexing API's 200/day default quota, how batch requests count, 429 error handling, quota increase process, and strategies for staying under the limit."
+title: "Google Indexing API Quota & Limits"
+description: "The Google Indexing API's 200/day quota: how batch requests count, 429 error handling, requesting increases, and staying under the limit."
 navigation:
   order: 6
   icon: i-heroicons-chart-bar

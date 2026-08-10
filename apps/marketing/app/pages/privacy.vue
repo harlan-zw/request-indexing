@@ -1,3 +1,10 @@
+<script setup lang="ts">
+useSeoMeta({
+  title: 'Privacy Policy',
+  description: 'We value your privacy and want to be transparent about how we handle your information.',
+})
+</script>
+
 <template>
   <UContainer>
     <UPage>

@@ -1,6 +1,6 @@
 ---
-title: "Using the Indexing API for Blog Posts: Risks, Warnings & Best Practices"
-description: "Should you use Google's Indexing API for blog posts? Understand Google's official stance, warnings from Googlers, community experiences, real risks, and safer alternatives."
+title: "Indexing API for Blog Posts: Risks"
+description: "Should you use Google's Indexing API for blog posts? Google's official stance, warnings from Googlers, real risks, and safer alternatives."
 navigation:
   order: 5
   icon: i-heroicons-exclamation-triangle
