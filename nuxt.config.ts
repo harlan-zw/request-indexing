@@ -6,6 +6,7 @@ import { resolve } from 'path'
 import { globbySync } from 'globby'
 // @ts-expect-error - transitive dep
 import { env } from 'std-env'
+import { withoutRollupPlugin } from './scripts/rollup-plugins'
 import { SENTRY_DSN } from './shared/sentry'
 
 const tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
@@ -58,6 +59,20 @@ export default defineNuxtConfig({
     },
     '@nuxt/fonts',
     '@sentry/nuxt/module',
+    (_, nuxt) => {
+      nuxt.hook('vite:extendConfig', (config, { isServer }) => {
+        if (isServer && Array.isArray(config.plugins)) {
+          const plugins = withoutRollupPlugin(config.plugins, 'sentry-vite-plugin')
+          config.plugins.splice(0, config.plugins.length, ...plugins)
+        }
+      })
+      nuxt.hook('nitro:config', (config) => {
+        const plugins = config.rollupConfig?.plugins
+        if (Array.isArray(plugins)) {
+          config.rollupConfig!.plugins = withoutRollupPlugin(plugins, 'sentry-rollup-plugin')
+        }
+      })
+    },
   ],
 
   compatibilityDate: '2026-03-03',
