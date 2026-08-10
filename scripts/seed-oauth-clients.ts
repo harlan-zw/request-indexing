@@ -28,10 +28,10 @@ function loadEnvFile(path: string): Record<string, string> {
     const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/)
     if (!m)
       continue
-    let v = m[2]
+    let v = m[2]!
     if (v.startsWith('"') && v.endsWith('"'))
       v = v.slice(1, -1)
-    out[m[1]] = v
+    out[m[1]!] = v
   }
   return out
 }

@@ -1,0 +1,18 @@
+{
+  "name": "@request-indexing/edge",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "DNS-level edge Worker — observes AI crawler hits and forwards everything else to origin. The smallest possible proof of the VISION.md thesis.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply request-indexing-edge",
+    "db:migrate:local": "wrangler d1 migrations apply request-indexing-edge --local"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:conflicts_@cloudflare/workers-types_h4_20250510_0",
+    "typescript": "catalog:conflicts_typescript_h5_6_0",
+    "wrangler": "catalog:conflicts_wrangler_h3_90_0"
+  }
+}

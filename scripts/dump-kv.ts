@@ -11,7 +11,7 @@ async function redis(command: string[]) {
     headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
     body: JSON.stringify(command),
   })
-  const data = await res.json()
+  const data = await res.json() as { error?: string, result?: any }
   if (data.error)
     throw new Error(data.error)
   return data.result

@@ -1,27 +1,50 @@
-import type { OAuthPoolToken } from './app/types'
+import type { OAuthPoolToken } from './layers/core/app/types'
+import process from 'node:process'
 import { resolve } from 'path'
+// @ts-expect-error - transitive dep
 import { globbySync } from 'globby'
+// @ts-expect-error - transitive dep
 import { env } from 'std-env'
 
 const tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
 
 // read all the folders at the server/app path
 const recursiveServerAppFolders = globbySync('**/*', {
-  cwd: resolve('./server/app'),
+  cwd: resolve('./layers/core/server/app'),
   onlyDirectories: true,
   deep: 4,
   absolute: true,
 })
 
 export default defineNuxtConfig({
+  alias: {
+    h3: resolve('./node_modules/h3/dist/index.mjs'),
+  },
+  extends: [
+    './apps/marketing',
+    './apps/app',
+    './apps/admin',
+    './apps/brand-kit',
+    './layers/design-system',
+    './layers/pro-shell',
+    './layers/pro-saas-billing',
+    './layers/pro-saas-auth',
+    './layers/pro-saas',
+    './layers/pro-gsc',
+    './layers/pro-indexing',
+    './layers/pro-chat',
+    './layers/core',
+  ],
   modules: [
+    '@harlan-zw/nuxt-dx',
     'nuxt-auth-utils',
-    'dayjs-nuxt',
     '@nuxt/image',
     '@nuxt/ui',
     '@vueuse/nuxt',
     '@nuxt/content',
     '@nuxtjs/seo',
+    'nuxt-ai-ready',
+    'nuxt-skew-protection',
     '@nuxt/scripts',
     'nitro-cloudflare-dev',
     (_, nuxt) => {
@@ -33,14 +56,14 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2026-03-03',
 
-  css: ['~/assets/css/main.css'],
+  css: ['~~/layers/design-system/assets/css/main.css'],
 
   hooks: {
     'nitro:config': function (config) {
       config.typescript = config.typescript || {}
       config.typescript.tsConfig = config.typescript.tsConfig || {}
       config.typescript.tsConfig.include = config.typescript.tsConfig.include || []
-      config.typescript.tsConfig.include.push(resolve('./server/hooks.d.ts'))
+      config.typescript.tsConfig.include.push(resolve('./layers/core/server/hooks.d.ts'))
     },
   },
 
@@ -53,18 +76,30 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
+    zeroRuntime: true,
     exclude: [
+      '/__nuxt_content/**',
+      '/_alt/**',
       '/dashboard/**',
+      '/pro/**',
       '/api/**',
       '/auth/**',
+      '/kit/**',
     ],
+  },
+
+  ogImage: {
+    zeroRuntime: true,
   },
 
   robots: {
     disallow: [
+      '/_alt/**',
       '/dashboard/**',
+      '/pro/**',
       '/api/**',
       '/auth/**',
+      '/kit/**',
     ],
   },
 
@@ -98,8 +133,19 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  skewProtection: {
+    updateStrategy: 'ws',
+    reloadStrategy: 'idle',
+  },
+
+  aiReady: {
+    database: { type: 'd1', bindingName: 'DB' },
+  },
+
   routeRules: {
+    '/_alt/**': { robots: false, prerender: false },
     '/dashboard/**': { prerender: false },
+    '/pro/**': { prerender: false },
     '/account/**': { prerender: false },
     '/auth/**': { prerender: false },
     '/api/**': { prerender: false },
@@ -108,12 +154,17 @@ export default defineNuxtConfig({
 
   nitro: {
     alias: {
-      '~/server': resolve('./server'),
+      'h3': resolve('./node_modules/h3/dist/index.mjs'),
+      '~/server': resolve('./layers/core/server'),
+      // `#schema` aggregates pro-saas's typed drizzle surface. Activated once
+      // the layer is added to `extends` (plug phase). Until then, no consumer
+      // resolves the alias because the layer is not in the build graph.
+      '#schema': resolve('./layers/pro-saas/server/database/_surface.ts'),
     },
     prerender: {
       crawlLinks: true,
       routes: ['/'],
-      failOnError: false,
+      failOnError: true,
     },
     preset: 'cloudflare-durable',
     cloudflare: {
@@ -149,6 +200,15 @@ export default defineNuxtConfig({
           NUXT_GSCDUMP_WEBHOOK_SECRET: process.env.NUXT_GSCDUMP_WEBHOOK_SECRET || '',
           NUXT_DATAFORSEO_LOGIN: process.env.NUXT_DATAFORSEO_LOGIN || '',
           NUXT_DATAFORSEO_PASSWORD: process.env.NUXT_DATAFORSEO_PASSWORD || '',
+          NUXT_STRIPE_SECRET_KEY: process.env.NUXT_STRIPE_SECRET_KEY || '',
+          NUXT_STRIPE_WEBHOOK_SECRET: process.env.NUXT_STRIPE_WEBHOOK_SECRET || '',
+          NUXT_STRIPE_PRICE_PRO_MONTHLY: process.env.NUXT_STRIPE_PRICE_PRO_MONTHLY || '',
+          NUXT_STRIPE_PRICE_PRO_ANNUAL: process.env.NUXT_STRIPE_PRICE_PRO_ANNUAL || '',
+          NUXT_STRIPE_PRICE_GROWTH_MONTHLY: process.env.NUXT_STRIPE_PRICE_GROWTH_MONTHLY || '',
+          NUXT_STRIPE_PRICE_GROWTH_ANNUAL: process.env.NUXT_STRIPE_PRICE_GROWTH_ANNUAL || '',
+          NUXT_STRIPE_PRICE_SCALE_MONTHLY: process.env.NUXT_STRIPE_PRICE_SCALE_MONTHLY || '',
+          NUXT_STRIPE_PRICE_SCALE_ANNUAL: process.env.NUXT_STRIPE_PRICE_SCALE_ANNUAL || '',
+          NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
         },
         durable_objects: {
           bindings: [
@@ -207,6 +267,7 @@ export default defineNuxtConfig({
       name: 'page',
       mode: 'out-in',
     },
+    // @ts-expect-error - provided by nuxt-seo-utils module
     seoMeta: {
       themeColor: [
         { content: '#18181b', media: '(prefers-color-scheme: dark)' },
@@ -228,10 +289,15 @@ export default defineNuxtConfig({
     },
   },
 
-  dayjs: {
-    locales: ['en'],
-    plugins: ['relativeTime', 'utc', 'isSameOrBefore', 'advancedFormat'],
-    defaultLocale: 'en',
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@gscdump/sdk',
+        '@gscdump/sdk/v1',
+        'motion-v',
+        'reka-ui',
+      ],
+    },
   },
 
   fonts: {
@@ -247,7 +313,7 @@ export default defineNuxtConfig({
       cookie: {
         maxAge: 60 * 60 * 24 * 90, // 3mo
       },
-    },
+    } as any,
     google: {
       adsCustomerId: '',
       adsApiToken: '',
@@ -267,10 +333,27 @@ export default defineNuxtConfig({
       login: '',
       password: '',
     },
+    stripe: {
+      secretKey: '',
+      webhookSecret: '',
+      apiVersion: '2026-04-22.dahlia',
+      prices: {
+        proMonthly: '',
+        proAnnual: '',
+        growthMonthly: '',
+        growthAnnual: '',
+        scaleMonthly: '',
+        scaleAnnual: '',
+      },
+      trialDays: 14,
+    },
     public: {
       baseUrl: 'https://requestindexing.com',
       indexing: {
         usageLimitPerUser: 15,
+      },
+      stripe: {
+        publishableKey: '',
       },
     },
     indexing: {

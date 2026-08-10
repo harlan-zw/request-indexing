@@ -1,0 +1,327 @@
+import { analyticsStatusToSyncStatus } from '@gscdump/sdk'
+
+interface TableProgress {
+  name: string
+  status: 'pending' | 'queued' | 'syncing' | 'complete'
+  progress: number
+  rows: number
+}
+
+interface IndexingProgress {
+  queued: number
+  processing: number
+  completed: number
+  failed: number
+  total: number
+  progress: number
+}
+
+interface GscSyncStatus {
+  syncStatus: 'pending' | 'syncing' | 'synced' | 'error' | 'idle'
+  permissionLost?: boolean
+  oldestDateSynced: string | null
+  newestDateSynced: string | null
+  lastSyncAt: number | null
+  lastError: string | null
+  progress: number
+  daysSynced: number
+  daysAvailable: number
+  isSyncing: boolean
+  hasData: boolean
+  isComplete: boolean
+  // Enriched fields
+  phase: 'preparing' | 'syncing' | 'indexing' | 'complete' | 'error'
+  totalRowsSynced: number
+  hasMinimumData: boolean
+  tablesProgress: TableProgress[]
+  indexing: IndexingProgress | null
+  queryable?: boolean
+  sourceMode?: string
+  sitemapStatus?: string
+  indexingStatus?: string
+}
+
+const MIN_DAYS_FOR_DATA = 60
+const POLL_INTERVAL_SYNCING = 5000
+const POLL_INTERVAL_PERMISSION_LOST = 60000
+const DEMO_GSCDUMP_SITE_ID = 's_9dnsyZ8vVZNlH8'
+
+interface SiteShape {
+  gscdumpSiteId?: string | null
+  gscdumpSiteUrl?: string | null
+}
+
+export function useProGscStatus(siteId: MaybeRefOrGetter<string>) {
+  // TODO(pro-saas-cleanup): re-wire to canonical site injection once the V1
+  // site context composable lands. For now this fetches the site directly so
+  // pro-gsc can stand alone of the deleted `useProSiteInjection`.
+  const proFetch = useProFetch()
+  const { data: siteData } = useAsyncData(
+    () => `pro-gsc:site:${toValue(siteId)}`,
+    () => proFetch<{ site: SiteShape }>(`/api/pro/sites/${toValue(siteId)}`).then(r => r.site).catch(() => null),
+    { watch: [() => toValue(siteId)] },
+  )
+  const site = computed<SiteShape | null>(() => siteData.value ?? null)
+  const gscdumpSiteId = computed(() => site.value?.gscdumpSiteId)
+
+  const syncData = ref<GscSyncStatus | null>(null)
+  const fetchStatus = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
+  const error = ref<Error | null>(null)
+
+  async function refresh() {
+    const siteIdVal = gscdumpSiteId.value
+    if (!siteIdVal) {
+      syncData.value = null
+      return
+    }
+
+    if (import.meta.dev && siteIdVal === DEMO_GSCDUMP_SITE_ID) {
+      syncData.value = {
+        syncStatus: 'synced',
+        permissionLost: false,
+        oldestDateSynced: '2025-01-01',
+        newestDateSynced: new Date().toISOString().slice(0, 10),
+        lastSyncAt: Date.now(),
+        lastError: null,
+        progress: 100,
+        daysSynced: 120,
+        daysAvailable: 120,
+        isSyncing: false,
+        hasData: true,
+        isComplete: true,
+        phase: 'complete',
+        totalRowsSynced: 1200,
+        hasMinimumData: true,
+        tablesProgress: [],
+        indexing: null,
+      }
+      fetchStatus.value = 'success'
+      return
+    }
+
+    fetchStatus.value = 'pending'
+    error.value = null
+
+    syncData.value = await proFetch<{ site: any | null }>('/api/pro/gsc-lifecycle', {
+      query: { siteId: siteIdVal },
+    }).then((res) => {
+      const lifecycleSite = res.site
+      if (!lifecycleSite)
+        return null
+      const analyticsStatus = lifecycleSite.analytics.status
+      const syncStatus = analyticsStatusToSyncStatus(analyticsStatus)
+      const activeAnalytics = ['queued', 'preparing', 'syncing'].includes(analyticsStatus)
+      const activeSitemaps = ['discovering', 'syncing'].includes(lifecycleSite.sitemaps.status)
+      const activeIndexing = ['discovering', 'checking', 'waiting_for_sitemaps'].includes(lifecycleSite.indexing.status)
+      return {
+        syncStatus,
+        permissionLost: lifecycleSite.latestError?.code === 'permission_lost',
+        oldestDateSynced: lifecycleSite.analytics.syncedRange.oldest,
+        newestDateSynced: lifecycleSite.analytics.syncedRange.newest,
+        lastSyncAt: lifecycleSite.updatedAt ? Date.parse(lifecycleSite.updatedAt) : null,
+        lastError: lifecycleSite.latestError?.message ?? null,
+        progress: lifecycleSite.analytics.progress.percent,
+        daysSynced: lifecycleSite.analytics.progress.completed,
+        daysAvailable: lifecycleSite.analytics.progress.total,
+        isSyncing: activeAnalytics || activeSitemaps || activeIndexing,
+        hasData: lifecycleSite.analytics.queryable,
+        isComplete: lifecycleSite.analytics.queryable && !activeAnalytics,
+        phase: syncStatus === 'error' ? 'error' : activeIndexing ? 'indexing' : activeAnalytics || activeSitemaps ? 'syncing' : 'complete',
+        totalRowsSynced: lifecycleSite.analytics.progress.completed,
+        hasMinimumData: lifecycleSite.analytics.queryable,
+        tablesProgress: [],
+        indexing: {
+          queued: 0,
+          processing: activeIndexing ? 1 : 0,
+          completed: lifecycleSite.indexing.progress.completed,
+          failed: lifecycleSite.indexing.progress.failed,
+          total: lifecycleSite.indexing.progress.total,
+          progress: lifecycleSite.indexing.progress.percent,
+        },
+        queryable: lifecycleSite.analytics.queryable,
+        sourceMode: lifecycleSite.analytics.sourceMode,
+        sitemapStatus: lifecycleSite.sitemaps.status,
+        indexingStatus: lifecycleSite.indexing.status,
+      } satisfies GscSyncStatus
+    }).catch((e) => {
+      error.value = e
+      fetchStatus.value = 'error'
+      return null
+    })
+
+    if (syncData.value)
+      fetchStatus.value = 'success'
+  }
+
+  // Auto-poll during active sync
+  let _pollTimer: ReturnType<typeof setInterval> | null = null
+
+  function startPolling(intervalMs: number = POLL_INTERVAL_SYNCING) {
+    stopPolling()
+    _pollTimer = setInterval(refresh, intervalMs)
+  }
+
+  function stopPolling() {
+    if (_pollTimer) {
+      clearInterval(_pollTimer)
+      _pollTimer = null
+    }
+  }
+
+  // Only fetch gscdump data on the client - raw $fetch to gscdump.com
+  // doesn't have user cookies during SSR, causing false AUTH errors
+  if (import.meta.client) {
+    watch(gscdumpSiteId, (id) => {
+      if (id)
+        refresh()
+    }, { immediate: true })
+
+    // Auto-manage polling based on phase / permission state
+    watch(() => [syncData.value?.phase, syncData.value?.permissionLost, syncData.value?.sitemapStatus, syncData.value?.indexingStatus] as const, ([phase, permissionLost, sitemapStatus, indexingStatus]) => {
+      if (phase === 'preparing' || phase === 'syncing' || phase === 'indexing' || sitemapStatus === 'discovering' || sitemapStatus === 'syncing' || indexingStatus === 'discovering' || indexingStatus === 'checking' || indexingStatus === 'waiting_for_sitemaps')
+        startPolling(POLL_INTERVAL_SYNCING)
+      else if (permissionLost)
+        startPolling(POLL_INTERVAL_PERMISSION_LOST)
+      else
+        stopPolling()
+    })
+
+    onUnmounted(stopPolling)
+  }
+
+  // Computed status helpers
+  const data = computed(() => {
+    if (!site.value)
+      return null
+
+    const connected = !!gscdumpSiteId.value
+    if (!connected || !syncData.value) {
+      return {
+        connected,
+        gscSiteUrl: null,
+        gscdumpSiteUrl: site.value.gscdumpSiteUrl,
+        syncStatus: null,
+        permissionLost: false,
+        syncProgress: null,
+        oldestDate: null,
+        newestDate: null,
+        lastSyncAt: null,
+        isSyncing: false,
+        hasData: false,
+        isComplete: false,
+        daysSynced: 0,
+        daysAvailable: 0,
+        lastError: null,
+        phase: null as 'preparing' | 'syncing' | 'indexing' | 'complete' | 'error' | null,
+        totalRowsSynced: 0,
+        hasMinimumData: false,
+        tablesProgress: [] as TableProgress[],
+        indexing: null as IndexingProgress | null,
+        queryable: false,
+        sourceMode: 'none',
+      }
+    }
+
+    return {
+      connected: true,
+      gscSiteUrl: site.value.gscdumpSiteUrl,
+      gscdumpSiteUrl: site.value.gscdumpSiteUrl,
+      syncStatus: syncData.value.syncStatus,
+      permissionLost: !!syncData.value.permissionLost,
+      syncProgress: { percent: syncData.value.progress, completed: 0, total: 0 },
+      oldestDate: syncData.value.oldestDateSynced,
+      newestDate: syncData.value.newestDateSynced,
+      lastSyncAt: syncData.value.lastSyncAt,
+      isSyncing: syncData.value.isSyncing,
+      hasData: syncData.value.hasData,
+      isComplete: syncData.value.isComplete,
+      daysSynced: syncData.value.daysSynced,
+      daysAvailable: syncData.value.daysAvailable,
+      lastError: syncData.value.lastError,
+      // Enriched fields
+      phase: syncData.value.phase,
+      totalRowsSynced: syncData.value.totalRowsSynced ?? 0,
+      hasMinimumData: syncData.value.hasMinimumData ?? false,
+      tablesProgress: syncData.value.tablesProgress ?? [],
+      indexing: syncData.value.indexing ?? null,
+      queryable: !!syncData.value.queryable,
+      sourceMode: syncData.value.sourceMode ?? 'none',
+    }
+  })
+
+  const isNotConnected = computed(() => {
+    if (error.value)
+      return true
+    return !gscdumpSiteId.value
+  })
+
+  const isTokenRevoked = computed(() => {
+    return (error.value as any)?.code === 'AUTH'
+  })
+
+  const isPermissionLost = computed(() => !!data.value?.permissionLost)
+
+  const isProcessing = computed(() => {
+    if (!data.value?.connected)
+      return false
+    if (data.value.isSyncing !== undefined)
+      return data.value.isSyncing
+    return data.value.syncStatus === 'pending' || data.value.syncStatus === 'syncing'
+  })
+
+  const hasSyncError = computed(() => {
+    if (!data.value)
+      return false
+    return data.value.syncStatus === 'error' || !!data.value.lastError
+  })
+
+  const daysSynced = computed(() => {
+    if (data.value?.daysSynced !== undefined)
+      return data.value.daysSynced
+    if (!data.value?.oldestDate || !data.value?.newestDate)
+      return 0
+    const oldest = new Date(data.value.oldestDate)
+    const newest = new Date(data.value.newestDate)
+    return Math.ceil((newest.getTime() - oldest.getTime()) / (1000 * 60 * 60 * 24))
+  })
+
+  const hasMinimumData = computed(() => {
+    if (!data.value?.connected)
+      return false
+    if (data.value.hasMinimumData)
+      return true
+    if (data.value.syncStatus === 'synced')
+      return true
+    return daysSynced.value >= MIN_DAYS_FOR_DATA
+  })
+
+  const isFullySynced = computed(() => {
+    if (!data.value)
+      return false
+    if (data.value.isComplete !== undefined)
+      return data.value.connected && data.value.isComplete
+    return data.value.connected && data.value.syncStatus === 'synced'
+  })
+
+  const isReady = hasMinimumData
+
+  const hasError = computed(() => !!error.value)
+
+  return {
+    data,
+    refresh,
+    fetchStatus,
+    error,
+    isNotConnected,
+    isTokenRevoked,
+    isPermissionLost,
+    isTokenExpiring: computed(() => false),
+    isProcessing,
+    isReady,
+    isFullySynced,
+    hasMinimumData,
+    daysSynced,
+    hasError,
+    hasSyncError,
+  }
+}

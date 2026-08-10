@@ -1,0 +1,44 @@
+import { sessions } from '~~/layers/core/server/db/schema'
+
+export default defineNitroPlugin(() => {
+  // Called when the session is fetched during SSR for the Vue composable (/api/_auth/session)
+  // Or when we call useUserSession().fetch()
+  sessionHooks.hook('fetch', async (session) => {
+    // skip during prerender: no cookies, no DB binding, nothing to hydrate
+    if (import.meta.prerender)
+      return
+    // no sessionId means no persisted session to hydrate
+    if (!session.sessionId)
+      return
+    const _session = await useDrizzle().query.sessions.findFirst({
+      where: eq(sessions.sessionId, session.sessionId),
+      with: {
+        user: true,
+      },
+    })
+    if (!_session) {
+      throw createError({
+        statusCode: 404,
+        message: 'Session not found',
+      })
+    }
+    // console.log(_session)
+    const { user } = _session
+    session.user = {
+      name: user.name,
+      userId: user.publicId,
+      email: user.email,
+      picture: user.avatar,
+      analyticsPeriod: user.analyticsPeriod || '90d',
+      analyticsRange: user.analyticsRange,
+    }
+  })
+
+  // Called when we call useServerSession().clear() or clearUserSession(event)
+  sessionHooks.hook('clear', async (session) => {
+    if (import.meta.prerender || !session.sessionId)
+      return
+    // Log that user logged out
+    await useDrizzle().delete(sessions).where(eq(sessions.sessionId, session.sessionId))
+  })
+})

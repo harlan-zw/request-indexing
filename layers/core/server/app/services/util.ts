@@ -1,0 +1,53 @@
+import type { H3Event } from 'h3'
+import type { UserSelect } from '~~/layers/core/server/db/schema'
+import { eq } from 'drizzle-orm'
+import { sites, teams, teamSites } from '~~/layers/core/server/db/schema'
+
+export async function requireEventSite(event: H3Event, user: UserSelect) {
+  const params = getRouterParams(event, { decode: true })
+  const { siteId } = params as { siteId: string }
+  // find the team first
+  if (user.currentTeamId == null) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Team not found',
+    })
+  }
+  const team = await useDrizzle().query.teams.findFirst({
+    where: eq(teams.teamId, user.currentTeamId),
+  })
+  if (!team) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Team not found',
+    })
+  }
+  const site = await useDrizzle().query.sites.findFirst({
+    where: eq(sites.publicId, siteId),
+    with: {
+      teamSites: {
+        where: eq(teamSites.teamId, team.teamId),
+        with: {
+          googleAccount: {
+            with: {
+              googleOAuthClient: true,
+            },
+          },
+        },
+      },
+    },
+  }) as (typeof sites.$inferSelect & { teamSites: Array<{ googleAccount: any }> }) | undefined
+  if (!site) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Site not found',
+    })
+  }
+  if (!site.teamSites[0]?.googleAccount) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Google Account not found',
+    })
+  }
+  return { site, googleAccount: site.teamSites[0].googleAccount }
+}
