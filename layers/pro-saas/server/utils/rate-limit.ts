@@ -4,7 +4,9 @@ import { logWarn } from '~~/shared/logging'
 // We use the Nitro built-in directly to avoid a host-level shim.
 const appStorage = () => useStorage('cache')
 
-export type Tier = 'anon' | 'free' | 'pro'
+// Free-only beta: one tier for authenticated callers, a stricter one for
+// anonymous requests. No subscription tier to branch on.
+export type Tier = 'anon' | 'free'
 
 interface RateLimiter {
   limit: (opts: { key: string }) => Promise<{ success: boolean }>
@@ -13,19 +15,11 @@ interface RateLimiter {
 export const DAILY_LIMITS: Record<Tier, number> = {
   anon: 2,
   free: 100,
-  pro: 1000,
 }
 
 export const MINUTE_BINDINGS: Record<Tier, string> = {
   anon: 'RL_PRO_ANON',
   free: 'RL_PRO_FREE',
-  pro: 'RL_PRO_PRO',
-}
-
-export function getTier(subscriptionStatus?: string | null): Tier {
-  if (subscriptionStatus === 'active' || subscriptionStatus === 'trial')
-    return 'pro'
-  return 'free'
 }
 
 export function getClientKeyFromIp(ip: string | undefined, userId?: string): string {
@@ -121,9 +115,9 @@ export async function checkFreeToolRateLimit(event: H3Event) {
 
 export async function checkProToolRateLimit(
   event: H3Event,
-  opts: { userId?: string, subscriptionStatus?: string | null },
+  opts: { userId?: string },
 ) {
-  const tier: Tier = opts.userId ? getTier(opts.subscriptionStatus) : 'anon'
+  const tier: Tier = opts.userId ? 'free' : 'anon'
   const key = getClientKey(event, opts.userId)
 
   // Per-minute check (native Cloudflare binding)

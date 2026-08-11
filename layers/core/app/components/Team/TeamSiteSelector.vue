@@ -145,7 +145,7 @@ onBeforeUnmount(() => {
           </div>
           <div class="max-w-[200px] text-gray-500 dark:text-gray-400 text-sm">
             <UIcon name="i-heroicons-information-circle" class="w-4 h-4 -mb-1" />
-            You can upgrade your account later to support more sites.
+            You can select up to {{ maxSites }} sites.
           </div>
         </div>
         <div class="max-w-[200px]">

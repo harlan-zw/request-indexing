@@ -8,11 +8,9 @@ import type { AuthProviderId } from '#layers/pro-saas-auth/shared/types/auth'
 import type {
   Caller,
   CallerAuthMethod,
-  CallerPlan,
 } from '../../shared/caller'
 import type { User } from '../database'
 import { desc, eq } from 'drizzle-orm'
-import { deriveSubscription, hasProAccess } from '../../shared/caller-policy'
 import { ProError } from '../../shared/errors'
 import { teamMemberships, teams, userIdentities, users } from '../database'
 
@@ -120,7 +118,7 @@ function buildCaller(
   isAdmin: boolean,
 ): Caller {
   const name = identity?.displayName ?? null
-  const email = identity?.email ?? user.stripeEmail ?? null
+  const email = identity?.email ?? user.email ?? null
   const avatarUrl = identity?.avatarUrl ?? null
   return {
     user: {
@@ -129,11 +127,9 @@ function buildCaller(
       name,
       avatarUrl,
       providers,
-      stripeEmail: user.stripeEmail,
       apiKey: user.apiKey,
       createdAt: user.createdAt ? new Date(user.createdAt as unknown as number).toISOString() : null,
     },
-    subscription: deriveSubscription(user),
     memberships,
     currentTeamId: user.currentTeamId ?? null,
     isAdmin,
@@ -162,7 +158,7 @@ export async function getCaller(event: H3Event): Promise<Caller | null> {
       loadPrimaryIdentity(db, user.userId),
       loadMemberships(db, user.userId),
     ])
-    const caller = buildCaller(event, db, user, primary, providers, memberships, 'apiKey', isAdminEmail(primary?.email ?? user.stripeEmail ?? null))
+    const caller = buildCaller(event, db, user, primary, providers, memberships, 'apiKey', isAdminEmail(primary?.email ?? user.email ?? null))
     ctx[CACHE_KEY] = caller
     return caller
   }
@@ -194,13 +190,4 @@ export async function requireCaller(event: H3Event): Promise<Caller> {
   if (!caller)
     throw new ProError('unauthorized')
   return caller
-}
-
-export function requireSubscription(caller: Caller, plan: CallerPlan = 'pro'): Caller {
-  if (hasProAccess(caller, plan))
-    return caller
-  throw new ProError('subscription_required', {
-    details: { plan },
-    ...(plan !== 'pro' ? { message: `${plan} plan required` } : {}),
-  })
 }

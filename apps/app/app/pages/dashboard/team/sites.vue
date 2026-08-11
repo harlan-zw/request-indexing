@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { TaskMap } from '#shared/types/tasks'
 import type { SitePreview } from '~~/layers/core/app/types'
+import type { TaskMap } from '#shared/types/tasks'
 import { fetchSites } from '~~/layers/core/app/composables/fetch'
 
 definePageMeta({
@@ -145,7 +145,7 @@ onMounted(() => {
             <UIcon name="i-heroicons-check" class="w-5 h-5" /> Sites are shown with domain property splitting.
           </li>
           <li class="flex items-center gap-1">
-            <UIcon name="i-heroicons-check" class="w-5 h-5" /> Connect up to {{ maxSites }} sites on the free plan, update them at any time.
+            <UIcon name="i-heroicons-check" class="w-5 h-5" /> Connect up to {{ maxSites }} sites, update them at any time.
           </li>
         </ul>
         <div v-if="sitesSynced < totalSites">

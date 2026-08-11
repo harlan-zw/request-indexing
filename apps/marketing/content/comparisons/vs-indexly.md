@@ -1,57 +1,55 @@
 ---
 title: Request Indexing vs Indexly
-description: Indexly bolts AI visibility onto an SEO suite. Request Indexing started from the LLM crawler and worked outward — at the edge, open source, with retention nobody else has.
+description: Indexly is an AI-visibility platform that bundles prompt tracking with SEO reporting. Request Indexing doesn't do AI visibility at all; it's a small, free, open-source tool for Google indexing status and submission.
 keywords:
   - indexly alternative
   - indexly vs request indexing
-  - open source ai visibility
+  - google indexing api tool
 ---
 
 # Request Indexing vs Indexly
 
-Indexly is a closed-SaaS "AI visibility" platform that adds prompt tracking on top of a traditional SEO suite. Request Indexing inverts the model: AI crawler observability and citation tracking are the *primitive*, with search submission as one transport among many — all running at the Cloudflare edge, all open source.
+Indexly is a closed-SaaS "AI visibility" platform: prompt tracking and citation monitoring layered on top of a traditional SEO suite, priced for agencies. Request Indexing is a much smaller, single-purpose tool. It does not track LLM citations or AI crawlers; it answers one question, whether your pages are indexed by Google, and helps you fix it.
+
+If you need AI-visibility reporting, Indexly is built for that and we are not the alternative to look at. If you want a free, open, focused tool for the Google side of indexing, read on.
 
 ## At a glance
 
 | | Request Indexing | Indexly |
 |---|---|---|
+| **Scope** | Google indexing status + submission | AI-visibility platform (citations, prompts) + SEO suite |
 | **Open source** | GPL-3.0 | Closed |
-| **Self-hostable** | Yes (your Cloudflare account) | No |
-| **Edge observability** | Yes — DNS-level Worker | No (dashboard polling) |
-| **MCP server** | Yes | No |
-| **GSC retention past 16mo** | Yes (append-only Parquet) | Limited |
-| **Citation history** | From day one, retained forever | Yes |
-| **Indexing API** | Yes | Yes |
-| **IndexNow / Bing** | Yes | Yes |
-| **Auto-publish to CMS** | No (deliberately) | Yes |
-| **Starting price (hosted)** | $29/mo | $99/mo |
+| **Self-hostable** | Yes (your own Cloudflare account) | No |
+| **GSC retention past 16 months** | Yes | Limited |
+| **AI crawler / LLM citation tracking** | No, not something we build | Yes |
+| **Google Indexing API** | Yes | Yes |
+| **IndexNow / Bing** | Planned, via the gscdump protocol | Yes |
+| **Auto-publish to CMS** | No | Yes |
+| **Price** | Free during beta | $99/mo |
 | **Free tier** | Yes | No (14-day trial) |
-| **Data export** | One-command, GPL engine | Dashboard CSV |
 
 ## What Indexly does well
 
-- Polished prompt-tracking and citation-gap analysis across 5 LLMs.
+- Prompt-tracking and citation-gap analysis across multiple LLMs.
 - Content agents that generate and auto-publish to WordPress, Ghost, and Webflow.
 - White-label reports for agencies on the Scale tier.
 
 ## Where Request Indexing differs
 
-**1. Edge, not poll.** Indexly checks visibility on a schedule by hitting LLM APIs. We sit in the request path: every GPTBot, ClaudeBot, PerplexityBot hit is logged the instant it happens, before it ever shows up in analytics.
+**1. We stayed small on purpose.** Indexly bundles AI visibility, content generation, and traditional SEO reporting into one suite. Request Indexing does one job: tell you what Google has and hasn't indexed, and let you push URLs that need it. No dashboard with a query builder in it.
 
-**2. Open by default.** GPL-3.0. Self-host the same Worker on your own Cloudflare account with your own keys. Indexly is a closed SaaS — your data lives on their servers and goes with them.
+**2. Open by default.** GPL-3.0. Self-host on your own Cloudflare account with your own keys. Indexly is a closed SaaS; your data lives on their servers.
 
-**3. Retention you control.** Indexly stores your data on their warehouse. Our data lives in your D1 and R2. If we shut down, the GPL engine is yours and one command exports your Parquet bucket.
+**3. Retention you can verify.** We keep your Search Console history past Google's 16-month wipe, on an open protocol you could build your own client against.
 
-**4. MCP-native.** Drive everything from Claude Code, Cursor, or any agent. Indexly has no MCP surface — you talk to it through their dashboard.
-
-**5. Not a content generator.** We surface what is being said about you. We do not auto-publish on your behalf. Generation is a different product with a different failure mode, and we are deliberate about not mixing them.
+**4. Not a content generator.** Indexly auto-publishes to your CMS. We don't touch your content pipeline; submission and observation are the whole product.
 
 ## When to choose Indexly
 
-If you need an agency-grade reporting suite with content automation and don't care about owning the stack, Indexly is the more polished product today.
+If you need AI-visibility tracking, an agency-grade reporting suite, and content automation, and don't mind a closed platform, Indexly is built for that job.
 
 ## When to choose Request Indexing
 
-If you want the engine, not the dashboard. If "self-host on Cloudflare" matters to you. If you're driving an agent. If you want a citation timeline you'll still have when we (or any vendor) pivot.
+If your question is narrower: "is this page indexed, and how do I get it indexed," and you want that answered for free without signing up for a suite you don't need.
 
 Try it: [requestindexing.com](https://requestindexing.com) · GitHub: [harlan-zw/request-indexing](https://github.com/harlan-zw/request-indexing)

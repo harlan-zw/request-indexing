@@ -7,7 +7,6 @@ export default defineConfig({
     './layers/pro-perf/server/database/schema.ts',
     './layers/pro-dataforseo/server/database/schema.ts',
     './layers/pro-reports/server/database/schema.ts',
-    './layers/pro-chat/server/database/schema.ts',
     './layers/pro-indexing/server/database/schema.ts',
     './layers/nuxt-seo-pro/server/database/schema.ts',
   ],

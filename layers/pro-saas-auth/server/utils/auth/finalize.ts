@@ -15,7 +15,7 @@ const { users } = schema
 const apiKeyAlphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const generateApiKey = customAlphabet(apiKeyAlphabet, 40)
 
-const AUTH_SOURCE_VALUES = ['pro-free', 'pro-trial', 'purchase-onboarding', 'purchase-wizard'] as const
+const AUTH_SOURCE_VALUES = ['pro-free'] as const
 type AuthSource = typeof AUTH_SOURCE_VALUES[number]
 function readAuthSource(event: H3Event): AuthSource | null {
   const raw = getCookie(event, 'auth-source')
@@ -31,31 +31,13 @@ export interface SignInOrCreateOpts {
 export async function signInOrCreate({ event, provider, identity }: SignInOrCreateOpts) {
   const db = useDrizzle(event)
   const source = readAuthSource(event)
-  const isPurchaseOnboarding = source === 'purchase-onboarding' || source === 'purchase-wizard'
-  const canCreateAccount = source === 'pro-free' || source === 'pro-trial' || isPurchaseOnboarding
+  const canCreateAccount = source === 'pro-free'
 
   const { user: existing, matchedBy } = await resolveExistingUser(
     db,
     provider,
     identity.providerUserId,
-    identity.allVerifiedEmails,
   )
-
-  // Cross-provider conflict refusal: an account exists (matched by stripeEmail)
-  // but has no identity row for THIS provider. Refuse silent linking; instruct
-  // the user to sign in with the original provider, then link from settings.
-  if (existing && matchedBy === 'stripeEmail') {
-    const otherIdentities = await db.query.userIdentities.findMany({
-      where: eq(schema.userIdentities.userId, existing.userId),
-    }).catch(() => [])
-    if (otherIdentities.length && !otherIdentities.some(r => r.provider === provider)) {
-      const original = otherIdentities[0]!.provider
-      const emailParam = identity.email ? `&email=${encodeURIComponent(identity.email)}` : ''
-      if (source)
-        deleteCookie(event, 'auth-source')
-      return sendRedirect(event, `/login?error=use_existing_provider&provider=${original}${emailParam}`)
-    }
-  }
 
   let dbUserId: number | null = existing?.userId ?? null
   let apiKey: string = existing?.apiKey ?? generateApiKey()
@@ -156,12 +138,8 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
   if (isNewUser) {
     if (source)
       deleteCookie(event, 'auth-source')
-    if (isPurchaseOnboarding)
-      return sendRedirect(event, '/pro/onboarding?intent=purchase')
     if (source === 'pro-free')
       return sendRedirect(event, '/pro/onboarding?intent=free')
-    if (source === 'pro-trial')
-      return sendRedirect(event, '/pro/onboarding?intent=trial')
     return sendRedirect(event, '/dashboard')
   }
 

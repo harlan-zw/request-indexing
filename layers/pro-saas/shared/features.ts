@@ -1,7 +1,6 @@
 export interface ProSaasFeatures {
   accountDeletion: boolean
   api: boolean
-  billing: boolean
   feedback: boolean
   googleSignIn: boolean
   invitations: boolean
@@ -14,7 +13,6 @@ export interface ProSaasFeatures {
 export const defaultProSaasFeatures = {
   accountDeletion: true,
   api: true,
-  billing: true,
   feedback: false,
   googleSignIn: true,
   invitations: true,

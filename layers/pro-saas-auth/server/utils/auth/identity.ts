@@ -22,9 +22,8 @@ export async function resolveExistingUser(
   db: ReturnType<typeof useDrizzle>,
   provider: AuthProviderId,
   providerUserId: string,
-  verifiedEmails: string[],
 ) {
-  // 1. By identity row (the canonical answer).
+  // By identity row (the canonical answer).
   const identityRow = await db.query.userIdentities.findFirst({
     where: and(eq(userIdentities.provider, provider), eq(userIdentities.providerUserId, providerUserId)),
   }).catch(() => null)
@@ -32,14 +31,6 @@ export async function resolveExistingUser(
     const user = await db.query.users.findFirst({ where: eq(users.userId, identityRow.userId) }).catch(() => null)
     if (user)
       return { user, matchedBy: 'identity' as const }
-  }
-  // 2. Stripe-email match (verified by payment), only against verified emails.
-  if (verifiedEmails.length) {
-    const stripeMatch = await db.query.users.findFirst({
-      where: inArray(users.stripeEmail, verifiedEmails),
-    }).catch(() => null)
-    if (stripeMatch)
-      return { user: stripeMatch, matchedBy: 'stripeEmail' as const }
   }
   return { user: null, matchedBy: null }
 }

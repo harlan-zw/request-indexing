@@ -31,12 +31,10 @@ export default defineNuxtConfig({
     './apps/brand-kit',
     './layers/design-system',
     './layers/pro-shell',
-    './layers/pro-saas-billing',
     './layers/pro-saas-auth',
     './layers/pro-saas',
     './layers/pro-gsc',
     './layers/pro-indexing',
-    './layers/pro-chat',
     './layers/core',
   ],
   modules: [
@@ -87,7 +85,6 @@ export default defineNuxtConfig({
     allowEmptyEvents: [
       'pro:gsc:webhook',
       'pro:integration:linked',
-      'pro:subscription:changed',
       'pro:user:deleted',
     ],
   },
@@ -230,13 +227,6 @@ export default defineNuxtConfig({
         vars: {
           NUXT_PUBLIC_BASE_URL: 'https://requestindexing.com',
           NUXT_OAUTH_GOOGLE_CLIENT_ID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
-          NUXT_STRIPE_PRICE_PRO_MONTHLY: process.env.NUXT_STRIPE_PRICE_PRO_MONTHLY || '',
-          NUXT_STRIPE_PRICE_PRO_ANNUAL: process.env.NUXT_STRIPE_PRICE_PRO_ANNUAL || '',
-          NUXT_STRIPE_PRICE_GROWTH_MONTHLY: process.env.NUXT_STRIPE_PRICE_GROWTH_MONTHLY || '',
-          NUXT_STRIPE_PRICE_GROWTH_ANNUAL: process.env.NUXT_STRIPE_PRICE_GROWTH_ANNUAL || '',
-          NUXT_STRIPE_PRICE_SCALE_MONTHLY: process.env.NUXT_STRIPE_PRICE_SCALE_MONTHLY || '',
-          NUXT_STRIPE_PRICE_SCALE_ANNUAL: process.env.NUXT_STRIPE_PRICE_SCALE_ANNUAL || '',
-          NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
         },
         durable_objects: {
           bindings: [
@@ -356,27 +346,10 @@ export default defineNuxtConfig({
       release: sentryRelease ?? '',
       tracesSampleRate: 0.05,
     },
-    stripe: {
-      secretKey: '',
-      webhookSecret: '',
-      apiVersion: '2026-04-22.dahlia',
-      prices: {
-        proMonthly: '',
-        proAnnual: '',
-        growthMonthly: '',
-        growthAnnual: '',
-        scaleMonthly: '',
-        scaleAnnual: '',
-      },
-      trialDays: 14,
-    },
     public: {
       baseUrl: 'https://requestindexing.com',
       indexing: {
         usageLimitPerUser: 15,
-      },
-      stripe: {
-        publishableKey: '',
       },
     },
     indexing: {

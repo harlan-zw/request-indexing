@@ -1,22 +1,19 @@
-import type { AdminCtx, AdminListQuery } from '../admin-shell'
 import type { SQL, SQLWrapper } from 'drizzle-orm'
-import { and, asc, count, desc, eq, isNull, like, or } from 'drizzle-orm'
-import { defineAdminResource } from '../admin-shell'
+import type { AdminCtx, AdminListQuery } from '../admin-shell'
+import { and, asc, count, desc, eq, like, or } from 'drizzle-orm'
 import { getUserDisplayMetaMap } from '../../../../pro-saas-auth/server/utils/auth/identity'
 import { users } from '../../database/_surface'
+import { defineAdminResource } from '../admin-shell'
 
 interface UserRow {
   id: string
   email: string | null
   name: string | null
-  stripeEmail: string | null
-  subscriptionStatus: string
   createdAt: Date | null
 }
 
 const sortableMap: Record<string, SQLWrapper> = {
-  stripeEmail: users.stripeEmail,
-  subscriptionStatus: users.subscriptionStatus,
+  email: users.email,
   createdAt: users.createdAt,
 }
 
@@ -31,22 +28,6 @@ export default defineAdminResource<UserRow>({
   fields: [
     { type: 'text', key: 'email', label: 'Email', searchable: true },
     { type: 'text', key: 'name', label: 'Name', searchable: true },
-    {
-      type: 'badge',
-      key: 'subscriptionStatus',
-      label: 'Subscription',
-      sortable: true,
-      badgeMap: {
-        active: 'success',
-        canceled: 'error',
-        none: 'neutral',
-        trial: 'info',
-        past_due: 'warning',
-        paused: 'warning',
-        read_only: 'warning',
-        archived: 'error',
-      },
-    },
     { type: 'datetime', key: 'createdAt', label: 'Joined', sortable: true },
     { type: 'text', key: 'id', label: 'ID', hideOnIndex: true },
   ],
@@ -60,33 +41,6 @@ export default defineAdminResource<UserRow>({
         return { value: r[0]?.n ?? 0 }
       },
     },
-    {
-      key: 'active',
-      type: 'metric',
-      label: 'Active',
-      load: async ({ db }) => {
-        const r = await db.select({ n: count() }).from(users).where(eq(users.subscriptionStatus, 'active'))
-        return { value: r[0]?.n ?? 0 }
-      },
-    },
-    {
-      key: 'canceled',
-      type: 'metric',
-      label: 'Canceled',
-      load: async ({ db }) => {
-        const r = await db.select({ n: count() }).from(users).where(eq(users.subscriptionStatus, 'canceled'))
-        return { value: r[0]?.n ?? 0 }
-      },
-    },
-    {
-      key: 'none',
-      type: 'metric',
-      label: 'No subscription',
-      load: async ({ db }) => {
-        const r = await db.select({ n: count() }).from(users).where(isNull(users.subscriptionStatus))
-        return { value: r[0]?.n ?? 0 }
-      },
-    },
   ],
   index: async ({ db }: AdminCtx, q: AdminListQuery) => {
     const page = q.page ?? 1
@@ -96,8 +50,7 @@ export default defineAdminResource<UserRow>({
     const filters: SQL[] = []
     if (q.search) {
       const searchFilter = or(
-        like(users.stripeEmail, `%${q.search}%`),
-        like(users.discordUsername, `%${q.search}%`),
+        like(users.email, `%${q.search}%`),
       )
       if (searchFilter)
         filters.push(searchFilter)
@@ -110,8 +63,7 @@ export default defineAdminResource<UserRow>({
     const [rows, totalRows] = await Promise.all([
       db.select({
         id: users.userId,
-        stripeEmail: users.stripeEmail,
-        subscriptionStatus: users.subscriptionStatus,
+        email: users.email,
         createdAt: users.createdAt,
       })
         .from(users)
@@ -128,10 +80,8 @@ export default defineAdminResource<UserRow>({
 
     const enriched: UserRow[] = rows.map(r => ({
       id: r.id,
-      stripeEmail: r.stripeEmail,
-      email: meta.get(r.id)?.email ?? r.stripeEmail ?? null,
+      email: meta.get(r.id)?.email ?? r.email ?? null,
       name: meta.get(r.id)?.name ?? null,
-      subscriptionStatus: r.subscriptionStatus ?? 'none',
       createdAt: r.createdAt,
     }))
 
@@ -144,9 +94,8 @@ export default defineAdminResource<UserRow>({
     const meta = (await getUserDisplayMetaMap(db, [id])).get(id)
     return {
       ...row,
-      email: meta?.email ?? row.stripeEmail ?? null,
+      email: meta?.email ?? row.email ?? null,
       name: meta?.name ?? null,
-      subscriptionStatus: row.subscriptionStatus ?? 'none',
     } as UserRow
   },
 })

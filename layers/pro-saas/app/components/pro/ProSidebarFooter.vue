@@ -21,7 +21,7 @@ const { items: menuItems } = useProUserMenu({
 <template>
   <div class="space-y-3">
     <slot name="top" />
-    <!-- Workspace switcher (Vercel/Stripe pattern). Solo users see no switcher. -->
+    <!-- Workspace switcher (Vercel-style pattern). Solo users see no switcher. -->
     <ProWorkspaceSwitcher v-if="!hideWorkspaceSwitcher && teams.length > 1" />
     <div class="flex items-center gap-1">
       <UDropdownMenu

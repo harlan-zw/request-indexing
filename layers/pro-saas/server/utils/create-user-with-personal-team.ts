@@ -14,15 +14,15 @@ export interface CreateUserIdentityInput {
 
 /**
  * Atomically create a new user + their personal team + set users.currentTeamId.
- * Every signup site (Stripe webhook lifetime checkout, future providers) MUST
- * use this helper so no user ever exists without a personal team.
+ * Every signup site MUST use this helper so no user ever exists without a
+ * personal team.
  *
  * D1 has no real transactions; we sequence carefully and best-effort rollback
  * if the team insert succeeds but the currentTeamId update fails.
  *
- * The `identity` arg is optional: webhook paths that already know a provider
- * identity (e.g. lifetime checkout with `client_reference_id`) can write the
- * `user_identities` row inline so the user can immediately sign in.
+ * The `identity` arg is optional: signup paths that already know a provider
+ * identity can write the `user_identities` row inline so the user can
+ * immediately sign in.
  */
 export async function createUserWithPersonalTeam(
   db: ReturnType<typeof useDrizzle>,
@@ -73,5 +73,5 @@ export async function createUserWithPersonalTeam(
 }
 
 function personalTeamName(u: NewUser, identity?: CreateUserIdentityInput): string {
-  return identity?.displayName || u.stripeEmail?.split('@')[0] || 'My team'
+  return identity?.displayName || u.email?.split('@')[0] || 'My team'
 }

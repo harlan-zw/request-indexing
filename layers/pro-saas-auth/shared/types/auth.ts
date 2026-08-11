@@ -36,7 +36,7 @@ export interface AuthHookContextBase {
   event: H3Event
   user: { id: number, apiKey: string | null, source: string | null }
   identity: AuthIdentityRow
-  sourceCookie?: 'pro-free' | 'pro-trial' | 'purchase-onboarding' | 'purchase-wizard' | null
+  sourceCookie?: 'pro-free' | null
 }
 
 export interface AuthHooks {

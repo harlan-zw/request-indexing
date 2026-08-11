@@ -26,7 +26,6 @@ const megaMenuItems = computed(() => {
   items.push(
     { value: 'guides', label: 'Guides', icon: 'i-ph-books-duotone', to: '/guides', hasDropdown: true },
     { value: 'tools', label: 'Tools', icon: 'i-ph-wrench-duotone', to: '/tools', hasDropdown: true },
-    { value: 'pricing', label: 'Pricing', icon: 'i-ph-tag-duotone', to: '/pricing', hasDropdown: false },
   )
   return items
 })
@@ -73,11 +72,6 @@ const authDropdownItems = computed(() => {
     [
       { label: 'Account', to: '/account', icon: 'i-heroicons-user-circle' },
     ],
-    user.value?.access === 'pro'
-      ? false
-      : [
-          { label: 'Upgrade', to: '/account/upgrade', icon: 'i-heroicons-star' },
-        ],
     [
       {
         label: 'Logout',
@@ -85,7 +79,7 @@ const authDropdownItems = computed(() => {
         icon: 'i-heroicons-arrow-left-end-on-rectangle',
       },
     ],
-  ].filter(Boolean)
+  ]
 })
 </script>
 
@@ -193,7 +187,6 @@ const authDropdownItems = computed(() => {
           <UDropdownMenu :items="authDropdownItems" mode="hover" class="flex items-center">
             <UButton color="neutral" variant="ghost" class="p-0">
               <UAvatar :src="user.picture" size="sm" />
-              <UBadge v-if="user.access === 'pro'" label="Pro" color="primary" variant="subtle" class="ml-1" size="sm" />
               <UIcon name="i-heroicons-chevron-down" class="w-4 h-4 ml-1 opacity-50" />
             </UButton>
           </UDropdownMenu>

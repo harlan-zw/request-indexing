@@ -16,9 +16,6 @@ export const LOG_CATALOG = {
   'pro_event.record_failed': 'proEvent insert failed during a "first X" milestone',
   'telemetry.insert_failed': 'pro telemetry event insert failed',
 
-  // Billing
-  'agency_overage.meter_failed': 'Stripe meter event create failed (non-blocking)',
-
   // gscdump bridge
   'gscdump.unlink.remote_failed': 'gscdump.com API call failed during local unlink/reconcile',
   'gscdump.proxy.failed': 'gscdump.com upstream call from proxy failed',
@@ -63,7 +60,7 @@ export const LOG_CATALOG = {
   // Chat
   'chat.background_failed': 'pro-chat background side-effect failed',
 
-  // Stripe webhook + handler-internal best-effort branches
+  // Handler-internal best-effort branches
   'handler.body_parse_failed': 'readBody failed; treated as undefined and re-validated by zod',
 
   // Transactional email (drip, invites, discord role assign, etc.)

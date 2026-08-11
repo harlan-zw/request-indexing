@@ -1,6 +1,6 @@
-// Pro SaaS layer: identity, teams, license gating.
+// Pro SaaS layer: identity, teams.
 // Owns user/team identity, Caller resolution, team policy, onboarding registry,
-// feedback drawer, and shared pro primitives. Billing lives in pro-saas-billing.
+// feedback drawer, and shared pro primitives. Free-only beta: no billing layer.
 // Pro layer (nuxt-seo-pro) consumes this layer's primitives.
 //
 // The `nuxt-notifications` module is auto-discovered from `modules/notifications/`

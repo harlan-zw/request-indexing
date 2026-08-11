@@ -20,9 +20,9 @@ export default defineNitroPlugin((nitroApp) => {
     catch (err) {
       logger.error('[auth-hooks/pro-saas] team attach failed:', err)
     }
-    // Onboarding state init removed during port — onboarding flow deleted in
-    // 00-pro-saas.md Phase 1. Re-add a V1-shaped onboarding hook here once the
-    // crawlers/citations onboarding wizard exists.
+    // Onboarding state init removed during port; onboarding flow deleted in
+    // 00-pro-saas.md Phase 1. Re-add a V1-shaped onboarding hook here if a
+    // replacement onboarding wizard is built.
     // Touch — identity is referenced for future logging context.
     void identity
     void nitroApp

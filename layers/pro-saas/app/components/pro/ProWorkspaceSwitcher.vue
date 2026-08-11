@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Workspace switcher (Vercel/Stripe pattern).
+ * Workspace switcher (Vercel-style pattern).
  *
  * Replaces the legacy combined team+site dropdown. This widget is *only* about
  * the active team — site picking lives in `pro-site-dashboard.vue`'s site

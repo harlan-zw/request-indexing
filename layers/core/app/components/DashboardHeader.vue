@@ -26,11 +26,6 @@ const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
       { label: 'Account', to: '/account', icon: 'i-heroicons-user-circle' },
     ],
   ]
-  if (user.value.access !== 'pro') {
-    groups.push([
-      { label: 'Upgrade', to: '/account/upgrade', icon: 'i-heroicons-star', badge: '0 left' },
-    ])
-  }
   groups.push([
     {
       label: 'Logout',
@@ -53,7 +48,6 @@ const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
         <UDropdownMenu :items="authDropdownItems" :content="{ align: 'end' }">
           <button class="flex items-center gap-2 rounded-md px-1 py-1 hover:bg-elevated transition-colors">
             <UAvatar :src="user.picture" size="sm" />
-            <UBadge v-if="user.access === 'pro'" label="Pro" color="primary" variant="subtle" />
             <UIcon name="i-heroicons-chevron-down" class="size-4 text-dimmed" />
           </button>
         </UDropdownMenu>

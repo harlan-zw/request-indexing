@@ -12,8 +12,6 @@ const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz'
 const length = 12
 
 const nanoid = customAlphabet(alphabet, length)
-const apiKeyAlphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-const apiKey = customAlphabet(apiKeyAlphabet, 40)
 
 const timestamps = {
   createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
@@ -70,24 +68,6 @@ export const users = sqliteTable('users', {
   // Agent-native auth: per-user API key for MCP/CLI/webhook hosts.
   // Nullable for additive migration; backfilled via nanoid in 0004 then enforced.
   apiKey: text('api_key').unique(),
-
-  // Stripe billing mirror (V1 tiers: pro|growth|scale; status includes 'trial').
-  stripeCustomerId: text('stripe_customer_id'),
-  stripeEmail: text('stripe_email'),
-  stripePaymentIntentId: text('stripe_payment_intent_id'),
-  stripeCheckoutSessionId: text('stripe_checkout_session_id'),
-  subscriptionId: text('subscription_id'),
-  subscriptionStatus: text('subscription_status').$type<'trial' | 'active' | 'past_due' | 'paused' | 'canceled' | 'read_only' | 'archived'>(),
-  subscriptionTier: text('subscription_tier').$type<'pro' | 'growth' | 'scale'>(),
-  billingCycle: text('billing_cycle').$type<'monthly' | 'annual'>(),
-  sitesLimit: integer('sites_limit'),
-  promptsLimit: integer('prompts_limit'),
-  trialEndsAt: integer('trial_ends_at', { mode: 'timestamp' }),
-  currentPeriodStart: integer('current_period_start', { mode: 'timestamp' }),
-  currentPeriodEnd: integer('current_period_end', { mode: 'timestamp' }),
-  cancelAtPeriodEnd: integer('cancel_at_period_end', { mode: 'boolean' }).default(false),
-  readOnlyUntil: integer('read_only_until', { mode: 'timestamp' }),
-  archivedAt: integer('archived_at', { mode: 'timestamp' }),
 
   // Sign-up source for funnel attribution
   source: text('source'),
@@ -668,30 +648,6 @@ export const siteGroups = sqliteTable('site_groups', {
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 })
 
-// ─── Billing / Stripe ────────────────────────────────────────────────────────
-
-export const stripeWebhookEvents = sqliteTable('stripe_webhook_events', {
-  eventId: text('event_id').primaryKey(),
-  eventType: text('event_type').notNull(),
-  processedAt: integer('processed_at', { mode: 'timestamp' }).notNull(),
-})
-
-export const billingEvents = sqliteTable('billing_events', {
-  billingEventId: integer('billing_event_id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.userId, { onDelete: 'cascade' }),
-  teamId: integer('team_id').references(() => teams.teamId, { onDelete: 'set null' }),
-  kind: text('kind', { enum: ['payment_failed', 'refunded', 'disputed'] }).notNull(),
-  stripeId: text('stripe_id').notNull(),
-  amount: integer('amount').notNull(),
-  reason: text('reason'),
-  metadata: text('metadata'),
-  createdAt: integer('created_at').notNull(),
-}, t => ({
-  kindStripeUnq: unique('billing_events_kind_stripe_id_unique').on(t.kind, t.stripeId),
-  userKindIdx: index('billing_events_user_kind_idx').on(t.userId, t.kind),
-  teamCreatedIdx: index('billing_events_team_created_idx').on(t.teamId, t.createdAt),
-}))
-
 // ─── Usage / Events / Errors ─────────────────────────────────────────────────
 
 export type ApiUsageSource = 'mcp' | 'rest' | 'internal'
@@ -823,23 +779,6 @@ export const feedback = sqliteTable('feedback', {
 // V1 net-new tables (per V1.md line 99–120)
 // ─────────────────────────────────────────────────────────────────────────────
 
-// AI crawler hits from the edge worker. Hot 30 days in D1; archived to R2 Parquet.
-export const crawlerHits = sqliteTable('crawler_hits', {
-  crawlerHitId: integer('crawler_hit_id').primaryKey({ autoIncrement: true }),
-  siteId: integer('site_id').notNull().references(() => sites.siteId, { onDelete: 'cascade' }),
-  ts: integer('ts').notNull(), // unix ms
-  // Resolved engine: 'gpt' | 'claude' | 'perplexity' | 'google-extended' | 'oai-search' | 'apple-extended' | 'cc' | 'bytespider' | 'amazon' | 'other'
-  engine: text('engine').notNull(),
-  ua: text('ua').notNull(),
-  uaHash: text('ua_hash').notNull(),
-  path: text('path').notNull(),
-  status: integer('status'),
-  country: text('country'),
-}, t => ({
-  siteTsIdx: index('crawler_hits_site_ts_idx').on(t.siteId, t.ts),
-  siteEngineTsIdx: index('crawler_hits_site_engine_ts_idx').on(t.siteId, t.engine, t.ts),
-}))
-
 // Cloudflare Queue mirror of submitted URLs. Distinct from generic `jobs`.
 export const indexingJobs = sqliteTable('indexing_jobs', {
   indexingJobId: integer('indexing_job_id').primaryKey({ autoIncrement: true }),
@@ -872,37 +811,6 @@ export const indexingInvestigations = sqliteTable('indexing_investigations', {
 }, t => ({
   siteUrlIssueUnq: unique('indexing_investigations_site_url_issue_unique').on(t.siteId, t.url, t.issueType),
   siteIdx: index('indexing_investigations_site_idx').on(t.siteId),
-}))
-
-// One row per (site, prompt, llm, day). Citation tracker output.
-export const citationRuns = sqliteTable('citation_runs', {
-  citationRunId: integer('citation_run_id').primaryKey({ autoIncrement: true }),
-  siteId: integer('site_id').notNull().references(() => sites.siteId, { onDelete: 'cascade' }),
-  promptId: text('prompt_id').notNull(),
-  model: text('model').notNull(), // 'claude-opus' | 'gpt-4' | 'perplexity' | 'gemini' | 'grok'
-  ts: integer('ts').notNull(), // unix ms day-bucket
-  cited: integer('cited', { mode: 'boolean' }).notNull(),
-  position: integer('position'),
-  snippet: text('snippet'),
-  sources: text('sources', { mode: 'json' }).$type<string[]>(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, t => ({
-  sitePromptTsIdx: index('citation_runs_site_prompt_ts_idx').on(t.siteId, t.promptId, t.ts),
-  sitePromptModelDayUnq: unique('citation_runs_site_prompt_model_day_unique').on(t.siteId, t.promptId, t.model, t.ts),
-}))
-
-// Diffable history of llms.txt for a site.
-export const llmsTxtVersions = sqliteTable('llmstxt_versions', {
-  llmsTxtVersionId: integer('llmstxt_version_id').primaryKey({ autoIncrement: true }),
-  siteId: integer('site_id').notNull().references(() => sites.siteId, { onDelete: 'cascade' }),
-  ts: integer('ts').notNull(),
-  contentHash: text('content_hash').notNull(),
-  content: text('content').notNull(),
-  generatedFrom: text('generated_from').notNull(), // 'auto' | 'manual'
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, t => ({
-  siteTsIdx: index('llmstxt_versions_site_ts_idx').on(t.siteId, t.ts),
-  siteHashUnq: unique('llmstxt_versions_site_hash_unique').on(t.siteId, t.contentHash),
 }))
 
 // ─── Relations (pro-saas + V1) ───────────────────────────────────────────────
@@ -940,11 +848,6 @@ export const siteGroupsRelations = relations(siteGroups, ({ one }) => ({
   team: one(teams, { fields: [siteGroups.teamId], references: [teams.teamId] }),
 }))
 
-export const billingEventsRelations = relations(billingEvents, ({ one }) => ({
-  user: one(users, { fields: [billingEvents.userId], references: [users.userId] }),
-  team: one(teams, { fields: [billingEvents.teamId], references: [teams.teamId] }),
-}))
-
 export const apiUsageEventsRelations = relations(apiUsageEvents, ({ one }) => ({
   team: one(teams, { fields: [apiUsageEvents.teamId], references: [teams.teamId] }),
   teamApiToken: one(teamApiTokens, { fields: [apiUsageEvents.teamApiTokenId], references: [teamApiTokens.teamApiTokenId] }),
@@ -977,24 +880,12 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
   user: one(users, { fields: [feedback.userId], references: [users.userId] }),
 }))
 
-export const crawlerHitsRelations = relations(crawlerHits, ({ one }) => ({
-  site: one(sites, { fields: [crawlerHits.siteId], references: [sites.siteId] }),
-}))
-
 export const indexingJobsRelations = relations(indexingJobs, ({ one }) => ({
   site: one(sites, { fields: [indexingJobs.siteId], references: [sites.siteId] }),
 }))
 
 export const indexingInvestigationsRelations = relations(indexingInvestigations, ({ one }) => ({
   site: one(sites, { fields: [indexingInvestigations.siteId], references: [sites.siteId] }),
-}))
-
-export const citationRunsRelations = relations(citationRuns, ({ one }) => ({
-  site: one(sites, { fields: [citationRuns.siteId], references: [sites.siteId] }),
-}))
-
-export const llmsTxtVersionsRelations = relations(llmsTxtVersions, ({ one }) => ({
-  site: one(sites, { fields: [llmsTxtVersions.siteId], references: [sites.siteId] }),
 }))
 
 // ─── Type exports ────────────────────────────────────────────────────────────
@@ -1009,10 +900,6 @@ export type TeamGscCredential = typeof teamGscCredentials.$inferSelect
 export type NewTeamGscCredential = typeof teamGscCredentials.$inferInsert
 export type SiteGroup = typeof siteGroups.$inferSelect
 export type NewSiteGroup = typeof siteGroups.$inferInsert
-export type StripeWebhookEvent = typeof stripeWebhookEvents.$inferSelect
-export type NewStripeWebhookEvent = typeof stripeWebhookEvents.$inferInsert
-export type BillingEvent = typeof billingEvents.$inferSelect
-export type NewBillingEvent = typeof billingEvents.$inferInsert
 export type ApiUsageEvent = typeof apiUsageEvents.$inferSelect
 export type NewApiUsageEvent = typeof apiUsageEvents.$inferInsert
 export type McpUsage = typeof mcpUsage.$inferSelect
@@ -1029,16 +916,10 @@ export type Notification = typeof notifications.$inferSelect
 export type NewNotification = typeof notifications.$inferInsert
 export type Feedback = typeof feedback.$inferSelect
 export type NewFeedback = typeof feedback.$inferInsert
-export type CrawlerHit = typeof crawlerHits.$inferSelect
-export type NewCrawlerHit = typeof crawlerHits.$inferInsert
 export type IndexingJob = typeof indexingJobs.$inferSelect
 export type NewIndexingJob = typeof indexingJobs.$inferInsert
 export type IndexingInvestigation = typeof indexingInvestigations.$inferSelect
 export type NewIndexingInvestigation = typeof indexingInvestigations.$inferInsert
-export type CitationRun = typeof citationRuns.$inferSelect
-export type NewCitationRun = typeof citationRuns.$inferInsert
-export type LlmsTxtVersion = typeof llmsTxtVersions.$inferSelect
-export type NewLlmsTxtVersion = typeof llmsTxtVersions.$inferInsert
 export type NewUser = typeof users.$inferInsert
 export type User = typeof users.$inferSelect
 

@@ -8,7 +8,7 @@ export const teamMemberRoleUpdateSchema = z.object({ role: teamRoleSchema })
 export const teamTransferOwnershipSchema = z.object({ newOwnerUserId: z.string().min(1) })
 
 // Onboarding: persist the team's selected GSC sites + backup preference.
-// `selectedSites` carries site `publicId`s, capped at the free-tier limit.
+// `selectedSites` carries site `publicId`s, capped at the site limit.
 export const teamSelectedSitesSchema = z.array(z.string().min(1)).max(6, 'You can select up to 6 sites')
 export const teamOnboardingUpdateSchema = z.object({
   onboardedStep: z.string().trim().min(1).max(60).optional(),

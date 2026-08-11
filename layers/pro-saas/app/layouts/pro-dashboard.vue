@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import ProSubscriptionShell from '#layers/pro-saas-billing/app/components/pro/ProSubscriptionShell.vue'
-
 const { session } = useUserSession()
 
 const navigation = [
@@ -36,7 +34,6 @@ const navigation = [
 
     <UDashboardPanel id="pro-dashboard-content">
       <template #body>
-        <ProSubscriptionShell />
         <UContainer class="w-full py-6">
           <slot />
         </UContainer>

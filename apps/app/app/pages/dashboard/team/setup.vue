@@ -130,15 +130,11 @@ const sites = computed(() => {
                 check it exists within <a class="underline" href="https://search.google.com/search-console" target="_blank">Google Search Console</a>.
               </p>
               <p class="dark:text-gray-400 text-gray-600 text-sm mb-5">
-                The free plan includes up to 3 sites, up to 10,000 pages and tracking up to 100 keywords. The Pro
-                plan is unlimited and is in development.
+                Free during the beta: up to 3 sites, up to 10,000 pages and tracking up to 100 keywords.
               </p>
               <div class="mb-3">
                 <div class="text-sm font-bold text-gray-700 mb-1">
                   Please select up to 3 sites to continue.
-                </div>
-                <div class="text-xs text-gray-500">
-                  The free plan offers limited sites, pro users have unlimited.
                 </div>
               </div>
               <div v-if="sitesSynced < totalSites">

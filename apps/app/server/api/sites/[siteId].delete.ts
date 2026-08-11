@@ -12,11 +12,8 @@
 // alone — they're transient queue history, not site data.
 import { eq } from 'drizzle-orm'
 import {
-  citationRuns,
-  crawlerHits,
   indexingInvestigations,
   indexingJobs,
-  llmsTxtVersions,
   relatedKeywords,
   siteDateAnalytics,
   siteDateCountryAnalytics,
@@ -58,11 +55,8 @@ export default defineProApiHandler(async (event) => {
     () => db.delete(usages).where(eq(usages.siteId, site.siteId)),
     () => db.delete(userSites).where(eq(userSites.siteId, site.siteId)),
     () => db.delete(teamSites).where(eq(teamSites.siteId, site.siteId)),
-    () => db.delete(crawlerHits).where(eq(crawlerHits.siteId, site.siteId)),
     () => db.delete(indexingJobs).where(eq(indexingJobs.siteId, site.siteId)),
     () => db.delete(indexingInvestigations).where(eq(indexingInvestigations.siteId, site.siteId)),
-    () => db.delete(citationRuns).where(eq(citationRuns.siteId, site.siteId)),
-    () => db.delete(llmsTxtVersions).where(eq(llmsTxtVersions.siteId, site.siteId)),
   ]
 
   const warnings: string[] = []

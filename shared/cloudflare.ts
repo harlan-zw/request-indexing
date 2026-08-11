@@ -1,3 +1,9 @@
+// Secrets the Worker cannot boot without. Deploy fails fast when one is
+// missing, which is the point: an empty secret used to be baked in as an empty
+// `var` and only surfaced as a runtime 500.
+//
+// Stripe is deliberately absent. Billing was removed for the free-only beta;
+// there is no paid tier and no Stripe keys to require.
 export const CLOUDFLARE_REQUIRED_SECRETS = [
   'NUXT_DATAFORSEO_LOGIN',
   'NUXT_DATAFORSEO_PASSWORD',
@@ -9,6 +15,4 @@ export const CLOUDFLARE_REQUIRED_SECRETS = [
   'NUXT_OAUTH_PRIVATE_POOL',
   'NUXT_POSTMARK_API_KEY',
   'NUXT_SESSION_PASSWORD',
-  'NUXT_STRIPE_SECRET_KEY',
-  'NUXT_STRIPE_WEBHOOK_SECRET',
 ]

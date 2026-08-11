@@ -1,8 +1,8 @@
 <h1 align='center'>Request Indexing</h1>
 
 <p align="center">
-<b>The open source AI-visibility engine.</b><br>
-One edge, every engine, your data forever.
+<b>Get your pages indexed.</b><br>
+Search Console data and multi-engine submission, in one small app.
 </p>
 
 <p align="center">
@@ -11,7 +11,7 @@ One edge, every engine, your data forever.
 <td align="center">
 <img width="800" height="0" /><br>
 <i></i> <a href="https://requestindexing.com/">requestindexing.com</a> <br>
-<sup>GPL-3.0 · Cloudflare-native · MCP-first</sup><br>
+<sup>GPL-3.0 · Cloudflare-native · free during beta</sup><br>
 <sub>Built by <a href="https://harlanzw.com">Harlan Wilton</a> · maintainer of <a href="https://nuxtseo.com">Nuxt SEO</a><br> Follow <a href="https://twitter.com/harlan_zw">@harlan_zw</a> · Join <a href="https://discord.gg/275MBUBvgP">Discord</a></sub><br>
 <img width="800" height="0" />
 </td>
@@ -20,40 +20,31 @@ One edge, every engine, your data forever.
 </p>
 
 > [!NOTE]
-> v1 is in active development. The hosted product runs v0 today. See [VISION.md](./VISION.md) and [V1.md](./V1.md) for where this is going.
+> Free during beta. See [VISION.md](./VISION.md) for what this is and, more importantly, what it is not.
 
-Point your domain at us. We watch every AI crawler, submit every URL, track every citation, and keep all of it long after Google and the LLMs forget.
+Connect Search Console, see which pages are indexed and which are not, and submit the ones that need it.
 
 ## What it does
 
-- 🛰️ **AI crawler observability** — log GPTBot, ClaudeBot, PerplexityBot, Google-Extended, Applebot-Extended, OAI-SearchBot at the edge
-- ⚡ **Multi-engine submission** — Google Indexing API + Bing IndexNow + Yandex + Naver + Seznam, one call
-- 💬 **LLM citation tracking** — daily prompt runs across ChatGPT, Claude, Perplexity, Gemini; history retained
-- 📄 **`llms.txt` + sitemap injection** — generated, versioned, served from the edge
-- 🪞 **SPA pre-rendering** — covers Lovable, Bolt, v0, Base44, any framework with an empty `<body>`
-- 🗓️ **GSC retention past 16 months** — append-only Parquet on R2, queryable forever
-- 🤖 **MCP server** — drive everything from Claude Code, Cursor, or a custom agent loop
-- 🔓 **GPL-3.0 + self-host** — same engine, your Cloudflare account, your keys
+- 🔍 **Indexing status per URL**: what Google has indexed, what it has not, and the stated reason
+- 📤 **Submission**: push new and updated URLs to every engine the protocol supports
+- 📈 **Coverage over time**: index percentage, transitions, and what changed since last week
+- 🗺️ **Sitemaps**: what you declared, what was discovered, what drifted
+- 📊 **The regular Search Console reads**: queries, pages, countries, devices, kept past Google's 16-month window
+- 🔓 **GPL-3.0 + self-host**: same app, your Cloudflare account, your keys
 
-## Why
+## What it is not
 
-Three things broke the SEO toolchain in the last 24 months:
-
-- GPTBot (Aug 2023), Google-Extended (Sep 2023), ClaudeBot, PerplexityBot, OAI-SearchBot, Applebot-Extended — six new crawlers unobserved by legacy tools.
-- LLM answers compound while staying ephemeral. ChatGPT cites you today and forgets you tomorrow.
-- Google still wipes Search Console at 16 months by design.
-
-Generative AI traffic grew 28.6% year-over-year ([Similarweb, Jan 2026](https://www.similarweb.com/blog/marketing/geo/gen-ai-stats/)). The teams instrumenting this now will own the dataset by the time it shows up in everyone else's analytics.
-
-See [VISION.md](./VISION.md) for the full strategy and [V1.md](./V1.md) for the implementation plan.
+This is a small product on purpose. It does not do AI crawler observability, LLM citation tracking, SPA prerendering, or inject `llms.txt` into your site. Those were an earlier direction and are gone. See [VISION.md](./VISION.md).
 
 ## Built on
 
-- [`@gscdump/*`](https://gscdump.com) — typed GSC + analysis + storage + MCP engine
-- [`@nuxtjs/robots`](https://github.com/nuxt-modules/robots) — AI crawler classification (`AI_BOTS` pattern set)
+- [`@gscdump/*`](https://gscdump.com), the engine: sync, retention, indexing inspection, sitemaps, submission, and the public protocol this app consumes
 - [Nuxt](https://nuxt.com) + [Nuxt UI Pro](https://ui.nuxt.com/pro?aff=5zj9e) + [Nuxt SEO](https://nuxtseo.com)
-- Cloudflare Workers, D1, R2, Queues, Browser Rendering, AI Gateway
-- DataForSEO for SERP + keyword data
+- Cloudflare Workers, D1, R2, Queues
+- DataForSEO for keyword data
+
+Engine features land here by upgrading the gscdump protocol, not by rebuilding them. IndexNow and Bing Webmaster Tools arrive that way when gscdump ships them.
 
 ## Run locally
 
@@ -71,6 +62,8 @@ NUXT_OAUTH_GOOGLE_CLIENT_SECRET=<clientSecret>
 NUXT_KEY=<must be 32 chars>
 NUXT_SESSION_PASSWORD=<secret>
 ```
+
+Talking to the hosted engine also needs a gscdump partner key (`NUXT_GSCDUMP_API_KEY`) and webhook secret (`NUXT_GSCDUMP_WEBHOOK_SECRET`). See `.dev.vars.example` for the full list.
 
 ```bash
 pnpm dev

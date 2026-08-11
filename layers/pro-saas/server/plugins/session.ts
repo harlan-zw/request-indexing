@@ -28,7 +28,7 @@ export default defineNitroPlugin(() => {
         }
         session.user = {
           id: impersonatedUser.id,
-          email: primary?.email ?? impersonatedUser.stripeEmail ?? null,
+          email: primary?.email ?? impersonatedUser.email ?? null,
           name: primary?.displayName ?? null,
           avatarUrl: primary?.avatarUrl ?? null,
           authProvider: (primary?.provider ?? 'github') as AuthProviderId,
@@ -59,7 +59,7 @@ export default defineNitroPlugin(() => {
     if (primaryIdentity) {
       session.user = {
         id: user.id,
-        email: primaryIdentity.email ?? user.stripeEmail ?? null,
+        email: primaryIdentity.email ?? user.email ?? null,
         name: primaryIdentity.displayName ?? null,
         avatarUrl: primaryIdentity.avatarUrl ?? null,
         authProvider: primaryIdentity.provider as AuthProviderId,
@@ -68,14 +68,7 @@ export default defineNitroPlugin(() => {
     }
 
     session.apiKey = user.apiKey
-    session.subscriptionStatus = user.subscriptionStatus
-    session.subscriptionTier = user.subscriptionTier
-    session.billingCycle = user.billingCycle
-    session.sitesLimit = user.sitesLimit
-    session.cancelAtPeriodEnd = !!user.cancelAtPeriodEnd
-    session.stripeCustomerId = user.stripeCustomerId
-    session.stripeEmail = user.stripeEmail
-    session.deliveryEmail = primaryIdentityEmail || user.stripeEmail || null
+    session.deliveryEmail = primaryIdentityEmail || user.email || null
     session.discordId = user.discordId
     session.discordUsername = user.discordUsername
     session.discordAvatar = user.discordAvatar
@@ -90,11 +83,6 @@ export default defineNitroPlugin(() => {
         return null
       return d.toISOString()
     }
-    session.trialEndsAt = toIso(user.trialEndsAt)
-    session.currentPeriodStart = toIso(user.currentPeriodStart)
-    session.currentPeriodEnd = toIso(user.currentPeriodEnd)
-    session.readOnlyUntil = toIso(user.readOnlyUntil)
-    session.archivedAt = toIso(user.archivedAt)
     session.monthlyReportEmail = !!user.monthlyReportEmail
     session.monthlyReportDiscord = !!user.monthlyReportDiscord
     session.monthlyReportDisabled = !!user.monthlyReportDisabled
