@@ -7,7 +7,9 @@ const { session } = useUserSession()
 const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
 
 watch(isOnWelcome, (val) => {
-  if (!val && !session.value.team.onboardedStep)
+  // Optional-chained deliberately: a session without a team must not take the
+  // whole dashboard down with a 500, which is what an unguarded read did.
+  if (!val && session.value?.team && !session.value.team.onboardedStep)
     router.push('/dashboard/team/setup')
 }, { immediate: true })
 

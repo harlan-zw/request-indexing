@@ -13,6 +13,17 @@ module '#auth-utils' {
   }
   export interface UserSession {
     apiKey?: string
+    /**
+     * Current team, populated by the session `fetch` hook. Null when the user
+     * has no `currentTeamId`. The dashboard layouts read `team.onboardedStep`
+     * to decide whether to push the user through setup.
+     */
+    team?: {
+      teamId: number
+      name: string
+      personalTeam: boolean
+      onboardedStep: string | null
+    } | null
   }
 }
 

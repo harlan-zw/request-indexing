@@ -50,7 +50,7 @@ export default defineNitroPlugin(() => {
     // shape (id/name/avatarUrl/authProvider) on every authenticated request.
     // See google-signin-plan.md Round 9.
     const allIdentities = await db.query.userIdentities.findMany({
-      where: eq(schema.userIdentities.userId, user.id),
+      where: eq(schema.userIdentities.userId, user.userId),
       orderBy: [desc(schema.userIdentities.lastUsedAt)],
     }).catch(() => [])
     const primaryIdentity = allIdentities[0] ?? null
@@ -58,7 +58,7 @@ export default defineNitroPlugin(() => {
 
     if (primaryIdentity) {
       session.user = {
-        id: user.id,
+        id: user.userId,
         email: primaryIdentity.email ?? user.email ?? null,
         name: primaryIdentity.displayName ?? null,
         avatarUrl: primaryIdentity.avatarUrl ?? null,
@@ -66,6 +66,22 @@ export default defineNitroPlugin(() => {
         currentTeamId: user.currentTeamId ?? null,
       }
     }
+
+    // The dashboard layouts gate onboarding on `session.team.onboardedStep`.
+    // Nothing populated `session.team`, so that read threw
+    // "Cannot read properties of undefined (reading 'onboardedStep')" and 500'd
+    // the dashboard for every signed-in user.
+    const currentTeam = user.currentTeamId
+      ? await db.query.teams.findFirst({ where: eq(schema.teams.teamId, user.currentTeamId) }).catch(() => null)
+      : null
+    session.team = currentTeam
+      ? {
+          teamId: currentTeam.teamId,
+          name: currentTeam.name,
+          personalTeam: !!currentTeam.personalTeam,
+          onboardedStep: currentTeam.onboardedStep ?? null,
+        }
+      : null
 
     session.apiKey = user.apiKey
     session.deliveryEmail = primaryIdentityEmail || user.email || null

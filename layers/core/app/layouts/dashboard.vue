@@ -13,7 +13,9 @@ const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboar
 const route = useRoute()
 
 watch(isOnWelcome, (val) => {
-  if (!val && !session.value.team.onboardedStep)
+  // Optional-chained deliberately: a session without a team must not take the
+  // whole dashboard down with a 500, which is what an unguarded read did.
+  if (!val && session.value?.team && !session.value.team.onboardedStep)
     router.push('/dashboard/team/setup')
 }, { immediate: true })
 
@@ -124,7 +126,7 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
             </div>
           </UButton>
         </UDropdownMenu>
-        <div v-else class="px-2 py-1 text-sm font-medium truncate">
+        <div v-else-if="session?.team" class="px-2 py-1 text-sm font-medium truncate">
           {{ session.team.name }}
         </div>
       </template>
