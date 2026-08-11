@@ -190,18 +190,10 @@ export default defineNuxtConfig({
     preset: 'cloudflare-durable',
     cloudflare: {
       deployConfig: true,
-      // `nodeCompat: true` is Nitro's legacy unenv shim, which emits
-      // `no_nodejs_compat_v2` and pins the worker to nodejs_compat v1. Under v1
-      // `node:stream` has no `Stream` export, so `jws` (reached eagerly through
-      // google-auth-library) calls `util.inherits(DataStream, undefined)` at
-      // module scope, and Cloudflare rejects the upload during startup
-      // validation with error 10021. Our compatibility_date is well past v2's
-      // 2024-09-23 cutoff, so use the runtime's own Node implementation.
-      nodeCompat: false,
+      nodeCompat: true,
       wrangler: {
         name: 'request-indexing',
         compatibility_date: '2025-01-15',
-        compatibility_flags: ['nodejs_compat'],
         observability: {
           enabled: true,
           head_sampling_rate: 1,
