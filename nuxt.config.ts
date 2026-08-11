@@ -211,11 +211,6 @@ export default defineNuxtConfig({
           NUXT_OAUTH_GOOGLE_CLIENT_ID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
           NUXT_OAUTH_GOOGLE_CLIENT_SECRET: process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET || '',
           NUXT_POSTMARK_API_KEY: process.env.NUXT_POSTMARK_API_KEY || '',
-          NUXT_GOOGLE_ADS_CUSTOMER_ID: process.env.NUXT_GOOGLE_ADS_CUSTOMER_ID || '',
-          NUXT_GOOGLE_ADS_API_TOKEN: process.env.NUXT_GOOGLE_ADS_API_TOKEN || '',
-          NUXT_GOOGLE_ADS_CLIENT_ID: process.env.NUXT_GOOGLE_ADS_CLIENT_ID || '',
-          NUXT_GOOGLE_ADS_CLIENT_SECRET: process.env.NUXT_GOOGLE_ADS_CLIENT_SECRET || '',
-          NUXT_GOOGLE_ADS_REFRESH_TOKEN: process.env.NUXT_GOOGLE_ADS_REFRESH_TOKEN || '',
           NUXT_GSCDUMP_API_KEY: process.env.NUXT_GSCDUMP_API_KEY || '',
           NUXT_GSCDUMP_WEBHOOK_SECRET: process.env.NUXT_GSCDUMP_WEBHOOK_SECRET || '',
           NUXT_DATAFORSEO_LOGIN: process.env.NUXT_DATAFORSEO_LOGIN || '',
@@ -332,13 +327,6 @@ export default defineNuxtConfig({
         maxAge: 60 * 60 * 24 * 90, // 3mo
       },
     } as any,
-    google: {
-      adsCustomerId: '',
-      adsApiToken: '',
-      adsClientId: '',
-      adsClientSecret: '',
-      adsRefreshToken: '',
-    },
     postmark: {
       apiKey: '',
     },
