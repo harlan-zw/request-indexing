@@ -42,7 +42,7 @@ const errorVariant = computed<'no_account' | 'conflict' | 'email_not_verified' |
 
 const errorTitle = computed(() => {
   if (noAccountFound.value)
-    return 'No Pro account found'
+    return 'No account found'
   if (conflictError.value)
     return 'Account exists with another sign-in method'
   if (emailNotVerified.value)
@@ -112,7 +112,7 @@ const providerButtons = computed<ProviderButton[]>(() => {
 useRobotsRule(false)
 useSeoMeta({
   title: 'Sign in',
-  description: 'Sign in to your Nuxt SEO Pro account.',
+  description: 'Sign in to your Request Indexing account.',
 })
 </script>
 
@@ -123,7 +123,7 @@ useSeoMeta({
         Welcome back
       </h1>
       <p class="text-muted text-sm leading-relaxed">
-        Sign in to your Pro dashboard.
+        Sign in to your dashboard.
       </p>
     </div>
 
@@ -138,7 +138,7 @@ useSeoMeta({
     >
       <p v-if="errorVariant === 'no_account'" class="text-muted mt-0.5">
         <ULink to="/pro/onboarding" class="font-medium text-highlighted hover:text-primary transition-colors">
-          Create a Pro account
+          Create an account
         </ULink>
         first, then come back here to sign in.
       </p>
@@ -221,7 +221,7 @@ useSeoMeta({
     </template>
 
     <p class="mt-7 text-xs text-muted">
-      New to Nuxt SEO Pro?
+      New to Request Indexing?
       <ULink to="/pro/onboarding" class="font-medium text-highlighted hover:text-primary transition-colors">
         Create a free account
       </ULink>

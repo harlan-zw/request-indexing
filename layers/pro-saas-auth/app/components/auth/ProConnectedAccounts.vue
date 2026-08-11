@@ -149,7 +149,7 @@ function fmtDate(s: string | null) {
   <section class="space-y-3">
     <ProSectionHeader
       title="Connected accounts"
-      description="Sign-in methods linked to your Nuxt SEO Pro account."
+      description="Sign-in methods linked to your Request Indexing account."
     />
 
     <div v-if="pending" class="grid gap-3">

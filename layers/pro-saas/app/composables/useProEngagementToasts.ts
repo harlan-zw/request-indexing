@@ -13,7 +13,7 @@ const engagementNotices = {
     description: 'Your data will start syncing shortly.',
   },
   welcome: {
-    title: 'Welcome to Request Indexing Pro',
+    title: 'Welcome to Request Indexing',
   },
 } as const satisfies Record<string, EngagementNotice>
 
@@ -24,7 +24,7 @@ function activeEngagementFlags(query: Record<string, unknown>): EngagementFlag[]
     .filter(flag => query[flag] === '1' || query[flag] === 'true')
 }
 
-/** Mount once in the Pro shell to consume success flags added by auth flows. */
+/** Mount once in the dashboard shell to consume success flags added by auth flows. */
 export function useProEngagementToasts() {
   if (!import.meta.client)
     return

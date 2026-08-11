@@ -13,7 +13,7 @@ const navigation = [
     <UDashboardSidebar id="pro-dashboard-sidebar" collapsible>
       <template #header>
         <NuxtLink to="/pro/dashboard" class="font-semibold text-highlighted">
-          Request Indexing Pro
+          Request Indexing
         </NuxtLink>
       </template>
 
