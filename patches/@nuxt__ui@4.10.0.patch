@@ -1,0 +1,37 @@
+diff --git a/dist/runtime/components/Table.d.vue.ts b/dist/runtime/components/Table.d.vue.ts
+index cb49219f36ea273d48909d94a394924615179989..d6cdf92c85fbc0e53d3dca540723e9ce09bf4c49 100644
+--- a/dist/runtime/components/Table.d.vue.ts
++++ b/dist/runtime/components/Table.d.vue.ts
+@@ -1,6 +1,6 @@
+ import type { WatchOptions, VNode } from 'vue';
+ import type { AppConfig } from '@nuxt/schema';
+-import type { Cell, CellContext, ColumnDef, ColumnFiltersOptions, ColumnFiltersState, ColumnOrderState, ColumnPinningOptions, ColumnPinningState, ColumnSizingInfoState, ColumnSizingOptions, ColumnSizingState, CoreOptions, ExpandedOptions, ExpandedState, FacetedOptions, GlobalFilterOptions, GroupingOptions, GroupingState, Header, HeaderContext, PaginationOptions, PaginationState, Row, RowData, RowPinningOptions, RowPinningState, RowSelectionOptions, RowSelectionState, SortingOptions, SortingState, TableMeta, VisibilityOptions, VisibilityState } from '@tanstack/vue-table';
++import type { Cell, CellContext, ColumnDef, ColumnFiltersOptions, ColumnFiltersState, ColumnOrderState, ColumnPinningOptions, ColumnPinningState, ColumnSizingInfoState, ColumnSizingOptions, ColumnSizingState, CoreOptions, ExpandedOptions, ExpandedState, FacetedOptions, GlobalFilterOptions, GroupingOptions, GroupingState, Header, HeaderContext, PaginationOptions, PaginationState, Row, RowData, RowPinningOptions, RowPinningState, RowSelectionOptions, RowSelectionState, SortingOptions, SortingState, TableMeta, VisibilityOptions, VisibilityState } from '@tanstack/vue-table-v8';
+ import type { VirtualizerOptions } from '@tanstack/vue-virtual';
+ import theme from '#build/ui/table';
+ import type { TableHTMLAttributes } from '../types/html';
+diff --git a/dist/runtime/components/Table.vue b/dist/runtime/components/Table.vue
+index 521fd2eacd14cc405547deefc801078fd21272b3..c58b52be66bda276bf0c78f7353483ccdeb0899f 100644
+--- a/dist/runtime/components/Table.vue
++++ b/dist/runtime/components/Table.vue
+@@ -7,7 +7,7 @@ import { computed, useTemplateRef, watch, toRef } from "vue";
+ import { Primitive } from "reka-ui";
+ import { upperFirst } from "scule";
+ import { defu } from "defu";
+-import { FlexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, getExpandedRowModel, useVueTable } from "@tanstack/vue-table";
++import { FlexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, getExpandedRowModel, useVueTable } from "@tanstack/vue-table-v8";
+ import { useVirtualizer } from "@tanstack/vue-virtual";
+ import { reactivePick, createReusableTemplate, createRef } from "@vueuse/core";
+ import { useAppConfig } from "#imports";
+diff --git a/dist/runtime/components/Table.vue.d.ts b/dist/runtime/components/Table.vue.d.ts
+index cb49219f36ea273d48909d94a394924615179989..d6cdf92c85fbc0e53d3dca540723e9ce09bf4c49 100644
+--- a/dist/runtime/components/Table.vue.d.ts
++++ b/dist/runtime/components/Table.vue.d.ts
+@@ -1,6 +1,6 @@
+ import type { WatchOptions, VNode } from 'vue';
+ import type { AppConfig } from '@nuxt/schema';
+-import type { Cell, CellContext, ColumnDef, ColumnFiltersOptions, ColumnFiltersState, ColumnOrderState, ColumnPinningOptions, ColumnPinningState, ColumnSizingInfoState, ColumnSizingOptions, ColumnSizingState, CoreOptions, ExpandedOptions, ExpandedState, FacetedOptions, GlobalFilterOptions, GroupingOptions, GroupingState, Header, HeaderContext, PaginationOptions, PaginationState, Row, RowData, RowPinningOptions, RowPinningState, RowSelectionOptions, RowSelectionState, SortingOptions, SortingState, TableMeta, VisibilityOptions, VisibilityState } from '@tanstack/vue-table';
++import type { Cell, CellContext, ColumnDef, ColumnFiltersOptions, ColumnFiltersState, ColumnOrderState, ColumnPinningOptions, ColumnPinningState, ColumnSizingInfoState, ColumnSizingOptions, ColumnSizingState, CoreOptions, ExpandedOptions, ExpandedState, FacetedOptions, GlobalFilterOptions, GroupingOptions, GroupingState, Header, HeaderContext, PaginationOptions, PaginationState, Row, RowData, RowPinningOptions, RowPinningState, RowSelectionOptions, RowSelectionState, SortingOptions, SortingState, TableMeta, VisibilityOptions, VisibilityState } from '@tanstack/vue-table-v8';
+ import type { VirtualizerOptions } from '@tanstack/vue-virtual';
+ import theme from '#build/ui/table';
+ import type { TableHTMLAttributes } from '../types/html';
