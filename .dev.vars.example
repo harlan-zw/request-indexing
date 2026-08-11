@@ -2,11 +2,6 @@
 # These are used by wrangler for local development
 
 NUXT_KEY=your-session-key
-NUXT_GOOGLE_ADS_CUSTOMER_ID=
-NUXT_GOOGLE_ADS_API_TOKEN=
-NUXT_GOOGLE_ADS_CLIENT_ID=
-NUXT_GOOGLE_ADS_CLIENT_SECRET=
-NUXT_GOOGLE_ADS_REFRESH_TOKEN=
 NUXT_POSTMARK_API_KEY=
 # Partner credentials issued by gscdump.com (POST /api/admin/partners/setup).
 # The webhook secret is what gscdump HMAC-signs deliveries with; without it the

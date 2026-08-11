@@ -230,8 +230,14 @@ export default defineNuxtConfig({
         vars: {
           NUXT_PUBLIC_BASE_URL: 'https://requestindexing.com',
           NUXT_OAUTH_GOOGLE_CLIENT_ID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
-          NUXT_GOOGLE_ADS_CUSTOMER_ID: process.env.NUXT_GOOGLE_ADS_CUSTOMER_ID || '',
-          NUXT_GOOGLE_ADS_CLIENT_ID: process.env.NUXT_GOOGLE_ADS_CLIENT_ID || '',
+          NUXT_OAUTH_GOOGLE_CLIENT_SECRET: process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET || '',
+          NUXT_POSTMARK_API_KEY: process.env.NUXT_POSTMARK_API_KEY || '',
+          NUXT_GSCDUMP_API_KEY: process.env.NUXT_GSCDUMP_API_KEY || '',
+          NUXT_GSCDUMP_WEBHOOK_SECRET: process.env.NUXT_GSCDUMP_WEBHOOK_SECRET || '',
+          NUXT_DATAFORSEO_LOGIN: process.env.NUXT_DATAFORSEO_LOGIN || '',
+          NUXT_DATAFORSEO_PASSWORD: process.env.NUXT_DATAFORSEO_PASSWORD || '',
+          NUXT_STRIPE_SECRET_KEY: process.env.NUXT_STRIPE_SECRET_KEY || '',
+          NUXT_STRIPE_WEBHOOK_SECRET: process.env.NUXT_STRIPE_WEBHOOK_SECRET || '',
           NUXT_STRIPE_PRICE_PRO_MONTHLY: process.env.NUXT_STRIPE_PRICE_PRO_MONTHLY || '',
           NUXT_STRIPE_PRICE_PRO_ANNUAL: process.env.NUXT_STRIPE_PRICE_PRO_ANNUAL || '',
           NUXT_STRIPE_PRICE_GROWTH_MONTHLY: process.env.NUXT_STRIPE_PRICE_GROWTH_MONTHLY || '',
@@ -332,16 +338,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     key: '', // .env NUXT_KEY
     session: {
-      password: '',
-      maxAge: 60 * 60 * 24 * 90, // 3mo
-    },
-    google: {
-      adsCustomerId: '',
-      adsApiToken: '',
-      adsClientId: '',
-      adsClientSecret: '',
-      adsRefreshToken: '',
-    },
+      cookie: {
+        maxAge: 60 * 60 * 24 * 90, // 3mo
+      },
+    } as any,
     postmark: {
       apiKey: '',
     },
