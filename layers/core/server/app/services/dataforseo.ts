@@ -1,3 +1,5 @@
+import { DATAFORSEO_RETRY_OPTIONS } from '../../../../../shared/dataforseo'
+
 interface DataForSEOCredentials {
   login: string
   password: string
@@ -48,6 +50,7 @@ function getAuthHeader(): string {
 
 async function dataforseoFetch<T>(endpoint: string, body: unknown): Promise<T> {
   const response = await $fetch(`https://api.dataforseo.com/v3${endpoint}`, {
+    ...DATAFORSEO_RETRY_OPTIONS,
     method: 'POST',
     headers: {
       'Authorization': getAuthHeader(),
