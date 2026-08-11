@@ -1,4 +1,6 @@
-// TODO(v1): re-implement team accounts listing once V1 team shape is settled.
-export default defineEventHandler(() => {
-  throw createError({ statusCode: 501, statusMessage: 'Not Implemented' })
-})
+import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
+
+// The team "accounts" the caller belongs to (owned + member-of), for a team
+// switcher. Distinct from `teams/members`, which lists the members of the
+// caller's *current* team.
+export default defineProApiHandler({}, ({ caller }) => caller.memberships)

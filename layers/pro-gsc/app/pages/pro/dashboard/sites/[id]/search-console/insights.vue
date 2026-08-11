@@ -12,7 +12,15 @@ definePageMeta({ proTab: { feature: 'search-console', label: 'Insights', icon: '
 
 const { siteId, siteStatus, gscdumpSiteId } = useSite('Insights')
 const { period, stableData } = useSitePeriod()
-const { fetchGscdump } = useProGscdump()
+const {
+  getCanonicalMismatches,
+  getContentVelocity,
+  getCtrCurve,
+  getDarkTraffic,
+  getDeviceGap,
+  getKeywordBreadth,
+  getPositionDistribution,
+} = useProGscdump()
 
 const dateRange = computed(() => periodToDateRange(toValue(period), toValue(stableData)))
 const queryEnabled = computed(() => !!gscdumpSiteId.value)
@@ -30,10 +38,10 @@ const posDistQuery = useGscQuery<{ distribution: PosDistPoint[] }>({
   enabled: gate('position-distribution'),
   params: computed(() => ({ type: 'position-distribution' as const, startDate: dateRange.value.start, endDate: dateRange.value.end })),
   reshape: (raw: AnalysisResult) => ({ distribution: (raw.results ?? []) as unknown as PosDistPoint[] }),
-  serverFallback: (id: string) => fetchGscdump<{ distribution: PosDistPoint[] }>(`/sites/${id}/position-distribution`, {
+  serverFallback: (id: string) => getPositionDistribution<{ distribution: PosDistPoint[] }>({
+    params: { siteId: id },
     query: { startDate: dateRange.value.start, endDate: dateRange.value.end },
-    silent: true,
-  }),
+  }, true),
 })
 useTrackGscEngine(posDistQuery)
 const posDistribution = posDistQuery.data
@@ -46,10 +54,10 @@ const deviceGapQuery = useGscQuery<{ summary: DeviceGapSummary | null }>({
   enabled: gate('device-gap'),
   params: computed(() => ({ type: 'device-gap' as const, startDate: dateRange.value.start, endDate: dateRange.value.end })),
   reshape: (raw: AnalysisResult) => ({ summary: ((raw.meta ?? {}) as { summary?: DeviceGapSummary }).summary ?? null }),
-  serverFallback: (id: string) => fetchGscdump<{ summary: DeviceGapSummary | null }>(`/sites/${id}/device-gap`, {
+  serverFallback: (id: string) => getDeviceGap<{ summary: DeviceGapSummary | null }>({
+    params: { siteId: id },
     query: { startDate: dateRange.value.start, endDate: dateRange.value.end },
-    silent: true,
-  }),
+  }, true),
 })
 useTrackGscEngine(deviceGapQuery)
 const deviceGap = deviceGapQuery.data
@@ -69,9 +77,9 @@ const ctrQuery = useGscQuery<{ curve: CtrBucket[], overperforming: CtrOutlier[],
       underperforming: meta.underperforming ?? [],
     }
   },
-  serverFallback: (id: string) => fetchGscdump<{ curve: CtrBucket[], overperforming: CtrOutlier[], underperforming: CtrOutlier[] }>(
-    `/sites/${id}/ctr-curve`,
-    { query: { startDate: dateRange.value.start, endDate: dateRange.value.end }, silent: true },
+  serverFallback: (id: string) => getCtrCurve<{ curve: CtrBucket[], overperforming: CtrOutlier[], underperforming: CtrOutlier[] }>(
+    { params: { siteId: id }, query: { startDate: dateRange.value.start, endDate: dateRange.value.end } },
+    true,
   ),
 })
 useTrackGscEngine(ctrQuery)
@@ -92,9 +100,9 @@ const darkQuery = useGscQuery<{ summary: DarkSummary, pages: DarkPage[] }>({
       pages: (raw.results ?? []) as unknown as DarkPage[],
     }
   },
-  serverFallback: (id: string) => fetchGscdump<{ summary: DarkSummary, pages: DarkPage[] }>(
-    `/sites/${id}/dark-traffic`,
-    { query: { startDate: dateRange.value.start, endDate: dateRange.value.end }, silent: true },
+  serverFallback: (id: string) => getDarkTraffic<{ summary: DarkSummary, pages: DarkPage[] }>(
+    { params: { siteId: id }, query: { startDate: dateRange.value.start, endDate: dateRange.value.end } },
+    true,
   ),
 })
 useTrackGscEngine(darkQuery)
@@ -115,9 +123,9 @@ const velocityQuery = useGscQuery<{ weekly: VelocityWeek[], summary: VelocitySum
       summary: meta.summary ?? { totalNewKeywords: 0, avgPerWeek: 0, trend: 'stable' },
     }
   },
-  serverFallback: (id: string) => fetchGscdump<{ weekly: VelocityWeek[], summary: VelocitySummary }>(
-    `/sites/${id}/content-velocity`,
-    { silent: true },
+  serverFallback: (id: string) => getContentVelocity<{ weekly: VelocityWeek[], summary: VelocitySummary }>(
+    { params: { siteId: id }, query: {} },
+    true,
   ),
 })
 useTrackGscEngine(velocityQuery)
@@ -141,9 +149,9 @@ const breadthQuery = useGscQuery<{ distribution: BreadthBucket[], fragilePages: 
       summary: meta.summary ?? { totalPages: 0, avgKeywordsPerPage: 0, fragileCount: 0, authorityCount: 0 },
     }
   },
-  serverFallback: (id: string) => fetchGscdump<{ distribution: BreadthBucket[], fragilePages: BreadthPage[], authorityPages: BreadthPage[], summary: BreadthSummary }>(
-    `/sites/${id}/keyword-breadth`,
-    { query: { startDate: dateRange.value.start, endDate: dateRange.value.end }, silent: true },
+  serverFallback: (id: string) => getKeywordBreadth<{ distribution: BreadthBucket[], fragilePages: BreadthPage[], authorityPages: BreadthPage[], summary: BreadthSummary }>(
+    { params: { siteId: id }, query: { startDate: dateRange.value.start, endDate: dateRange.value.end } },
+    true,
   ),
 })
 useTrackGscEngine(breadthQuery)
@@ -159,7 +167,7 @@ const { data: canonicalData, status: canonicalStatus } = useAsyncData(
   async () => {
     if (!gscdumpSiteId.value)
       return null
-    return fetchGscdump<CanonicalData>(`/sites/${gscdumpSiteId.value}/canonical-mismatches`, { silent: true })
+    return getCanonicalMismatches<CanonicalData>({ params: { siteId: gscdumpSiteId.value } }, true)
   },
   { server: false, watch: [gscdumpSiteId] },
 )

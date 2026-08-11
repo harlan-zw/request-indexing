@@ -2,8 +2,6 @@ import type { TaskName } from '#shared/types/tasks'
 import type { JobDefinition, JobHandler, QueueName } from './_types'
 
 // Import all job handlers
-import cruxHistory from './crux/history'
-import pathsRunPsi from './paths/run-psi'
 import sitesSetup from './sites/setup'
 import sitesSyncFinished from './sites/sync-finished'
 import teamsSyncSelected from './teams/sync-selected'
@@ -19,10 +17,6 @@ export const jobs: JobDefinition<any>[] = [
 
   // Teams
   teamsSyncSelected,
-
-  // PSI / CrUX (external APIs)
-  pathsRunPsi,
-  cruxHistory,
 ]
 
 // Lookup map for fast dispatch

@@ -95,17 +95,3 @@ export function useTimeMonthsAgo(date: MaybeRef<string>): number | ComputedRef<n
   }
   return format(date)
 }
-
-export function psiScoreToColor(score: number) {
-  // return a tailwind color for the score
-  if (score >= 90)
-    return 'green' // 'text-green-500'
-  if (score >= 50)
-    return 'yellow' // ''text-yellow-600'
-  return 'red' // 'text-red-500'
-}
-
-export function formatPageSpeedInsightScore(score: number) {
-  const color = psiScoreToColor(score)
-  return `text-${color}-${color === 'yellow' ? '600' : '500'}`
-}

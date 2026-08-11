@@ -12,10 +12,8 @@ const { data } = await useAsyncData(`usages:${props.site.siteId}`, () =>
 
 function keyToLabel(key: string) {
   switch (key) {
-    case 'crux': return 'Chrome User Experience Report'
     case 'googleAds': return 'Google Ads'
     case 'gsc': return 'Google Search Console'
-    case 'psi': return 'PageSpeed Insights'
   }
 }
 </script>

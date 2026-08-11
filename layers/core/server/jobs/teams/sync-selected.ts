@@ -33,12 +33,7 @@ export default defineJob({
             name: 'sites/sync-finished',
             payload: { siteId: row.siteId },
           },
-        }, [
-          { name: 'crux/history', payload: { siteId: row.siteId, strategy: 'DESKTOP' } },
-          { name: 'crux/history', payload: { siteId: row.siteId, strategy: 'PHONE' } },
-          { name: 'paths/run-psi', payload: { siteId: row.siteId, path: '/', strategy: 'mobile' }, queue: 'psi' },
-          { name: 'paths/run-psi', payload: { siteId: row.siteId, path: '/', strategy: 'desktop' }, queue: 'psi' },
-        ]),
+        }, []),
       ),
     )
   },

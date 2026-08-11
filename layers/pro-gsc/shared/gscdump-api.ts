@@ -3,16 +3,14 @@
 // and the client-side composable (app/composables/useProGscdump.ts).
 
 export type {
-  IndexingInspectRateLimited as GscdumpInspectRateLimited,
-  IndexingInspectResponse as GscdumpInspectResponse,
-  IndexingInspectResult as GscdumpInspectResult,
-} from '@gscdump/contracts'
-export type {
   GscComparisonFilter,
   GscdumpAvailableSite,
   GscdumpDataDetailResponse,
   GscdumpDataResponse,
   GscdumpDataRow,
+  IndexingInspectRateLimited as GscdumpInspectRateLimited,
+  IndexingInspectResponse as GscdumpInspectResponse,
+  IndexingInspectResult as GscdumpInspectResult,
   GscdumpMeta,
   GscdumpPerSitemapHistoryEntry,
   GscdumpSitemap,
@@ -28,7 +26,7 @@ export type {
   PartnerLifecycleAccount,
   PartnerLifecycleResponse,
   PartnerLifecycleSite,
-} from '@gscdump/sdk'
+} from '@gscdump/contracts'
 
 export interface GscdumpSitemapChangesResponse {
   added: { url: string, sitemap: string, firstSeenAt: number }[]
@@ -237,8 +235,8 @@ export interface GscdumpIndexingDiagnosticsResponse {
 
 // The v1 report contract intentionally accepts additive BuilderState fields.
 // Keep that extensibility visible to TypeScript at the SDK boundary.
-export type BuilderState = import('@gscdump/sdk/query').BuilderState & Record<string, unknown>
-export type { Dimension, Filter, Metric } from '@gscdump/sdk/query'
+export type BuilderState = import('gscdump/query').BuilderState & Record<string, unknown>
+export type { Dimension, Filter, Metric } from 'gscdump/query'
 
 export interface GscdumpQueryTrendResponse {
   daily: { date: string, queryCount: number }[]

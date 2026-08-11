@@ -29,9 +29,6 @@ const dashboards = computed<NavigationMenuItem[]>(() => !site.value
   : [
       { label: 'Organic Search', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'), icon: 'i-ph-app-window-duotone' },
       { label: 'Keyword Insights', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keyword-insights'), icon: 'i-ph-lightning-duotone' },
-      { label: 'Field Performance', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'performance'), icon: 'i-ph-speedometer-duotone' },
-      { label: 'Lab Performance', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'lab-performance'), icon: 'i-ph-test-tube-duotone' },
-      { label: 'Lighthouse Audits', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'audits'), icon: 'i-ph-list-checks-duotone' },
       { label: 'Web Indexing', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'web-indexing'), icon: 'i-ph-check-circle-duotone' },
       { label: 'Analysis', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'analysis'), icon: 'i-ph-chart-pie-slice-duotone' },
       { label: 'Sitemaps', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'sitemaps'), icon: 'i-ph-map-trifold-duotone' },

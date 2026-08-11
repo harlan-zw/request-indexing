@@ -39,7 +39,6 @@ export interface JobMessage {
 export function getCFQueue(env: Record<string, unknown>, queue: QueueName) {
   const map: Record<QueueName, string> = {
     default: 'QUEUE_DEFAULT',
-    psi: 'QUEUE_PSI',
   }
   return env[map[queue]] as { send: (msg: JobMessage, opts?: { delaySeconds?: number }) => Promise<void> } | undefined
 }

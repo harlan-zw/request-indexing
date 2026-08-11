@@ -1,5 +1,5 @@
-import type { BuilderState } from '@gscdump/contracts'
-import { eq, query as queryCol } from '@gscdump/sdk/query'
+import type { BuilderState } from 'gscdump/query'
+import { eq, query as queryCol } from 'gscdump/query'
 import { useGscdumpClient } from './gscdump-client'
 
 /**

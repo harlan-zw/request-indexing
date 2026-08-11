@@ -1,4 +1,4 @@
-import type { BuilderState, Filter } from '@gscdump/sdk/query'
+import type { BuilderState, Filter } from 'gscdump/query'
 import type { GscComparisonFilter } from '#layers/pro-saas/server/utils/mcp/gsc'
 import { z } from 'zod'
 import { defineMcpGscSiteTool } from '#layers/pro-saas/server/utils/mcp/frame'

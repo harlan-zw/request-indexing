@@ -1,4 +1,4 @@
-import { analyticsStatusToSyncStatus } from '@gscdump/sdk'
+import { analyticsStatusToSyncStatus } from '@gscdump/sdk/lifecycle'
 
 interface TableProgress {
   name: string

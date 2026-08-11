@@ -1,7 +1,7 @@
 import type { TaskMap, TaskName } from '#shared/types/tasks'
 
 export type { TaskMap, TaskName }
-export type QueueName = 'default' | 'psi'
+export type QueueName = 'default'
 
 export interface JobControlResult {
   handled: boolean

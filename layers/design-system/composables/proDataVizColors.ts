@@ -21,13 +21,6 @@ export const gscMetricColors = {
   position: { dot: 'bg-orange-500', bg: 'bg-orange-500/10', text: 'text-orange-400', hex: '#f97316' },
 } as const satisfies Record<string, VizColorSet>
 
-/** CWV metric colors */
-export const cwvMetricColors = {
-  lcp: { dot: 'bg-blue-500', bg: 'bg-blue-500/10', text: 'text-blue-400', hex: '#3b82f6' },
-  inp: { dot: 'bg-orange-500', bg: 'bg-orange-500/10', text: 'text-orange-400', hex: '#f97316' },
-  cls: { dot: 'bg-purple-500', bg: 'bg-purple-500/10', text: 'text-purple-400', hex: '#a855f7' },
-} as const satisfies Record<string, VizColorSet>
-
 /** Indexing chart colors */
 export const indexingVizColors = {
   indexed: { dot: 'bg-green-500', bg: 'bg-green-500/10', text: 'text-green-400', hex: '#22c55e' },

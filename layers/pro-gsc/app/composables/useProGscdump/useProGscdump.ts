@@ -1,10 +1,13 @@
-// Typed v1 client plus an escape hatch for consumer-specific gscdump routes.
-// Reads credentials from the SSR-hydrated integration payload (ADR-0002),
-// injects `x-api-key`, and routes errors through the shared toast helper.
+// Typed v1 client, session-proxied. The browser never holds a gscdump API
+// key: requests go same-origin to the v1 proxy
+// (`server/api/_gscdump/[surface]/v1/[...path].ts`), which authenticates the
+// session, resolves the caller's stored gscdump credential server-side, and
+// forwards upstream. `'session-proxy'` only satisfies the SDK's transport
+// shape; the proxy discards it and never echoes the real credential back.
 //
-// Public operations must use the typed methods below. `fetchGscdump` remains
-// only for request-indexing-specific routes that do not have a public v1
-// operation yet.
+// Every operation this consumer needs is a typed method below, routed
+// through the proxy's closed allowlist. There is no generic path escape
+// hatch: one was removed with the credential (see `gscdump-v1-browser-proxy.ts`).
 import type { GscdumpV1OperationInput } from '@gscdump/sdk/v1'
 import type {
   GscdumpAnalysisResponse,
@@ -13,28 +16,27 @@ import type {
   GscdumpIndexingDiagnosticsResponse,
   GscdumpIndexingResponse,
   GscdumpIndexingUrlsResponse,
+  GscdumpInspectResponse,
   GscdumpSitemapChangesResponse,
   GscdumpSitemapsResponse,
 } from '../../../shared/gscdump-api'
 import { createGscdumpV1Client } from '@gscdump/sdk/v1'
 import { showGscdumpErrorToast } from '../../utils/gscdump-toast'
 import { parseGscdumpError } from '../_gscdump-error'
-import { useGscdumpIntegration } from '../useGscdumpIntegration'
+
+function createV1Client() {
+  return createGscdumpV1Client({
+    apiRoot: '/api/_gscdump',
+    credential: 'session-proxy',
+    fetch: (request, init) => {
+      const headers = new Headers(init?.headers)
+      headers.delete('authorization')
+      return fetch(request, { ...init, headers })
+    },
+  })
+}
 
 export function useProGscdump() {
-  const { apiKey, userId, apiBase } = useGscdumpIntegration()
-
-  function createV1Client() {
-    return createGscdumpV1Client({
-      apiRoot: `${apiBase.value.replace(/\/+$/, '')}/api`,
-      credential: () => {
-        if (!apiKey.value || !userId.value)
-          throw createError({ statusCode: 401, message: 'gscdump credentials unavailable' })
-        return apiKey.value
-      },
-    })
-  }
-
   // The v1 schemas are deliberately wider than this consumer's established
   // read models (for example nullable inspection fields). Keep the cast at one
   // compatibility boundary while every request remains operation-typed.
@@ -72,6 +74,10 @@ export function useProGscdump() {
     return runV1<GscdumpIndexingDiagnosticsResponse>(() => createV1Client().getSiteIndexingDiagnostics(input), silent)
   }
 
+  function inspectSiteUrls(input: GscdumpV1OperationInput<'partner.sites.indexing.inspect.create'>, silent = false) {
+    return runV1<GscdumpInspectResponse>(() => createV1Client().inspectSiteUrls(input), silent)
+  }
+
   function getSiteSitemaps(input: GscdumpV1OperationInput<'partner.sites.sitemaps.get'>, silent = false) {
     return runV1<GscdumpSitemapsResponse>(() => createV1Client().getSiteSitemaps(input), silent)
   }
@@ -80,37 +86,68 @@ export function useProGscdump() {
     return runV1<GscdumpSitemapChangesResponse>(() => createV1Client().getSiteSitemapChanges(input), silent)
   }
 
-  async function fetchGscdump<T>(
-    path: string,
-    options?: { query?: Record<string, any>, method?: string, body?: any, silent?: boolean },
-  ): Promise<T> {
-    if (import.meta.server)
-      throw new Error('[gscdump] Cannot fetch credentials during SSR')
-    if (!apiKey.value || !userId.value)
-      throw createError({ statusCode: 401, message: 'gscdump credentials unavailable' })
+  function recoverSitePermission(input: GscdumpV1OperationInput<'partner.sites.permission.recover'>, silent = false) {
+    return runV1<{ success: boolean, permissionLevel: string | null, jobsQueued: number, message: string }>(
+      () => createV1Client().recoverSitePermission(input),
+      silent,
+    )
+  }
 
-    const apiUrl = `${apiBase.value.replace(/\/+$/, '')}/api`
-    return $fetch<T>(`${apiUrl}${path}`, {
-      headers: { 'x-api-key': apiKey.value },
-      query: options?.query,
-      method: options?.method as any,
-      body: options?.body,
-    }).catch((e) => {
-      if (!options?.silent)
-        showGscdumpErrorToast(parseGscdumpError(e))
-      throw e
-    })
+  function getTopAssociation(input: GscdumpV1OperationInput<'partner.sites.top.association.get'>, silent = false) {
+    return runV1<{ value: string | null }>(() => createV1Client().getTopAssociation(input), silent)
+  }
+
+  function getCanonicalMismatches<T>(input: GscdumpV1OperationInput<'partner.sites.canonical.mismatches.get'>, silent = false) {
+    return runV1<T>(() => createV1Client().getCanonicalMismatches(input), silent)
+  }
+
+  function getPositionDistribution<T>(input: GscdumpV1OperationInput<'partner.sites.position.distribution.get'>, silent = false) {
+    return runV1<T>(() => createV1Client().getPositionDistribution(input), silent)
+  }
+
+  function getDeviceGap<T>(input: GscdumpV1OperationInput<'partner.sites.device.gap.get'>, silent = false) {
+    return runV1<T>(() => createV1Client().getDeviceGap(input), silent)
+  }
+
+  function getCtrCurve<T>(input: GscdumpV1OperationInput<'partner.sites.ctr.curve.get'>, silent = false) {
+    return runV1<T>(() => createV1Client().getCtrCurve(input), silent)
+  }
+
+  function getDarkTraffic<T>(input: GscdumpV1OperationInput<'partner.sites.dark.traffic.get'>, silent = false) {
+    return runV1<T>(() => createV1Client().getDarkTraffic(input), silent)
+  }
+
+  function getContentVelocity<T>(input: GscdumpV1OperationInput<'partner.sites.content.velocity.get'>, silent = false) {
+    return runV1<T>(() => createV1Client().getContentVelocity(input), silent)
+  }
+
+  function getKeywordBreadth<T>(input: GscdumpV1OperationInput<'partner.sites.keyword.breadth.get'>, silent = false) {
+    return runV1<T>(() => createV1Client().getKeywordBreadth(input), silent)
+  }
+
+  function createSitemapAction<T>(input: GscdumpV1OperationInput<'partner.sites.sitemaps.action.create'>, silent = false) {
+    return runV1<T>(() => createV1Client().createSitemapAction(input), silent)
   }
 
   return {
-    fetchGscdump,
+    createSitemapAction,
+    getCanonicalMismatches,
+    getContentVelocity,
+    getCtrCurve,
+    getDarkTraffic,
+    getDeviceGap,
+    getKeywordBreadth,
+    getPositionDistribution,
     getSiteAnalysis,
     getSiteIndexing,
     getSiteIndexingDiagnostics,
     getSiteSitemapChanges,
     getSiteSitemaps,
+    getTopAssociation,
+    inspectSiteUrls,
     listSiteIndexingUrls,
     queryAnalyticsReport,
     queryAnalyticsReportDetail,
+    recoverSitePermission,
   }
 }

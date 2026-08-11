@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AnalysisResult } from '@gscdump/engine/analysis-types'
-import type { BuilderState } from '@gscdump/sdk/query'
+import type { BuilderState } from 'gscdump/query'
 import { logWarn } from '~~/shared/logging'
 import { NuxtLink } from '#components'
 import { useProAnalyzeWithFallback, useProGscdump } from '#layers/pro-gsc/app/composables/useProGscdump'
@@ -18,7 +18,7 @@ const container = useTemplateRef<HTMLElement>('container')
 const result = ref<{ keyword: string, position?: number } | null>(null)
 const loaded = ref(false)
 
-const { fetchGscdump } = useProGscdump()
+const { getTopAssociation } = useProGscdump()
 const _analyzeWithFallback = useProAnalyzeWithFallback()
 
 onMounted(() => {
@@ -46,15 +46,15 @@ onMounted(() => {
           const top = (raw.results ?? [])[0] as { query?: string } | undefined
           return { value: top?.query ?? null }
         },
-        () => fetchGscdump<{ value: string | null }>(`/sites/${props.gscdumpSiteId}/data/top-association`, {
+        () => getTopAssociation({
+          params: { siteId: props.gscdumpSiteId },
           query: {
             type: 'topKeyword',
             identifier: props.page,
             startDate: props.startDate,
             endDate: props.endDate,
           },
-          silent: true,
-        }),
+        }, true),
       )
         .then((r) => {
           if (r.value)

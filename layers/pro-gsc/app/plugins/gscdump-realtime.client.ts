@@ -3,8 +3,11 @@
 // `useGscQuery` instances re-fetch without a page reload.
 //
 // Auth + lifecycle:
-// - Waits for `useGscdumpIntegration()` to expose apiKey + userId. Without
-//   either, no connection is opened (anonymous / unconnected user state).
+// - Waits for `useGscdumpIntegration()` to report `connected`. Without it, no
+//   connection is opened (anonymous / unconnected user state). The client
+//   never holds a gscdump API key: it authenticates same-origin through the
+//   v1 proxy, which resolves the caller's stored credential server-side,
+//   including for minting the realtime ticket.
 // - Connects only on /pro/dashboard/* routes; the gscdump-auth plugin already
 //   gates activation behind the same predicate.
 // - Closes the socket on tab unload. We do NOT close on route change off the
@@ -61,21 +64,26 @@ export default defineNuxtPlugin({
       const integration = useNuxtData<GscdumpIntegration | null>(GSCDUMP_INTEGRATION_KEY).data
 
       stopWatch = watch(
-        () => {
-          const g = integration.value
-          return g?.apiKey && g?.userId ? { apiKey: g.apiKey, userId: g.userId, apiBase: g.apiBase ?? 'https://gscdump.com' } : null
-        },
-        (creds) => {
+        () => integration.value?.connected ?? false,
+        (connected) => {
           if (realtime) {
             realtime.stop()
             realtime = null
           }
-          if (!creds)
+          if (!connected)
             return
 
+          // Session-proxied: the browser never holds a gscdump API key. The
+          // proxy resolves the caller's stored credential server-side and
+          // mints the realtime ticket on their behalf.
           const http = createGscdumpV1Client({
-            apiRoot: `${creds.apiBase.replace(/\/+$/, '')}/api`,
-            credential: creds.apiKey,
+            apiRoot: '/api/_gscdump',
+            credential: 'session-proxy',
+            fetch: (request, init) => {
+              const headers = new Headers(init?.headers)
+              headers.delete('authorization')
+              return fetch(request, { ...init, headers })
+            },
           })
           const client = createGscdumpRealtimeV1Client({
             ticketProvider: () => http.createRealtimeTicket({

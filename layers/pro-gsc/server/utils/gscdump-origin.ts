@@ -1,19 +1,45 @@
-import type { PartnerFetch } from '@gscdump/sdk'
+import type { PartnerFetch } from '@gscdump/sdk/partner'
 import type { H3Event } from 'h3'
-import { createPartnerClient } from '@gscdump/sdk'
+import { createPartnerClient } from '@gscdump/sdk/partner'
 import { createGscdumpV1Client } from '@gscdump/sdk/v1'
+import {
+  gscdumpApiBase,
+  gscdumpPartnerApiUrl,
+  normalizeGscdumpApiUrl,
+  normalizeGscdumpWebhookUrl,
+} from '#layers/pro-gsc/shared/utils/gscdump-origin'
+
+interface GscdumpConfig {
+  apiUrl?: string
+  apiKey?: string
+  webhookUrl?: string
+  webhookSecret?: string
+}
+
+function gscdumpConfig(event?: H3Event): GscdumpConfig {
+  const config = event ? useRuntimeConfig(event) : useRuntimeConfig()
+  return (config.gscdump ?? {}) as GscdumpConfig
+}
 
 export function getGscdumpApiUrl(event?: H3Event): string {
-  const config = event ? useRuntimeConfig(event) : useRuntimeConfig()
-  return ((config.gscdump as { apiUrl?: string } | undefined)?.apiUrl || 'https://gscdump.com/api').replace(/\/+$/, '')
+  return normalizeGscdumpApiUrl(gscdumpConfig(event).apiUrl)
 }
 
 export function getGscdumpApiBase(event?: H3Event): string {
-  return getGscdumpApiUrl(event).replace(/\/api$/, '')
+  return gscdumpApiBase(gscdumpConfig(event).apiUrl)
 }
 
 export function getGscdumpPartnerApiUrl(event?: H3Event): string {
-  return `${getGscdumpApiUrl(event)}/partner`
+  return gscdumpPartnerApiUrl(gscdumpConfig(event).apiUrl)
+}
+
+/**
+ * The callback URL gscdump delivers webhooks to, passed on every site
+ * registration. Override with `NUXT_GSCDUMP_WEBHOOK_URL` in dev/preview so the
+ * webhook path is testable outside production.
+ */
+export function getGscdumpWebhookUrl(event?: H3Event): string {
+  return normalizeGscdumpWebhookUrl(gscdumpConfig(event).webhookUrl)
 }
 
 /**

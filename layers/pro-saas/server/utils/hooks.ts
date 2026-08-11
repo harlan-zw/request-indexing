@@ -139,7 +139,7 @@ export interface UsageCollectPayload {
 
 // Producer-owned hook declarations live in the firing layer's own `hooks.ts`
 // (e.g. `pro:perf:scan-complete` in `layers/pro-perf/server/utils/hooks.ts`,
-// `pro:gsc:sync-complete` in `layers/pro-gsc/server/utils/hooks.ts`). Nitro
+// `pro:gsc:webhook` in `layers/pro-gsc/server/utils/hooks.ts`). Nitro
 // merges the `NitroRuntimeHooks` augmentation across layers; `dispatchProEvent`
 // / `dispatchProTaskEvent` see the union. Hooks declared here are shared
 // pro-saas concerns (identity, membership, subscription, billing) that span

@@ -1,15 +1,17 @@
 // gscdump.com Partner API client (Nuxt server adapter).
 //
 // Frozen public-v1 operations use the registry-driven SDK. The legacy client
-// remains only for sitemap mutations, which do not have a public v1 operation.
+// is kept only as a source of parameter types for the handful of user-management
+// operations below; every request now goes through the v1 client.
 
-import type { BuilderState, GscdumpAvailableSite } from '@gscdump/contracts'
 import type {
+  BuilderStateWire,
   DataDetailOptions,
   DataQueryOptions,
   GscdumpAnalysisParams,
+  GscdumpAvailableSite,
   WebhookEventType,
-} from '@gscdump/sdk'
+} from '@gscdump/contracts'
 import type {
   GscdumpAnalysisResponse,
   GscdumpDataDetailResponse,
@@ -18,17 +20,18 @@ import type {
   PartnerLifecycleResponse,
   PartnerLifecycleSite,
 } from '../../shared/gscdump-api'
+import type { createGscdumpPartnerClient } from './gscdump-origin'
 import { GSCDUMP_ONBOARDING_CONTRACT_VERSION } from '@gscdump/contracts'
 import {
-  CANONICAL_WEBHOOK_EVENTS,
   findLifecycleSite as findSdkLifecycleSite,
   lifecycleSiteToSyncStatus as lifecycleSdkSiteToSyncStatus,
   lifecycleSiteToUserSite as lifecycleSdkSiteToUserSite,
-} from '@gscdump/sdk'
+} from '@gscdump/sdk/lifecycle'
 import { isGscdumpV1Error } from '@gscdump/sdk/v1'
-import { createGscdumpPartnerClient, createGscdumpPublicV1Client } from './gscdump-origin'
+import { CANONICAL_WEBHOOK_EVENTS } from '@gscdump/sdk/webhook'
+import { createGscdumpPublicV1Client } from './gscdump-origin'
 
-export { analyticsStatusToSyncStatus } from '@gscdump/sdk'
+export { analyticsStatusToSyncStatus } from '@gscdump/sdk/lifecycle'
 export type { GscdumpAvailableSite }
 
 export function findLifecycleSite(lifecycle: PartnerLifecycleResponse, siteIdOrPropertyUrl: string): PartnerLifecycleSite | null {
@@ -43,8 +46,12 @@ export function lifecycleSiteToUserSite(site: PartnerLifecycleSite): ReturnType<
   return lifecycleSdkSiteToUserSite(site as never)
 }
 
+// Type-only: the legacy partner client is never instantiated any more (every
+// operation below runs through the v1 client), but its method signatures are
+// still the source of truth for a handful of parameter types.
+type LegacyClient = ReturnType<typeof createGscdumpPartnerClient>
+
 export function useGscdumpClient() {
-  const legacyClient = createGscdumpPartnerClient()
   const client = createGscdumpPublicV1Client()
 
   function rethrowV1AsH3(err: unknown): never {
@@ -63,7 +70,7 @@ export function useGscdumpClient() {
     throw err
   }
 
-  function toV1ReportState(state: BuilderState, searchType?: DataQueryOptions['searchType']): BuilderState & Record<string, unknown> {
+  function toV1ReportState(state: BuilderStateWire, searchType?: DataQueryOptions['searchType']): BuilderStateWire & Record<string, unknown> {
     return {
       ...state,
       searchType: searchType ?? state.searchType ?? 'web',
@@ -147,9 +154,9 @@ export function useGscdumpClient() {
 
   return {
     // User management
-    registerUser: (body: Parameters<typeof legacyClient.registerUser>[0]) =>
+    registerUser: (body: Parameters<LegacyClient['registerUser']>[0]) =>
       client.createUser({ body }).then(response => response.data).catch(rethrowV1AsH3),
-    updateUserTokens: (userId: string, body: Parameters<typeof legacyClient.updateUserTokens>[1]) =>
+    updateUserTokens: (userId: string, body: Parameters<LegacyClient['updateUserTokens']>[1]) =>
       client.updateUserTokens({ params: { userId }, body }).then(response => response.data).catch(rethrowV1AsH3),
     getUserLifecycle,
     getSiteSyncStatus,
@@ -180,7 +187,7 @@ export function useGscdumpClient() {
       client.deleteSite({ params: { siteId } }).then(response => response.data).catch(rethrowV1AsH3),
 
     // Analytics
-    getData: (siteId: string, state: BuilderState, queryOptions?: DataQueryOptions): Promise<GscdumpDataResponse> =>
+    getData: (siteId: string, state: BuilderStateWire, queryOptions?: DataQueryOptions): Promise<GscdumpDataResponse> =>
       client.queryAnalyticsReport({
         params: { siteId },
         body: {
@@ -189,7 +196,7 @@ export function useGscdumpClient() {
           ...(queryOptions?.filter ? { filter: queryOptions.filter } : {}),
         },
       }).then(response => response.data as unknown as GscdumpDataResponse).catch(rethrowV1AsH3),
-    getDataDetail: (siteId: string, state: BuilderState, queryOptions?: DataDetailOptions): Promise<GscdumpDataDetailResponse> =>
+    getDataDetail: (siteId: string, state: BuilderStateWire, queryOptions?: DataDetailOptions): Promise<GscdumpDataDetailResponse> =>
       client.queryAnalyticsReportDetail({
         params: { siteId },
         body: {
@@ -199,20 +206,26 @@ export function useGscdumpClient() {
       }).then(response => response.data as unknown as GscdumpDataDetailResponse).catch(rethrowV1AsH3),
     getAnalysis,
 
-    // Sitemaps: reads are v1; mutations stay private until v1 gains commands.
+    // Sitemaps: all v1 since `partner.sites.sitemaps.action.create` (submit/delete/refresh).
     getSitemaps: (siteId: string) =>
       client.getSiteSitemaps({ params: { siteId } }).then(response => response.data).catch(rethrowV1AsH3),
     getSitemapChanges: (siteId: string, days = 28) =>
       client.getSiteSitemapChanges({ params: { siteId }, query: { days } }).then(response => response.data).catch(rethrowV1AsH3),
-    submitSitemap: legacyClient.submitSitemap,
-    refreshSitemaps: legacyClient.refreshSitemaps,
+    submitSitemap: (siteId: string, sitemapUrl: string, action: 'submit' | 'delete') =>
+      client.createSitemapAction({ params: { siteId }, body: { action, sitemapUrl } })
+        .then(response => response.data)
+        .catch(rethrowV1AsH3),
+    refreshSitemaps: (siteId: string) =>
+      client.createSitemapAction({ params: { siteId }, body: { action: 'refresh' } })
+        .then(response => response.data)
+        .catch(rethrowV1AsH3),
 
     // Indexing
     getIndexing: (siteId: string, days = 28) =>
       client.getSiteIndexing({ params: { siteId }, query: { days } }).then(response => response.data).catch(rethrowV1AsH3),
-    getIndexingUrls: (siteId: string, query: Parameters<typeof legacyClient.getIndexingUrls>[1] = {}) =>
+    getIndexingUrls: (siteId: string, query: Parameters<LegacyClient['getIndexingUrls']>[1] = {}) =>
       client.listSiteIndexingUrls({ params: { siteId }, query }).then(response => response.data).catch(rethrowV1AsH3),
-    getIndexingDiagnostics: (siteId: string, query: Parameters<typeof legacyClient.getIndexingDiagnostics>[1] = {}) =>
+    getIndexingDiagnostics: (siteId: string, query: Parameters<LegacyClient['getIndexingDiagnostics']>[1] = {}) =>
       client.getSiteIndexingDiagnostics({ params: { siteId }, query }).then(response => response.data).catch(rethrowV1AsH3),
   }
 }

@@ -130,7 +130,7 @@ const sites = computed(() => {
                 check it exists within <a class="underline" href="https://search.google.com/search-console" target="_blank">Google Search Console</a>.
               </p>
               <p class="dark:text-gray-400 text-gray-600 text-sm mb-5">
-                The free plan includes up to 3 sites, up to 10,000 pages and tracking up to 100 keywords and pages with Psi. The Pro
+                The free plan includes up to 3 sites, up to 10,000 pages and tracking up to 100 keywords. The Pro
                 plan is unlimited and is in development.
               </p>
               <div class="mb-3">
@@ -196,12 +196,7 @@ const sites = computed(() => {
                     </NuxtLink>.
                   </p>
                   <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    4. Performs PageSpeed Insight tests on your popular pages - <NuxtLink to="/" class="underline">
-                      why you need to index your pages
-                    </NuxtLink>.
-                  </p>
-                  <p class="text-gray-500 dark:text-gray-400 text-sm">
-                    5. Store your Google Search Console data for as long as you like - <NuxtLink to="/" class="underline">
+                    4. Store your Google Search Console data for as long as you like - <NuxtLink to="/" class="underline">
                       why you need to backup your data
                     </NuxtLink>.
                   </p>

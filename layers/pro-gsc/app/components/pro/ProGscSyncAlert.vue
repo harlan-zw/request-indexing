@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { gscConsoleUrl } from '@gscdump/sdk'
+import { gscConsoleUrl } from '@gscdump/sdk/gsc-console-url'
 import { useProGscdump } from '#layers/pro-gsc/app/composables/useProGscdump'
 import { useSite } from '#layers/pro-saas/app/composables/useSite'
 
@@ -9,7 +9,7 @@ const props = defineProps<{
 
 const { data: status, refresh, fetchStatus, isNotConnected, isTokenRevoked, isPermissionLost, hasError } = useProGscStatus(() => props.siteId)
 const { site } = useSite()
-const { fetchGscdump } = useProGscdump()
+const { recoverSitePermission } = useProGscdump()
 const toast = useToast()
 
 const statusMessage = computed(() => {
@@ -37,10 +37,8 @@ async function handleRecoverPermission() {
   if (!gscdumpSiteId)
     return
   isRefreshing.value = true
-  const result = await fetchGscdump<{ success: boolean, message: string }>(
-    `/sites/${gscdumpSiteId}/recover-permission`,
-    { method: 'POST', silent: true },
-  ).catch(e => ({ success: false, message: e?.data?.message || 'Recovery failed. Try again in a moment.' } as const))
+  const result = await recoverSitePermission({ params: { siteId: gscdumpSiteId } }, true)
+    .catch(e => ({ success: false, message: e?.data?.message || 'Recovery failed. Try again in a moment.' } as const))
   if (result.success) {
     toast.add({ title: 'Permission restored', description: result.message, color: 'success' })
   }

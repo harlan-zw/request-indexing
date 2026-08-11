@@ -9,7 +9,7 @@ import { useProGscdump } from '#layers/pro-gsc/app/composables/useProGscdump'
 definePageMeta({ proTab: { feature: 'search-console', label: 'Canonicals', icon: 'i-lucide-link', order: 50 } })
 
 const { siteStatus, gscdumpSiteId } = useSite('Canonicals')
-const { fetchGscdump } = useProGscdump()
+const { getCanonicalMismatches } = useProGscdump()
 
 interface Mismatch {
   url: string
@@ -33,7 +33,7 @@ const { data, status } = useAsyncData(
   async () => {
     if (!gscdumpSiteId.value)
       return null
-    return fetchGscdump<CanonicalData>(`/sites/${gscdumpSiteId.value}/canonical-mismatches`, { silent: true })
+    return getCanonicalMismatches<CanonicalData>({ params: { siteId: gscdumpSiteId.value } }, true)
   },
   { server: false, watch: [gscdumpSiteId] },
 )

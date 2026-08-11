@@ -30,7 +30,7 @@ const selected = ref(['clicks', 'impressions'])
     <KitHeader
       eyebrow="Charts"
       title="Chart primitives"
-      description="Generic time-series chart wrappers from layers/design-system/components/chart. Domain charts (GraphWebVital, GraphPageSpeedInsights, etc) compose these and live in core."
+      description="Generic time-series chart wrappers from layers/design-system/components/chart. Domain charts compose these and live in core."
     />
 
     <KitSection

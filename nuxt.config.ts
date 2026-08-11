@@ -216,7 +216,6 @@ export default defineNuxtConfig({
           NUXT_GOOGLE_ADS_CLIENT_ID: process.env.NUXT_GOOGLE_ADS_CLIENT_ID || '',
           NUXT_GOOGLE_ADS_CLIENT_SECRET: process.env.NUXT_GOOGLE_ADS_CLIENT_SECRET || '',
           NUXT_GOOGLE_ADS_REFRESH_TOKEN: process.env.NUXT_GOOGLE_ADS_REFRESH_TOKEN || '',
-          NUXT_GOOGLE_CRUX_API_TOKEN: process.env.NUXT_GOOGLE_CRUX_API_TOKEN || '',
           NUXT_GSCDUMP_API_KEY: process.env.NUXT_GSCDUMP_API_KEY || '',
           NUXT_GSCDUMP_WEBHOOK_SECRET: process.env.NUXT_GSCDUMP_WEBHOOK_SECRET || '',
           NUXT_DATAFORSEO_LOGIN: process.env.NUXT_DATAFORSEO_LOGIN || '',
@@ -242,12 +241,10 @@ export default defineNuxtConfig({
         queues: {
           producers: [
             { queue: 'ri-default', binding: 'QUEUE_DEFAULT' },
-            { queue: 'ri-psi', binding: 'QUEUE_PSI' },
             { queue: 'ri-dlq', binding: 'QUEUE_DLQ' },
           ],
           consumers: [
             { queue: 'ri-default', max_batch_size: 1, max_batch_timeout: 10, max_concurrency: 5, max_retries: 5, dead_letter_queue: 'ri-dlq' },
-            { queue: 'ri-psi', max_batch_size: 1, max_batch_timeout: 30, max_concurrency: 3, max_retries: 3, dead_letter_queue: 'ri-dlq' },
             { queue: 'ri-dlq', max_batch_size: 1, max_batch_timeout: 60, max_concurrency: 1, max_retries: 3 },
           ],
         },
@@ -338,7 +335,6 @@ export default defineNuxtConfig({
     google: {
       adsCustomerId: '',
       adsApiToken: '',
-      cruxApiToken: '',
       adsClientId: '',
       adsClientSecret: '',
       adsRefreshToken: '',
@@ -347,8 +343,13 @@ export default defineNuxtConfig({
       apiKey: '',
     },
     gscdump: {
+      apiUrl: 'https://gscdump.com/api',
       apiKey: '',
       webhookSecret: '',
+      // Where gscdump delivers webhooks for sites we register. Override via
+      // NUXT_GSCDUMP_WEBHOOK_URL in dev/preview (e.g. a tunnel); the default
+      // silently points non-prod registrations at prod otherwise.
+      webhookUrl: 'https://requestindexing.com/api/webhooks/gscdump',
     },
     dataforseo: {
       login: '',

@@ -5,7 +5,7 @@ import { batchJobs } from '~~/layers/core/server/utils/event-service'
 export default defineTask({
   meta: {
     name: 'sites:sync.daily',
-    description: 'Syncs sites daily (PSI, CrUX — GSC data handled by gscdump)',
+    description: 'Syncs sites daily (GSC data handled by gscdump)',
   },
   async run() {
     const db = useDrizzle()
@@ -24,10 +24,7 @@ export default defineTask({
           name: 'sites/sync-finished',
           payload: { siteId: site.siteId },
         },
-      }, [
-        { name: 'paths/run-psi', payload: { siteId: site.siteId, path: '/', strategy: 'mobile' }, queue: 'psi' },
-        { name: 'paths/run-psi', payload: { siteId: site.siteId, path: '/', strategy: 'desktop' }, queue: 'psi' },
-      ])
+      }, [])
     }
     return { result: validSites }
   },

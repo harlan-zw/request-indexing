@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "@googleapis/indexing": "catalog:",
-    "@googleapis/pagespeedonline": "catalog:",
     "@gscdump/contracts": "catalog:",
     "@gscdump/engine": "catalog:",
     "@gscdump/sdk": "catalog:",
@@ -55,7 +54,7 @@
     "google-ads-api": "catalog:",
     "gscdump": "catalog:",
     "h3": "catalog:",
-    "hookable": "^6.1.1",
+    "hookable": "catalog:",
     "klona": "catalog:",
     "lightweight-charts": "catalog:",
     "motion-v": "catalog:",
@@ -71,8 +70,8 @@
     "sitemapper": "catalog:",
     "stripe": "catalog:",
     "tailwindcss": "catalog:",
-    "ufo": "^1.6.4",
-    "uncrypto": "^0.1.3",
+    "ufo": "catalog:",
+    "uncrypto": "catalog:",
     "v-calendar": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:",
@@ -80,8 +79,8 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
-    "@harlan-zw/nuxt-dx": "catalog:",
     "@cloudflare/workers-types": "catalog:conflicts_conflicts_@cloudflare/workers-types_h4_20250510_0_h4_20260518_1",
+    "@harlan-zw/nuxt-dx": "catalog:",
     "@nuxt/test-utils": "catalog:",
     "@sentry/nuxt": "catalog:",
     "@takumi-rs/wasm": "catalog:",
@@ -96,8 +95,8 @@
     "oxc-parser": "catalog:",
     "typescript": "catalog:conflicts_conflicts_typescript_h5_6_0_h6_0_3",
     "unplugin": "catalog:",
-    "vue-tsc": "catalog:",
     "vitest": "catalog:",
+    "vue-tsc": "catalog:",
     "wrangler": "catalog:conflicts_conflicts_wrangler_h3_90_0_h4_92_0"
   }
 }

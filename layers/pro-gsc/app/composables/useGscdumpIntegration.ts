@@ -6,9 +6,13 @@
 import { logWarn } from '~~/shared/logging'
 
 export interface GscdumpIntegration {
-  apiKey: string | null
-  userId: string | null
-  apiBase: string
+  /**
+   * Whether the caller has a stored gscdump credential. Never the credential
+   * itself: every gscdump HTTP call from the browser goes through the
+   * same-origin v1 proxy, which resolves the caller's stored key
+   * server-side, so the key never needs to reach browser memory.
+   */
+  connected: boolean
   browserAnalyzerEnabled: boolean
 }
 
@@ -28,9 +32,7 @@ export function useGscdumpIntegration() {
     refresh,
     error,
     status,
-    apiKey: computed(() => data.value?.apiKey ?? null),
-    userId: computed(() => data.value?.userId ?? null),
-    apiBase: computed(() => data.value?.apiBase ?? 'https://gscdump.com'),
+    connected: computed(() => !!data.value?.connected),
     browserAnalyzerEnabled: computed(() => !!data.value?.browserAnalyzerEnabled),
   }
 }

@@ -10,7 +10,6 @@ export type {
   SiteDateAnalyticsSelect,
   SiteInsert,
   SiteKeywordDateAnalyticsSelect,
-  SitePageSpeedInsightScansSelect,
   SitePathSelect,
   SiteSelect,
   SiteUrlDateAnalyticsSelect,

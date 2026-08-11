@@ -1,11 +1,12 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import type { GscdumpAvailableSite } from './gscdump-client'
 import { eq } from 'drizzle-orm'
-import { isVerifiedGscPermission, pickBestGscProperty } from './google'
-import { updateOnboardingState } from './onboarding'
 import { logWarn } from '~~/shared/logging'
 import { sites } from '#layers/pro-saas/server/database'
+import { isVerifiedGscPermission, pickBestGscProperty } from './google'
 import { useGscdumpClient } from './gscdump-client'
+import { getGscdumpWebhookUrl } from './gscdump-origin'
+import { updateOnboardingState } from './onboarding'
 
 /**
  * Auto-link a site to its matching GSC property via gscdump.
@@ -77,7 +78,7 @@ export async function autoLinkGsc(opts: {
       userId: gscdumpUserId,
       requestedUrl: simpleDomain,
       gscPropertyUrl: matchingGsc.siteUrl,
-      webhookUrl: 'https://nuxtseo.com/api/webhooks/gscdump',
+      webhookUrl: getGscdumpWebhookUrl(),
       webhookEvents: ['user.lifecycle.changed', 'site.lifecycle.changed', 'site.analytics.ready', 'site.indexing.ready', 'site.auth.failed', 'job.failed'],
     }).catch((err) => {
       logWarn('gscdump.teams.client_failed', err, { stage: 'registerSite' })

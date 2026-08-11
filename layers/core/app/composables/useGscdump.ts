@@ -2,12 +2,6 @@ import type { GscdumpV1Client, GscdumpV1OperationInput, GscdumpV1OperationRespon
 import type { BuilderState } from 'gscdump/query'
 import { createGscdumpV1Client } from '@gscdump/sdk/v1'
 
-export interface GscdumpCredentials {
-  apiKey: string
-  userId: string
-  apiUrl: string
-}
-
 export interface GscdumpDataRow {
   page?: string
   query?: string
@@ -252,32 +246,32 @@ function toV1ReportState(state: BuilderState): V1ReportState {
   return state as unknown as V1ReportState
 }
 
-// ===== Credentials =====
+// ===== Session-proxied v1 client =====
+//
+// The browser never holds a gscdump API key. Requests go same-origin to the
+// Nitro proxy (`server/api/_gscdump/[surface]/v1/[...path].ts`), which
+// authenticates the session, resolves the caller's own stored gscdump
+// credential server-side, and forwards upstream: the key never reaches
+// browser memory. `'session-proxy'` is an opaque literal that only satisfies
+// the SDK's transport shape; the proxy discards it entirely.
+//
+// `partner.users.sites.available.list` is the one allowlisted operation keyed
+// by gscdump user id rather than site id. The browser doesn't know its own
+// gscdump user id (never shipped down); it sends this syntactically-valid
+// placeholder and the proxy always substitutes the caller's real, stored id
+// when building the upstream request.
+const GSCDUMP_SESSION_USER_ID = 'u_session-proxy'
 
-const credentialsCache = ref<GscdumpCredentials | null>(null)
-const credentialsPromise = ref<Promise<GscdumpCredentials> | null>(null)
-
-async function getCredentials(): Promise<GscdumpCredentials> {
-  if (credentialsCache.value)
-    return credentialsCache.value
-
-  if (credentialsPromise.value)
-    return credentialsPromise.value
-
-  credentialsPromise.value = $fetch<GscdumpCredentials>('/api/gscdump/credentials')
-    .then((creds) => {
-      credentialsCache.value = creds
-      return creds
-    })
-    .finally(() => {
-      credentialsPromise.value = null
-    })
-
-  return credentialsPromise.value
-}
-
-export function clearGscdumpCredentials() {
-  credentialsCache.value = null
+function createV1Client(): GscdumpV1Client {
+  return createGscdumpV1Client({
+    apiRoot: '/api/_gscdump',
+    credential: 'session-proxy',
+    fetch: (request, init) => {
+      const headers = new Headers(init?.headers)
+      headers.delete('authorization')
+      return fetch(request, { ...init, headers })
+    },
+  })
 }
 
 // ===== Error Handling =====
@@ -317,7 +311,6 @@ const TOAST_DEDUPE_MS = 5000
 
 export function useGscdump() {
   const toast = useToast()
-  const credentials = ref<GscdumpCredentials | null>(null)
   const error = ref<GscdumpError | null>(null)
 
   function _showErrorToast(gscdumpError: GscdumpError) {
@@ -341,32 +334,12 @@ export function useGscdump() {
     })
   }
 
-  async function ensureCredentials() {
-    if (!credentials.value) {
-      credentials.value = await getCredentials().catch((e) => {
-        const parsed = parseGscdumpError(e)
-        error.value = parsed
-        _showErrorToast(parsed)
-        throw e
-      })
-    }
-    return credentials.value
-  }
-
-  async function createV1Client() {
-    const creds = await ensureCredentials()
-    return createGscdumpV1Client({
-      apiRoot: creds.apiUrl.replace(/\/+$/, ''),
-      credential: creds.apiKey,
-    })
-  }
-
   async function runV1<T>(
     request: (client: GscdumpV1Client) => Promise<{ data: unknown }>,
     silent = false,
   ): Promise<T> {
     try {
-      const client = await createV1Client()
+      const client = createV1Client()
       const response = await request(client)
       return response.data as T
     }
@@ -412,9 +385,7 @@ export function useGscdump() {
   }
 
   return {
-    credentials,
     error,
-    ensureCredentials,
     getSiteAnalysis,
     getSiteIndexing,
     getSiteIndexingDiagnostics,
@@ -656,11 +627,20 @@ export function useGscdumpConnectedSites(options?: { immediate?: boolean }) {
   }> }>(
     'gscdump:connected-sites',
     async () => {
-      const { listAvailableSites, ensureCredentials } = useGscdump()
-      const creds = await ensureCredentials()
-      if (!creds.userId)
+      const { listAvailableSites } = useGscdump()
+      // Silent + a bare 401 treated as "not connected": most users have never
+      // linked a gscdump account, and that's an expected empty state here,
+      // not a failure worth toasting.
+      const result = await listAvailableSites({ params: { userId: GSCDUMP_SESSION_USER_ID }, query: {} }, true)
+        .catch((e) => {
+          const status = (e as { status?: number, statusCode?: number } | null)?.status
+            ?? (e as { statusCode?: number } | null)?.statusCode
+          if (status === 401)
+            return null
+          throw e
+        })
+      if (!result)
         return { sites: [] }
-      const result = await listAvailableSites({ params: { userId: creds.userId }, query: {} })
       return {
         sites: result.sites.flatMap(site => site.registered && site.siteId
           ? [{

@@ -69,8 +69,11 @@ export const LOG_CATALOG = {
   // Transactional email (drip, invites, discord role assign, etc.)
   'email.send_failed': 'transactional email send failed; user does not see it but it should have shipped',
 
-  // Lighthouse / perf pipeline (queue → orchestrator → broadcast → DLQ → cleanup)
-  'perf.lighthouse_failed': 'lighthouse pipeline best-effort step failed (queue send, broadcast publish, scan dispatch, DLQ, R2 cleanup)',
+  // Google Indexing API
+  'indexing.token_persist_failed': 'Google Indexing API access token was auto-refreshed but persisting it back to google_accounts failed; next request will refresh again',
+  'indexing.job_record_failed': 'indexing_jobs tracking row insert/update failed after a successful Google Indexing API submission',
+  'indexing.usage_record_failed': 'usages counter increment failed after a successful Google Indexing API submission',
+  'indexing.revoke_failed': 'Google token revoke call failed during indexing OAuth disconnect; local grant was still removed',
 } as const
 
 export type LogName = keyof typeof LOG_CATALOG

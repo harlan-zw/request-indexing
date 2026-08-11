@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
+import { getGscdumpWebhookUrl } from '#layers/pro-gsc/server/utils/gscdump-origin'
 import { sites, users } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
 
@@ -40,7 +41,7 @@ export default defineProApiHandler({ body: bodySchema }, async ({ db, caller, bo
     userId: dbUser.gscdumpUserId,
     requestedUrl: site.property || simpleDomain,
     gscPropertyUrl: body.gscSiteUrl,
-    webhookUrl: 'https://nuxtseo.com/api/webhooks/gscdump',
+    webhookUrl: getGscdumpWebhookUrl(),
     webhookEvents: ['user.lifecycle.changed', 'site.lifecycle.changed', 'site.analytics.ready', 'site.indexing.ready', 'site.auth.failed', 'job.failed'],
   }).catch((err) => {
     const statusCode = err.statusCode || err.status || 500

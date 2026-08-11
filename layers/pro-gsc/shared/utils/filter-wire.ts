@@ -1,10 +1,10 @@
-import type { Filter } from '@gscdump/sdk/query'
+import type { Filter } from 'gscdump/query'
 
 /**
  * Partner-API wire format for gscdump filters.
  *
  * Two filter formats round-trip through the gscdump partner API:
- *  1. SDK branded `Filter<any>` (from `@gscdump/sdk/query`) — `{ _filters, _groupType }`
+ *  1. SDK branded `Filter<any>` (from `gscdump/query`): `{ _filters, _groupType }`
  *  2. This wire format — plain `{ type, ... }` objects
  *
  * Both are accepted by gscdump.com's `server/utils/normalize-filter.ts`, which

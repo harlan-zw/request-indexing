@@ -3,7 +3,7 @@
 // Errors are logged and swallowed by `defineProListener` — reconciliation
 // cron repairs drift.
 
-import type { AddPartnerTeamMemberParams } from '@gscdump/sdk'
+import type { AddPartnerTeamMemberParams } from '@gscdump/contracts'
 import type { H3Event } from 'h3'
 import { eq } from 'drizzle-orm'
 import { teams, users } from '#layers/pro-saas/server/database'

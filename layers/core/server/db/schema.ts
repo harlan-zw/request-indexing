@@ -1,14 +1,12 @@
-import type { pagespeedonline_v5 } from '@googleapis/pagespeedonline'
 import type { AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
-// TODO(v1): google-auth-library not directly installed; using inline minimal types.
-interface TokenInfo { scopes?: string[], expiry_date?: number }
-interface CredentialRequest { refresh_token?: string, access_token?: string, expiry_date?: number, scope?: string, token_type?: string, id_token?: string }
 import type { RequiredNonNullable } from '~~/layers/core/app/types/util'
 import type { GoogleOAuthUser } from '~~/layers/core/server/app/utils/auth'
-import type { BlobObject } from '~~/layers/core/server/utils/blob'
 import { relations, sql } from 'drizzle-orm'
 import { index, integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
 import { customAlphabet } from 'nanoid'
+// TODO(v1): google-auth-library not directly installed; using inline minimal types.
+interface TokenInfo { scopes?: string[], expiry_date?: number }
+interface CredentialRequest { refresh_token?: string, access_token?: string, expiry_date?: number, scope?: string, token_type?: string, id_token?: string }
 
 const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz'
 const length = 12
@@ -168,8 +166,6 @@ export const sites = sqliteTable('sites', {
   active: integer('active', { mode: 'boolean' }).notNull().default(false),
   // isDomainProperty: integer('is_domain_property', { mode: 'boolean' }).notNull().default(false),
   sitemaps: text('sitemaps', { mode: 'json' }).$type<any[]>(),
-  hasMobileCruxOriginData: integer('has_crux_origin_data', { mode: 'boolean' }).notNull().default(false),
-  hasDesktopCruxOriginData: integer('has_crux_origin_data', { mode: 'boolean' }).notNull().default(false),
 
   // for split domain properties
   domain: text('domain'),
@@ -202,8 +198,6 @@ export const sitePaths = sqliteTable('site_paths', {
   indexingVerdict: text('indexing_verdict'),
   inspectionPayload: text('inspection_payload', { mode: 'json' }).$type<any>(),
   lastInspected: integer('last_inspected'),
-  hasMobileCruxOriginData: integer('has_crux_origin_data', { mode: 'boolean' }).notNull().default(false),
-  hasDesktopCruxOriginData: integer('has_crux_origin_data', { mode: 'boolean' }).notNull().default(false),
 
   ...timestamps,
 }, t => ({
@@ -233,9 +227,6 @@ export const siteDateAnalytics = sqliteTable('site_date_analytics', {
   desktopOriginFcp75: integer('desktop_origin_fcp_75'),
   desktopOriginLcp75: integer('desktop_origin_lcp_75'),
   desktopOriginInp75: integer('desktop_origin_inp_75'),
-
-  mobileOriginLoadingExperience: text('origin_loading_experience', { mode: 'json' }).$type<pagespeedonline_v5.Schema$PagespeedApiLoadingExperienceV5>(),
-  desktopOriginLoadingExperience: text('origin_loading_experience', { mode: 'json' }).$type<pagespeedonline_v5.Schema$PagespeedApiLoadingExperienceV5>(),
 
   keywords: integer('keywords'),
   pages: integer('pages'),
@@ -276,40 +267,6 @@ export const siteDateCountryAnalytics = sqliteTable('site_date_country_analytics
   unq: unique().on(t.siteId, t.date, t.country),
 }))
 
-export const sitePageSpeedInsightScans = sqliteTable('site_pagespeed_insight_scans', {
-  sitePageSpeedInsightScanId: integer('site_pagespeed_insight_scan_id').notNull().primaryKey(),
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
-  path: text('path').notNull(),
-  strategy: text('strategy').notNull(),
-  performance: integer('performance'),
-  seo: integer('seo'),
-  accessibility: integer('accessibility'),
-  bestPractices: integer('best_practices'),
-  reportBlob: text('report_path', { mode: 'json' }).$type<BlobObject>(),
-  reportScreenshotBlob: text('report_screenshot_path', { mode: 'json' }).$type<BlobObject>(),
-  createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
-}, t => ({
-  pathIdx: index('path_idx').on(t.path),
-  strategyIdx: index('strategy_idx').on(t.strategy),
-}))
-
-export type SitePageSpeedInsightScansSelect = typeof sitePageSpeedInsightScans.$inferSelect
-
-// a table where we record individual audit results if they're failing, should be generic to the ligthhouse json format
-export const sitePageSpeedInsightScanAudits = sqliteTable('site_pagespeed_insight_scan_audits', {
-  sitePageSpeedInsightScanAuditId: integer('site_pagespeed_insight_scan_audit_id').notNull().primaryKey(),
-  sitePageSpeedInsightScanId: integer('site_pagespeed_insight_scan_id').notNull().references(() => sitePageSpeedInsightScans.sitePageSpeedInsightScanId),
-  auditId: text('audit_id').notNull(),
-  category: text('category'),
-  weight: integer('weight'),
-  score: integer('score').notNull(),
-  numericValue: text('numeric_value'),
-  ...timestamps,
-}, t => ({
-  // index the audit id
-  auditIdx: index('audit_idx').on(t.auditId),
-}))
-
 export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),
   date: text('date').notNull(), // all data for a path
@@ -317,47 +274,9 @@ export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
   ...googleSearchConsolePageAnalytics,
   // keywords: integer('keywords'),
 
-  psiDesktopPerformance: integer('psi_desktop_performance'),
-  psiMobilePerformance: integer('psi_mobile_performance'),
-  psiDesktopSeo: integer('psi_desktop_seo'),
-  psiMobileSeo: integer('psi_mobile_seo'),
-  psiDesktopAccessibility: integer('psi_desktop_accessibility'),
-  psiMobileAccessibility: integer('psi_mobile_accessibility'),
-  psiDesktopBestPractices: integer('psi_desktop_best_practices'),
-  psiMobileBestPractices: integer('psi_mobile_best_practices'),
-  psiDesktopScore: integer('psi_desktop_score'),
-  psiMobileScore: integer('psi_mobile_score'),
-
-  psiDesktopLcp: integer('psi_desktop_lcp'),
-  psiDesktopFcp: integer('psi_desktop_fcp'),
-  psiDesktopSi: integer('psi_desktop_si'),
-  psiDesktopCls: integer('psi_desktop_cls'),
-  psiDesktopTbt: integer('psi_mobile_tbt'), // total-blocking-time
-  psiDesktopTtfb: integer('psi_desktop_ttfb'), // server-response-time
-
-  psiMobileLcp: integer('psi_mobile_lcp'),
-  psiMobileFcp: integer('psi_mobile_fcp'),
-  psiMobileSi: integer('psi_mobile_si'),
-  psiMobileCls: integer('psi_mobile_cls'),
-  psiMobileTbt: integer('psi_desktop_tbt'),
-  psiMobileTtfb: integer('psi_mobile_ttfb'),
-
   // TODO make life easier for querying?
   // save all percentile 75
-  mobileCls75: integer('mobile_cls_75'),
-  mobileTtfb75: integer('mobile_ttfb_75'),
-  mobileFcp75: integer('mobile_fcp_75'),
-  mobileLcp75: integer('mobile_lcp_75'),
-  mobileInp75: integer('mobile_inp_75'),
   // now desktop
-  desktopCls75: integer('desktop_cls_75'),
-  desktopTtfb75: integer('desktop_ttfb_75'),
-  desktopFcp75: integer('desktop_fcp_75'),
-  desktopLcp75: integer('desktop_lcp_75'),
-  desktopInp75: integer('desktop_inp_75'),
-
-  mobileLoadingExperience: text('loading_experience', { mode: 'json' }).$type<pagespeedonline_v5.Schema$PagespeedApiLoadingExperienceV5>(),
-  desktopLoadingExperience: text('loading_experience', { mode: 'json' }).$type<pagespeedonline_v5.Schema$PagespeedApiLoadingExperienceV5>(),
 
   // google search console (query by date and path)
   ...timestamps,
@@ -931,6 +850,23 @@ export const indexingJobs = sqliteTable('indexing_jobs', {
   sitePathTransportUnq: unique('indexing_jobs_site_path_transport_unique').on(t.siteId, t.path, t.transport),
 }))
 
+// User-tracked investigation status for an indexing issue on a URL. Purely a
+// status/note tracker, not a live inspection: recorded when a user marks an
+// issue as investigated/fixed/false-positive/etc. Live inspection goes through
+// gscdump's `inspect.create` operation separately, not this table.
+export const indexingInvestigations = sqliteTable('indexing_investigations', {
+  indexingInvestigationId: integer('indexing_investigation_id').primaryKey({ autoIncrement: true }),
+  siteId: integer('site_id').notNull().references(() => sites.siteId, { onDelete: 'cascade' }),
+  url: text('url').notNull(),
+  issueType: text('issue_type').notNull(),
+  status: text('status').notNull().default('investigated'), // 'investigated' | 'monitoring' | 'false_positive' | 'wont_fix' | 'fixed'
+  note: text('note'),
+  investigatedAt: integer('investigated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, t => ({
+  siteUrlIssueUnq: unique('indexing_investigations_site_url_issue_unique').on(t.siteId, t.url, t.issueType),
+  siteIdx: index('indexing_investigations_site_idx').on(t.siteId),
+}))
+
 // One row per (site, prompt, llm, day). Citation tracker output.
 export const citationRuns = sqliteTable('citation_runs', {
   citationRunId: integer('citation_run_id').primaryKey({ autoIncrement: true }),
@@ -1042,6 +978,10 @@ export const indexingJobsRelations = relations(indexingJobs, ({ one }) => ({
   site: one(sites, { fields: [indexingJobs.siteId], references: [sites.siteId] }),
 }))
 
+export const indexingInvestigationsRelations = relations(indexingInvestigations, ({ one }) => ({
+  site: one(sites, { fields: [indexingInvestigations.siteId], references: [sites.siteId] }),
+}))
+
 export const citationRunsRelations = relations(citationRuns, ({ one }) => ({
   site: one(sites, { fields: [citationRuns.siteId], references: [sites.siteId] }),
 }))
@@ -1086,6 +1026,8 @@ export type CrawlerHit = typeof crawlerHits.$inferSelect
 export type NewCrawlerHit = typeof crawlerHits.$inferInsert
 export type IndexingJob = typeof indexingJobs.$inferSelect
 export type NewIndexingJob = typeof indexingJobs.$inferInsert
+export type IndexingInvestigation = typeof indexingInvestigations.$inferSelect
+export type NewIndexingInvestigation = typeof indexingInvestigations.$inferInsert
 export type CitationRun = typeof citationRuns.$inferSelect
 export type NewCitationRun = typeof citationRuns.$inferInsert
 export type LlmsTxtVersion = typeof llmsTxtVersions.$inferSelect

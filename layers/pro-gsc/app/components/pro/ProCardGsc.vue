@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import type { Period } from '../../composables/useGscPeriod'
+import { onKeyStroke, useResizeObserver } from '@vueuse/core'
+import { AnimatePresence, motion, useMotionValue, useSpring } from 'motion-v'
+
 import { parseCustomPeriod } from '../../composables/useGscPeriod'
 import ProGraphGsc from './ProGraphGsc.vue'
 
@@ -99,9 +102,6 @@ watch(() => graph.value.length, (len) => {
   if (len > 0)
     hasEverHadData.value = true
 }, { immediate: true })
-
-import { onKeyStroke, useResizeObserver } from '@vueuse/core'
-import { AnimatePresence, motion, useMotionValue, useSpring } from 'motion-v'
 
 const tooltipData = ref<DateAnalytics | null>(null)
 const tooltipPrev = ref<DateAnalytics | null>(null)

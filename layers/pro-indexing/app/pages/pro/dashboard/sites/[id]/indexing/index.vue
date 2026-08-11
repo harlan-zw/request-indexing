@@ -7,7 +7,7 @@ definePageMeta({ proTab: { feature: 'indexing', label: 'Overview', icon: 'i-luci
 
 const { siteId, gscdumpSiteId, isNotConnected, isProcessing, isReady } = useSite()
 const { period, stableData } = useSitePeriod()
-const { fetchGscdump } = useProGscdump()
+const { createSitemapAction } = useProGscdump()
 const toast = useToast()
 
 const submittingSitemap = ref(false)
@@ -15,11 +15,10 @@ async function autoDiscoverSitemap() {
   if (!gscdumpSiteId.value)
     return
   submittingSitemap.value = true
-  const res = await fetchGscdump<{ discovered: string | null, submitError?: string | null }>(`/sites/${gscdumpSiteId.value}/sitemaps`, {
-    method: 'POST',
+  const res = await createSitemapAction<{ discovered: string | null, submitError?: string | null }>({
+    params: { siteId: gscdumpSiteId.value },
     body: { action: 'auto-discover' },
-    silent: true,
-  }).catch(() => null)
+  }, true).catch(() => null)
   submittingSitemap.value = false
   if (res?.discovered && !res.submitError) {
     toast.add({ title: 'Sitemap submitted', description: res.discovered, color: 'success' })

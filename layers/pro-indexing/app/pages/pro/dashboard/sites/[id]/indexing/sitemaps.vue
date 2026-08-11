@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { gscConsoleUrl } from '@gscdump/sdk'
+import { gscConsoleUrl } from '@gscdump/sdk/gsc-console-url'
 import { useProGscdumpSitemapChanges, useProGscdumpSitemaps } from '#layers/pro-gsc/app/composables/useProGscdump'
 
 definePageMeta({ proTab: { feature: 'indexing', label: 'Sitemaps', icon: 'i-lucide-map', order: 20 } })

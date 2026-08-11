@@ -36,6 +36,20 @@
       "when": 1779082974923,
       "tag": "0004_free_the_order",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786426573239,
+      "tag": "0005_add_indexing_investigations",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786427313410,
+      "tag": "0006_drop_psi_crux",
+      "breakpoints": true
     }
   ]
 }

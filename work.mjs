@@ -2,7 +2,6 @@
 // - nitro task run queue:ads
 // - nitro task run queue:default
 // - nitro task run queue:gsc
-// - nitro task run queue:psi
 
 // we need to run them, if they stop we need to restart them
 // use execa
@@ -16,8 +15,6 @@ const tasks = [
   'queue:gsc2',
   'queue:gsc3',
   'queue:gsc4',
-  'queue:psi',
-  'queue:psi2',
 ]
 
 function bootstrapProcess(task) {

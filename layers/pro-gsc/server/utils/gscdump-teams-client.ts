@@ -17,19 +17,22 @@ import type {
   AddPartnerTeamMemberParams,
   BindPartnerSiteTeamParams,
   CreatePartnerTeamParams,
-} from '@gscdump/sdk'
+} from '@gscdump/contracts'
 import type { H3Event } from 'h3'
 import { logWarn } from '~~/shared/logging'
 import { notifications } from '#layers/pro-saas/server/database'
-import { createGscdumpPartnerClient } from './gscdump-origin'
+import { createGscdumpPublicV1Client } from './gscdump-origin'
 
 export interface MirrorCtx {
   actorUserId: number
   proTeamId?: number | null
 }
 
+// Team CRUD moved fully onto the v1 registry (`partner.teams.*` +
+// `partner.sites.team.update`); the legacy partner client dropped every team
+// method in the 2.0.6 cutover.
 export function useGscdumpTeamsClient(event?: H3Event) {
-  const client = createGscdumpPartnerClient(event)
+  const client = createGscdumpPublicV1Client(event)
   const db = useDrizzle(event)
 
   async function logFailure(ctx: MirrorCtx, op: string, payload: unknown, err: any) {
@@ -53,42 +56,46 @@ export function useGscdumpTeamsClient(event?: H3Event) {
 
   function createTeam(body: CreatePartnerTeamParams, ctx: MirrorCtx) {
     return wrap('createTeam', body, ctx, () =>
-      client.createTeam(body))
+      client.createTeam({ body }).then(response => response.data))
   }
 
+  // v1's rename response is `{ ok, name }` (no `.team`); callers only cared
+  // about the create result's `.team.id`, so this shape change is a no-op here.
   function renameTeam(teamId: string, body: { name: string }, ctx: MirrorCtx) {
     return wrap('renameTeam', { teamId, ...body }, ctx, () =>
-      client.renameTeam(teamId, body))
+      client.renameTeam({ params: { teamId }, body }).then(response => response.data))
   }
 
   function deleteTeam(teamId: string, ctx: MirrorCtx) {
     return wrap('deleteTeam', { teamId }, ctx, () =>
-      client.deleteTeam(teamId))
+      client.deleteTeam({ params: { teamId } }).then(response => response.data))
   }
 
   // Reconciliation cron only — not absorbed (caller decides on failure).
   function listMembers(teamId: string) {
-    return client.listTeamMembers(teamId)
+    return client.listTeamMembers({ params: { teamId } }).then(response => response.data)
   }
 
   function addMember(teamId: string, body: AddPartnerTeamMemberParams, ctx: MirrorCtx) {
     return wrap('addMember', { teamId, ...body }, ctx, () =>
-      client.addTeamMember(teamId, body))
+      client.addTeamMember({ params: { teamId }, body }).then(response => response.data))
   }
 
   function updateMemberRole(teamId: string, userId: string, body: { role: AddPartnerTeamMemberParams['role'] }, ctx: MirrorCtx) {
     return wrap('updateMemberRole', { teamId, userId, ...body }, ctx, () =>
-      client.updateTeamMemberRole(teamId, userId, body))
+      client.updateTeamMemberRole({ params: { teamId, userId }, body }).then(response => response.data))
   }
 
   function removeMember(teamId: string, userId: string, ctx: MirrorCtx) {
     return wrap('removeMember', { teamId, userId }, ctx, () =>
-      client.removeTeamMember(teamId, userId))
+      client.removeTeamMember({ params: { teamId, userId } }).then(response => response.data))
   }
 
+  // v1 keys the bind on the site alone (`PATCH /sites/{siteId}/team`); the
+  // userId parameter is retained for callers/audit payloads only.
   function bindSiteToTeam(userId: string, siteId: string, body: BindPartnerSiteTeamParams, ctx: MirrorCtx) {
     return wrap('bindSiteToTeam', { userId, siteId, ...body }, ctx, () =>
-      client.bindSiteToTeam(userId, siteId, body))
+      client.updateSiteTeam({ params: { siteId }, body: { teamId: body.teamId ?? null } }).then(response => response.data))
   }
 
   return {

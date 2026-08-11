@@ -27,7 +27,7 @@ interface QueuePayload {
   env: Record<string, unknown>
 }
 
-const JOB_QUEUES = ['ri-default', 'ri-psi']
+const JOB_QUEUES = ['ri-default']
 
 export default defineNitroPlugin((nitroApp) => {
   nitroApp.hooks.hook('cloudflare:queue' as any, async (payload: QueuePayload) => {

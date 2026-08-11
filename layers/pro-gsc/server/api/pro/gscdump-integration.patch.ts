@@ -4,10 +4,9 @@ import { eq } from 'drizzle-orm'
 // updaters can replace the cached payload in one round trip.
 
 import { z } from 'zod'
-import { getGscdumpApiBase } from '#layers/pro-gsc/server/utils/gscdump-origin'
 import { loadGscdumpSettings, patchGscdumpSettings } from '#layers/pro-gsc/server/utils/gscdump-proxy'
-import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
 import { users } from '#layers/pro-saas/server/database'
+import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
 
 const PatchSchema = z.object({
   browserAnalyzerEnabled: z.boolean().optional(),
@@ -27,9 +26,7 @@ export default defineProApiHandler({ body: PatchSchema }, async ({ event, db, ca
 
   const settings = await loadGscdumpSettings(event, caller.user.id, row?.apiKey ?? null)
   return {
-    apiKey: row?.apiKey ?? null,
-    userId: row?.userId ?? null,
-    apiBase: getGscdumpApiBase(event),
+    connected: !!(row?.apiKey && row?.userId),
     browserAnalyzerEnabled: settings.browserAnalyzerEnabled,
   }
 })

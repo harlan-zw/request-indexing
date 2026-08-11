@@ -15,7 +15,7 @@
 // Cadence configurable via `runtimeConfig.proReconcileGscdumpTeamsCron`
 // (open question 2 in the plan); default '0 * * * *' (hourly).
 
-import type { GscdumpTeamMemberRow } from '@gscdump/sdk'
+import type { GscdumpTeamMemberRow } from '@gscdump/contracts'
 import { eq, isNotNull } from 'drizzle-orm'
 import { logWarn } from '~~/shared/logging'
 import { notifications, teamMemberships, teams, users } from '#layers/pro-saas/server/database'

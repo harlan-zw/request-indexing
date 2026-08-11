@@ -11,7 +11,6 @@
 
 import type { WindowPreset } from '@gscdump/engine/period'
 import { resolveWindow } from '@gscdump/engine/period'
-import { currentPstDate } from '@gscdump/sdk/query'
 import {
   startOfWeek as dfnsStartOfWeek,
   endOfMonth,
@@ -21,6 +20,7 @@ import {
   subDays,
   subMonths,
 } from 'date-fns'
+import { currentPstDate } from 'gscdump/query'
 
 /** Google Search Console's normal reporting finalization delay. */
 export const GSC_STABLE_LATENCY_DAYS = 3
