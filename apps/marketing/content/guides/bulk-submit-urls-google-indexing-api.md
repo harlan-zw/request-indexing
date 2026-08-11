@@ -360,16 +360,30 @@ Parse your sitemap.xml to get all URLs, then submit them through the queue:
 ```typescript
 import { parseStringPromise } from 'xml2js'
 
+function getLocations(value: unknown, container: string, entriesKey: string): string[] {
+  if (typeof value !== 'object' || value === null || !(container in value))
+    return []
+  const group = value[container as keyof typeof value]
+  if (typeof group !== 'object' || group === null || !(entriesKey in group))
+    return []
+  const entries = group[entriesKey as keyof typeof group]
+  if (!Array.isArray(entries))
+    return []
+  return entries.flatMap((entry) => {
+    if (typeof entry !== 'object' || entry === null || !('loc' in entry) || !Array.isArray(entry.loc))
+      return []
+    return typeof entry.loc[0] === 'string' ? [entry.loc[0]] : []
+  })
+}
+
 async function getUrlsFromSitemap(sitemapUrl: string): Promise<string[]> {
   const response = await fetch(sitemapUrl)
   const xml = await response.text()
   const parsed = await parseStringPromise(xml)
 
   // Handle sitemap index (contains other sitemaps)
-  if (parsed.sitemapindex) {
-    const sitemapUrls = parsed.sitemapindex.sitemap.map(
-      (s: any) => s.loc[0]
-    )
+  const sitemapUrls = getLocations(parsed, 'sitemapindex', 'sitemap')
+  if (sitemapUrls.length) {
     const allUrls: string[] = []
     for (const url of sitemapUrls) {
       const urls = await getUrlsFromSitemap(url)
@@ -379,7 +393,7 @@ async function getUrlsFromSitemap(sitemapUrl: string): Promise<string[]> {
   }
 
   // Handle regular sitemap
-  return parsed.urlset.url.map((entry: any) => entry.loc[0])
+  return getLocations(parsed, 'urlset', 'url')
 }
 
 // Usage

@@ -1,4 +1,5 @@
 import type { StripePurchaseResult } from '../utils/stripe-purchases'
+import type { AuthHookContextBase } from '#layers/pro-saas-auth/shared/types/auth'
 import { eq } from 'drizzle-orm'
 import { logger } from '~~/shared/server/logger'
 import { useAuthHooks } from '#layers/pro-saas-auth/server/utils/auth/hooks'
@@ -14,7 +15,7 @@ const { users } = schema
 export default defineNitroPlugin(() => {
   const hooks = useAuthHooks()
 
-  const correlate = async ({ event, user, identity }: { event: any, user: { id: string }, identity: any }) => {
+  const correlate = async ({ event, user, identity }: AuthHookContextBase) => {
     const db = useDrizzle(event)
     const verifiedEmails: string[] = [
       identity.email,
@@ -73,6 +74,6 @@ export default defineNitroPlugin(() => {
       .catch(err => logger.error('[auth-hooks/billing] update failed:', err))
   }
 
-  hooks.hook('user:created', correlate as any)
-  hooks.hook('user:signed-in', correlate as any)
+  hooks.hook('user:created', correlate)
+  hooks.hook('user:signed-in', correlate)
 })

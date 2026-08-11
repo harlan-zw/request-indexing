@@ -59,7 +59,7 @@ function runCheck() {
   error.value = null
   result.value = null
 
-  const body: Record<string, any> = {}
+  const body: { sitemapUrl?: string, urls?: string[] } = {}
 
   if (inputMode.value === 'sitemap') {
     if (!sitemapInput.value.trim())

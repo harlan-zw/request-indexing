@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-const props = defineProps<{ site: any }>()
+import type { SiteSelect } from '#shared/types/database'
+
+const props = defineProps<{ site: SiteSelect & { gscdumpSiteId: string, property: string } }>()
 
 definePageMeta({
   title: 'Settings',
@@ -32,7 +34,7 @@ const siteSync = computed(() => {
         <div v-if="siteSync" class="text-sm space-y-3">
           <div class="flex items-center gap-2">
             <UBadge
-              :color="siteSync.syncStatus === 'synced' ? 'green' : siteSync.syncStatus === 'syncing' ? 'blue' : 'yellow'"
+              :color="siteSync.syncStatus === 'synced' ? 'success' : siteSync.syncStatus === 'syncing' ? 'info' : 'warning'"
               variant="subtle"
             >
               {{ siteSync.syncStatus }}

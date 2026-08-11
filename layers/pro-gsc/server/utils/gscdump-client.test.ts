@@ -6,7 +6,6 @@ const v1Client = vi.hoisted(() => ({
 }))
 
 vi.mock('./gscdump-origin', () => ({
-  createGscdumpPartnerClient: () => ({}),
   createGscdumpPublicV1Client: () => v1Client,
 }))
 

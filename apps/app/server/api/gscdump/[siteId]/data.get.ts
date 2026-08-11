@@ -1,3 +1,4 @@
+import type { BuilderStateWire, GscComparisonFilter } from '@gscdump/contracts'
 import { eq } from 'drizzle-orm'
 import { authenticateUser } from '~~/layers/core/server/app/utils/auth'
 import { sites } from '~~/layers/core/server/db/schema'
@@ -16,9 +17,10 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const gscdump = useGscdumpClient()
 
-  const state = JSON.parse(decodeURIComponent(query.q as string))
-  const comparison = query.qc ? JSON.parse(decodeURIComponent(query.qc as string)) : undefined
-  const filter = query.filter as any
+  const state = JSON.parse(decodeURIComponent(String(query.q))) as BuilderStateWire
+  const comparison = query.qc ? JSON.parse(decodeURIComponent(String(query.qc))) as BuilderStateWire : undefined
+  const filterValues: GscComparisonFilter[] = ['new', 'lost', 'improving', 'declining']
+  const filter = filterValues.find(value => value === query.filter)
 
   return gscdump.getData(site.gscdumpSiteId, state, { comparison, filter })
 })

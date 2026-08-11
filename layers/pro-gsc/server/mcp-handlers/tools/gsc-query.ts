@@ -1,4 +1,5 @@
-import type { BuilderState, Filter } from 'gscdump/query'
+import type { GscdumpDataRow } from '@gscdump/contracts'
+import type { BuilderState, Dimension, Filter, Metric } from 'gscdump/query'
 import type { GscComparisonFilter } from '#layers/pro-saas/server/utils/mcp/gsc'
 import { z } from 'zod'
 import { defineMcpGscSiteTool } from '#layers/pro-saas/server/utils/mcp/frame'
@@ -48,6 +49,33 @@ const analysisPresetSchema = z.enum([
   'brand-only',
 ]).optional().describe('Analysis preset (required when type=analysis)')
 
+const gscQueryInputSchema = {
+  type: queryTypeSchema,
+  siteUrl: siteUrlSchema,
+  period: periodSchema,
+  limit: limitSchema,
+  page: pageSchema,
+  search: searchSchema,
+  sort: sortSchema.optional(),
+  sortDir: sortDirSchema,
+  filter: filterSchema,
+  pageUrl: z.string().url().optional().describe('Page URL (required for page-detail type)'),
+  keyword: z.string().optional().describe('Keyword (required for keyword-detail type)'),
+  preset: analysisPresetSchema,
+  brandTerms: z.string().optional().describe('Brand terms, comma-separated (required for non-brand/brand-only presets)'),
+  minClicks: z.number().optional().describe('Minimum clicks'),
+  maxClicks: z.number().optional().describe('Maximum clicks'),
+  minImpressions: z.number().optional().describe('Minimum impressions'),
+  maxImpressions: z.number().optional().describe('Maximum impressions'),
+  minPosition: z.number().optional().describe('Minimum position'),
+  maxPosition: z.number().optional().describe('Maximum position'),
+  maxCtr: z.number().optional().describe('Maximum CTR (useful for opportunity analysis)'),
+}
+
+type GscQueryInput = {
+  [K in keyof typeof gscQueryInputSchema]: z.output<(typeof gscQueryInputSchema)[K]>
+}
+
 export default defineMcpGscSiteTool({
   name: 'gsc_query',
   annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
@@ -62,31 +90,7 @@ Types:
 - page-detail: Keywords ranking for a specific URL (requires pageUrl)
 - keyword-detail: Pages ranking for a specific keyword (requires keyword)
 - analysis: SEO presets (requires preset). Presets: striking-distance, opportunity, movers-rising, movers-declining, decay, zero-click, non-brand, brand-only`,
-  inputSchema: {
-    type: queryTypeSchema,
-    siteUrl: siteUrlSchema,
-    period: periodSchema,
-    limit: limitSchema,
-    page: pageSchema,
-    search: searchSchema,
-    sort: sortSchema.optional(),
-    sortDir: sortDirSchema,
-    filter: filterSchema,
-    // Detail params
-    pageUrl: z.string().url().optional().describe('Page URL (required for page-detail type)'),
-    keyword: z.string().optional().describe('Keyword (required for keyword-detail type)'),
-    // Analysis params
-    preset: analysisPresetSchema,
-    brandTerms: z.string().optional().describe('Brand terms, comma-separated (required for non-brand/brand-only presets)'),
-    // Metric filters
-    minClicks: z.number().optional().describe('Minimum clicks'),
-    maxClicks: z.number().optional().describe('Maximum clicks'),
-    minImpressions: z.number().optional().describe('Minimum impressions'),
-    maxImpressions: z.number().optional().describe('Maximum impressions'),
-    minPosition: z.number().optional().describe('Minimum position'),
-    maxPosition: z.number().optional().describe('Maximum position'),
-    maxCtr: z.number().optional().describe('Maximum CTR (useful for opportunity analysis)'),
-  },
+  inputSchema: gscQueryInputSchema,
   inputExamples: [
     { type: 'pages', period: '28d', limit: 10 },
     { type: 'keywords', period: '3m', sort: 'impressions', limit: 25 },
@@ -117,8 +121,8 @@ Types:
 })
 
 // Dimension query: pages, keywords, countries, devices
-function handleDataQuery(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: any) {
-  const dimensionMap: Record<string, { dimension: string, searchColumn?: string }> = {
+function handleDataQuery(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: GscQueryInput) {
+  const dimensionMap: Partial<Record<GscQueryInput['type'], { dimension: Dimension, searchColumn?: Dimension }>> = {
     pages: { dimension: 'page', searchColumn: 'page' },
     keywords: { dimension: 'query', searchColumn: 'query' },
     countries: { dimension: 'country' },
@@ -132,14 +136,14 @@ function handleDataQuery(gscdump: ReturnType<typeof useGscdumpClient>, site: { g
   const extraFilters = buildMetricFilters(input)
 
   const { state, comparison } = buildDataQuery({
-    dimensions: [config.dimension] as any,
+    dimensions: [config.dimension],
     period: input.period,
     limit: input.limit,
     offset,
-    sort: (input.sort || 'clicks') as any,
+    sort: (input.sort || 'clicks') as Metric,
     sortDir: input.sortDir,
     search: input.search,
-    searchColumn: config.searchColumn as any,
+    searchColumn: config.searchColumn,
     extraFilters,
   })
 
@@ -157,7 +161,7 @@ function handleDataQuery(gscdump: ReturnType<typeof useGscdumpClient>, site: { g
 }
 
 // Daily time-series
-function handleTimeseries(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: any) {
+function handleTimeseries(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: GscQueryInput) {
   const { current, previous } = buildDateFilter(input.period)
 
   return gscdump.getDataDetail(
@@ -181,7 +185,7 @@ function handleTimeseries(gscdump: ReturnType<typeof useGscdumpClient>, site: { 
 }
 
 // Analysis presets
-function handleAnalysis(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: any) {
+function handleAnalysis(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: GscQueryInput) {
   if (!input.preset)
     return errorResult('preset is required for type=analysis')
   if ((input.preset === 'non-brand' || input.preset === 'brand-only') && !input.brandTerms?.trim())
@@ -209,7 +213,7 @@ function handleAnalysis(gscdump: ReturnType<typeof useGscdumpClient>, site: { gs
     period: input.period,
     total: result.totalCount,
     summary: result.summary || null,
-    rows: result.keywords.map((k: any) => ({
+    rows: result.keywords.map(k => ({
       keyword: k.keyword,
       clicks: k.clicks,
       impressions: k.impressions,
@@ -229,7 +233,7 @@ function handleAnalysis(gscdump: ReturnType<typeof useGscdumpClient>, site: { gs
 }
 
 // Page detail: keywords for a specific URL
-function handlePageDetail(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: any) {
+function handlePageDetail(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: GscQueryInput) {
   if (!input.pageUrl)
     return errorResult('pageUrl is required for type=page-detail')
 
@@ -266,7 +270,7 @@ function handlePageDetail(gscdump: ReturnType<typeof useGscdumpClient>, site: { 
 }
 
 // Keyword detail: pages for a specific keyword
-function handleKeywordDetail(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: any) {
+function handleKeywordDetail(gscdump: ReturnType<typeof useGscdumpClient>, site: { gscdumpSiteId: string, url: string }, input: GscQueryInput) {
   if (!input.keyword)
     return errorResult('keyword is required for type=keyword-detail')
 
@@ -303,8 +307,8 @@ function handleKeywordDetail(gscdump: ReturnType<typeof useGscdumpClient>, site:
 }
 
 // Build metric filters from input
-function buildMetricFilters(input: any): Filter<any>[] {
-  const filters: Filter<any>[] = []
+function buildMetricFilters(input: GscQueryInput): Filter<object>[] {
+  const filters: Filter<object>[] = []
   if (input.minClicks != null)
     filters.push(gte(clicks, input.minClicks))
   if (input.maxClicks != null)
@@ -323,7 +327,7 @@ function buildMetricFilters(input: any): Filter<any>[] {
 }
 
 // Format a data row based on query type
-function formatRow(r: any, type: string) {
+function formatRow(r: GscdumpDataRow, type: GscQueryInput['type']) {
   switch (type) {
     case 'pages':
       return {

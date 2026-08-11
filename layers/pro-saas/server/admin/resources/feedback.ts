@@ -1,4 +1,5 @@
 import type { AdminCtx, AdminListQuery } from '../admin-shell'
+import type { SQL, SQLWrapper } from 'drizzle-orm'
 import { and, asc, count, desc, eq, inArray, isNotNull, like, or } from 'drizzle-orm'
 import { defineAdminResource } from '../admin-shell'
 import { getUserDisplayMetaMap } from '../../../../pro-saas-auth/server/utils/auth/identity'
@@ -13,7 +14,7 @@ interface FeedbackRow {
   userId: string | null
 }
 
-const sortableMap: Record<string, any> = {
+const sortableMap: Record<string, SQLWrapper> = {
   path: feedback.path,
   thumb: feedback.thumb,
   createdAt: feedback.createdAt,
@@ -104,9 +105,11 @@ export default defineAdminResource<FeedbackRow>({
     const perPage = q.perPage ?? 25
     const offset = (page - 1) * perPage
 
-    const filters: any[] = [isNotNull(feedback.comment)]
+    const filters: SQL[] = [isNotNull(feedback.comment)]
     if (q.search) {
-      filters.push(or(like(feedback.comment, `%${q.search}%`), like(feedback.path, `%${q.search}%`)))
+      const searchFilter = or(like(feedback.comment, `%${q.search}%`), like(feedback.path, `%${q.search}%`))
+      if (searchFilter)
+        filters.push(searchFilter)
     }
     const whereExpr = and(...filters)
 

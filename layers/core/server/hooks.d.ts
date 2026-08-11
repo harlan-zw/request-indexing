@@ -1,4 +1,4 @@
-declare module 'nitropack' {
+declare module 'nitropack/types' {
   interface NitroRuntimeHooks {
     'app:user:created': (ctx: { env: Record<string, unknown>, userId: number }) => void | Promise<void>
     'app:site:created': (ctx: { env: Record<string, unknown>, siteId: number, userId: number, permissionLevel?: string, [key: string]: unknown }) => void | Promise<void>
@@ -7,6 +7,8 @@ declare module 'nitropack' {
     'app:job:failed': (ctx: { env: Record<string, unknown>, jobId: string, taskName: string, error: string, attempt: number, permanent: boolean }) => void | Promise<void>
     'app:batch:progress': (ctx: { env: Record<string, unknown>, batchId: string, batchName?: string, completed: number, total: number, failed: number }) => void | Promise<void>
     'app:batch:complete': (ctx: { env: Record<string, unknown>, batchId: string, batchName?: string, total: number, failed: number }) => void | Promise<void>
-    [key: `ws:message:${string}`]: (ctx: any) => void | Promise<void>
+    [key: `ws:message:${string}`]: (ctx: unknown) => void | Promise<void>
   }
 }
+
+export {}

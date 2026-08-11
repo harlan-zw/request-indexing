@@ -3,6 +3,16 @@ import { exchangeAuthCodeResult } from 'gscdump'
 import { logger } from '~~/shared/server/logger'
 import { scheduleGscdumpOnboardingReconcile } from '#layers/pro-gsc/server/utils/reconcile-gscdump-onboarding'
 
+function errorDetails(error: unknown) {
+  const record = typeof error === 'object' && error !== null ? error as Record<string, unknown> : {}
+  const data = typeof record.data === 'object' && record.data !== null ? record.data as Record<string, unknown> : {}
+  return {
+    data,
+    message: typeof data.message === 'string' ? data.message : error instanceof Error ? error.message : null,
+    reason: typeof data.reason === 'string' ? data.reason : typeof data.error === 'string' ? data.error : null,
+  }
+}
+
 export default defineEventHandler(async (event) => {
   const { state, code, error } = getQuery(event)
 
@@ -44,8 +54,8 @@ export default defineEventHandler(async (event) => {
   // Get user info (id, email, name)
   const googleUser = await $fetch<{ id: string, email: string, name?: string }>('https://www.googleapis.com/oauth2/v2/userinfo', {
     headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
-  }).catch((err) => {
-    logger.error('[google auth] failed to get user info:', err.message)
+  }).catch((error: unknown) => {
+    logger.error('[google auth] failed to get user info:', errorDetails(error).message)
     return null
   })
 
@@ -92,11 +102,12 @@ export default defineEventHandler(async (event) => {
       // Existing user — update tokens (also validates GSC scope and returns sites)
       // Retry once on failure since gscdump may have transient issues
       let updated: Awaited<ReturnType<typeof gscdump.updateUserTokens>> | null = null
-      let lastErr: any = null
+      let lastError: unknown = null
       for (const attempt of [1, 2]) {
-        updated = await gscdump.updateUserTokens(gscdumpUserId, tokenParams).catch((err) => {
-          lastErr = err
-          logger.warn(`[google auth] gscdump token update failed (attempt ${attempt}):`, err.data?.message || err.message, err.data?.reason || err.data?.error)
+        updated = await gscdump.updateUserTokens(gscdumpUserId, tokenParams).catch((error: unknown) => {
+          lastError = error
+          const details = errorDetails(error)
+          logger.warn(`[google auth] gscdump token update failed (attempt ${attempt}):`, details.message, details.reason)
           return null
         })
         if (updated)
@@ -105,15 +116,15 @@ export default defineEventHandler(async (event) => {
       if (updated) {
         logger.log('[google auth] gscdump tokens updated:', gscdumpUserId, `${updated.sites.length} GSC properties accessible`)
         // Store API key if returned and we don't have one yet
-        if ('apiKey' in updated && updated.apiKey && !gscdumpApiKey) {
-          gscdumpApiKey = updated.apiKey as string
-        }
+        if ('apiKey' in updated && typeof updated.apiKey === 'string' && !gscdumpApiKey)
+          gscdumpApiKey = updated.apiKey
       }
       else {
-        logger.error('[google auth] gscdump token update failed after retries for user:', gscdumpUserId, lastErr?.data || lastErr?.message)
+        const details = errorDetails(lastError)
+        logger.error('[google auth] gscdump token update failed after retries for user:', gscdumpUserId, details.data)
         gscdumpSyncFailed = true
-        gscdumpSyncReason = lastErr?.data?.reason || lastErr?.data?.error || 'UNKNOWN'
-        gscdumpSyncMessage = lastErr?.data?.message || lastErr?.message || null
+        gscdumpSyncReason = details.reason || 'UNKNOWN'
+        gscdumpSyncMessage = details.message
       }
     }
     else {
@@ -123,11 +134,12 @@ export default defineEventHandler(async (event) => {
         userEmail: googleUser.email,
         userName: googleUser.name,
         ...tokenParams,
-      }).catch((err) => {
-        logger.warn('[google auth] gscdump registration failed:', err.data?.message || err.message, err.data?.reason || err.data?.error)
+      }).catch((error: unknown) => {
+        const details = errorDetails(error)
+        logger.warn('[google auth] gscdump registration failed:', details.message, details.reason)
         gscdumpSyncFailed = true
-        gscdumpSyncReason = err?.data?.reason || err?.data?.error || 'REGISTER_FAILED'
-        gscdumpSyncMessage = err?.data?.message || err?.message || null
+        gscdumpSyncReason = details.reason || 'REGISTER_FAILED'
+        gscdumpSyncMessage = details.message
         return null
       })
       if (registration) {
@@ -156,13 +168,13 @@ export default defineEventHandler(async (event) => {
       updatedAt: Date.now(),
     })
     .where(eq(schema.users.userId, session.user.id))
-    .catch((err: any) => {
-      logger.error('[google auth] db update failed:', err.message)
+    .catch((error: unknown) => {
+      logger.error('[google auth] db update failed:', errorDetails(error).message)
     })
 
   await emitFirstProEvent(db, session.user.id, 'gsc_connected', {
     email: googleUser?.email ?? null,
-  }).catch(err => logger.error('[google auth] proEvent emit failed:', err.message))
+  }).catch((error: unknown) => logger.error('[google auth] proEvent emit failed:', errorDetails(error).message))
 
   // Reconcile gscdump-dependent side effects asynchronously. User database
   // provisioning can lag OAuth; this waits in the background and avoids turning

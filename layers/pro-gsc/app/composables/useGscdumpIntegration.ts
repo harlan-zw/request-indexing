@@ -1,6 +1,6 @@
 // Lazy gscdump integration credentials. The owner of "what API key + analyzer
 // settings this user has on gscdump.com." Lives in pro-gsc rather than on
-// Caller (per ADR-0002). Hydrated from SSR payload via the useFetch key, so
+// Caller (per ADR-0002). Hydrated from SSR payload via the query key, so
 // first-render reads are race-free.
 
 import { logWarn } from '~~/shared/logging'
@@ -20,11 +20,11 @@ export interface GscdumpIntegration {
 export const GSCDUMP_INTEGRATION_KEY = 'app:gscdump-integration'
 
 export function useGscdumpIntegration() {
-  const { data, refresh, error, status } = useFetch<GscdumpIntegration | null>('/api/pro/gscdump-integration', {
+  const { data, refresh, error, status } = useNuxtQuery<GscdumpIntegration | null>('/api/pro/gscdump-integration', {
     key: GSCDUMP_INTEGRATION_KEY,
     server: true,
     deep: false,
-    getCachedData: (key, nuxtApp) => nuxtApp.payload.data[key] ?? nuxtApp.static.data[key],
+    staleTime: Infinity,
   })
 
   return {
@@ -38,9 +38,8 @@ export function useGscdumpIntegration() {
 }
 
 export async function useRefreshGscdumpIntegration(): Promise<void> {
-  const nuxt = useNuxtApp()
-  await refreshNuxtData(GSCDUMP_INTEGRATION_KEY).catch(err => logWarn('gscdump.integration.probe_failed', err, { fn: 'refreshNuxtData' }))
-  delete nuxt.payload.data[GSCDUMP_INTEGRATION_KEY]
+  await invalidateNuxtQueries(GSCDUMP_INTEGRATION_KEY)
+    .catch(err => logWarn('gscdump.integration.probe_failed', err, { fn: 'invalidateNuxtQueries' }))
 }
 
 export interface GscdumpIntegrationPatch {
@@ -49,50 +48,44 @@ export interface GscdumpIntegrationPatch {
 
 /**
  * Optimistic PATCH for gscdump integration settings. Mirrors the previous
- * useMePatch behaviour but scoped to one integration: writes optimistic state
- * into the SSR payload cache, fetches the canonical response, rolls back on
- * error.
+ * useMePatch behaviour but scoped to one integration.
  */
 export function useGscdumpIntegrationPatch() {
   const proFetch = useProFetch()
-  const nuxt = useNuxtApp()
-  const { data } = useNuxtData<GscdumpIntegration | null>(GSCDUMP_INTEGRATION_KEY)
 
-  function setCachedIntegration(next: GscdumpIntegration | null) {
-    data.value = next
-    nuxt.payload.data[GSCDUMP_INTEGRATION_KEY] = next
-  }
+  type PatchContext
+    = | { _tag: 'cached', previous: GscdumpIntegration | null }
+      | { _tag: 'missing' }
 
-  function applyOptimistic(patch: GscdumpIntegrationPatch): GscdumpIntegration | null {
-    const prev = data.value ?? (nuxt.payload.data[GSCDUMP_INTEGRATION_KEY] as GscdumpIntegration | null | undefined)
-    if (!prev)
-      return null
-    const next: GscdumpIntegration = {
-      ...prev,
-      browserAnalyzerEnabled: typeof patch.browserAnalyzerEnabled === 'boolean'
-        ? patch.browserAnalyzerEnabled
-        : prev.browserAnalyzerEnabled,
-    }
-    setCachedIntegration(next)
-    return prev
-  }
-
-  async function patchIntegration(body: GscdumpIntegrationPatch): Promise<GscdumpIntegration | null> {
-    const rollback = applyOptimistic(body)
-    return proFetch<GscdumpIntegration | null>('/api/pro/gscdump-integration', {
+  const mutation = useNuxtMutation<GscdumpIntegrationPatch, GscdumpIntegration | null, PatchContext>({
+    mutation: body => proFetch<GscdumpIntegration | null>('/api/pro/gscdump-integration', {
       method: 'PATCH',
       body,
-    })
-      .then((next) => {
-        if (next)
-          setCachedIntegration(next)
-        return next
-      })
-      .catch((err) => {
-        if (rollback)
-          setCachedIntegration(rollback)
-        throw err
-      })
+    }),
+    onMutate: (patch) => {
+      const previous = getQueryData<GscdumpIntegration | null>(GSCDUMP_INTEGRATION_KEY)
+      if (previous === undefined)
+        return { _tag: 'missing' }
+      if (previous) {
+        setQueryData<GscdumpIntegration | null>(GSCDUMP_INTEGRATION_KEY, {
+          ...previous,
+          browserAnalyzerEnabled: patch.browserAnalyzerEnabled ?? previous.browserAnalyzerEnabled,
+        })
+      }
+      return { _tag: 'cached', previous }
+    },
+    onSuccess: next => setQueryData(GSCDUMP_INTEGRATION_KEY, next),
+    onError: (_error, _body, context) => {
+      if (context?._tag === 'cached')
+        setQueryData(GSCDUMP_INTEGRATION_KEY, context.previous)
+    },
+  })
+
+  async function patchIntegration(body: GscdumpIntegrationPatch): Promise<GscdumpIntegration | null> {
+    const result = await mutation.mutateSafe(body)
+    if (result._tag === 'err')
+      throw result.error
+    return result.data
   }
 
   return { patchIntegration }

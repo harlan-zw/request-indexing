@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { IssueSeverity } from '#layers/pro-indexing/app/utils/indexing-issues'
+import { gscConsoleUrl } from '@gscdump/sdk/gsc-console-url'
 import { useProGscdump, useProGscdumpIndexing, useProGscdumpIndexingDiagnostics, useProGscdumpSitemaps } from '#layers/pro-gsc/app/composables/useProGscdump'
 import { issueIcons } from '#layers/pro-indexing/app/utils/indexing-issues'
 
@@ -35,7 +36,7 @@ async function autoDiscoverSitemap() {
 const { data: indexingData, status: indexingStatus, error: indexingError } = useProGscdumpIndexing(
   computed(() => gscdumpSiteId.value ?? ''),
   computed(() => periodToDateRange(period.value, stableData.value).days),
-) as { data: Ref<any>, status: Ref<any>, error: Ref<any> }
+)
 
 const indexingMeta = computed(() => indexingData.value?.meta)
 const indexingNotReady = computed(() => {
@@ -53,6 +54,8 @@ const latestErrors = computed(() => {
   if (!indexingData.value?.trend.length)
     return 0
   const latest = indexingData.value.trend.at(-1)
+  if (!latest)
+    return 0
   return (latest.issues.notFound || 0)
     + (latest.issues.soft404 || 0)
     + (latest.issues.serverError || 0)
@@ -64,7 +67,9 @@ const totalUrlsGrowth = computed(() => {
   const trend = indexingData.value?.trend
   if (!trend?.length || trend.length < 2)
     return 0
-  return trend.at(-1)!.totalUrls - trend[0].totalUrls
+  const first = trend[0]
+  const latest = trend.at(-1)
+  return first && latest ? latest.totalUrls - first.totalUrls : 0
 })
 
 const indexDropAlert = computed(() => {
@@ -88,10 +93,10 @@ const indexDropAlert = computed(() => {
 
 // --- Hero sparklines ---
 const totalUrlsSparkline = computed(() =>
-  indexingData.value?.trend?.map((t: any, i: number) => ({ x: i, value: t.totalUrls })) ?? [],
+  indexingData.value?.trend?.map((t, i) => ({ x: i, value: t.totalUrls })) ?? [],
 )
 const indexedCountSparkline = computed(() =>
-  indexingData.value?.trend?.map((t: any, i: number) => ({ x: i, value: Math.round(t.totalUrls * t.indexedPercent / 100) })) ?? [],
+  indexingData.value?.trend?.map((t, i) => ({ x: i, value: Math.round(t.totalUrls * t.indexedPercent / 100) })) ?? [],
 )
 
 // Index rate health status
@@ -109,12 +114,18 @@ const indexRateStatus = computed(() => {
 const { data: diagnosticsData } = useProGscdumpIndexingDiagnostics(
   computed(() => gscdumpSiteId.value ?? ''),
   { immediate: !!gscdumpSiteId.value },
-) as { data: Ref<any> }
+)
 
 const { data: sitemapsData } = useProGscdumpSitemaps(
   computed(() => gscdumpSiteId.value ?? undefined),
   { immediate: !!gscdumpSiteId.value },
-) as { data: Ref<any> }
+)
+const searchConsoleSitemapsUrl = computed(() => {
+  const siteLabel = sitemapsData.value?.meta?.siteUrl ?? indexingMeta.value?.siteUrl
+  return siteLabel
+    ? gscConsoleUrl({ siteLabel, resource: 'sitemaps' })
+    : 'https://search.google.com/search-console'
+})
 
 // --- Unified top issues ---
 interface TopIssue {
@@ -207,7 +218,7 @@ const summaryTitle = computed(() => {
 
 // --- Aggregate crawl pipeline ---
 function issueCount(type: string): number {
-  return diagnosticsData.value?.issues?.find((i: any) => i.type === type)?.count ?? 0
+  return diagnosticsData.value?.issues?.find(i => i.type === type)?.count ?? 0
 }
 
 type PipelineStatus = 'success' | 'error' | 'warning' | 'neutral'
@@ -250,7 +261,7 @@ const aggregatePipeline = computed(() => {
       value: `${total} URLs`,
       raw: total,
       tooltip: `${useProHumanFriendlyNumber(total)} total URLs known to Google`,
-      sparkline: totalUrlsSparkline.value.map((d: any) => d.value),
+      sparkline: totalUrlsSparkline.value.map(d => d.value),
     },
     {
       label: 'Crawled',
@@ -280,7 +291,7 @@ const aggregatePipeline = computed(() => {
       value: `${summary.value!.indexedPercent.toFixed(1)}%`,
       raw: indexed,
       tooltip: `${useProHumanFriendlyNumber(indexed)} of ${useProHumanFriendlyNumber(total)} in Google's index`,
-      sparkline: indexedCountSparkline.value.map((d: any) => d.value),
+      sparkline: indexedCountSparkline.value.map(d => d.value),
       to: indexingRoute('urls'),
     },
   ]
@@ -290,7 +301,7 @@ const aggregatePipeline = computed(() => {
 const funnelSteps = computed(() => {
   if (!aggregatePipeline.value)
     return []
-  return aggregatePipeline.value.map((s: any) => ({
+  return aggregatePipeline.value.map(s => ({
     key: s.label,
     label: s.label,
     value: s.raw,
@@ -352,7 +363,7 @@ const mobileStats = computed(() => {
 const sitemapItems = computed(() => {
   if (!sitemapsData.value?.sitemaps?.length)
     return []
-  return sitemapsData.value.sitemaps.map((s: any) => {
+  return sitemapsData.value.sitemaps.map((s) => {
     const history = sitemapsData.value?.perSitemapHistory?.[s.path]
     const latest = history?.at(-1)
     return {
@@ -366,7 +377,7 @@ const sitemapItems = computed(() => {
     }
   })
 })
-const totalSitemapUrls = computed(() => sitemapItems.value.reduce((sum: number, s: any) => sum + s.urlCount, 0))
+const totalSitemapUrls = computed(() => sitemapItems.value.reduce((sum, s) => sum + s.urlCount, 0))
 const totalUrlDelta = computed(() => {
   const latest = sitemapsData.value?.history?.[0]
   return latest?.urlDelta ?? 0
@@ -379,6 +390,23 @@ function indexingRoute(page: string, query?: Record<string, string>) {
     return base
   const qs = new URLSearchParams(query).toString()
   return `${base}?${qs}`
+}
+
+function itemCount(item: { count: number }) {
+  return item.count
+}
+
+function sitemapUrlCount(item: { urlCount: number }) {
+  return item.urlCount
+}
+
+function getIndexingErrorMessage(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('data' in error))
+    return 'Failed to load indexing data'
+  const data = error.data
+  return typeof data === 'object' && data !== null && 'message' in data && typeof data.message === 'string'
+    ? data.message
+    : 'Failed to load indexing data'
 }
 </script>
 
@@ -415,7 +443,7 @@ function indexingRoute(page: string, query?: Record<string, string>) {
         <Alert
           v-if="indexingError && !isNotConnected && indexingStatus !== 'pending'"
           color="error"
-          :title="indexingError.data?.message || 'Failed to load indexing data'"
+          :title="getIndexingErrorMessage(indexingError)"
         >
           <template #action>
             <UiMotionButton size="xs" color="neutral" variant="subtle" @click="$router.go(0)">
@@ -478,7 +506,7 @@ function indexingRoute(page: string, query?: Record<string, string>) {
               <UiMotionButton size="xs" color="neutral" variant="subtle" :loading="submittingSitemap" @click="autoDiscoverSitemap">
                 Submit sitemap now
               </UiMotionButton>
-              <UiMotionButton size="xs" variant="ghost" trailing-icon="i-lucide-external-link" to="https://search.google.com/search-console/sitemaps" target="_blank">
+              <UiMotionButton size="xs" variant="ghost" trailing-icon="i-lucide-external-link" :to="searchConsoleSitemapsUrl" target="_blank">
                 Submit manually
               </UiMotionButton>
             </div>
@@ -533,7 +561,7 @@ function indexingRoute(page: string, query?: Record<string, string>) {
           :view-more-label="topIssues.length > 7 ? `View all ${topIssues.length} issues` : undefined"
           empty-icon="i-lucide-check-circle"
           empty-text="No issues detected — indexing and sitemaps are healthy"
-          :bar-value="(item: any) => item.count"
+          :bar-value="itemCount"
         >
           <template #default="{ item: issue }">
             <NuxtLink
@@ -583,7 +611,7 @@ function indexingRoute(page: string, query?: Record<string, string>) {
             title="Sitemaps"
             tooltip="Sitemaps registered in Google Search Console. Errors or warnings may prevent proper indexing."
             :items="sitemapItems"
-            :bar-value="(item: any) => item.urlCount"
+            :bar-value="sitemapUrlCount"
             :view-more-to="indexingRoute('sitemaps')"
             view-more-label="View all"
           >
@@ -633,7 +661,7 @@ function indexingRoute(page: string, query?: Record<string, string>) {
               title="Rich Results"
               tooltip="Structured data detected on your indexed pages. Higher coverage means more chance of enhanced search results."
               :items="signals.richResultTypes"
-              :bar-value="(item: any) => item.count"
+              :bar-value="itemCount"
               :view-more-to="indexingRoute('urls', { issue: 'rich_results_pass' })"
               view-more-label="View all URLs"
             >
@@ -659,7 +687,7 @@ function indexingRoute(page: string, query?: Record<string, string>) {
               title="Mobile & Crawling"
               tooltip="Mobile usability verdicts and which Googlebot variant crawls your indexed pages."
               :items="mobileStats"
-              :bar-value="(item: any) => item.count"
+              :bar-value="itemCount"
             >
               <template #header-trailing>
                 <UiProgressCircle :percent="mobileFriendlyPercent" :size="28" :stroke-size="3" />

@@ -17,10 +17,7 @@ export default defineJob({
         owner: true,
       },
       where: eq(sites.siteId, siteId),
-    }) as (typeof sites.$inferSelect & {
-      owner: any
-      ownerPermissions: { permissionLevel: string } | null
-    }) | undefined
+    })
 
     const user = site?.owner
     if (!site || !user)
@@ -37,11 +34,12 @@ export default defineJob({
       siteUrl: site.property,
       webhookUrl: `${config.public.baseUrl}/api/webhooks/gscdump`,
     })
+    const syncStatus = registration.status === 'idle' ? 'pending' : registration.status
 
     await db.update(sites).set({
       gscdumpSiteId: registration.siteId,
       gscdumpSiteUrl: site.property,
-      gscdumpSyncStatus: registration.status,
+      gscdumpSyncStatus: syncStatus,
     }).where(eq(sites.siteId, siteId))
 
     // For domain properties, discover sub-domains
@@ -63,7 +61,7 @@ export default defineJob({
             active: true,
             gscdumpSiteId: registration.siteId,
             gscdumpSiteUrl: site.property,
-            gscdumpSyncStatus: registration.status,
+            gscdumpSyncStatus: syncStatus,
           })),
           userSites: childDomains.map(() => ({
             permissionLevel: site.ownerPermissions?.permissionLevel,

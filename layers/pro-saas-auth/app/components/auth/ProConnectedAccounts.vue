@@ -22,6 +22,18 @@ const { data, refresh, pending } = await useFetch<IdentitiesResponse>('/api/auth
 
 const toast = useToast()
 
+function errorRecord(error: unknown): Record<string, unknown> {
+  return typeof error === 'object' && error !== null ? error as Record<string, unknown> : {}
+}
+
+function errorMessage(error: unknown): string {
+  const record = errorRecord(error)
+  const data = errorRecord(record.data)
+  return typeof data.statusMessage === 'string'
+    ? data.statusMessage
+    : typeof record.message === 'string' ? record.message : 'Try again later.'
+}
+
 const disconnecting = ref<AuthProviderId | null>(null)
 const promoting = ref(false)
 const disconnectTarget = ref<AuthProviderId | null>(null)
@@ -72,8 +84,8 @@ async function confirmDisconnect() {
     toast.add({ title: `${providerLabel(provider)} disconnected`, color: 'success' })
     await refresh()
   }
-  catch (err: any) {
-    toast.add({ title: 'Disconnect failed', description: err?.data?.statusMessage ?? err?.message ?? 'Try again later.', color: 'error' })
+  catch (error: unknown) {
+    toast.add({ title: 'Disconnect failed', description: errorMessage(error), color: 'error' })
   }
   finally {
     disconnecting.value = null
@@ -95,13 +107,13 @@ async function onPromoteGoogle() {
     }
     await refresh()
   }
-  catch (err: any) {
-    const reason = err?.data?.data?.reason
+  catch (error: unknown) {
+    const reason = errorRecord(errorRecord(errorRecord(error).data).data).reason
     if (reason === 'REAUTH_REQUIRED') {
       toast.add({ title: 'Re-authentication needed', description: 'Connect Google sign-in via OAuth.', color: 'warning' })
     }
     else {
-      toast.add({ title: 'Could not enable Google sign-in', description: err?.data?.statusMessage ?? err?.message ?? 'Try again later.', color: 'error' })
+      toast.add({ title: 'Could not enable Google sign-in', description: errorMessage(error), color: 'error' })
     }
   }
   finally {

@@ -1,7 +1,12 @@
 <script setup lang="ts">
 const props = defineProps<{
-  session: any
-  paymentDetails: any
+  session: { stripeCustomerId?: string | null }
+  paymentDetails: {
+    currency: string
+    amount: string | number
+    date?: string | null
+    receiptUrl?: string | null
+  }
 }>()
 const proFetch = useProFetch()
 const openingPortal = ref(false)

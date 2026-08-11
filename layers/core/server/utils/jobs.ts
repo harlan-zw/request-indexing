@@ -66,7 +66,7 @@ export async function claimJob(db: ReturnType<typeof useDrizzle>, jobId: string)
   `)
 
   // Check if update affected any rows
-  if (!(results as any).changes)
+  if (!results.meta.changes)
     return null
 
   const row = await db.select().from(jobs).where(eq(jobs.id, jobId)).get()

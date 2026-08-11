@@ -1,4 +1,5 @@
 import type { AdminCtx, AdminListQuery } from '../admin-shell'
+import type { SQL, SQLWrapper } from 'drizzle-orm'
 import { and, asc, count, desc, eq, isNull, like, or } from 'drizzle-orm'
 import { defineAdminResource } from '../admin-shell'
 import { getUserDisplayMetaMap } from '../../../../pro-saas-auth/server/utils/auth/identity'
@@ -13,7 +14,7 @@ interface UserRow {
   createdAt: Date | null
 }
 
-const sortableMap: Record<string, any> = {
+const sortableMap: Record<string, SQLWrapper> = {
   stripeEmail: users.stripeEmail,
   subscriptionStatus: users.subscriptionStatus,
   createdAt: users.createdAt,
@@ -92,12 +93,14 @@ export default defineAdminResource<UserRow>({
     const perPage = q.perPage ?? 25
     const offset = (page - 1) * perPage
 
-    const filters: any[] = []
+    const filters: SQL[] = []
     if (q.search) {
-      filters.push(or(
+      const searchFilter = or(
         like(users.stripeEmail, `%${q.search}%`),
         like(users.discordUsername, `%${q.search}%`),
-      ))
+      )
+      if (searchFilter)
+        filters.push(searchFilter)
     }
     const whereExpr = filters.length ? and(...filters) : undefined
 

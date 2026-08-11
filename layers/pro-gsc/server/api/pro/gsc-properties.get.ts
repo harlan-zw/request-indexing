@@ -1,17 +1,14 @@
 import type { PartnerLifecycleSite } from '#layers/pro-gsc/shared/gscdump-api'
+import { GSC_STABLE_LATENCY_DAYS } from '@gscdump/sdk/gsc-constants'
 import { subDays } from 'date-fns'
 import { eq } from 'drizzle-orm'
-import { matchGscSite, normalizeRegistrationTarget } from 'gscdump'
+import { matchGscSite, normalizeRegistrationTarget, toIsoDate } from 'gscdump'
 import { logger } from '~~/shared/server/logger'
 import { analyticsStatusToSyncStatus, findLifecycleSite, useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
 // TODO(pro-saas-cleanup): re-wire stats fetch when V1 site-signals lands.
 // The old `#layers/pro-saas/server/utils/site-signals` was deleted in Phase 1.
 import { googleAccounts, sites, users } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
-
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0] || ''
-}
 
 export function lifecycleAccountError(status: string): GscPropertiesResponse['error'] | null {
   switch (status) {
@@ -40,8 +37,8 @@ export interface GscPropertiesResponse {
   gscdumpRegistered?: boolean
   gscEmail?: string | null
   googleScopes?: string | null
-  properties: any[]
-  userSites?: any[]
+  properties: Array<Record<string, unknown>>
+  userSites?: Array<Record<string, unknown>>
   error?: { reason: string, message: string }
   stats?: {
     total: number
@@ -116,8 +113,8 @@ export default defineProApiHandler({ team: true }, async ({ team: ctx }): Promis
       syncStatus: site.gscdumpSiteId ? 'synced' : null,
       syncProgress: site.gscdumpSiteId ? { completed: 30, total: 30, percent: 100 } : null,
       lastSyncAt: new Date().toISOString(),
-      newestDateSynced: formatDate(subDays(new Date(), 3)),
-      oldestDateSynced: formatDate(subDays(new Date(), 32)),
+      newestDateSynced: toIsoDate(subDays(new Date(), GSC_STABLE_LATENCY_DAYS)),
+      oldestDateSynced: toIsoDate(subDays(new Date(), 32)),
       canSync: !site.gscdumpSiteId,
       gscdumpSiteId: site.gscdumpSiteId,
       stats: null,

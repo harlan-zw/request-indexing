@@ -8,10 +8,16 @@ definePageMeta({
 
 const siteId = useRoute().params.siteId
 
-const data = ref<any>(null)
+interface SiteAdminData {
+  site: Record<string, unknown>
+  pageCount?: Array<{ count: number }>
+  jobs?: JobSelect[]
+}
+
+const data = ref<SiteAdminData | null>(null)
 
 onMounted(async () => {
-  data.value = await $fetch(`/api/sites/${siteId}`)
+  data.value = await $fetch<SiteAdminData>(`/api/sites/${siteId}`)
 })
 
 function jobStatus(job: JobSelect) {
@@ -52,7 +58,7 @@ function retry(row: JobSelect) {
       </h2>
       <div>Non-Indexed pages: {{ data.pageCount[0]?.count || 0 }}</div>
       <div>Indexed pages: {{ data.pageCount[1]?.count || 0 }}</div>
-      <div v-if="data.pageCount[1]">
+      <div v-if="data.pageCount[0] && data.pageCount[1]">
         Percent: {{ useHumanFriendlyNumber(data.pageCount[1].count / data.pageCount[0].count * 100) }}%
       </div>
     </div>

@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm'
 import { customAlphabet } from 'nanoid'
 import { logWarn } from '~~/shared/logging'
+import { dispatchEvent } from '#domain-events/server'
 import { users } from '#layers/pro-saas/server/database'
-import { dispatchProEvent } from '#layers/pro-saas/server/utils/dispatch'
 import { defineIdempotentHandler } from '#layers/pro-saas/server/utils/handler'
 import { ProError } from '#layers/pro-saas/shared/errors'
 import { findStripePurchaseByEmail } from '../../utils/stripe-purchases'
@@ -64,8 +64,9 @@ export default defineIdempotentHandler(async (event) => {
     })
     .where(eq(users.userId, session.user.id))
 
-  // Fan out integration-linked side effects via Nitro Layer Hook (ADR-0007).
-  await dispatchProEvent(event, 'pro:integration:linked', {
+  // Publish integration-linked side effects through the domain event registry.
+  await dispatchEvent('pro:integration:linked', {
+    event,
     userId: session.user.id,
     kind: 'stripe',
   }).catch((err: unknown) => logWarn('webhook.side_effect_failed', err, { event: 'pro:integration:linked' }))

@@ -31,6 +31,15 @@ const {
 
 const portalLoading = ref(false)
 
+function billingErrorMessage(error: unknown) {
+  if (error instanceof Error)
+    return error.message
+  if (typeof error !== 'object' || error === null)
+    return undefined
+  const data = 'data' in error && typeof error.data === 'object' && error.data !== null ? error.data : undefined
+  return data && 'message' in data && typeof data.message === 'string' ? data.message : undefined
+}
+
 async function openPortal() {
   if (portalLoading.value)
     return
@@ -40,10 +49,10 @@ async function openPortal() {
       if (res?.url)
         window.location.href = res.url
     })
-    .catch((e: any) => {
+    .catch((error: unknown) => {
       toast.add({
         title: 'Could not open billing portal',
-        description: e?.data?.message || e?.message,
+        description: billingErrorMessage(error),
         color: 'error',
       })
     })
@@ -116,10 +125,10 @@ async function onSelectTier(payload: { tier: 'free' | 'pro' | 'growth' | 'scale'
         await refreshSession()
       }
     })
-    .catch((e: any) => {
+    .catch((error: unknown) => {
       toast.add({
         title: 'Could not start trial',
-        description: e?.data?.message || e?.message,
+        description: billingErrorMessage(error),
         color: 'error',
       })
     })

@@ -15,7 +15,7 @@ export interface TableAsyncDataProps {
 }
 </script>
 
-<script lang="ts" setup generic="T extends object = Record<string, any>">
+<script lang="ts" setup generic="T extends object = Record<string, unknown>">
 import type { TableColumn } from '@nuxt/ui'
 import { useUrlSearchParams } from '@vueuse/core'
 

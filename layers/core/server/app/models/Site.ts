@@ -3,9 +3,11 @@ import { sites, userSites } from '~~/layers/core/server/db/schema'
 
 export async function createSites(data: { sites: SiteInsert[], userSites: Partial<UserSitesInsert>[] }, user: UserSelect, env?: Record<string, unknown>): Promise<SiteSelect[]> {
   const db = useDrizzle()
-  const childSites: SiteSelect[] = (await db.batch(
-    data.sites.map(site => db.insert(sites).values(site).returning()) as unknown as readonly [any, ...any[]],
-  )).map(row => row[0])
+  const siteQueries = data.sites.map(site => db.insert(sites).values(site).returning())
+  const [firstSiteQuery, ...remainingSiteQueries] = siteQueries
+  const childSites: SiteSelect[] = firstSiteQuery
+    ? (await db.batch([firstSiteQuery, ...remainingSiteQueries])).flat()
+    : []
 
   const newUserSites: UserSitesInsert[] = childSites.map((site, index) => {
     return {
@@ -14,16 +16,18 @@ export async function createSites(data: { sites: SiteInsert[], userSites: Partia
       permissionLevel: data.userSites[index]?.permissionLevel,
     }
   })
-  await db.batch(newUserSites.map(data => db.insert(userSites).values(data).returning()) as unknown as readonly [any, ...any[]])
+  const userSiteQueries = newUserSites.map(data => db.insert(userSites).values(data).returning())
+  const [firstUserSiteQuery, ...remainingUserSiteQueries] = userSiteQueries
+  if (firstUserSiteQuery)
+    await db.batch([firstUserSiteQuery, ...remainingUserSiteQueries])
 
-  const nitro = useNitroApp()
   await Promise.all(childSites.map((site, i) => ({
     ...site,
     env: env ?? {},
-    permissionLevel: data.userSites[i]?.permissionLevel,
+    permissionLevel: data.userSites[i]?.permissionLevel ?? undefined,
     userId: user.userId,
   })).map((site) => {
-    return nitro.hooks.callHookParallel('app:site:created' as any, site)
+    return emitAppEvent('app:site:created', site)
   }))
   return childSites
 }

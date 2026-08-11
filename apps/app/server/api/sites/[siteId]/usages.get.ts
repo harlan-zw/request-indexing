@@ -6,8 +6,8 @@
 // and live, so this sums it for the current calendar month instead of
 // inventing numbers. GSC/indexing usage only — no PSI or CrUX counters.
 import { and, eq, gte, sql } from 'drizzle-orm'
+import { currentPstDate } from 'gscdump/dates'
 import { usages } from '~~/layers/core/server/db/schema'
-import { currentPstDate } from '~~/layers/core/server/utils/dayjs'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
 
 export default defineProApiHandler(async (event) => {

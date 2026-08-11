@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { UiTableColumn, UiTableRow } from '~~/layers/design-system/components/data/table-features'
 import { CurveType } from '@unovis/ts'
 import { VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue'
 import { h } from 'vue'
@@ -61,12 +62,12 @@ watch(q, () => {
 })
 
 // Table columns
-const columns = computed(() => [
+const columns = computed<UiTableColumn<Mismatch>[]>(() => [
   {
     accessorKey: 'url',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'URL'),
-    cell: ({ row }: any) => {
-      const r = row.original as Mismatch
+    cell: ({ row }: { row: UiTableRow<Mismatch> }) => {
+      const r = row.original
       return h('div', { class: 'flex flex-col gap-1 min-w-0' }, [
         h('a', {
           href: r.url,
@@ -86,8 +87,8 @@ const columns = computed(() => [
     accessorKey: 'verdict',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Verdict'),
     meta: { align: 'right' as const },
-    cell: ({ row }: any) => {
-      const r = row.original as Mismatch
+    cell: ({ row }: { row: UiTableRow<Mismatch> }) => {
+      const r = row.original
       return h(ProStatusBadge, {
         status: r.verdict === 'PASS' ? 'success' : r.verdict === 'FAIL' ? 'error' : 'neutral',
         label: r.verdict || 'Unknown',

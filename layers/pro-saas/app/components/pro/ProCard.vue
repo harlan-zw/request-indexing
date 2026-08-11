@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VNode } from 'vue'
 const {
   size = 'md',
 } = defineProps<{
@@ -12,8 +13,8 @@ const {
 }>()
 
 const slots = defineSlots<{
-  default?: () => any
-  header?: () => any
+  default?: () => VNode[]
+  header?: () => VNode[]
 }>()
 
 const headerClass = {

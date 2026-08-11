@@ -7,7 +7,6 @@ const props = withDefaults(defineProps<{
   period?: import('~~/layers/core/app/composables/useGscdump').Period
   fill?: boolean
   selectedCharts?: string[]
-  extraFilters?: Array<{ type: string, column: string, value: string }>
 }>(), {
   fill: false,
 })
@@ -36,7 +35,14 @@ const graph = computed(() => {
   })
 })
 
-const tooltipData = ref<Record<string, any> | null>(null)
+interface ChartTooltipData {
+  clicks?: number
+  impressions?: number
+  position?: number
+  ctr?: number
+}
+
+const tooltipData = ref<ChartTooltipData | null>(null)
 
 const buttons = computed<GraphButton[]>(() => {
   const period = data.value?.period

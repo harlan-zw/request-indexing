@@ -1,4 +1,5 @@
 import type { TaskName } from '#shared/types/tasks'
+import type { TaskMap } from '#shared/types/tasks'
 import type { JobDefinition, JobHandler, QueueName } from './_types'
 
 // Import all job handlers
@@ -7,7 +8,9 @@ import sitesSyncFinished from './sites/sync-finished'
 import teamsSyncSelected from './teams/sync-selected'
 import usersSendWelcomeEmail from './users/send-welcome-email'
 
-export const jobs: JobDefinition<any>[] = [
+type RegisteredJob = { [K in TaskName]: JobDefinition<K> }[TaskName]
+
+export const jobs: RegisteredJob[] = [
   // Users
   usersSendWelcomeEmail,
 
@@ -20,16 +23,14 @@ export const jobs: JobDefinition<any>[] = [
 ]
 
 // Lookup map for fast dispatch
-export const handlers = new Map<TaskName, JobHandler<any>>(
-  jobs.map(job => [job.name, job.handle]),
-)
+export const handlers = new Map<TaskName, RegisteredJob>(jobs.map(job => [job.name, job]))
 
-export function getHandler(name: TaskName): JobHandler<any> | undefined {
-  return handlers.get(name)
+export function getHandler<T extends TaskName>(name: T): JobHandler<T> | undefined {
+  return handlers.get(name)?.handle as JobHandler<T> | undefined
 }
 
-export function getJobDefinition(name: TaskName): JobDefinition<any> | undefined {
-  return jobs.find(j => j.name === name)
+export function getJobDefinition<T extends TaskName>(name: T): JobDefinition<T> | undefined {
+  return jobs.find(j => j.name === name) as JobDefinition<T> | undefined
 }
 
 export function getJobQueue(name: TaskName): QueueName | undefined {

@@ -1,3 +1,4 @@
+import type { GscdumpIndexingUrlStatus } from '@gscdump/contracts'
 import { eq } from 'drizzle-orm'
 import { authenticateUser } from '~~/layers/core/server/app/utils/auth'
 import { sites } from '~~/layers/core/server/db/schema'
@@ -15,11 +16,13 @@ export default defineEventHandler(async (event) => {
 
   const query = getQuery(event)
   const gscdump = useGscdumpClient()
+  const statusValues: GscdumpIndexingUrlStatus[] = ['indexed', 'not_indexed', 'pending']
+  const status = statusValues.find(value => value === query.status)
 
   return gscdump.getIndexingUrls(site.gscdumpSiteId, {
     limit: Number(query.limit) || undefined,
     offset: Number(query.offset) || undefined,
-    status: query.status as any,
+    status,
     issue: query.issue as string,
     search: query.search as string,
   })

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  session: any
+  session: unknown
 }>()
 </script>
 

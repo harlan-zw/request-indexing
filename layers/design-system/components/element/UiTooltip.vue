@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VNode } from 'vue'
 import { TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from 'reka-ui'
 /**
  * UiTooltip
@@ -52,8 +53,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 defineSlots<{
-  default?: () => any
-  text?: () => any
+  default?: () => VNode[]
+  text?: () => VNode[]
 }>()
 
 const slots = useSlots()

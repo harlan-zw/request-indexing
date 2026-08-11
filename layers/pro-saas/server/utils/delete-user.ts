@@ -6,13 +6,14 @@
 //
 // Cross-system side-effects (Stripe cancel, gscdump partner DELETE, chat
 // purge, admin audit log) live in `pro:user:deleting` (pre, critical) and
-// `pro:user:deleted` (post, best-effort) listener plugins per ADR-0007.
+// `pro:user:deleted` (post, best-effort) listeners per ADR-0007.
 //
 // Pass `dryRun: true` to count rows that would be deleted without mutating.
 // Returns a per-table summary suitable for storing in an audit log.
 
 import type { H3Event } from 'h3'
 import { eq, inArray, or, sql } from 'drizzle-orm'
+import { dispatchEvent } from '#domain-events/server'
 import {
   feedback,
   mcpUsage,
@@ -29,7 +30,6 @@ import {
   userIdentities,
   users,
 } from '../database'
-import { dispatchProEvent } from './dispatch'
 import { getProLogger } from './handler'
 
 export interface DeleteUserOptions {
@@ -91,7 +91,8 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
   // run BEFORE rows are purged so they can read the canonical row state. A
   // throw here aborts the delete entirely — the caller surfaces it as 5xx.
   if (!dryRun) {
-    await dispatchProEvent(event, 'pro:user:deleting', {
+    await dispatchEvent('pro:user:deleting', {
+      event,
       userId,
       email: primaryEmail,
       stripeCustomerId: user.stripeCustomerId ?? null,
@@ -240,7 +241,8 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
   // Post-hook: best-effort listeners (audit log, async cleanup). Errors are
   // swallowed inside listener plugins; never propagate to the caller.
   if (!dryRun && ok) {
-    await dispatchProEvent(event, 'pro:user:deleted', {
+    await dispatchEvent('pro:user:deleted', {
+      event,
       userId,
       email: primaryEmail,
       stripeCustomerId: user.stripeCustomerId ?? null,
@@ -278,5 +280,5 @@ function idList(ids: number[]) {
 
 async function scalar(db: ReturnType<typeof useDrizzle>, query: ReturnType<typeof sql>): Promise<number> {
   const rows = await db.all<{ c: number }>(query)
-  return Number((rows as any)[0]?.c ?? 0)
+  return Number(rows[0]?.c ?? 0)
 }

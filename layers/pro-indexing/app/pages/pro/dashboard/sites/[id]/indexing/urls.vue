@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { GscdumpIndexingUrl } from '#layers/pro-gsc/shared/gscdump-api'
+import type { UiTableColumn } from '#layers/design-system/components/data/table-features'
 import { h } from 'vue'
 import { ProStatusBadge } from '#components'
 import ProGscTableShell from '#layers/pro-gsc/app/components/pro/ProGscTableShell.vue'
@@ -77,11 +78,11 @@ function verdictStatus(verdict: GscdumpIndexingUrl['verdict']) {
   return 'neutral' as const
 }
 
-const columns = [
+const columns: UiTableColumn<GscdumpIndexingUrl>[] = [
   {
     accessorKey: 'url',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'URL'),
-    cell: ({ row }: any) => h('a', {
+    cell: ({ row }) => h('a', {
       href: row.original.url,
       target: '_blank',
       rel: 'noopener',
@@ -92,22 +93,22 @@ const columns = [
   {
     accessorKey: 'verdict',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Verdict'),
-    cell: ({ row }: any) => h(ProStatusBadge, {
+    cell: ({ row }) => h(ProStatusBadge, {
       status: verdictStatus(row.original.verdict),
-      label: row.original.verdict,
+      label: row.original.verdict ?? 'Unknown',
       size: 'sm',
     }),
   },
   {
     accessorKey: 'coverageState',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Coverage'),
-    cell: ({ row }: any) => h('span', { class: 'text-sm text-muted' }, row.original.coverageState || 'Unknown'),
+    cell: ({ row }) => h('span', { class: 'text-sm text-muted' }, row.original.coverageState || 'Unknown'),
   },
   {
     accessorKey: 'lastCrawlTime',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Last crawl'),
     meta: { align: 'right' as const },
-    cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums text-muted' }, formatDate(row.original.lastCrawlTime)),
+    cell: ({ row }) => h('span', { class: 'text-sm tabular-nums text-muted' }, formatDate(row.original.lastCrawlTime)),
   },
 ]
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-defineProps<{ graph: any }>()
+defineProps<{ graph: unknown }>()
 
 definePageMeta({
   title: 'Settings',

@@ -5,20 +5,20 @@ export default defineNuxtPlugin((nuxtApp) => {
   let ws: WebSocket | undefined
   const { user } = useUserSession()
   if (user.value) {
-    connect(user.value as unknown as { userId: number, publicId: string })
+    connect(user.value)
   }
   else {
     watchOnce(user, (user) => {
-      user && connect(user as unknown as { userId: number, publicId: string })
+      user && connect(user)
     })
   }
-  async function connect(user: { userId: number, publicId: string }) {
+  async function connect(user: { id: number }) {
     const isSecure = location.protocol === 'https:'
-    const url = `${(isSecure ? 'wss://' : 'ws://') + location.host}/_ws?userId=${user.userId}`
+    const url = `${(isSecure ? 'wss://' : 'ws://') + location.host}/_ws?userId=${user.id}`
     ws && ws.close()
     ws = new WebSocket(url)
     ws.addEventListener('message', (ctx) => {
-      const job = parse(ctx.data) as { name: keyof TaskMap, payload: any }
+      const job = parse(ctx.data) as { name: keyof TaskMap, payload: TaskMap[keyof TaskMap] }
       const payload = job.payload
       const hookName = `app:${(job.name as string).replace('/', ':')}`
       console.log('ws', hookName);

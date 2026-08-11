@@ -14,7 +14,6 @@ import type {
   IndexingUrlsParams,
   RegisterPartnerUserParams,
   UpdatePartnerUserTokensParams,
-  WebhookEventType,
 } from '@gscdump/contracts'
 import type {
   GscdumpAnalysisResponse,
@@ -25,6 +24,7 @@ import type {
   PartnerLifecycleSite,
 } from '../../shared/gscdump-api'
 import { GSCDUMP_ONBOARDING_CONTRACT_VERSION } from '@gscdump/contracts'
+import { withDefaultSearchType } from '@gscdump/sdk/hosted-query'
 import {
   findLifecycleSite as findSdkLifecycleSite,
   lifecycleSiteToSyncStatus as lifecycleSdkSiteToSyncStatus,
@@ -69,10 +69,7 @@ export function useGscdumpClient() {
   }
 
   function toV1ReportState(state: BuilderStateWire, searchType?: DataQueryOptions['searchType']): BuilderStateWire & Record<string, unknown> {
-    return {
-      ...state,
-      searchType: searchType ?? state.searchType ?? 'web',
-    }
+    return withDefaultSearchType(state, searchType)
   }
 
   async function getUserLifecycle(userId: string): Promise<PartnerLifecycleResponse> {
@@ -169,7 +166,6 @@ export function useGscdumpClient() {
       requestedUrl?: string
       gscPropertyUrl?: string
       webhookUrl?: string
-      webhookEvents?: WebhookEventType[]
     }) =>
       client.createSite({
         params: { userId: params.userId },
@@ -178,7 +174,7 @@ export function useGscdumpClient() {
           ...(params.requestedUrl && { requestedUrl: params.requestedUrl }),
           ...(params.gscPropertyUrl && { gscPropertyUrl: params.gscPropertyUrl }),
           ...(params.webhookUrl && { webhookUrl: params.webhookUrl }),
-          webhookEvents: params.webhookEvents?.length ? params.webhookEvents : [...CANONICAL_WEBHOOK_EVENTS],
+          webhookEvents: [...CANONICAL_WEBHOOK_EVENTS],
         },
       }).then(response => response.data).catch(rethrowV1AsH3),
     deleteSite: (siteId: string) =>

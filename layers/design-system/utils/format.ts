@@ -15,7 +15,7 @@ export type FigureType = 'integer' | 'number' | 'date' | 'currency' | 'percent'
  * @param _decimals
  */
 export function formatFigure(
-  value: any,
+  value: number | string,
   type: FigureType,
   // TODO this api is getting quite bad but we want to avoid breaking changes for now, refactor to object options
   isWhole?: boolean,
@@ -25,33 +25,34 @@ export function formatFigure(
   let count
   let decimals = _decimals || 2
 
-  const abs = Math.abs(value)
+  const numericValue = typeof value === 'number' ? value : Number.parseFloat(value)
+  const abs = Math.abs(numericValue)
 
   if (abs >= 10 ** 12) {
     // trillion
     suffix = 'T'
-    count = value / 10 ** 12
+    count = numericValue / 10 ** 12
   }
   else if (abs < 10 ** 12 && abs >= 10 ** 9) {
     // billions
     suffix = 'B'
-    count = value / 10 ** 9
+    count = numericValue / 10 ** 9
   }
   else if (abs < 10 ** 9 && abs >= 10 ** 6) {
     // millions
     suffix = 'M'
-    count = value / 10 ** 6
+    count = numericValue / 10 ** 6
   }
   else if (abs < 10 ** 6 && abs >= 10 ** 4) {
     // > 10,000
     suffix = 'K'
-    count = value / 10 ** 3
+    count = numericValue / 10 ** 3
   }
-  else if (abs < 10000 && value > 100) {
-    count = Number.parseFloat(value)
+  else if (abs < 10000 && numericValue > 100) {
+    count = numericValue
   }
   else {
-    count = Number.parseFloat(value)
+    count = numericValue
     decimals = _decimals || 4
   }
 
@@ -83,7 +84,7 @@ export function formatFigure(
           [isInteger ? 'maximumFractionDigits' : 'minimumFractionDigits']: _decimals,
         })}${suffix}%`
       }
-      return `${Number(value).toLocaleString()}%`
+      return `${numericValue.toLocaleString()}%`
   }
 }
 

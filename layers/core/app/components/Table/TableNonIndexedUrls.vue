@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { GoogleSearchConsoleSite, SitePage } from '~~/layers/core/app/types'
+import type { UserSession } from '~~/layers/core/app/types/auth'
 import { differenceInDays, differenceInHours, formatDistanceToNow } from 'date-fns'
 import { defu } from 'defu'
 import { joinURL, withBase, withHttps } from 'ufo'
@@ -15,21 +16,22 @@ function fmtDistance(d: string | number | Date | undefined | null) {
 }
 
 const logout = createLogoutHandler()
-const user = useAuthenticatedUser()
+const { session } = useUserSession()
+const indexingAuth = computed(() => (session.value as UserSession | null)?.googleIndexingAuth)
 const reloadSession = createSessionReloader()
 
 const toast = useToast()
 const params = useUrlSearchParams('history')
 const autoRequestIndex = ref(false)
 
-const q = ref(params.q || '')
-const page = ref(params.page || 1)
+const q = ref(typeof params.q === 'string' ? params.q : '')
+const page = ref(typeof params.page === 'string' ? Number(params.page) || 1 : 1)
 
 watch(q, (q) => {
   params.q = q
 })
 watch(page, (page) => {
-  params.page = page
+  params.page = String(page)
 })
 
 const columns = [{
@@ -50,9 +52,9 @@ const columns = [{
     }].filter(Boolean)
 
 const siteUrlFriendly = useFriendlySiteUrl(props.site.siteUrl)
-const inspectionsLoading = ref([])
-const submitIndexingLoading = ref([])
-const updatedUrls = ref([])
+const inspectionsLoading = ref<string[]>([])
+const submitIndexingLoading = ref<string[]>([])
+const updatedUrls = ref<SitePage[]>([])
 async function inspectUrl(row: SitePage) {
   if (props.mock)
     return
@@ -67,9 +69,9 @@ async function inspectUrl(row: SitePage) {
     })
     .then((data) => {
       toast.add({
-        color: 'green',
+        color: 'success',
         title: `Inspected URL Successfully`,
-        description: `Received a verdict of ${data.inspectionResult?.indexStatusResult.verdict}.`,
+        description: `Received a verdict of ${data.inspectionResult?.indexStatusResult?.verdict}.`,
       })
       pushUpdatedUrls(data, row)
     })
@@ -81,19 +83,19 @@ async function inspectUrl(row: SitePage) {
           id: 'unauthorized-error',
           title: 'Oops, looks like session has expired.',
           description: 'Please login again to continue.',
-          color: 'red',
+          color: 'error',
         })
       }
       else if (err.status === 429) {
         toast.add({
-          color: 'red',
+          color: 'error',
           title: 'Rate Limited',
           description: err.statusText,
         })
       }
       else {
         toast.add({
-          color: 'red',
+          color: 'error',
           title: 'Failed to inspect the URL.',
           description: err.statusText || err.message,
         })
@@ -137,14 +139,14 @@ async function submitForIndexing(row: SitePage) {
       // handle 429
       if (response.status === 429) {
         toast.add({
-          color: 'red',
+          color: 'error',
           title: 'Rate Limited',
           description: response.statusText,
         })
       }
       else {
         toast.add({
-          color: 'red',
+          color: 'error',
           title: 'Failed to submit the URL for indexing.',
           description: response.statusText,
         })
@@ -156,16 +158,17 @@ async function submitForIndexing(row: SitePage) {
     throw e
   })
   if (status === 'already-submitted') {
-    const hoursAgo = formatDistanceToNow(new Date(data.urlNotificationMetadata?.latestUpdate?.notifyTime), { addSuffix: true })
+    const notifyTime = data.urlNotificationMetadata?.latestUpdate?.notifyTime
+    const hoursAgo = notifyTime ? formatDistanceToNow(new Date(notifyTime), { addSuffix: true }) : 'recently'
     toast.add({
-      color: 'blue',
+      color: 'info',
       title: 'Already Submitted',
       description: `This URL was submitted for indexing ${hoursAgo}.`,
     })
   }
   else {
     toast.add({
-      color: 'green',
+      color: 'success',
       title: 'Submitted',
       description: 'Your URL has been submitted for indexing.',
     })
@@ -191,7 +194,7 @@ function openUrl(url: string, target?: string) {
   window.open(url, target)
 }
 
-const visibleRows = ref([])
+const visibleRows = ref<SitePage[]>([])
 
 const { pause, resume } = useTimeoutPoll(pollForInspectUrl, 2000, { immediate: false })
 
@@ -236,7 +239,7 @@ async function pollForRequestIndex() {
 }
 
 watch([visibleRows, autoRequestIndex], () => {
-  if (autoRequestIndex.value && user.value.indexingOAuthIdNext)
+  if (autoRequestIndex.value && indexingAuth.value?.indexingOAuthId)
     resumeAutoRequestIndex()
 }, {
   immediate: true,
@@ -247,7 +250,7 @@ const filters = [
     key: 'new',
     label: 'Hide Actioned',
     description: 'Hide pages indexed or requested indexing pages.',
-    filter: (rows: any) => {
+    filter: (rows: SitePage[]) => {
       return rows.filter((row) => {
         row = getUpdatedRow(row)
         if (row.inspectionResult?.indexStatusResult?.verdict && row.inspectionResult?.indexStatusResult?.verdict !== 'NEUTRAL')
@@ -351,13 +354,13 @@ const filters = [
     </template>
     <template #requestIndexing-data="{ row }">
       <div class="flex justify-end">
-        <div v-if="getUrlNotificationLatestUpdate(row)?.type !== 'URL_UPDATED' && getUpdatedRow(row)?.inspectionResult?.indexStatusResult.verdict === 'NEUTRAL'" class="flex items-center gap-2">
-          <UButton :disabled="!mock && (!user?.indexingOAuthIdNext || site.permissionLevel !== 'siteOwner')" size="xs" :loading="submitIndexingLoading.includes(row.url)" icon="i-heroicons-arrow-up-circle" variant="outline" @click="submitForIndexing(row)">
+        <div v-if="getUrlNotificationLatestUpdate(row)?.type !== 'URL_UPDATED' && getUpdatedRow(row)?.inspectionResult?.indexStatusResult?.verdict === 'NEUTRAL'" class="flex items-center gap-2">
+          <UButton :disabled="!mock && (!indexingAuth?.indexingOAuthId || site.permissionLevel !== 'siteOwner')" size="xs" :loading="submitIndexingLoading.includes(row.url)" icon="i-heroicons-arrow-up-circle" variant="outline" @click="submitForIndexing(row)">
             Request Indexing
           </UButton>
         </div>
         <div v-else-if="getUrlNotificationLatestUpdate(row)?.type === 'URL_UPDATED'" class="flex items-center text-right">
-          <div><span class="text-xs">Submitted</span><br>{{ formatIndexingTimeAgo(getUrlNotificationLatestUpdate(row).notifyTime) }}</div>
+          <div><span class="text-xs">Submitted</span><br>{{ formatIndexingTimeAgo(getUrlNotificationLatestUpdate(row)?.notifyTime ?? '') }}</div>
         </div>
         <div v-else>
           <div class="w-5 h-[2px] dark:bg-gray-800 bg-gray-200" />

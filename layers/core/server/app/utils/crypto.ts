@@ -1,9 +1,8 @@
 import { Buffer } from 'node:buffer'
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto'
-// @ts-expect-error - ohash is unlisted but provided transitively at runtime
 import { hash } from 'ohash'
 
-export function getHashSecure(input: any) {
+export function getHashSecure(input: unknown) {
   const appKey = useRuntimeConfig().key
   // make an object
   return hash({ input, appKey })

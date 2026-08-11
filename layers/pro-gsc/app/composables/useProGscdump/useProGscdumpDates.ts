@@ -1,10 +1,20 @@
+import type { Column } from 'gscdump/query'
 import type { BuilderState } from '../../../shared/gscdump-api'
 import type { CompareMode, Period } from '../useGscPeriod'
 import type { GscdumpQueryOptions } from './_internal'
+import { country, device, eq, page, query, queryCanonical } from 'gscdump/query'
 import { andFilter, dateFilter } from '../../../shared/utils/filter-wire'
 import { useProGscdumpDataDetail } from './useProGscdumpDataDetail'
 
 export interface DailySeriesFilter { column: 'page' | 'query' | 'queryCanonical' | 'country' | 'device', value: string }
+
+const DAILY_SERIES_COLUMNS = {
+  country,
+  device,
+  page,
+  query,
+  queryCanonical,
+} satisfies Record<DailySeriesFilter['column'], Column<DailySeriesFilter['column']>>
 
 /**
  * Fetch daily series for a period with optional comparison overlay.
@@ -39,8 +49,10 @@ export function useProGscdumpDates(
   const cmp = computed(() => compareRange(range.value, _compareMode.value))
 
   function rangeFilter(r: { start: string, end: string }) {
-    const eq = _filter.value
-    return eq ? andFilter(dateFilter(r), { type: 'eq', column: eq.column, value: eq.value }) : dateFilter(r)
+    const exact = _filter.value
+    return exact
+      ? andFilter(dateFilter(r), eq(DAILY_SERIES_COLUMNS[exact.column], exact.value))
+      : dateFilter(r)
   }
 
   const currentState = computed<BuilderState>(() => ({

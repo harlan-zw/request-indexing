@@ -1,5 +1,8 @@
 <script lang="ts" setup>
-const { site } = defineProps<{ site: any }>()
+import type { SiteSelect } from '#shared/types/database'
+import { contains, query } from 'gscdump/query'
+
+const { site } = defineProps<{ site: SiteSelect & { gscdumpSiteId: string, property: string } }>()
 
 definePageMeta({
   title: 'Keywords',
@@ -9,22 +12,22 @@ definePageMeta({
 const keyword = useRoute().params.keyword as string
 
 const router = useRouter()
-function changeKeyword(value: any) {
-  router.push(`/dashboard/site/${site.siteId}/keywords/${encodeURIComponent(value.value || value)}`)
+function changeKeyword(value: string) {
+  router.push(`/dashboard/site/${site.siteId}/keywords/${encodeURIComponent(value)}`)
 }
 
 const pagesForKeywordFilter = computed(() => [
-  { type: 'contains', column: 'query', value: keyword },
+  contains(query, keyword),
 ])
 </script>
 
 <template>
   <div>
-    <USelectMenu class="mb-6" searchable :model-value="keyword" variant="none" :options="[{ label: keyword, value: keyword }]" @change="changeKeyword">
-      <template #option="{ option }">
+    <USelectMenu class="mb-6" searchable :model-value="keyword" variant="none" :items="[{ label: keyword, value: keyword }]" value-key="value" @update:model-value="changeKeyword">
+      <template #item="{ item }">
         <div class="flex w-full items-center">
           <div class="flex items-center gap-2">
-            <span class="truncate">{{ option.value }}</span>
+            <span class="truncate">{{ item.value }}</span>
           </div>
         </div>
       </template>

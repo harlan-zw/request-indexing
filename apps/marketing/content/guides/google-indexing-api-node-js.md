@@ -318,14 +318,25 @@ Parse your sitemap and submit all URLs:
 ```typescript
 import { parseStringPromise } from 'xml2js'
 
+function getSitemapUrls(value: unknown): string[] {
+  if (typeof value !== 'object' || value === null || !('urlset' in value))
+    return []
+  const urlset = value.urlset
+  if (typeof urlset !== 'object' || urlset === null || !('url' in urlset) || !Array.isArray(urlset.url))
+    return []
+  return urlset.url.flatMap((entry) => {
+    if (typeof entry !== 'object' || entry === null || !('loc' in entry) || !Array.isArray(entry.loc))
+      return []
+    return typeof entry.loc[0] === 'string' ? [entry.loc[0]] : []
+  })
+}
+
 async function submitFromSitemap(sitemapUrl: string) {
   const response = await fetch(sitemapUrl)
   const xml = await response.text()
   const parsed = await parseStringPromise(xml)
 
-  const urls: string[] = parsed.urlset.url.map(
-    (entry: any) => entry.loc[0]
-  )
+  const urls = getSitemapUrls(parsed)
 
   console.log(`Found ${urls.length} URLs in sitemap`)
 

@@ -2,8 +2,8 @@ import type { H3Event } from 'h3'
 import { GSCDUMP_HTTP_V1_VERSION } from '@gscdump/contracts/v1'
 import { and, eq, isNull } from 'drizzle-orm'
 import { logger } from '~~/shared/server/logger'
+import { dispatchEvent } from '#domain-events/server'
 import { sites } from '#layers/pro-saas/server/database'
-import { dispatchProEvent } from '#layers/pro-saas/server/utils/dispatch'
 import { autoLinkGsc } from './auto-link-gsc'
 import { useGscdumpClient } from './gscdump-client'
 import { updateOnboardingState } from './onboarding'
@@ -77,7 +77,8 @@ export async function reconcileGscdumpOnboardingForUser(opts: ReconcileGscdumpOn
   }).catch((e: unknown) => logger.error('[gscdump reconcile] onboarding gscConnected update failed:', e))
 
   if (event) {
-    await dispatchProEvent(event, 'pro:integration:linked', {
+    await dispatchEvent('pro:integration:linked', {
+      event,
       userId,
       kind: 'gscdump',
     }).catch((err: unknown) => logger.error('[pro:integration:linked]', err))
@@ -160,7 +161,7 @@ export async function reconcileGscdumpOnboardingForUser(opts: ReconcileGscdumpOn
 export function scheduleGscdumpOnboardingReconcile(event: H3Event, opts: Omit<ReconcileGscdumpOnboardingOptions, 'event'>) {
   const waitUntil = event.context.cloudflare?.context?.waitUntil?.bind(event.context.cloudflare.context)
   const promise = reconcileGscdumpOnboardingForUser({ ...opts, event })
-    .catch((e: any) => logger.error('[gscdump reconcile] failed:', e?.data || e?.message || e))
+    .catch((error: unknown) => logger.error('[gscdump reconcile] failed:', error))
 
   if (waitUntil)
     waitUntil(promise)

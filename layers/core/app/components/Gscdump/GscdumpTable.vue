@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { Filter, Metric } from 'gscdump/query'
 import type { GscComparisonFilter } from '~~/layers/core/app/composables/useGscdump'
 
 const props = withDefaults(defineProps<{
@@ -11,8 +12,8 @@ const props = withDefaults(defineProps<{
   sortable?: boolean
   pagination?: boolean
   excludeColumns?: string[]
-  defaultSort?: { column: string, direction: 'asc' | 'desc' }
-  extraFilters?: Array<{ type: string, column: string, value: string }>
+  defaultSort?: { column: Metric | 'date', direction: 'asc' | 'desc' }
+  extraFilters?: Array<Filter<object>>
   filters?: Array<{ key: GscComparisonFilter, label: string, special?: boolean, description?: string }>
 }>(), {
   pageSize: 10,
@@ -114,7 +115,7 @@ defineExpose({ tableData })
       </template>
       <template v-for="col in visibleColumns" :key="`h-${col.key}`" #[`${col.key}-header`]="data">
         <slot :name="`${col.key}-header`" v-bind="data">
-          <button v-if="sortable && col.sortable" class="flex items-center gap-1" @click="tableData.toggleSort(col.key)">
+          <button v-if="sortable && col.sortable" class="flex items-center gap-1" @click="tableData.toggleSort(col.key as Metric | 'date')">
             {{ col.label }}
             <UIcon
               v-if="tableData.sort.value.column === col.key"

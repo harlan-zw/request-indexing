@@ -30,11 +30,11 @@ export async function authenticateUser(event: H3Event): Promise<UserSelect> {
         },
       },
     },
-  }) as { user: any } | undefined
+  })
 
   if (!dbSession || !dbSession.user) {
     // need to clear session
-    await (clearUserSession as any)(event)
+    await clearUserSession(event)
     // unauthorized
     throw createError({
       statusCode: 401,

@@ -1,4 +1,5 @@
 import { lifecycleSiteToSyncStatus } from '@gscdump/sdk/lifecycle'
+import type { PartnerLifecycleSite } from '../../shared/gscdump-api'
 
 interface TableProgress {
   name: string
@@ -102,7 +103,7 @@ export function useProGscStatus(siteId: MaybeRefOrGetter<string>) {
     fetchStatus.value = 'pending'
     error.value = null
 
-    syncData.value = await proFetch<{ site: any | null }>('/api/pro/gsc-lifecycle', {
+    syncData.value = await proFetch<{ site: PartnerLifecycleSite | null }>('/api/pro/gsc-lifecycle', {
       query: { siteId: siteIdVal },
     }).then((res) => {
       const lifecycleSite = res.site
@@ -144,8 +145,8 @@ export function useProGscStatus(siteId: MaybeRefOrGetter<string>) {
         sitemapStatus: lifecycleSite.sitemaps.status,
         indexingStatus: lifecycleSite.indexing.status,
       } satisfies GscSyncStatus
-    }).catch((e) => {
-      error.value = e
+    }).catch((cause: unknown) => {
+      error.value = cause instanceof Error ? cause : new Error(String(cause))
       fetchStatus.value = 'error'
       return null
     })
@@ -257,7 +258,7 @@ export function useProGscStatus(siteId: MaybeRefOrGetter<string>) {
   })
 
   const isTokenRevoked = computed(() => {
-    return (error.value as any)?.code === 'AUTH'
+    return !!error.value && 'code' in error.value && error.value.code === 'AUTH'
   })
 
   const isPermissionLost = computed(() => !!data.value?.permissionLost)

@@ -2,14 +2,12 @@ import type { OAuthPoolToken } from './layers/core/app/types'
 import { existsSync } from 'node:fs'
 import process from 'node:process'
 import { resolve } from 'path'
-// @ts-expect-error - transitive dep
 import { globbySync } from 'globby'
-// @ts-expect-error - transitive dep
-import { env } from 'std-env'
 import { withoutRollupPlugin } from './scripts/rollup-plugins'
+import { CLOUDFLARE_REQUIRED_SECRETS } from './shared/cloudflare'
 import { SENTRY_DSN } from './shared/sentry'
 
-const tokens: Partial<OAuthPoolToken>[] = env.NUXT_OAUTH_POOL ? JSON.parse(env.NUXT_OAUTH_POOL) : false
+const tokens: Partial<OAuthPoolToken>[] = process.env.NUXT_OAUTH_POOL ? JSON.parse(process.env.NUXT_OAUTH_POOL) : []
 const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN)
   || existsSync('.env.sentry-build-plugin')
 const sentryRelease = process.env.SENTRY_RELEASE || process.env.GITHUB_SHA || undefined
@@ -49,6 +47,9 @@ export default defineNuxtConfig({
     },
   },
   modules: [
+    '@harlan-zw/nuxt-domain-events',
+    '@harlan-zw/nuxt-use-query',
+    '@harlan-zw/nuxt-cloudflare',
     '@harlan-zw/nuxt-dx',
     'nuxt-auth-utils',
     '@nuxt/image',
@@ -82,7 +83,23 @@ export default defineNuxtConfig({
     },
   ],
 
-  compatibilityDate: '2026-03-03',
+  nuxtCloudflare: {
+    kvCache: { binding: 'CACHE' },
+    requiredSecrets: CLOUDFLARE_REQUIRED_SECRETS,
+  },
+
+  domainEvents: {
+    queues: [],
+    observer: 'layers/pro-saas/server/utils/domain-event-observer.ts',
+    allowEmptyEvents: [
+      'pro:gsc:webhook',
+      'pro:integration:linked',
+      'pro:subscription:changed',
+      'pro:user:deleted',
+    ],
+  },
+
+  compatibilityDate: '2026-08-11',
 
   css: ['~~/layers/design-system/assets/css/main.css'],
 
@@ -197,10 +214,18 @@ export default defineNuxtConfig({
     preset: 'cloudflare-durable',
     cloudflare: {
       deployConfig: true,
-      nodeCompat: true,
+      // `nodeCompat: true` is Nitro's legacy unenv shim, which emits
+      // `no_nodejs_compat_v2` and pins the worker to nodejs_compat v1. Under v1
+      // `node:stream` has no `Stream` export, so `jws` (pulled in eagerly by
+      // google-auth-library) calls `util.inherits(DataStream, undefined)` at
+      // module scope and the worker fails Cloudflare's startup validation with
+      // error 10021. Our compatibility_date is well past v2's 2024-09-23
+      // cutoff, so use the runtime's own Node implementation instead.
+      nodeCompat: false,
       wrangler: {
         name: 'request-indexing',
-        compatibility_date: '2025-01-15',
+        compatibility_date: '2026-08-11',
+        compatibility_flags: ['nodejs_compat'],
         observability: {
           enabled: true,
           head_sampling_rate: 1,
@@ -211,24 +236,7 @@ export default defineNuxtConfig({
         },
         vars: {
           NUXT_PUBLIC_BASE_URL: 'https://requestindexing.com',
-          NUXT_KEY: process.env.NUXT_KEY || '',
-          NUXT_SESSION_PASSWORD: process.env.NUXT_SESSION_PASSWORD || '',
-          NUXT_OAUTH_POOL: process.env.NUXT_OAUTH_POOL || '',
-          NUXT_OAUTH_PRIVATE_POOL: process.env.NUXT_OAUTH_PRIVATE_POOL || '',
           NUXT_OAUTH_GOOGLE_CLIENT_ID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
-          NUXT_OAUTH_GOOGLE_CLIENT_SECRET: process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET || '',
-          NUXT_POSTMARK_API_KEY: process.env.NUXT_POSTMARK_API_KEY || '',
-          NUXT_GOOGLE_ADS_CUSTOMER_ID: process.env.NUXT_GOOGLE_ADS_CUSTOMER_ID || '',
-          NUXT_GOOGLE_ADS_API_TOKEN: process.env.NUXT_GOOGLE_ADS_API_TOKEN || '',
-          NUXT_GOOGLE_ADS_CLIENT_ID: process.env.NUXT_GOOGLE_ADS_CLIENT_ID || '',
-          NUXT_GOOGLE_ADS_CLIENT_SECRET: process.env.NUXT_GOOGLE_ADS_CLIENT_SECRET || '',
-          NUXT_GOOGLE_ADS_REFRESH_TOKEN: process.env.NUXT_GOOGLE_ADS_REFRESH_TOKEN || '',
-          NUXT_GSCDUMP_API_KEY: process.env.NUXT_GSCDUMP_API_KEY || '',
-          NUXT_GSCDUMP_WEBHOOK_SECRET: process.env.NUXT_GSCDUMP_WEBHOOK_SECRET || '',
-          NUXT_DATAFORSEO_LOGIN: process.env.NUXT_DATAFORSEO_LOGIN || '',
-          NUXT_DATAFORSEO_PASSWORD: process.env.NUXT_DATAFORSEO_PASSWORD || '',
-          NUXT_STRIPE_SECRET_KEY: process.env.NUXT_STRIPE_SECRET_KEY || '',
-          NUXT_STRIPE_WEBHOOK_SECRET: process.env.NUXT_STRIPE_WEBHOOK_SECRET || '',
           NUXT_STRIPE_PRICE_PRO_MONTHLY: process.env.NUXT_STRIPE_PRICE_PRO_MONTHLY || '',
           NUXT_STRIPE_PRICE_PRO_ANNUAL: process.env.NUXT_STRIPE_PRICE_PRO_ANNUAL || '',
           NUXT_STRIPE_PRICE_GROWTH_MONTHLY: process.env.NUXT_STRIPE_PRICE_GROWTH_MONTHLY || '',
@@ -256,9 +264,6 @@ export default defineNuxtConfig({
           ],
         },
       },
-    },
-    storage: {
-      cache: { driver: 'cloudflare-kv-binding', binding: 'CACHE' },
     },
     devStorage: {
       cache: { driver: 'memory' },
@@ -292,13 +297,6 @@ export default defineNuxtConfig({
       name: 'page',
       mode: 'out-in',
     },
-    // @ts-expect-error - provided by nuxt-seo-utils module
-    seoMeta: {
-      themeColor: [
-        { content: '#18181b', media: '(prefers-color-scheme: dark)' },
-        { content: 'white', media: '(prefers-color-scheme: light)' },
-      ],
-    },
     head: {
       templateParams: {
         separator: '·',
@@ -310,6 +308,10 @@ export default defineNuxtConfig({
           'data-site': 'UHBNWPCP',
           'defer': true,
         },
+      ],
+      meta: [
+        { name: 'theme-color', content: '#18181b', media: '(prefers-color-scheme: dark)' },
+        { name: 'theme-color', content: 'white', media: '(prefers-color-scheme: light)' },
       ],
     },
   },
@@ -335,16 +337,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     key: '', // .env NUXT_KEY
     session: {
-      cookie: {
-        maxAge: 60 * 60 * 24 * 90, // 3mo
-      },
-    } as any,
-    google: {
-      adsCustomerId: '',
-      adsApiToken: '',
-      adsClientId: '',
-      adsClientSecret: '',
-      adsRefreshToken: '',
+      password: '',
+      maxAge: 60 * 60 * 24 * 90, // 3mo
     },
     postmark: {
       apiKey: '',

@@ -11,7 +11,7 @@ async function redis(command: string[]) {
     headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
     body: JSON.stringify(command),
   })
-  const data = await res.json() as { error?: string, result?: any }
+  const data = await res.json() as { error?: string, result?: unknown }
   if (data.error)
     throw new Error(data.error)
   return data.result
@@ -21,7 +21,10 @@ async function scanAll(pattern = '*', count = 200) {
   const keys: string[] = []
   let cursor = '0'
   do {
-    const [nextCursor, batch] = await redis(['SCAN', cursor, 'MATCH', pattern, 'COUNT', String(count)])
+    const result = await redis(['SCAN', cursor, 'MATCH', pattern, 'COUNT', String(count)])
+    if (!Array.isArray(result) || typeof result[0] !== 'string' || !Array.isArray(result[1]) || !result[1].every(key => typeof key === 'string'))
+      throw new TypeError('Redis SCAN returned an invalid response.')
+    const [nextCursor, batch] = result as [string, string[]]
     cursor = nextCursor
     keys.push(...batch)
   } while (cursor !== '0')

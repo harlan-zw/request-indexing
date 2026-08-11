@@ -9,23 +9,13 @@ export const GSCDUMP_DEFAULT_WEBHOOK_URL = 'https://requestindexing.com/api/webh
  * Normalize a configured gscdump origin to its `.../api` root.
  *
  * `NUXT_GSCDUMP_API_URL` has historically regressed to `.../api/partner`:
- * server partner calls then append a second `/partner`, and the browser SDK
- * base ({@link gscdumpApiBase} strips `/api`, the client re-adds it) doubles
- * into `/api/partner/api/...`, a route with no CORS coverage. Stripping the
- * stray suffix here means a misconfigured secret cannot reintroduce that.
+ * SDK clients then append their own surface path. Stripping the stray suffix
+ * here prevents malformed `/api/partner/...` request paths.
  */
 export function normalizeGscdumpApiUrl(raw: string | undefined | null): string {
   return (raw || GSCDUMP_DEFAULT_API_URL)
     .replace(/\/+$/, '')
     .replace(/\/partner$/, '')
-}
-
-export function gscdumpApiBase(raw: string | undefined | null): string {
-  return normalizeGscdumpApiUrl(raw).replace(/\/api$/, '')
-}
-
-export function gscdumpPartnerApiUrl(raw: string | undefined | null): string {
-  return `${normalizeGscdumpApiUrl(raw)}/partner`
 }
 
 /**

@@ -1,10 +1,10 @@
 import { eq } from 'drizzle-orm'
 import { logWarn } from '~~/shared/logging'
+import { dispatchEvent } from '#domain-events/server'
 import { getUserIdentities } from '#layers/pro-saas-auth/server/utils/auth/identity'
 import { ProError } from '../../../../shared/errors'
 import { invitationAcceptSchema } from '../../../../shared/validators/invitations'
 import { teamInvitations, teamMemberships, users } from '../../../database'
-import { dispatchProEvent } from '../../../utils/dispatch'
 import { defineProApiHandler } from '../../../utils/handler'
 
 export default defineProApiHandler({
@@ -66,8 +66,9 @@ export default defineProApiHandler({
     metadata: { email: invitation.email, role: invitation.role },
   })
 
-  // Fan out membership-add side effects via Nitro Layer Hook (ADR-0007).
-  await dispatchProEvent(event, 'pro:membership:added', {
+  // Publish membership-add side effects through the domain event registry.
+  await dispatchEvent('pro:membership:added', {
+    event,
     teamId: invitation.teamId,
     userId: caller.user.id,
     role: invitation.role,

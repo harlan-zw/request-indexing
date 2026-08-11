@@ -20,6 +20,8 @@ import { computed, shallowRef } from 'vue'
 
 interface RegistryEntry { id: string, priority: number }
 
+const layerRegistryCache = new WeakMap<object, Map<string, ShallowRef<RegistryEntry[]>>>()
+
 export interface LayerRegistry<T extends RegistryEntry> {
   add: (entry: T) => void
 }
@@ -73,8 +75,9 @@ export function useLayerRegistry<T extends RegistryEntry>(stateKey: string, hook
   // per-request instead; `shallowRef` skips deep reactivity, and `markRaw`
   // on each entry prevents Vue from trying to make components reactive.
   const nuxtApp = useNuxtApp()
-  const cacheKey = `__layerRegistry:${stateKey}` as const
-  let items = (nuxtApp as any)[cacheKey] as ShallowRef<T[]> | undefined
+  const cache = layerRegistryCache.get(nuxtApp) ?? new Map<string, ShallowRef<RegistryEntry[]>>()
+  layerRegistryCache.set(nuxtApp, cache)
+  let items = cache.get(stateKey) as unknown as ShallowRef<T[]> | undefined
   if (!items) {
     const { registry, entries } = createLayerRegistry<T>(stateKey)
     try {
@@ -85,7 +88,7 @@ export function useLayerRegistry<T extends RegistryEntry>(stateKey: string, hook
       console.warn(`[${stateKey}] contributor threw during fan-out`, e)
     }
     items = shallowRef(entries)
-    ;(nuxtApp as any)[cacheKey] = items
+    cache.set(stateKey, items as unknown as ShallowRef<RegistryEntry[]>)
   }
   const sorted = computed(() => [...items!.value].sort((a, b) => a.priority - b.priority))
   function getById(id: string | null | undefined): T | undefined {

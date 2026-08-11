@@ -1,6 +1,16 @@
 <script setup lang="ts">
 const props = defineProps<{
-  session: any
+  session: {
+    discordAvatar?: string | null
+    discordId?: string | null
+    discordRoleAssigned?: boolean
+    discordUsername?: string | null
+    gscConnected?: boolean
+    gscEmail?: string | null
+    monthlyReportDiscord?: boolean
+    monthlyReportEmail?: boolean
+    subscriptionStatus?: string | null
+  }
   title?: string
   description?: string
 }>()
@@ -10,6 +20,15 @@ const refreshingDiscord = ref(false)
 const unlinkingDiscord = ref(false)
 const discordError = ref('')
 const toast = useToast()
+
+function requestErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error)
+    return error.message
+  if (typeof error !== 'object' || error === null || !('data' in error))
+    return fallback
+  const data = error.data
+  return typeof data === 'object' && data !== null && 'message' in data && typeof data.message === 'string' ? data.message : fallback
+}
 
 const discordMenuItems = computed(() => [[
   {
@@ -35,7 +54,7 @@ function refreshDiscord() {
       toast.add({ title: 'Discord refreshed', color: 'success' })
       emit('refresh')
     })
-    .catch((e) => { discordError.value = e.data?.message || 'Failed to refresh Discord' })
+    .catch((error: unknown) => { discordError.value = requestErrorMessage(error, 'Failed to refresh Discord') })
     .finally(() => { refreshingDiscord.value = false })
 }
 
@@ -50,7 +69,7 @@ function unlinkDiscord() {
       toast.add({ title: 'Discord unlinked', color: 'success' })
       emit('refresh')
     })
-    .catch((e) => { discordError.value = e.data?.message || 'Failed to unlink Discord' })
+    .catch((error: unknown) => { discordError.value = requestErrorMessage(error, 'Failed to unlink Discord') })
     .finally(() => { unlinkingDiscord.value = false })
 }
 
@@ -77,7 +96,7 @@ function assignDiscordRole() {
   assigningRole.value = true
   $fetch('/api/discord/assign-role', { method: 'POST' })
     .then(() => emit('refresh'))
-    .catch((e) => { discordError.value = e.data?.message || 'Failed to assign role' })
+    .catch((error: unknown) => { discordError.value = requestErrorMessage(error, 'Failed to assign role') })
     .finally(() => { assigningRole.value = false })
 }
 </script>

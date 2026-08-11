@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AnalysisResult } from '@gscdump/engine/analysis-types'
 import type { BuilderState } from 'gscdump/query'
+import { eq, query } from 'gscdump/query'
 import { logWarn } from '~~/shared/logging'
 import { NuxtLink } from '#components'
 import { useProAnalyzeWithFallback, useProGscdump } from '#layers/pro-gsc/app/composables/useProGscdump'
@@ -33,7 +34,7 @@ onMounted(() => {
         dimensions: ['page'],
         filter: andFilter(
           dateFilter(range),
-          { type: 'equals', column: 'query', value: props.keyword },
+          eq(query, props.keyword),
         ),
         orderBy: { column: 'clicks', dir: 'desc' },
         rowLimit: 1,

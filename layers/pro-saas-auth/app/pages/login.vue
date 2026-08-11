@@ -10,8 +10,8 @@ definePageMeta({
 const { loggedIn, fetch: fetchSession } = useUserSession()
 await fetchSession()
 
-const appConfig = useAppConfig() as any
-const googleEnabled = computed<boolean>(() => !!appConfig.proSaas?.features?.googleSignIn)
+const { features } = useProSaasFeatures()
+const googleEnabled = computed(() => features.value.googleSignIn)
 
 const route = useRoute()
 

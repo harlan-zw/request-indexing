@@ -101,7 +101,7 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
   else if (matchedBy === 'identity') {
     // Refresh apiKey if missing.
     if (!existing.apiKey) {
-      await db.update(users).set({ apiKey, updatedAt: Date.now() }).where(eq(users.userId, existing.userId)).catch((err: any) => logger.error('[auth] apikey refresh failed:', err))
+      await db.update(users).set({ apiKey, updatedAt: Date.now() }).where(eq(users.userId, existing.userId)).catch((error: unknown) => logger.error('[auth] apikey refresh failed:', error))
     }
     else {
       apiKey = existing.apiKey

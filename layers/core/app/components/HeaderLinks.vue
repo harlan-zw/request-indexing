@@ -1,6 +1,15 @@
 <script setup lang="ts">
-import type { PropType } from 'vue'
-import type { HeaderLink } from '#ui-pro/types'
+import type { HTMLAttributes, PropType } from 'vue'
+
+interface HeaderLink {
+  label: string
+  to?: string
+  target?: string
+  icon?: string
+  disabled?: boolean
+  children?: HeaderLink[]
+  click?: () => void
+}
 
 defineOptions({
   inheritAttrs: false,
@@ -14,7 +23,7 @@ const props = defineProps({
     default: () => [],
   },
   class: {
-    type: [String, Object, Array] as PropType<any>,
+    type: [String, Object, Array] as PropType<HTMLAttributes['class']>,
     default: undefined,
   },
   ui: {
@@ -42,18 +51,18 @@ const config = computed(() => ({
   },
   popover: {
     mode: 'hover' as const,
-    openDelay: 0,
-    ui: {
-      width: 'max-w-[16rem]',
+    content: {
+      align: 'start' as const,
     },
   },
+  popoverContent: 'max-w-[16rem]',
 }))
 
-const { ui, attrs } = useUI('header.links', toRef(props, 'ui'), config, toRef(props, 'class'), true)
+const ui = computed(() => ({ ...config.value, ...props.ui }))
 </script>
 
 <template>
-  <ul v-if="links?.length" :class="ui.wrapper" v-bind="attrs">
+  <ul v-if="links?.length" :class="[ui.wrapper, props.class]" v-bind="$attrs">
     <li v-for="(link, index) of links" :key="index" class="relative">
       <UPopover v-if="link.children?.length" v-bind="ui.popover">
         <template #default="{ open }">
@@ -74,10 +83,12 @@ const { ui, attrs } = useUI('header.links', toRef(props, 'ui'), config, toRef(pr
           </UButton>
         </template>
 
-        <template #panel="{ close }">
-          <slot name="panel" :link="link" :close="close">
-            <UHeaderPopoverLinks :links="link.children" @click="close" />
-          </slot>
+        <template #content="{ close }">
+          <div :class="ui.popoverContent">
+            <slot name="panel" :link="link" :close="close">
+              <UHeaderPopoverLinks :links="link.children" @click="close" />
+            </slot>
+          </div>
         </template>
       </UPopover>
       <UButton

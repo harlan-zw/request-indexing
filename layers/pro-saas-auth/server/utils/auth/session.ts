@@ -22,7 +22,7 @@ export async function setAuthSession(
 ) {
   const sessionUser = buildSessionUser(user, identity)
   await setUserSession(event, {
-    user: sessionUser as any,
+    user: sessionUser,
     apiKey: user.apiKey ?? undefined,
   })
 }

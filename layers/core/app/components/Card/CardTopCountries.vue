@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-defineProps<{ rows: any[] }>()
+interface CountryTraffic {
+  country: string
+  countryCode: string
+  percent: number
+  clicksPercent: number
+  prevPeriodClicksPercent: number
+}
+
+defineProps<{ rows: CountryTraffic[] }>()
 
 // const { countries } = toRefs(props)
 // const clicksSum = computed(() => {

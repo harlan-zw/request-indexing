@@ -1,4 +1,5 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends object">
+import type { UiTableColumn } from '~~/layers/design-system/components/data/table-features'
 import ProGscdumpError from './ProGscdumpError.vue'
 
 interface FilterDef {
@@ -35,12 +36,12 @@ const {
   q: string
   filter: string | undefined
   isLoading: boolean
-  error: any
-  rows: any[]
+  error: unknown
+  rows: T[]
   total: number
   page: number
-  columns: any[]
-  tableData: any[]
+  columns: UiTableColumn<T>[]
+  tableData: T[]
   hasPrevData?: boolean
   backfillPercent?: number
   warnings?: string[]

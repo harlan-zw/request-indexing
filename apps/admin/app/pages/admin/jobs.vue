@@ -6,7 +6,7 @@ definePageMeta({
   title: 'Admin Jobs',
 })
 
-const data = ref<{ jobs: JobSelect[], failedJobs: any[] }>({ jobs: [], failedJobs: [] })
+const data = ref<{ jobs: JobSelect[], failedJobs: unknown[] }>({ jobs: [], failedJobs: [] })
 
 onMounted(async () => {
   data.value = await $fetch('/api/admin/jobs')

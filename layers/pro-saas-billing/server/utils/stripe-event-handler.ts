@@ -1,13 +1,13 @@
 import type { H3Event } from 'h3'
 import type Stripe from 'stripe'
 import { eq } from 'drizzle-orm'
+import { dispatchEvent } from '#domain-events/server'
 import { stripeWebhookEvents, users } from '#layers/pro-saas/server/database'
-import { dispatchProEvent } from '#layers/pro-saas/server/utils/dispatch'
 import { billingDispatchForStripeEvent, stripeCustomerIdFromEvent } from './stripe-webhook'
 
 /**
  * Idempotent dispatcher: records the Stripe event id, then translates relevant
- * event types into typed `pro:*` hooks. Safe to call multiple times for the
+ * event types into typed `pro:*` domain events. Safe to call multiple times for the
  * same event (returns `{ duplicate: true }` on replay). Designed to be called
  * from the host `server/api/stripe/webhook.post.ts` after signature
  * verification — the host owns user-sync side effects, this util owns the
@@ -45,7 +45,8 @@ export async function handleStripeProEvent(
 
   const billingDispatch = billingDispatchForStripeEvent(stripeEvent)
   if (billingDispatch?.hook === 'pro:billing:payment-failed') {
-    await dispatchProEvent(event, billingDispatch.hook, {
+    await dispatchEvent(billingDispatch.hook, {
+      event,
       userId: userRow.id,
       teamId: userRow.teamId ?? null,
       ...billingDispatch.payload,
@@ -54,7 +55,8 @@ export async function handleStripeProEvent(
   }
 
   if (billingDispatch?.hook === 'pro:billing:refunded') {
-    await dispatchProEvent(event, billingDispatch.hook, {
+    await dispatchEvent(billingDispatch.hook, {
+      event,
       userId: userRow.id,
       teamId: userRow.teamId ?? null,
       ...billingDispatch.payload,
@@ -63,7 +65,8 @@ export async function handleStripeProEvent(
   }
 
   if (billingDispatch?.hook === 'pro:billing:disputed') {
-    await dispatchProEvent(event, billingDispatch.hook, {
+    await dispatchEvent(billingDispatch.hook, {
+      event,
       userId: userRow.id,
       teamId: userRow.teamId ?? null,
       ...billingDispatch.payload,
@@ -80,7 +83,8 @@ export async function handleStripeProEvent(
       const newPrice = sub.items?.data?.[0]?.price
       const newPlan = (newPrice?.metadata?.tier as string | undefined) ?? userRow.tier ?? 'none'
       const oldPlan = userRow.tier ?? 'none'
-      await dispatchProEvent(event, 'pro:subscription:changed', {
+      await dispatchEvent('pro:subscription:changed', {
+        event,
         teamId: userRow.teamId,
         oldPlan,
         newPlan,

@@ -19,6 +19,7 @@ import type {
   CreatePartnerTeamParams,
 } from '@gscdump/contracts'
 import type { H3Event } from 'h3'
+import { isError } from 'h3'
 import { logWarn } from '~~/shared/logging'
 import { notifications } from '#layers/pro-saas/server/database'
 import { createGscdumpPublicV1Client } from './gscdump-origin'
@@ -35,9 +36,9 @@ export function useGscdumpTeamsClient(event?: H3Event) {
   const client = createGscdumpPublicV1Client(event)
   const db = useDrizzle(event)
 
-  async function logFailure(ctx: MirrorCtx, op: string, payload: unknown, err: any) {
-    const status = err?.statusCode || err?.response?.status || err?.status
-    const message = err?.data?.message || err?.message || String(err)
+  async function logFailure(ctx: MirrorCtx, op: string, payload: unknown, err: unknown) {
+    const status = isError(err) ? err.statusCode : null
+    const message = err instanceof Error ? err.message : String(err)
     await db.insert(notifications).values({
       userId: ctx.actorUserId,
       kind: 'gscdump-mirror-failed',

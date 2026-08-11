@@ -1,5 +1,27 @@
 import type { H3Event } from 'h3'
 import type { AuthProviderId, NormalizedIdentity } from '../../../shared/types/auth'
+import { z } from 'zod'
+
+const githubContextSchema = z.object({
+  tokens: z.object({ access_token: z.string() }),
+  user: z.object({
+    id: z.union([z.string(), z.number()]),
+    email: z.string().nullable().optional(),
+    login: z.string().nullable().optional(),
+    name: z.string().nullable().optional(),
+    avatar_url: z.string().nullable().optional(),
+  }),
+})
+
+const googleContextSchema = z.object({
+  user: z.object({
+    sub: z.string(),
+    email: z.string().nullable().optional(),
+    email_verified: z.boolean().optional(),
+    name: z.string().nullable().optional(),
+    picture: z.string().nullable().optional(),
+  }),
+})
 
 export interface AuthProvider {
   id: AuthProviderId
@@ -11,7 +33,7 @@ export interface AuthProvider {
   // identity without a second consent? Only true where we already hold a live
   // OAuth grant with email+profile coverage (Google via the GSC flow).
   canPromoteFromIntegration?: boolean
-  resolveIdentity: (event: H3Event, ctx: { tokens: any, user: any }) => Promise<NormalizedIdentity>
+  resolveIdentity: (event: H3Event, ctx: unknown) => Promise<NormalizedIdentity>
 }
 
 const githubProvider: AuthProvider = {
@@ -20,7 +42,8 @@ const githubProvider: AuthProvider = {
   icon: 'i-simple-icons-github',
   scope: ['read:user', 'user:email'],
   canPromoteFromIntegration: false,
-  async resolveIdentity(_event, { tokens, user }) {
+  async resolveIdentity(_event, context) {
+    const { tokens, user } = githubContextSchema.parse(context)
     interface GhEmail { email: string, primary: boolean, verified: boolean }
     const emails = await $fetch<GhEmail[]>('https://api.github.com/user/emails', {
       headers: {
@@ -55,7 +78,8 @@ const googleProvider: AuthProvider = {
   scope: ['openid', 'email', 'profile'],
   authorizationParams: { prompt: 'select_account' },
   canPromoteFromIntegration: true,
-  async resolveIdentity(_event, { user }) {
+  async resolveIdentity(_event, context) {
+    const { user } = googleContextSchema.parse(context)
     // userinfo v3 response: sub, email, email_verified, name, picture, ...
     const email = user.email ?? null
     const emailVerified = !!user.email_verified

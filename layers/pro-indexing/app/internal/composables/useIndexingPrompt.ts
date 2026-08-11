@@ -22,7 +22,7 @@ export function useIndexingPrompt() {
 
   async function generatePrompt(row: IndexingIssueRow) {
     generatingPromptFor.value = row.type
-    const siteUrl = (site.value as any)?.domain || site.value?.name || ''
+    const siteUrl = site.value?.url || site.value?.name || ''
     const sId = gscdumpSiteId.value
     const urlData = sId
       ? await gscdump.listSiteIndexingUrls({

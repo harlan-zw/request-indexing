@@ -1,4 +1,5 @@
 import { relations, sql } from 'drizzle-orm'
+import type { AnySQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 // Notifications table is owned by `modules/notifications` (the `nuxt-notifications` module).
 // Re-exported so this file remains the schema entry point for drizzle-kit and
@@ -63,7 +64,7 @@ export const users = sqliteTable('users', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   // Teams: current selected team. Backfilled to user's personal team during migration.
   // Lazy ref via callback because `teams` is declared below this table.
-  currentTeamId: text('current_team_id').references((): any => teams.id, { onDelete: 'set null' }),
+  currentTeamId: text('current_team_id').references((): AnySQLiteColumn => teams.id, { onDelete: 'set null' }),
 })
 
 export const usersRelations = relations(users, ({ many, one }) => ({

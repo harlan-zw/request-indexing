@@ -1,4 +1,4 @@
-import type { SQLiteTable } from 'drizzle-orm/sqlite-core'
+import type { AnySQLiteColumn, SQLiteTable } from 'drizzle-orm/sqlite-core'
 import type { H3Event } from 'h3'
 import { and, eq } from 'drizzle-orm'
 
@@ -10,7 +10,7 @@ import { and, eq } from 'drizzle-orm'
  * @param table - Drizzle table (must have `id` and `siteId` columns)
  * @param paramName - Route param name for the resource ID (e.g. 'keywordId')
  */
-export async function requireResource<T extends SQLiteTable & { id: any, siteId: any }>(
+export async function requireResource<T extends SQLiteTable & { id: AnySQLiteColumn, siteId: AnySQLiteColumn }>(
   event: H3Event,
   table: T,
   paramName: string,

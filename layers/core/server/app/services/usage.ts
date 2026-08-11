@@ -1,5 +1,5 @@
+import { currentPstDate } from 'gscdump/dates'
 import { usages } from '~~/layers/core/server/db/schema'
-import { currentPstDate } from '~~/layers/core/server/utils/dayjs'
 
 export function incrementUsage(siteId: number, key: string) {
   return useDrizzle().insert(usages).values({

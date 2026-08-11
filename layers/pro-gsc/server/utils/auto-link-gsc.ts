@@ -1,4 +1,3 @@
-import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import type { GscdumpAvailableSite } from './gscdump-client'
 import { eq } from 'drizzle-orm'
 import { isVerifiedGscPermission, matchGscSite, normalizeRegistrationTarget, pickBestGscProperty } from 'gscdump'
@@ -15,7 +14,7 @@ import { updateOnboardingState } from './onboarding'
  * Returns the gscdumpSiteId if linked, or undefined.
  */
 export async function autoLinkGsc(opts: {
-  db: DrizzleD1Database<any>
+  db: ReturnType<typeof useDrizzle>
   gscdumpUserId: string
   siteId: number
   origin: string
@@ -81,7 +80,6 @@ export async function autoLinkGsc(opts: {
       requestedUrl: simpleDomain,
       gscPropertyUrl: matchingGsc.siteUrl,
       webhookUrl: getGscdumpWebhookUrl(),
-      webhookEvents: ['user.lifecycle.changed', 'site.lifecycle.changed', 'site.analytics.ready', 'site.indexing.ready', 'site.auth.failed', 'job.failed'],
     }).catch((err) => {
       logWarn('gscdump.teams.client_failed', err, { stage: 'registerSite' })
       return null

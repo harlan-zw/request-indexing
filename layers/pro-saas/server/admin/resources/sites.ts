@@ -1,4 +1,5 @@
 import type { AdminCtx, AdminListQuery } from '../admin-shell'
+import type { SQL, SQLWrapper } from 'drizzle-orm'
 import { and, asc, count, desc, eq, inArray, like, or } from 'drizzle-orm'
 import { defineAdminResource } from '../admin-shell'
 import { sites, users } from '../../database/_surface'
@@ -11,7 +12,7 @@ interface SiteRow {
   createdAt: Date | null
 }
 
-const sortableMap: Record<string, any> = {
+const sortableMap: Record<string, SQLWrapper> = {
   name: sites.name,
   url: sites.url,
   createdAt: sites.createdAt,
@@ -72,12 +73,14 @@ export default defineAdminResource<SiteRow>({
     const perPage = q.perPage ?? 25
     const offset = (page - 1) * perPage
 
-    const filters: any[] = []
+    const filters: SQL[] = []
     if (q.search) {
-      filters.push(or(
+      const searchFilter = or(
         like(sites.name, `%${q.search}%`),
         like(sites.url, `%${q.search}%`),
-      ))
+      )
+      if (searchFilter)
+        filters.push(searchFilter)
     }
     const whereExpr = filters.length ? and(...filters) : undefined
 

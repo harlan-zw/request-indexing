@@ -37,7 +37,7 @@ export function createLogoutHandler() {
       // can't access clear API here
       $fetch('/api/_auth/session', { method: 'DELETE' })
         .finally(() => {
-          session.value = { user: undefined } as any
+          session.value = null
         })
     })
   }
