@@ -82,14 +82,14 @@ catalogs:
       specifier: ^8.3.4
       version: 8.3.4
     '@sentry/nuxt':
-      specifier: ^10.69.0
-      version: 10.69.0
+      specifier: ^10.70.0
+      version: 10.70.0
     '@takumi-rs/core':
-      specifier: ^2.6.1
-      version: 2.6.1
+      specifier: ^2.7.0
+      version: 2.7.0
     '@takumi-rs/wasm':
-      specifier: ^2.6.1
-      version: 2.6.1
+      specifier: ^2.7.0
+      version: 2.7.0
     '@tanstack/table-core':
       specifier: ^9.1.2
       version: 9.1.2
@@ -139,8 +139,8 @@ catalogs:
       specifier: ^10.8.1
       version: 10.8.1
     globby:
-      specifier: ^16.2.0
-      version: 16.2.0
+      specifier: ^16.2.3
+      version: 16.2.3
     googlethis:
       specifier: ^1.8.0
       version: 1.8.0
@@ -181,8 +181,8 @@ catalogs:
       specifier: ^0.5.30
       version: 0.5.30
     nuxt-og-image:
-      specifier: ^6.7.6
-      version: 6.7.6
+      specifier: ^6.7.8
+      version: 6.7.8
     nuxt-schema-org:
       specifier: ^6.2.9
       version: 6.2.9
@@ -208,7 +208,7 @@ catalogs:
       specifier: ^4.3.3
       version: 4.3.3
     typescript:
-      specifier: ^6.0.3
+      specifier: 6.0.3
       version: 6.0.3
     ufo:
       specifier: ^1.6.4
@@ -305,13 +305,13 @@ importers:
         version: 6.1.4(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
       '@nuxtjs/seo':
         specifier: 'catalog:'
-        version: 5.3.12(d87df7954593bc007b12cc043d4a55d1)
+        version: 5.3.12(f634766bceba85ac6ee1601979aa3e49)
       '@nuxtjs/sitemap':
         specifier: 'catalog:'
         version: 8.3.4(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
       '@takumi-rs/core':
         specifier: 'catalog:'
-        version: 2.6.1(csstype@3.2.3)
+        version: 2.7.0(csstype@3.2.3)
       '@tanstack/table-core':
         specifier: 'catalog:'
         version: 9.1.2
@@ -347,7 +347,7 @@ importers:
         version: 0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3)
       globby:
         specifier: 'catalog:'
-        version: 16.2.0
+        version: 16.2.3
       gscdump:
         specifier: 'catalog:'
         version: 2.0.6
@@ -438,10 +438,10 @@ importers:
         version: 4.1.0(esbuild@0.27.3)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.60.4)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vitest@4.1.10(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))
       '@sentry/nuxt':
         specifier: 'catalog:'
-        version: 10.69.0(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(esbuild@0.27.3)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(rolldown@1.2.3)(rollup@4.60.4)(supports-color@10.2.2)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))
+        version: 10.70.0(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(esbuild@0.27.3)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(rolldown@1.2.3)(rollup@4.60.4)(supports-color@10.2.2)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))
       '@takumi-rs/wasm':
         specifier: 'catalog:'
-        version: 2.6.1(csstype@3.2.3)
+        version: 2.7.0(csstype@3.2.3)
       better-sqlite3:
         specifier: 'catalog:'
         version: 13.0.3
@@ -465,7 +465,7 @@ importers:
         version: 3.3.2
       nuxt-og-image:
         specifier: 'catalog:'
-        version: 6.7.6(20625de94435d8a6e0d2a634d0e366b5)
+        version: 6.7.8(20b0a54ceb429cefd1e520cd5313209d)
       nuxt-schema-org:
         specifier: 'catalog:'
         version: 6.2.9(@nuxt/schema@4.5.2)(@unhead/vue@3.3.1(@oxc-project/types@0.143.0)(esbuild@0.27.3)(lightningcss@1.33.0)(oxc-parser@0.143.0)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3)))(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unhead@3.3.1(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
@@ -2153,10 +2153,6 @@ packages:
     resolution: {integrity: sha512-0Xi3tgwN77w43Q8GCPIrvWmF1J7Peehkts44E0uKNIml9lB8WoUn8YxyUjxBv47XtVR86NWoWALAT+/IEMHJEA==}
     engines: {node: '>=18.12.0'}
 
-  '@nuxt/kit@3.21.2':
-    resolution: {integrity: sha512-Bd6m6mrDrqpBEbX+g0rc66/ALd1sxlgdx5nfK9MAYO0yKLTOSK7McSYz1KcOYn3LQFCXOWfvXwaqih/b+REI1g==}
-    engines: {node: '>=18.12.0'}
-
   '@nuxt/kit@4.4.5':
     resolution: {integrity: sha512-J0BpoOomzd3iVZozYlZJ7AwAVliXRgeChZnAkQLfg8d0h/Q+aMK9kkHuhwFULASaRn5idiD4BIhOUz7/uoLbSw==}
     engines: {node: '>=18.12.0'}
@@ -3019,12 +3015,12 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@sentry/browser-utils@10.69.0':
-    resolution: {integrity: sha512-e/u1Abj0zRPwR/deGZAP3GOULrsx67/XXnM5Skniqs4uxTsdNtPek1Nef0tpxwaQJYxwh6pWdhswLPPbbPOgBQ==}
+  '@sentry/browser-utils@10.70.0':
+    resolution: {integrity: sha512-IvjhafF5NFXrPCg5EHbAPGDwIhHxgUcLlHTklZ3DAdA6ky88BJYMfevbcnOEmgavf4nylhCaquRUFNB5+szj+A==}
     engines: {node: '>=18'}
 
-  '@sentry/browser@10.69.0':
-    resolution: {integrity: sha512-8391tnm96YbR7b8SYfEA/NEIZuyb2r3SZrtAT0bhZtjlujcYWjo7gugQvk8sWLU9cAa/euD00eJoIoJvNfpd7Q==}
+  '@sentry/browser@10.70.0':
+    resolution: {integrity: sha512-IK6+J+8H06tZe+A8L37TT5ZxxwNtyQatW8zl5RYYJ/e9CsjrM8fPi8I1OT7uquTw8UtjqFHt7bEef/Vy63ksPg==}
     engines: {node: '>=18'}
 
   '@sentry/bundler-plugins@10.69.0':
@@ -3091,8 +3087,8 @@ packages:
     engines: {node: '>= 10'}
     hasBin: true
 
-  '@sentry/cloudflare@10.69.0':
-    resolution: {integrity: sha512-CO6Tr74cw3Wx2DyWSfBCxR6EDcNfBjn52hxWacxHsLurpdfQ7Bp/J32m1KxzezR5CZXngfBTmemK3iZsMgt5uQ==}
+  '@sentry/cloudflare@10.70.0':
+    resolution: {integrity: sha512-jlr9txw3lQrbc6KQn9FzlpgC1KcB36u7aIGSlUhXAZ2MB93DgwjuTnHF20qQHxmHbZylg7CtHoMq3rGiTXAgpg==}
     engines: {node: '>=18'}
     peerDependencies:
       '@cloudflare/workers-types': ^4.x || ^5.x
@@ -3111,12 +3107,16 @@ packages:
     resolution: {integrity: sha512-+uuqVEeiDzYuAKjZLqsROKXvRTbl/QeH0gfGRtpYib1cud4rAFWRIkFmcR7Jb7JGFYwmReyQotiTj/hcDszTZg==}
     engines: {node: '>=18'}
 
-  '@sentry/feedback@10.69.0':
-    resolution: {integrity: sha512-qrGz5Qaw93/IhMjlFN6uIaXeHwgHDaKGa6FkTAP6PonpkvSbGGqan6xfsENxzj9HUVoli1lZ6tMRDnt2qtSPhg==}
+  '@sentry/core@10.70.0':
+    resolution: {integrity: sha512-ozhCTDqg89oB4XmWfAwuHshABpvT7AkRpaPnogopPfMAaI61G1t8EKCJ4W7aum8JSBonlfyjPCyW5oYZFm0KvA==}
     engines: {node: '>=18'}
 
-  '@sentry/node-core@10.69.0':
-    resolution: {integrity: sha512-IgArHczrZJxkgxoffHscj0NxQrG6kCazgmGQnlf3j58J1ec21YaUu8Tu+7G4Lo5tCiW3teQnwlKW1ttMXSqWRw==}
+  '@sentry/feedback@10.70.0':
+    resolution: {integrity: sha512-6VQn2ETJjHkk4QQDdx/587/JDfXsk3yBTLZ3UZOMtBVrkmwgk+1FJZ8ULJ3ud1xZcuh2icunIkc7tGVv2axdnw==}
+    engines: {node: '>=18'}
+
+  '@sentry/node-core@10.70.0':
+    resolution: {integrity: sha512-oPOEVVNxv5WHtckx2i06Wi9FLWyvOg/1DUeX732jZ4iqT2nupINaMH4nF4f4kSvUThFnxkFSRQxwqOxgzMKhKA==}
     engines: {node: '>=18'}
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
@@ -3136,12 +3136,12 @@ packages:
       '@opentelemetry/sdk-trace-base':
         optional: true
 
-  '@sentry/node@10.69.0':
-    resolution: {integrity: sha512-xEXA1YGIiTZbrW6MWV34uS6JGQuQg2ijTI0zed+FsJb9JZKPYel/GZK8Km26vfTVb+yCXFmWZNBesKegNcVdzg==}
+  '@sentry/node@10.70.0':
+    resolution: {integrity: sha512-SPOOVxmKTVIEtqvOKkQT163e/pOwucjS7OPsCHyRs8sFR4nfBNu0EThplyqnvqd5BWBMTPH6WTBQfo+QWHV+HA==}
     engines: {node: '>=18'}
 
-  '@sentry/nuxt@10.69.0':
-    resolution: {integrity: sha512-RRFnA8TBtVFAu0L9Hr+fVIfNJFZcFFHeA7vVLlyEbfqKdINk3FxbzddkY1ZMIgQmGtxY5g5lrxmjZiFi8EEQ3g==}
+  '@sentry/nuxt@10.70.0':
+    resolution: {integrity: sha512-lZ/kV5SVmww5ZOTQ2VjZshTgNrdXtkYlw49/irSk0wu9hoofS8s5r9+Mbl6/NtosCioDza44+hQYc5e+zVKU3Q==}
     engines: {node: '>=18.19.1'}
     peerDependencies:
       nitro: 2.x || 3.x
@@ -3150,20 +3150,20 @@ packages:
       nitro:
         optional: true
 
-  '@sentry/opentelemetry@10.69.0':
-    resolution: {integrity: sha512-3FyWV6YcEJuvLrlaKGE1dHXCI+1YO0a62w7PkwlRg8yp6K6YXkmdwu9GjqaYD+Ju4tm7uC7mHIsGFQMm0M7pqQ==}
+  '@sentry/opentelemetry@10.70.0':
+    resolution: {integrity: sha512-UNV/2tqypcUK6FDzerAsFJn1Km/c4VZCYkUZDNbnV5S0cwAq2BYKMo4M5vovaLDBQlxA+Wk9ovbxi5wYjjl9fw==}
     engines: {node: '>=18'}
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
       '@opentelemetry/core': ^1.30.1 || ^2.1.0
       '@opentelemetry/sdk-trace-base': ^1.30.1 || ^2.1.0
 
-  '@sentry/replay-canvas@10.69.0':
-    resolution: {integrity: sha512-VF6nXvSninHcc7dC1Zme0RjkC7VgRMCixs6jKaQX5zTNeqTW3dZGSefSOVv+ZteRi3hJvVORq985VjUC9Z/0+A==}
+  '@sentry/replay-canvas@10.70.0':
+    resolution: {integrity: sha512-irzpw22bK5CF3jbecDa0gBUcfjv7tgeUoLAvtIfeHOP5ajmf3o4Cp99a9RQqkfgvkcMeRZBUwE91SQhp6Ank+w==}
     engines: {node: '>=18'}
 
-  '@sentry/replay@10.69.0':
-    resolution: {integrity: sha512-uRhmNhtFGPOlM0iniVmWKAX3KVXI0le41yYK/iKdPjinT9jA3ZrmykO/Fv1v/KI5znOtwa9D6eHRnDTTMRxFrg==}
+  '@sentry/replay@10.70.0':
+    resolution: {integrity: sha512-xMnSGzJn9Xd29rYd32lkx/gFW+5mtgqADJ2FiZvis0MBGZuDlNRwPn0/Cs1xA3JNXKV3NGfhdmmvs90w4dHSmw==}
     engines: {node: '>=18'}
 
   '@sentry/rollup-plugin@5.4.0':
@@ -3175,16 +3175,16 @@ packages:
       rollup:
         optional: true
 
-  '@sentry/server-utils@10.69.0':
-    resolution: {integrity: sha512-0MwHrA8+nNvMIsqf8m3cXwCBlUjr6AS7N6CZvHJtY1DkqEvQqEbD5VIrhzEyHN/KMZIgQ8XeDCQRhjnXFQGRhg==}
+  '@sentry/server-utils@10.70.0':
+    resolution: {integrity: sha512-rzegZjMFFgCp3o+N8+XU13rfSvz4B+f8rU0ijBGrQcHdMNyfsFDTu1UTm262JofmrV2u+s+D0u0vFTnqtOGkbA==}
     engines: {node: '>=18'}
 
   '@sentry/vite-plugin@5.4.0':
     resolution: {integrity: sha512-fFJgCxs5hDyAm9BbZJ+LbA+LK2tjX5OoD0v0ARU4StR6KQmGUduoPs69yJ9AfqZ0om3Rlp5JDliiwFcNkasORA==}
     engines: {node: '>= 18'}
 
-  '@sentry/vue@10.69.0':
-    resolution: {integrity: sha512-XHOAiZLLuTby12kxatOsv/KsA1ZWa2Hm9nhywgLjzZaW0HOi5OY2lopzIwoLaIWQYeTVmtYcU5P+BWimfwvcwA==}
+  '@sentry/vue@10.70.0':
+    resolution: {integrity: sha512-oopTjKv8/WvxBeRDmgh3xJtEAbP/K0qmtAkOkj9jDYAYN5mgBm33sv7cYHXdrAR4o6tE1VFVu2hWqge64dGbHw==}
     engines: {node: '>=18'}
     peerDependencies:
       '@tanstack/vue-router': ^1.64.0
@@ -3380,60 +3380,60 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
-  '@takumi-rs/core-darwin-arm64@2.6.1':
-    resolution: {integrity: sha512-HtEgYaziPGZVU2//8XOXKRHV+bhlaXiJUTEkOE86rP6C7xzfd4yRgPdN+dnLGmtJEx5BdqZdaZ3Ueo7sHdPAAw==}
+  '@takumi-rs/core-darwin-arm64@2.7.0':
+    resolution: {integrity: sha512-H4tfIhAcBZj0q2Ivq1nSY+3fFTR/8AWJ8l5t1I9A+4yTJqHk1exItgL52ZZERuupePJu70C+sIwSbx19Tdusnw==}
     engines: {node: '>=18'}
     cpu: [arm64]
     os: [darwin]
 
-  '@takumi-rs/core-darwin-x64@2.6.1':
-    resolution: {integrity: sha512-xa/r2EpGnat6lwVp7Qoitm6RZMAlFCfZG7JgIr6HSD4lv9HJCzHhH3j1tjOEtSFUTJalwcEJIf8FsbWEHSlQ9A==}
+  '@takumi-rs/core-darwin-x64@2.7.0':
+    resolution: {integrity: sha512-bRfpD0XqES2H3DBjktQ5FEsGaI1FSa6WOtRhmQ03JLWSZ1DVOY2sOoq2cg/YEBN9yV2xNBM63w3IQLKvLysNqQ==}
     engines: {node: '>=18'}
     cpu: [x64]
     os: [darwin]
 
-  '@takumi-rs/core-linux-arm64-gnu@2.6.1':
-    resolution: {integrity: sha512-TVzsIuzgbri94PbbG9kkzzdqU/+3yP1EHQpZCTk0eghi+oAUSH8RiliFTqMtY52Jo0S+cV5upQOlK7aQ7Yde2Q==}
+  '@takumi-rs/core-linux-arm64-gnu@2.7.0':
+    resolution: {integrity: sha512-N9WXRfteJkLMSK+i/3lHClc5As+Khn0pmoXGMalgc4G1Gay1ca2QZuuS77rPeS23wNBp5RzDbyg9Nn7sTYGcjg==}
     engines: {node: '>=18'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@takumi-rs/core-linux-arm64-musl@2.6.1':
-    resolution: {integrity: sha512-nUYSEorVlbd4xRJOM3UbAfACUkxu9wWdAk5zmmX7F53vFWZ4Pe41fuBDvW8CWIdd7JCe8S9iJQyP6k19e3j90Q==}
+  '@takumi-rs/core-linux-arm64-musl@2.7.0':
+    resolution: {integrity: sha512-rGbPXkdPYAw/LjzwSFTHEiIosd0HHGE0++NFlQrDjVGUwsnEttIMNGoFFP/yJoAdhUxWvEgCdEEGiXMGxSCn+Q==}
     engines: {node: '>=18'}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@takumi-rs/core-linux-x64-gnu@2.6.1':
-    resolution: {integrity: sha512-lIF49n/qarr32kF62bemzT7dkImZrkcAg154z40r0OqIDw/HASQgClZrkAtDJzIHbVsj4PRWBGPkhfrRdVp+5g==}
+  '@takumi-rs/core-linux-x64-gnu@2.7.0':
+    resolution: {integrity: sha512-J3lvDQUBdsnY0Tg6oe9iPWH5yreht/5d8qRru8fQdLibrfkoAvoeS5/W015I5uRA2cOMXkG15LwlaMhkNkoSAw==}
     engines: {node: '>=18'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@takumi-rs/core-linux-x64-musl@2.6.1':
-    resolution: {integrity: sha512-el8v/UxZEEKexh6cABmrZUn5ZoBtog7CkVnqeQZrIJlnM4ahVVhXDgKlnoz5HA/r0rRcxuTQL+u/FkY9MwXFGg==}
+  '@takumi-rs/core-linux-x64-musl@2.7.0':
+    resolution: {integrity: sha512-i6+lkKiDzZaBm/D2kjjdff4r/qOcN/pOSbqZ9ThC18fAG4BByMfv8JtjeXW2U/0UdBW58ISnONOLRZkIsvpVag==}
     engines: {node: '>=18'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@takumi-rs/core-win32-arm64-msvc@2.6.1':
-    resolution: {integrity: sha512-gfa3Y9WdeaMoN6hFOUI9prRf29lrQhhCIEx4RfSDdGu+EHxx5RaCSrJmdt+WzhKeSvjPifY1qNALNx2T5Xh1OA==}
+  '@takumi-rs/core-win32-arm64-msvc@2.7.0':
+    resolution: {integrity: sha512-xDCJIfKzw4c9qyTSCZq+sy5Cn7sxQFUmqDrVsNrZly5+TdlPRA0PdJfxsbKy8Fg2+VWiPEUKOVmqPA0wb7z5uw==}
     engines: {node: '>=18'}
     cpu: [arm64]
     os: [win32]
 
-  '@takumi-rs/core-win32-x64-msvc@2.6.1':
-    resolution: {integrity: sha512-lT7ZjZORWPiDo68AWDg+xtRRsQsB1X5AJlyfzPL8Q15IWzsTzdBs5MBTOykJ18IajifbKAb/iSdilqT9IiKp8Q==}
+  '@takumi-rs/core-win32-x64-msvc@2.7.0':
+    resolution: {integrity: sha512-BX6EWnz0pg8me0tl81uqGoPqR0r5jct4JSYVEMSKaqIK/jASZ7IYm6w1FT86lzYllyia/9NUwmSeT3w6VYXq/w==}
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
 
-  '@takumi-rs/core@2.6.1':
-    resolution: {integrity: sha512-iHqbNrHa4m9BdqRhQKZtmeEmUNr30d++eO8nfQx014TdLY+7gHQiNLYoee5lgJ399pzfVV3sydsNKReizvh2bg==}
+  '@takumi-rs/core@2.7.0':
+    resolution: {integrity: sha512-aH0DYkqPlxkxrUuQAVgaNfGDbmZswDrevEH96MD2dpsezQR1IDJBIdvieZyUK/s0pWXrIQxXbXfMj3rhyr27Zg==}
     engines: {node: '>=18'}
     peerDependencies:
       csstype: '*'
@@ -3441,8 +3441,8 @@ packages:
       csstype:
         optional: true
 
-  '@takumi-rs/helpers@2.6.1':
-    resolution: {integrity: sha512-zMirueUie6Vpm27ss5QHV+BX342Q1hOObeFIb12wuvUNa+4yabWIf3aaOITvCt5dbKWi3IpfiIdXxBXtyLMjPQ==}
+  '@takumi-rs/helpers@2.7.0':
+    resolution: {integrity: sha512-jbQSVV5HKqTvixKm/s+OdUbXUaTWVqhO95hQX/JCp08dUSEFVhoejVlScaL6KLgFsHaaEI5rcJJ1JoMrwmyuSg==}
     engines: {node: '>=18'}
     peerDependencies:
       preact: ^10.0.0
@@ -3453,8 +3453,8 @@ packages:
       react:
         optional: true
 
-  '@takumi-rs/wasm@2.6.1':
-    resolution: {integrity: sha512-cUpkWu9gSzQfPXMrBQmDg5wA1T7/p3e2GjM/iRUaDsnlg4MaECd5V5dRSiNYBZK6KHKRFS5uTfDQ3CkNQutBYQ==}
+  '@takumi-rs/wasm@2.7.0':
+    resolution: {integrity: sha512-QtBzzbT3WHaLxQHxvf7ibMzUeHnEIjB/J73b9pH7+j3ZXUHzI6h4WM8u71SazXiXTpL8gwJS27GgFXyTBA6duA==}
     engines: {node: '>=18'}
     peerDependencies:
       csstype: '*'
@@ -6146,8 +6146,8 @@ packages:
     resolution: {integrity: sha512-m/MvAW61QVU5VDNF1Vj8axt016h8w7L5TU1e9zlab7XIttAT2YAlCwl75K1fOqvMM9apmD7lbCIRhpfkhmxhCg==}
     engines: {node: '>=18'}
 
-  globby@16.2.0:
-    resolution: {integrity: sha512-QrJia2qDf5BB/V6HYlDTs0I0lBahyjLzpGQg3KT7FnCdTonAyPy2RtY802m2k4ALx6Dp752f82WsOczEVr3l6Q==}
+  globby@16.2.3:
+    resolution: {integrity: sha512-VZX7TV7jmd/pn71vdnLKtgwy1IWqc3KjI9x1/UtPkwoKk5fKrNLY30ltDe3cAM5xruIN7YuuaulFt133jRrKZg==}
     engines: {node: '>=20'}
 
   globrex@0.1.2:
@@ -7316,8 +7316,8 @@ packages:
     peerDependencies:
       nuxt: ^3.9.0 || ^4.0.0
 
-  nuxt-og-image@6.7.6:
-    resolution: {integrity: sha512-XjqbFnfgQzZQB0rKWxOHhaFJk9RUJrLRK70WuHXVRv556Y9D44LVFb9oFMrgIHy88gB7icySaoAA3rKlYbEJCQ==}
+  nuxt-og-image@6.7.8:
+    resolution: {integrity: sha512-G7Vm+QNZf5LT85BupX0k8xuA+xjXUB/dY4stLuAIdFmv1CeNbnr5SkFGceRk35FHIK66nIim7wgRU4hGmxzH8Q==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     peerDependencies:
@@ -11388,41 +11388,6 @@ snapshots:
       - vite
       - webpack
 
-  '@nuxt/kit@3.21.2(esbuild@0.27.3)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))':
-    dependencies:
-      c12: 3.3.4(magicast@0.5.4)
-      consola: 3.4.2
-      defu: 6.1.7
-      destr: 2.0.5
-      errx: 0.1.0
-      exsolve: 1.1.1
-      ignore: 7.0.6
-      jiti: 2.7.0
-      klona: 2.0.6
-      knitwork: 1.3.0
-      mlly: 1.8.2
-      ohash: 2.0.11
-      pathe: 2.0.3
-      pkg-types: 2.3.1
-      rc9: 3.0.1
-      scule: 1.3.0
-      semver: 7.8.0
-      tinyglobby: 0.2.17
-      ufo: 1.6.4
-      unctx: 2.5.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
-      untyped: 2.0.0
-    transitivePeerDependencies:
-      - '@farmfe/core'
-      - '@rspack/core'
-      - bun-types-no-globals
-      - esbuild
-      - magicast
-      - rolldown
-      - rollup
-      - unloader
-      - vite
-      - webpack
-
   '@nuxt/kit@4.4.5(esbuild@0.27.3)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))':
     dependencies:
       c12: 3.3.4(magicast@0.5.4)
@@ -12052,14 +12017,14 @@ snapshots:
       - vite
       - vue
 
-  '@nuxtjs/seo@5.3.12(d87df7954593bc007b12cc043d4a55d1)':
+  '@nuxtjs/seo@5.3.12(f634766bceba85ac6ee1601979aa3e49)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))
       '@nuxtjs/robots': 6.1.4(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
       '@nuxtjs/sitemap': 8.3.4(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
       nuxt: 4.5.2(3b78b38175d1b6794df87321ad9a5310)
       nuxt-link-checker: 5.1.3(@nuxt/schema@4.5.2)(db0@0.3.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3)))(ioredis@5.10.1(supports-color@10.2.2))(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
-      nuxt-og-image: 6.7.6(20625de94435d8a6e0d2a634d0e366b5)
+      nuxt-og-image: 6.7.8(20b0a54ceb429cefd1e520cd5313209d)
       nuxt-schema-org: 6.2.9(@nuxt/schema@4.5.2)(@unhead/vue@3.3.1(@oxc-project/types@0.143.0)(esbuild@0.27.3)(lightningcss@1.33.0)(oxc-parser@0.143.0)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3)))(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unhead@3.3.1(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
       nuxt-seo-utils: 8.3.3(ec04bd62f4e9b9bdef1f3d4a575f4695)
       nuxt-site-config: 4.2.0(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
@@ -12551,19 +12516,19 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.60.4':
     optional: true
 
-  '@sentry/browser-utils@10.69.0':
+  '@sentry/browser-utils@10.70.0':
     dependencies:
       '@sentry/conventions': 0.16.0
-      '@sentry/core': 10.69.0
+      '@sentry/core': 10.70.0
 
-  '@sentry/browser@10.69.0':
+  '@sentry/browser@10.70.0':
     dependencies:
-      '@sentry/browser-utils': 10.69.0
+      '@sentry/browser-utils': 10.70.0
       '@sentry/conventions': 0.16.0
-      '@sentry/core': 10.69.0
-      '@sentry/feedback': 10.69.0
-      '@sentry/replay': 10.69.0
-      '@sentry/replay-canvas': 10.69.0
+      '@sentry/core': 10.70.0
+      '@sentry/feedback': 10.70.0
+      '@sentry/replay': 10.70.0
+      '@sentry/replay-canvas': 10.70.0
 
   '@sentry/bundler-plugins@10.69.0(rollup@4.60.4)(supports-color@10.2.2)':
     dependencies:
@@ -12624,11 +12589,11 @@ snapshots:
       - encoding
       - supports-color
 
-  '@sentry/cloudflare@10.69.0(@cloudflare/workers-types@5.20260810.1)(supports-color@10.2.2)(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))':
+  '@sentry/cloudflare@10.70.0(@cloudflare/workers-types@5.20260810.1)(supports-color@10.2.2)(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))':
     dependencies:
       '@opentelemetry/api': 1.9.1
-      '@sentry/core': 10.69.0
-      '@sentry/server-utils': 10.69.0(supports-color@10.2.2)
+      '@sentry/core': 10.70.0
+      '@sentry/server-utils': 10.70.0(supports-color@10.2.2)
       magic-string: 0.30.21
     optionalDependencies:
       '@cloudflare/workers-types': 5.20260810.1
@@ -12642,15 +12607,19 @@ snapshots:
     dependencies:
       '@sentry/conventions': 0.16.0
 
-  '@sentry/feedback@10.69.0':
-    dependencies:
-      '@sentry/core': 10.69.0
-
-  '@sentry/node-core@10.69.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))':
+  '@sentry/core@10.70.0':
     dependencies:
       '@sentry/conventions': 0.16.0
-      '@sentry/core': 10.69.0
-      '@sentry/opentelemetry': 10.69.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))
+
+  '@sentry/feedback@10.70.0':
+    dependencies:
+      '@sentry/core': 10.70.0
+
+  '@sentry/node-core@10.70.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))':
+    dependencies:
+      '@sentry/conventions': 0.16.0
+      '@sentry/core': 10.70.0
+      '@sentry/opentelemetry': 10.70.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))
       import-in-the-middle: 3.3.3
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
@@ -12658,34 +12627,34 @@ snapshots:
       '@opentelemetry/instrumentation': 0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2)
       '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
 
-  '@sentry/node@10.69.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)':
+  '@sentry/node@10.70.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/instrumentation': 0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2)
       '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
       '@sentry/conventions': 0.16.0
-      '@sentry/core': 10.69.0
-      '@sentry/node-core': 10.69.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))
-      '@sentry/opentelemetry': 10.69.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))
-      '@sentry/server-utils': 10.69.0(supports-color@10.2.2)
+      '@sentry/core': 10.70.0
+      '@sentry/node-core': 10.70.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))
+      '@sentry/opentelemetry': 10.70.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))
+      '@sentry/server-utils': 10.70.0(supports-color@10.2.2)
       import-in-the-middle: 3.3.3
     transitivePeerDependencies:
       - '@opentelemetry/core'
       - '@opentelemetry/exporter-trace-otlp-http'
       - supports-color
 
-  '@sentry/nuxt@10.69.0(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(esbuild@0.27.3)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(rolldown@1.2.3)(rollup@4.60.4)(supports-color@10.2.2)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))':
+  '@sentry/nuxt@10.70.0(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(esbuild@0.27.3)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(rolldown@1.2.3)(rollup@4.60.4)(supports-color@10.2.2)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))':
     dependencies:
-      '@nuxt/kit': 3.21.2(esbuild@0.27.3)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
-      '@sentry/browser': 10.69.0
-      '@sentry/cloudflare': 10.69.0(@cloudflare/workers-types@5.20260810.1)(supports-color@10.2.2)(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))
-      '@sentry/core': 10.69.0
-      '@sentry/node': 10.69.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
-      '@sentry/node-core': 10.69.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))
+      '@nuxt/kit': 3.21.11(esbuild@0.27.3)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
+      '@sentry/browser': 10.70.0
+      '@sentry/cloudflare': 10.70.0(@cloudflare/workers-types@5.20260810.1)(supports-color@10.2.2)(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))
+      '@sentry/core': 10.70.0
+      '@sentry/node': 10.70.0(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(supports-color@10.2.2)
+      '@sentry/node-core': 10.70.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.220.0(@opentelemetry/api@1.9.1)(supports-color@10.2.2))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))
       '@sentry/rollup-plugin': 5.4.0(rollup@4.60.4)(supports-color@10.2.2)
-      '@sentry/server-utils': 10.69.0(supports-color@10.2.2)
+      '@sentry/server-utils': 10.70.0(supports-color@10.2.2)
       '@sentry/vite-plugin': 5.4.0(rollup@4.60.4)(supports-color@10.2.2)
-      '@sentry/vue': 10.69.0(vue@3.5.41(typescript@6.0.3))
+      '@sentry/vue': 10.70.0(vue@3.5.41(typescript@6.0.3))
       local-pkg: 1.2.1
       nuxt: 4.5.2(3b78b38175d1b6794df87321ad9a5310)
     transitivePeerDependencies:
@@ -12712,23 +12681,23 @@ snapshots:
       - webpack
       - wrangler
 
-  '@sentry/opentelemetry@10.69.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))':
+  '@sentry/opentelemetry@10.70.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
       '@sentry/conventions': 0.16.0
-      '@sentry/core': 10.69.0
+      '@sentry/core': 10.70.0
 
-  '@sentry/replay-canvas@10.69.0':
+  '@sentry/replay-canvas@10.70.0':
     dependencies:
-      '@sentry/core': 10.69.0
-      '@sentry/replay': 10.69.0
+      '@sentry/core': 10.70.0
+      '@sentry/replay': 10.70.0
 
-  '@sentry/replay@10.69.0':
+  '@sentry/replay@10.70.0':
     dependencies:
-      '@sentry/browser-utils': 10.69.0
-      '@sentry/core': 10.69.0
+      '@sentry/browser-utils': 10.70.0
+      '@sentry/core': 10.70.0
 
   '@sentry/rollup-plugin@5.4.0(rollup@4.60.4)(supports-color@10.2.2)':
     dependencies:
@@ -12740,12 +12709,12 @@ snapshots:
       - supports-color
       - webpack
 
-  '@sentry/server-utils@10.69.0(supports-color@10.2.2)':
+  '@sentry/server-utils@10.70.0(supports-color@10.2.2)':
     dependencies:
       '@apm-js-collab/code-transformer-bundler-plugins': 0.7.4
       '@apm-js-collab/tracing-hooks': 0.13.0(supports-color@10.2.2)
       '@sentry/conventions': 0.16.0
-      '@sentry/core': 10.69.0
+      '@sentry/core': 10.70.0
       meriyah: 6.1.4
     transitivePeerDependencies:
       - supports-color
@@ -12759,11 +12728,11 @@ snapshots:
       - supports-color
       - webpack
 
-  '@sentry/vue@10.69.0(vue@3.5.41(typescript@6.0.3))':
+  '@sentry/vue@10.70.0(vue@3.5.41(typescript@6.0.3))':
     dependencies:
-      '@sentry/browser': 10.69.0
+      '@sentry/browser': 10.70.0
       '@sentry/conventions': 0.16.0
-      '@sentry/core': 10.69.0
+      '@sentry/core': 10.70.0
       vue: 3.5.41(typescript@6.0.3)
 
   '@shikijs/core@4.4.3':
@@ -12929,52 +12898,52 @@ snapshots:
       tailwindcss: 4.3.3
       vite: 8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)
 
-  '@takumi-rs/core-darwin-arm64@2.6.1':
+  '@takumi-rs/core-darwin-arm64@2.7.0':
     optional: true
 
-  '@takumi-rs/core-darwin-x64@2.6.1':
+  '@takumi-rs/core-darwin-x64@2.7.0':
     optional: true
 
-  '@takumi-rs/core-linux-arm64-gnu@2.6.1':
+  '@takumi-rs/core-linux-arm64-gnu@2.7.0':
     optional: true
 
-  '@takumi-rs/core-linux-arm64-musl@2.6.1':
+  '@takumi-rs/core-linux-arm64-musl@2.7.0':
     optional: true
 
-  '@takumi-rs/core-linux-x64-gnu@2.6.1':
+  '@takumi-rs/core-linux-x64-gnu@2.7.0':
     optional: true
 
-  '@takumi-rs/core-linux-x64-musl@2.6.1':
+  '@takumi-rs/core-linux-x64-musl@2.7.0':
     optional: true
 
-  '@takumi-rs/core-win32-arm64-msvc@2.6.1':
+  '@takumi-rs/core-win32-arm64-msvc@2.7.0':
     optional: true
 
-  '@takumi-rs/core-win32-x64-msvc@2.6.1':
+  '@takumi-rs/core-win32-x64-msvc@2.7.0':
     optional: true
 
-  '@takumi-rs/core@2.6.1(csstype@3.2.3)':
+  '@takumi-rs/core@2.7.0(csstype@3.2.3)':
     dependencies:
-      '@takumi-rs/helpers': 2.6.1
+      '@takumi-rs/helpers': 2.7.0
     optionalDependencies:
-      '@takumi-rs/core-darwin-arm64': 2.6.1
-      '@takumi-rs/core-darwin-x64': 2.6.1
-      '@takumi-rs/core-linux-arm64-gnu': 2.6.1
-      '@takumi-rs/core-linux-arm64-musl': 2.6.1
-      '@takumi-rs/core-linux-x64-gnu': 2.6.1
-      '@takumi-rs/core-linux-x64-musl': 2.6.1
-      '@takumi-rs/core-win32-arm64-msvc': 2.6.1
-      '@takumi-rs/core-win32-x64-msvc': 2.6.1
+      '@takumi-rs/core-darwin-arm64': 2.7.0
+      '@takumi-rs/core-darwin-x64': 2.7.0
+      '@takumi-rs/core-linux-arm64-gnu': 2.7.0
+      '@takumi-rs/core-linux-arm64-musl': 2.7.0
+      '@takumi-rs/core-linux-x64-gnu': 2.7.0
+      '@takumi-rs/core-linux-x64-musl': 2.7.0
+      '@takumi-rs/core-win32-arm64-msvc': 2.7.0
+      '@takumi-rs/core-win32-x64-msvc': 2.7.0
       csstype: 3.2.3
     transitivePeerDependencies:
       - preact
       - react
 
-  '@takumi-rs/helpers@2.6.1': {}
+  '@takumi-rs/helpers@2.7.0': {}
 
-  '@takumi-rs/wasm@2.6.1(csstype@3.2.3)':
+  '@takumi-rs/wasm@2.7.0(csstype@3.2.3)':
     dependencies:
-      '@takumi-rs/helpers': 2.6.1
+      '@takumi-rs/helpers': 2.7.0
     optionalDependencies:
       csstype: 3.2.3
     transitivePeerDependencies:
@@ -15846,7 +15815,7 @@ snapshots:
 
   globals@17.9.0: {}
 
-  globby@16.2.0:
+  globby@16.2.3:
     dependencies:
       '@sindresorhus/merge-streams': 4.0.0
       fast-glob: 3.3.3
@@ -17226,7 +17195,7 @@ snapshots:
       escape-string-regexp: 5.0.0
       etag: 1.8.1
       exsolve: 1.1.1
-      globby: 16.2.0
+      globby: 16.2.3
       gzip-size: 7.0.0
       h3: 1.15.11
       hookable: 5.5.3
@@ -17522,7 +17491,7 @@ snapshots:
       - vue
       - zod
 
-  nuxt-og-image@6.7.6(20625de94435d8a6e0d2a634d0e366b5):
+  nuxt-og-image@6.7.8(20b0a54ceb429cefd1e520cd5313209d):
     dependencies:
       '@clack/prompts': 1.7.0
       '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))
@@ -17538,8 +17507,8 @@ snapshots:
       magic-string: 1.1.0
       magicast: 0.5.4
       mocked-exports: 0.1.1
-      nuxt-site-config: 4.2.0(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
-      nuxtseo-shared: 5.3.11(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt-site-config@4.2.0(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3))(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
+      nuxt-site-config: 4.2.1(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
+      nuxtseo-shared: 5.3.12(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt-site-config@4.2.1(@nuxt/schema@4.5.2)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3))(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
       nypm: 0.6.9
       object-identity: 0.2.3
       ofetch: 1.5.1
@@ -17557,8 +17526,8 @@ snapshots:
       unplugin: 3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
       unstorage: 1.17.5(db0@0.3.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3)))(ioredis@5.10.1(supports-color@10.2.2))
     optionalDependencies:
-      '@takumi-rs/core': 2.6.1(csstype@3.2.3)
-      '@takumi-rs/wasm': 2.6.1(csstype@3.2.3)
+      '@takumi-rs/core': 2.7.0(csstype@3.2.3)
+      '@takumi-rs/wasm': 2.7.0(csstype@3.2.3)
       fontless: 0.2.1(db0@0.3.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3)))(ioredis@5.10.1(supports-color@10.2.2))(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
       nitropack: 2.13.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3))(oxc-parser@0.143.0)(rolldown@1.2.3)(supports-color@10.2.2)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
       sharp: 0.35.3(@types/node@25.6.0)

@@ -169,8 +169,15 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   skewProtection: {
+    // `ws` rides Nitro's Durable Object websocket (cloudflare-durable preset +
+    // nitro.experimental.websocket, both set below), so the server pushes its
+    // deploy version and the client detects a stale build on reconnect.
     updateStrategy: 'ws',
-    reloadStrategy: 'idle',
+    // `prompt` surfaces the update instead of reloading under the user, which
+    // matters on a dashboard where a reload can interrupt work. Rendered by
+    // `SkewNotification` in layers/core/app/app.vue; without that component this
+    // strategy detects the stale build and then does nothing visible.
+    reloadStrategy: 'prompt',
   },
 
   aiReady: {
@@ -204,18 +211,14 @@ export default defineNuxtConfig({
     preset: 'cloudflare-durable',
     cloudflare: {
       deployConfig: true,
-      // `nodeCompat: true` is Nitro's legacy unenv shim, which emits
-      // `no_nodejs_compat_v2` and pins the worker to nodejs_compat v1. Under v1
-      // `node:stream` has no `Stream` export, so `jws` (pulled in eagerly by
-      // google-auth-library) calls `util.inherits(DataStream, undefined)` at
-      // module scope and the worker fails Cloudflare's startup validation with
-      // error 10021. Our compatibility_date is well past v2's 2024-09-23
-      // cutoff, so use the runtime's own Node implementation instead.
-      nodeCompat: false,
+      // Keep Nitro's hybrid Node bundling, then request the current Workers
+      // runtime explicitly. This prevents Nitro from pinning v1 with
+      // `no_nodejs_compat_v2`.
+      nodeCompat: true,
       wrangler: {
         name: 'request-indexing',
         compatibility_date: '2026-08-11',
-        compatibility_flags: ['nodejs_compat'],
+        compatibility_flags: ['nodejs_compat_v2'],
         workers_dev: false,
         preview_urls: false,
         cache: { enabled: true, cross_version_cache: false },
