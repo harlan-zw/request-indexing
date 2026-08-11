@@ -22,8 +22,8 @@ catalogs:
       specifier: ^2.0.6
       version: 2.0.6
     '@harlan-zw/nuxt-dx':
-      specifier: 0.0.1
-      version: 0.0.1
+      specifier: 0.0.3
+      version: 0.0.3
     '@iconify-json/carbon':
       specifier: ^1.2.25
       version: 1.2.25
@@ -420,7 +420,7 @@ importers:
         version: 5.20260810.1
       '@harlan-zw/nuxt-dx':
         specifier: 'catalog:'
-        version: 0.0.1(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))
+        version: 0.0.3(esbuild@0.27.3)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(rolldown@1.2.3)(rollup@4.60.4)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
       '@nuxt/test-utils':
         specifier: 'catalog:'
         version: 4.1.0(esbuild@0.27.3)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.60.4)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(vitest@4.1.10(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))
@@ -1651,9 +1651,10 @@ packages:
     resolution: {integrity: sha512-uHBEUzeJAARf5danssJbMO9E5fcX8XDhNZWkB8ZH623birWlQE6jp8hin1clSih8TUOzQycI14bYYmZA0jFOig==}
     engines: {node: '>=22'}
 
-  '@harlan-zw/nuxt-dx@0.0.1':
-    resolution: {integrity: sha512-PFKwnM3B35kf9VgHY3Lot1cL9tPZ1xoNxoHawJwBZYRERJ9FNGFaCyUl5Ni6Lg94jHLYM/I5POHL0kNJ1DHgIw==}
+  '@harlan-zw/nuxt-dx@0.0.3':
+    resolution: {integrity: sha512-Ah1A4dJ6fVSCFojNxgAm0i9eUH7ANAUCncCBVAFPXmyl+j1QGjvc4voDRgHPOphGd9zxVl+R3ql82mEH5uAIsA==}
     engines: {node: '>=22.12.0'}
+    hasBin: true
     peerDependencies:
       nuxt: '>=4.2.0 <5.0.0'
 
@@ -6988,6 +6989,9 @@ packages:
   magic-regexp@0.10.0:
     resolution: {integrity: sha512-Uly1Bu4lO1hwHUW0CQeSWuRtzCMNO00CmXtS8N6fyvB3B979GOEEeAkiTUDsmbYLAbvpUS/Kt5c4ibosAzVyVg==}
 
+  magic-regexp@0.11.0:
+    resolution: {integrity: sha512-LG77Z/gVnwz7oaDpD4heX6ryl+lcr4l1B2gnP4MMvt2pGhGC1Dfj7dl1pXpP4ih+VQFLuAadeKVa+lARAzfW+Q==}
+
   magic-string-ast@1.0.3:
     resolution: {integrity: sha512-CvkkH1i81zl7mmb94DsRiFeG9V2fR2JeuK8yDgS8oiZSFa++wWLEgZ5ufEOyLHbvSbD1gTRKv9NdX69Rnvr9JA==}
     engines: {node: '>=20.19.0'}
@@ -7671,6 +7675,17 @@ packages:
   oxc-parser@0.143.0:
     resolution: {integrity: sha512-ov0NzaDCOInknS7mP1cwKdJERt3utPW8ldjtdUXQ8Ty0GEFD08wk422vCUN0d7pST6kqtV7dxoI9w1Zi0l/9TA==}
     engines: {node: ^20.19.0 || >=22.12.0}
+
+  oxc-walker@1.0.0:
+    resolution: {integrity: sha512-eMsHflAGfOskpWxtp9xP/f5b96XLEU8ifTd2gOOCkdux9HMxKGy5S1ru0Gh1B3aPu+YbfmWUUVkcb7MrZz3XyQ==}
+    peerDependencies:
+      oxc-parser: 0.143.0
+      rolldown: 1.2.3
+    peerDependenciesMeta:
+      oxc-parser:
+        optional: true
+      rolldown:
+        optional: true
 
   oxc-walker@1.1.1:
     resolution: {integrity: sha512-Hwd7dq28zu/Er99+bpWp16CGwFrhyalJh0W3JOB7XpPvgWo3MqMi2ksWGKuzzA9zt50mJ2pIUwR5lpAdZ9ACNQ==}
@@ -10708,16 +10723,27 @@ snapshots:
       - typebox
       - valibot
 
-  '@harlan-zw/nuxt-dx@0.0.1(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))':
+  '@harlan-zw/nuxt-dx@0.0.3(esbuild@0.27.3)(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(rolldown@1.2.3)(rollup@4.60.4)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))
+      citty: 0.2.2
+      consola: 3.4.2
       nuxt: 4.5.2(3b78b38175d1b6794df87321ad9a5310)
+      oxc-parser: 0.143.0
+      oxc-walker: 1.0.0(esbuild@0.27.3)(oxc-parser@0.143.0)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
     transitivePeerDependencies:
+      - '@farmfe/core'
+      - '@rspack/core'
+      - bun-types-no-globals
+      - esbuild
       - magic-string
       - magicast
-      - oxc-parser
       - rolldown
+      - rollup
+      - unloader
       - unplugin
+      - vite
+      - webpack
 
   '@humanfs/core@0.19.1': {}
 
@@ -16918,6 +16944,23 @@ snapshots:
       - vite
       - webpack
 
+  magic-regexp@0.11.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)):
+    dependencies:
+      magic-string: 0.30.21
+      regexp-tree: 0.1.27
+      type-level-regexp: 0.1.17
+      unplugin: 3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
+    transitivePeerDependencies:
+      - '@farmfe/core'
+      - '@rspack/core'
+      - bun-types-no-globals
+      - esbuild
+      - rolldown
+      - rollup
+      - unloader
+      - vite
+      - webpack
+
   magic-string-ast@1.0.3:
     dependencies:
       magic-string: 0.30.21
@@ -18381,6 +18424,22 @@ snapshots:
       '@oxc-parser/binding-win32-arm64-msvc': 0.143.0
       '@oxc-parser/binding-win32-ia32-msvc': 0.143.0
       '@oxc-parser/binding-win32-x64-msvc': 0.143.0
+
+  oxc-walker@1.0.0(esbuild@0.27.3)(oxc-parser@0.143.0)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)):
+    dependencies:
+      magic-regexp: 0.11.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
+    optionalDependencies:
+      oxc-parser: 0.143.0
+      rolldown: 1.2.3
+    transitivePeerDependencies:
+      - '@farmfe/core'
+      - '@rspack/core'
+      - bun-types-no-globals
+      - esbuild
+      - rollup
+      - unloader
+      - vite
+      - webpack
 
   oxc-walker@1.1.1(@oxc-project/types@0.143.0)(oxc-parser@0.143.0)(rolldown@1.2.3):
     optionalDependencies:

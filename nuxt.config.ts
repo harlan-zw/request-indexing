@@ -41,6 +41,9 @@ export default defineNuxtConfig({
     './layers/pro-chat',
     './layers/core',
   ],
+  nuxtDx: {
+    report: true,
+  },
   modules: [
     '@harlan-zw/nuxt-dx',
     'nuxt-auth-utils',
