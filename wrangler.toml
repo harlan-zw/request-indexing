@@ -1,7 +1,13 @@
 name = "request-indexing"
 account_id = "5904138d55ca25d5670dca6adf99894e"
 compatibility_date = "2026-08-11"
-compatibility_flags = [ "nodejs_compat" ]
+# Must match `nitro.cloudflare.wrangler.compatibility_flags` in nuxt.config.ts.
+# Nitro merges both sources into .output/server/wrangler.json, and Cloudflare
+# rejects a deploy carrying `nodejs_compat` and `nodejs_compat_v2` together.
+# `nodejs_compat_v2` is the one that keeps Nitro from pinning v1: with
+# `cloudflare.nodeCompat: true` it only adds `no_nodejs_compat_v2` when v2 is
+# not already declared.
+compatibility_flags = [ "nodejs_compat_v2" ]
 main = ".output/server/index.mjs"
 workers_dev = false
 preview_urls = false
