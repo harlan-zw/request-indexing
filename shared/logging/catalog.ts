@@ -39,6 +39,7 @@ export const LOG_CATALOG = {
 
   // Auth / probes
   'auth.optional_probe_failed': 'optional plugin/probe lookup failed (no provider, expired session)',
+  'auth.account_create_failed': 'account creation during sign-in threw; the user saw "Failed to create account"',
   'auth.session_refresh_failed': 'session refresh after STATE_CHANGED 409 failed',
 
   // Notifications

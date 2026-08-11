@@ -2,6 +2,7 @@ import type { H3Event } from 'h3'
 import type { AuthProviderId, NormalizedIdentity } from '../../../shared/types/auth'
 import { eq } from 'drizzle-orm'
 import { customAlphabet } from 'nanoid'
+import { logError } from '~~/shared/logging'
 import { logger } from '~~/shared/server/logger'
 import * as schema from '#layers/pro-saas/server/database'
 import { createUserWithPersonalTeam } from '#layers/pro-saas/server/utils/create-user-with-personal-team'
@@ -71,7 +72,10 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
         avatarUrl: identity.avatarUrl ?? null,
       },
     ).catch((err) => {
-      logger.error('[auth] user insert failed:', err)
+      // Route through the structured logger, not a bare console.error: the
+      // console path never reached Sentry, so this failure was invisible in
+      // production and had to be diagnosed by reading the database by hand.
+      logError('auth.account_create_failed', err, { provider, providerUserId: identity.providerUserId })
       return null
     })
     if (!created)
@@ -82,7 +86,7 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
     apiKey = created.user.apiKey ?? apiKey
     isNewUser = true
   }
-  else if (matchedBy === 'identity') {
+  else if (matchedBy === 'identity' || matchedBy === 'legacy-sub') {
     // Refresh apiKey if missing.
     if (!existing.apiKey) {
       await db.update(users).set({ apiKey, updatedAt: Date.now() }).where(eq(users.userId, existing.userId)).catch((error: unknown) => logger.error('[auth] apikey refresh failed:', error))
