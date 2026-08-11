@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends Record<string, any>">
+<script setup lang="ts" generic="T extends object">
 import type { RowSelectionState, SortingState } from '@tanstack/vue-table'
 import type { UiTableProps } from './table-features'
 
@@ -27,7 +27,7 @@ const {
   rows: T[]
   total: number
   columns: UiTableProps<T>['columns']
-  error?: any
+  error?: unknown
   pageSize?: number
   searchable?: boolean
   searchPlaceholder?: string
@@ -52,6 +52,10 @@ const emit = defineEmits<{
   sortColumn: [column: string]
   rowClick: [row: T]
 }>()
+
+function getErrorMessage(value: unknown) {
+  return value instanceof Error ? value.message : 'Failed to load'
+}
 
 const totalDisplay = computed(() => formatTotal ? formatTotal(total) : total.toLocaleString())
 
@@ -111,7 +115,7 @@ const showPagination = computed(() => !pending && rows.length > 0 && total > pag
       <slot name="error" :error="error">
         <div class="py-10 text-center">
           <p class="text-sm text-error mb-3">
-            {{ typeof error === 'string' ? error : (error.message || 'Failed to load') }}
+            {{ typeof error === 'string' ? error : getErrorMessage(error) }}
           </p>
           <UiMotionButton size="sm" variant="soft" @click="emit('retry')">
             Retry

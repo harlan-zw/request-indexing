@@ -8,7 +8,7 @@
 // Every operation this consumer needs is a typed method below, routed
 // through the proxy's closed allowlist. There is no generic path escape
 // hatch: one was removed with the credential (see `gscdump-v1-browser-proxy.ts`).
-import type { GscdumpV1OperationInput } from '@gscdump/sdk/v1'
+import type { GscdumpV1OperationInput, GscdumpV1OperationResponse } from '@gscdump/sdk/v1'
 import type {
   GscdumpAnalysisResponse,
   GscdumpDataDetailResponse,
@@ -87,45 +87,45 @@ export function useProGscdump() {
   }
 
   function recoverSitePermission(input: GscdumpV1OperationInput<'partner.sites.permission.recover'>, silent = false) {
-    return runV1<{ success: boolean, permissionLevel: string | null, jobsQueued: number, message: string }>(
+    return runV1<GscdumpV1OperationResponse<'partner.sites.permission.recover'>['data']>(
       () => createV1Client().recoverSitePermission(input),
       silent,
     )
   }
 
   function getTopAssociation(input: GscdumpV1OperationInput<'partner.sites.top.association.get'>, silent = false) {
-    return runV1<{ value: string | null }>(() => createV1Client().getTopAssociation(input), silent)
+    return runV1<GscdumpV1OperationResponse<'partner.sites.top.association.get'>['data']>(() => createV1Client().getTopAssociation(input), silent)
   }
 
-  function getCanonicalMismatches<T>(input: GscdumpV1OperationInput<'partner.sites.canonical.mismatches.get'>, silent = false) {
+  function getCanonicalMismatches<T = GscdumpV1OperationResponse<'partner.sites.canonical.mismatches.get'>['data']>(input: GscdumpV1OperationInput<'partner.sites.canonical.mismatches.get'>, silent = false) {
     return runV1<T>(() => createV1Client().getCanonicalMismatches(input), silent)
   }
 
-  function getPositionDistribution<T>(input: GscdumpV1OperationInput<'partner.sites.position.distribution.get'>, silent = false) {
+  function getPositionDistribution<T = GscdumpV1OperationResponse<'partner.sites.position.distribution.get'>['data']>(input: GscdumpV1OperationInput<'partner.sites.position.distribution.get'>, silent = false) {
     return runV1<T>(() => createV1Client().getPositionDistribution(input), silent)
   }
 
-  function getDeviceGap<T>(input: GscdumpV1OperationInput<'partner.sites.device.gap.get'>, silent = false) {
+  function getDeviceGap<T = GscdumpV1OperationResponse<'partner.sites.device.gap.get'>['data']>(input: GscdumpV1OperationInput<'partner.sites.device.gap.get'>, silent = false) {
     return runV1<T>(() => createV1Client().getDeviceGap(input), silent)
   }
 
-  function getCtrCurve<T>(input: GscdumpV1OperationInput<'partner.sites.ctr.curve.get'>, silent = false) {
+  function getCtrCurve<T = GscdumpV1OperationResponse<'partner.sites.ctr.curve.get'>['data']>(input: GscdumpV1OperationInput<'partner.sites.ctr.curve.get'>, silent = false) {
     return runV1<T>(() => createV1Client().getCtrCurve(input), silent)
   }
 
-  function getDarkTraffic<T>(input: GscdumpV1OperationInput<'partner.sites.dark.traffic.get'>, silent = false) {
+  function getDarkTraffic<T = GscdumpV1OperationResponse<'partner.sites.dark.traffic.get'>['data']>(input: GscdumpV1OperationInput<'partner.sites.dark.traffic.get'>, silent = false) {
     return runV1<T>(() => createV1Client().getDarkTraffic(input), silent)
   }
 
-  function getContentVelocity<T>(input: GscdumpV1OperationInput<'partner.sites.content.velocity.get'>, silent = false) {
+  function getContentVelocity<T = GscdumpV1OperationResponse<'partner.sites.content.velocity.get'>['data']>(input: GscdumpV1OperationInput<'partner.sites.content.velocity.get'>, silent = false) {
     return runV1<T>(() => createV1Client().getContentVelocity(input), silent)
   }
 
-  function getKeywordBreadth<T>(input: GscdumpV1OperationInput<'partner.sites.keyword.breadth.get'>, silent = false) {
+  function getKeywordBreadth<T = GscdumpV1OperationResponse<'partner.sites.keyword.breadth.get'>['data']>(input: GscdumpV1OperationInput<'partner.sites.keyword.breadth.get'>, silent = false) {
     return runV1<T>(() => createV1Client().getKeywordBreadth(input), silent)
   }
 
-  function createSitemapAction<T>(input: GscdumpV1OperationInput<'partner.sites.sitemaps.action.create'>, silent = false) {
+  function createSitemapAction<T = GscdumpV1OperationResponse<'partner.sites.sitemaps.action.create'>['data']>(input: GscdumpV1OperationInput<'partner.sites.sitemaps.action.create'>, silent = false) {
     return runV1<T>(() => createV1Client().createSitemapAction(input), silent)
   }
 

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import type { Filter } from 'gscdump/query'
 import countries from '#layers/core/shared/shared/data/countries'
 
-const props = withDefaults(defineProps<{
+const _props = withDefaults(defineProps<{
   siteId: string
   period?: import('~~/layers/core/app/composables/useGscdump').Period
   pageSize?: number
@@ -9,7 +10,7 @@ const props = withDefaults(defineProps<{
   sortable?: boolean
   pagination?: boolean
   excludeColumns?: string[]
-  extraFilters?: Array<{ type: string, column: string, value: string }>
+  extraFilters?: Array<Filter<object>>
 }>(), {
   pageSize: 10,
   searchable: true,

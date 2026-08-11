@@ -1,12 +1,16 @@
-<script lang="ts" setup generic="T extends Record<string, any>[], I extends T[0]">
-import type { MouseEventParams } from 'lightweight-charts'
+<script lang="ts" setup generic="I extends Record<string, unknown>">
+import type { ChartOptions, DeepPartial, ISeriesApi, MouseEventParams, SeriesType, Time, UTCTimestamp } from 'lightweight-charts'
 import { format } from 'date-fns'
-import { createChart } from 'lightweight-charts'
+import { AreaSeries, ColorType, createChart, LineSeries, LineType } from 'lightweight-charts'
+
+type ColumnKey = Extract<keyof I, string>
+type Column = ColumnKey | { key: ColumnKey, type: 'area' | 'line' }
+type ChartSeries = ISeriesApi<'Area'> | ISeriesApi<'Line'>
 
 const props = defineProps<{
-  value: T
-  columns?: (keyof I | { key: keyof I, type: 'area' | 'line' })[]
-  colors?: Record<keyof I, string>
+  value: I[]
+  columns?: Column[]
+  colors?: Partial<Record<ColumnKey, string>>
   height?: number | string
   labels?: boolean
 }>()
@@ -15,35 +19,46 @@ const emits = defineEmits<{
   tooltip: [data: MouseEventParams | null]
 }>()
 
-function fmtTooltipDate(d: string | number | Date | undefined | null) {
-  if (!d)
+function fmtTooltipDate(time: Time | undefined) {
+  if (time === undefined)
     return ''
-  return format(new Date(d), 'MMMM d, yyyy')
+  if (typeof time === 'object')
+    return format(new Date(time.year, time.month - 1, time.day), 'MMMM d, yyyy')
+  return format(new Date(time), 'MMMM d, yyyy')
 }
 
-const { columns, value } = toRefs(props)
+function toChartTime(row: I): Time {
+  const time = row.time ?? row.date
+  if (typeof time === 'number')
+    return time as UTCTimestamp
+  if (typeof time === 'string')
+    return time
+  if (time instanceof Date)
+    return time.toISOString().slice(0, 10)
+  throw new TypeError('Each chart row requires a string, number, or Date time value.')
+}
+
+function toSeriesData(key: ColumnKey, rows: I[]) {
+  return rows.map(row => ({
+    time: toChartTime(row),
+    value: Number(row[key]) || 0,
+  }))
+}
 
 const colorMode = useColorMode()
 
-const chart = ref(null)
-const container = ref(null)
+const chart = ref<HTMLElement | null>(null)
+const container = ref<HTMLElement | null>(null)
 const tooltipData = ref<MouseEventParams | null>(null)
 
 const darkTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
-      lineColor: '#2B2B43',
       textColor: '#D9D9D9',
-    },
-    watermark: {
-      color: 'rgba(0, 0, 0, 0)',
-    },
-    crosshair: {
-      color: '#758696',
     },
     grid: {
       vertLines: {
@@ -69,20 +84,16 @@ const darkTheme = {
     bottomColor: 'rgba(255, 152, 0, 0.04)',
     lineColor: 'rgba(255, 152, 0, 0.4)',
   },
-}
+} satisfies { chart: DeepPartial<ChartOptions>, series: AreaPalette, series2: AreaPalette, series3: AreaPalette }
 
 const lightTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
-      lineColor: '#2B2B43',
       textColor: '#191919',
-    },
-    watermark: {
-      color: 'rgba(0, 0, 0, 0)',
     },
     grid: {
       vertLines: {
@@ -109,15 +120,26 @@ const lightTheme = {
     bottomColor: 'rgba(255, 152, 0, 0.04)',
     lineColor: 'rgba(255, 152, 0, 0.4)',
   },
+} satisfies { chart: DeepPartial<ChartOptions>, series: AreaPalette, series2: AreaPalette, series3: AreaPalette }
+
+interface AreaPalette {
+  topColor: string
+  bottomColor: string
+  lineColor: string
 }
 
 const themesData = {
   Dark: darkTheme,
   Light: lightTheme,
-}
+} satisfies Record<'Dark' | 'Light', { chart: DeepPartial<ChartOptions> }>
+
+const palettes = [lightTheme.series, lightTheme.series2, lightTheme.series3]
 
 onMounted(() => {
-  const _chart = createChart(chart.value!, {
+  if (!chart.value)
+    return
+
+  const chartApi = createChart(chart.value, {
     height: Number(props.height) || 100,
     autoSize: true,
     rightPriceScale: {
@@ -135,37 +157,27 @@ onMounted(() => {
       },
     },
   })
-  const series = {}
-  // props.columns!.forEach((col, i) => {
-  //   series[col] = series[col] || _chart.addAreaSeries({
-  //     ...(typeof props.colors?.[col] !== 'undefined' ? props.colors[col] : lightTheme[`series${i}`]),
-  //     lineWidth: 2,
-  //     priceLineVisible: false,
-  //     lastValueVisible: false,
-  //     priceScaleId: 'right',
-  //     priceFormat: {
-  //       type: 'volume',
-  //     },
-  //     lineType: 1,
-  //   })
-  // })
-  watch(columns, (newVal, prevVal) => {
-    ;(prevVal || [])
-      .filter(col => !newVal.includes(col))
-      .forEach((col) => {
-        if (series[col]) {
-          _chart.removeSeries(series[col])
-          delete series[col]
-        }
-      })
-    ;(newVal || []).forEach((col) => {
+  const series = new Map<ColumnKey, ChartSeries>()
+
+  function removeSeries(key: ColumnKey) {
+    const existing = series.get(key)
+    if (!existing)
+      return
+    chartApi.removeSeries(existing as ISeriesApi<SeriesType>)
+    series.delete(key)
+  }
+
+  function addSeries(col: Column) {
       const key = typeof col === 'string' ? col : col.key
-      if (series[key])
+      if (series.has(key))
         return
+      const customColor = props.colors?.[key]
+      const palette = palettes[series.size % palettes.length]!
+      let nextSeries: ChartSeries
       if ((typeof col === 'object' ? col.type : 'area') === 'area') {
-        series[key] = _chart.addAreaSeries({
-          // @ts-expect-error untyped
-          ...(typeof props.colors?.[key] !== 'undefined' ? props.colors[key] : lightTheme[`series${Object.keys(series).length + 1}`]),
+        nextSeries = chartApi.addSeries(AreaSeries, {
+          ...palette,
+          ...(customColor ? { topColor: customColor, bottomColor: 'transparent', lineColor: customColor } : {}),
           lineWidth: 2,
           priceLineVisible: props.labels,
           lastValueVisible: props.labels,
@@ -173,47 +185,48 @@ onMounted(() => {
           priceFormat: {
             type: 'volume',
           },
-          lineType: 1,
+          lineType: LineType.WithSteps,
         })
       }
       else {
-        series[key] = _chart.addLineSeries({
-          // @ts-expect-error untyped
-          ...(typeof props.colors?.[key] !== 'undefined' ? props.colors[key] : lightTheme[`series${Object.keys(series).length + 1}`]),
-          lineWidth: 5,
+        nextSeries = chartApi.addSeries(LineSeries, {
+          color: customColor ?? palette.lineColor,
+          lineWidth: 4,
           priceLineVisible: props.labels,
           lastValueVisible: props.labels,
           priceScaleId: 'right',
-          lineStyle: 1,
           priceFormat: {
             type: 'volume',
           },
-          lineType: 1,
-          ...col,
+          lineType: LineType.WithSteps,
         })
       }
-      series[key].setData((value.value || []).map(d => ({
-        time: d.time || d.date,
-        value: Number(d[key]) || 0,
-      })))
+      nextSeries.setData(toSeriesData(key, props.value))
+      series.set(key, nextSeries)
+  }
+
+  watch(() => props.columns ?? [], (newColumns, previousColumns) => {
+    const newKeys = new Set(newColumns.map(col => typeof col === 'string' ? col : col.key))
+    previousColumns?.forEach((col) => {
+      const key = typeof col === 'string' ? col : col.key
+      if (!newKeys.has(key))
+        removeSeries(key)
     })
+    newColumns.forEach(addSeries)
   }, {
     deep: true,
     immediate: true,
   })
-  watch(value, (data) => {
-    props.columns!.forEach((col) => {
+  watch(() => props.value, (data) => {
+    ;(props.columns ?? []).forEach((col) => {
       const key = typeof col === 'string' ? col : col.key
-      series[key].setData(data.map(d => ({
-        time: d.time || d.date,
-        value: Number(d[key]) || 0,
-      })))
-      _chart.timeScale().fitContent()
+      series.get(key)?.setData(toSeriesData(key, data))
     })
-  })
-  _chart.timeScale().fitContent()
+    chartApi.timeScale().fitContent()
+  }, { deep: true })
+  chartApi.timeScale().fitContent()
 
-  _chart.subscribeCrosshairMove((param) => {
+  chartApi.subscribeCrosshairMove((param) => {
     const _container = container.value
     if (!_container)
       return
@@ -232,16 +245,16 @@ onMounted(() => {
     }
   })
 
-  function syncToTheme(theme) {
-    _chart.applyOptions(themesData[theme].chart)
-    // areaSeries.applyOptions(themesData[theme].series)
-    // areaSeries2.applyOptions(themesData[theme].series2)
+  function syncToTheme(theme: keyof typeof themesData) {
+    chartApi.applyOptions(themesData[theme].chart)
   }
 
   syncToTheme(colorMode.value === 'dark' ? 'Dark' : 'Light')
-  watch(colorMode, (newVal) => {
-    syncToTheme(newVal.value === 'dark' ? 'Dark' : 'Light')
+  watch(() => colorMode.value, (newValue) => {
+    syncToTheme(newValue === 'dark' ? 'Dark' : 'Light')
   })
+
+  onBeforeUnmount(() => chartApi.remove())
 })
 
 watch(tooltipData, (val) => {

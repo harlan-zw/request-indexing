@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { AnalysisPreset } from '~~/layers/core/app/composables/useGscdump'
+import type { SiteSelect } from '#shared/types/database'
 
-const { site } = defineProps<{ site: any }>()
+const { site } = defineProps<{ site: SiteSelect & { gscdumpSiteId: string, property: string } }>()
 
 definePageMeta({
   layout: 'dashboard',

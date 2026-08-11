@@ -1,26 +1,27 @@
 <script lang="ts" setup>
 import type { FormError, FormSubmitEvent } from '#ui/types'
+import type { SiteSelect } from '#shared/types/database'
 
-defineProps<{ site: any, siteLoader: any, slug: string }>()
+defineProps<{ site: SiteSelect, siteLoader: unknown, slug: string }>()
 
 definePageMeta({
   title: 'Keyword Research',
   icon: 'i-heroicons-rocket-launch',
 })
 
-const state = reactive({
-  keywords: undefined,
-})
+interface KeywordResearchForm { keywords: string }
 
-function validate(state: any): FormError[] {
-  const errors = []
+const state = reactive<KeywordResearchForm>({ keywords: '' })
+
+function validate(state: KeywordResearchForm): FormError[] {
+  const errors: FormError[] = []
   if (!state.keywords)
-    errors.push({ path: 'keyword', message: 'Required' })
+    errors.push({ name: 'keywords', message: 'Required' })
   return errors
 }
 
-const response = ref(null)
-async function onSubmit(event: FormSubmitEvent<any>) {
+const response = ref<unknown>(null)
+async function onSubmit(event: FormSubmitEvent<KeywordResearchForm>) {
   // Do something with data
   response.value = await $fetch(`/api/keywords/history`, {
     method: 'POST',

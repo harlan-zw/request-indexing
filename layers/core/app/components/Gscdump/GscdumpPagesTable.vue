@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-const props = withDefaults(defineProps<{
+import type { Filter } from 'gscdump/query'
+
+const _props = withDefaults(defineProps<{
   siteId: string
   period?: import('~~/layers/core/app/composables/useGscdump').Period
   pageSize?: number
@@ -8,7 +10,7 @@ const props = withDefaults(defineProps<{
   pagination?: boolean
   excludeColumns?: string[]
   filter?: string
-  extraFilters?: Array<{ type: string, column: string, value: string }>
+  extraFilters?: Array<Filter<object>>
 }>(), {
   pageSize: 10,
   searchable: true,
@@ -26,8 +28,12 @@ const columns = [
 ]
 
 function pageToPath(url: string) {
-  try { return new URL(url).pathname }
-  catch { return url }
+  try {
+    return new URL(url).pathname
+  }
+  catch {
+    return url
+  }
 }
 </script>
 

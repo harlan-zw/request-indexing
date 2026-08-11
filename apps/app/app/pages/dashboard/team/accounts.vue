@@ -9,9 +9,11 @@ definePageMeta({
 const { data: members } = useFetch('/api/teams/members')
 
 const rows = computed(() => {
-  return (members.value || []).map((member: any) => {
+  return (members.value || []).map((member) => {
     return {
       user: member.user.name,
+      avatar: member.user.avatar,
+      email: member.user.email,
       role: member.role.replace(/\b\w/g, (c: string) => c.toUpperCase()),
     }
   })
@@ -23,14 +25,14 @@ const rows = computed(() => {
     <h2 class="mb-4 font-bold text-xl">
       Google Accounts
     </h2>
-    <UTable :rows="rows">
-      <template #user-data="{ index }">
+    <UTable :data="rows">
+      <template #user-cell="{ row }">
         <div class="flex items-center gap-2">
-          <UAvatar :src="members[index].user.avatar" />
+          <UAvatar :src="row.original.avatar ?? undefined" />
           <div>
-            <div>{{ members[index].user.name }}</div>
+            <div>{{ row.original.user }}</div>
             <div class="text-gray-400 text-xs">
-              {{ members[index].user.email }}
+              {{ row.original.email }}
             </div>
           </div>
         </div>

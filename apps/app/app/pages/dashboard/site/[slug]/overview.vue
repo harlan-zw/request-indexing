@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-const { site } = defineProps<{ site: any }>()
+import type { SiteSelect } from '#shared/types/database'
+
+const { site } = defineProps<{ site: SiteSelect & { gscdumpSiteId: string, property: string } }>()
 
 definePageMeta({
   layout: 'dashboard',
@@ -13,7 +15,7 @@ const tabItems = [
   { label: 'Declining', icon: 'i-ph-chart-line-down-duotone', description: 'Clicks diminishing compared to the previous period.' },
 ]
 const tab = ref(0)
-const currentTab = computed(() => tabItems[tab.value])
+const currentTab = computed(() => tabItems[tab.value] ?? tabItems[0]!)
 </script>
 
 <template>
@@ -21,13 +23,13 @@ const currentTab = computed(() => tabItems[tab.value])
     <div class="flex items-center gap-3">
       <div class="border border-dashed rounded-lg">
         <div class="max-w-sm">
-          <UPopover :popper="{ placement: 'bottom-end' }">
+          <UPopover :content="{ side: 'bottom', align: 'end' }">
             <template #default="{ open }">
               <UButton size="xs" color="neutral" :icon="currentTab.icon" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
                 <span class="truncate">{{ currentTab.label }}</span>
               </UButton>
             </template>
-            <template #panel>
+            <template #content>
               <div v-for="(item, i) in tabItems" :key="i">
                 <UButton size="lg" color="neutral" :icon="item.icon" variant="ghost" :class="[tab === i && 'bg-gray-50 dark:bg-gray-800']" @click="tab = i">
                   <div class="flex flex-col items-start">

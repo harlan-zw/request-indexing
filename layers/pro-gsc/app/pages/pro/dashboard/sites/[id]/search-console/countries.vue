@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { GscdumpDataRow } from '#layers/pro-gsc/app/composables/useProGscdump'
+import type { UiTableColumn, UiTableRow } from '~~/layers/design-system/components/data/table-features'
 import { h } from 'vue'
 import { UIcon } from '#components'
 import countries from '#layers/core/shared/shared/data/countries'
@@ -47,11 +48,11 @@ const {
   defaultSort: { column: 'clicks', direction: 'desc' },
 })
 
-const columns = [
+const columns: UiTableColumn<GscdumpDataRow>[] = [
   {
     accessorKey: 'country',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Country'),
-    cell: ({ row }: any) => {
+    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => {
       const details = countryDetails(row.original.country)
       return h('div', { class: 'flex items-center gap-2' }, [
         h(UIcon, { name: details.flag, class: 'size-4 shrink-0' }),
@@ -63,25 +64,25 @@ const columns = [
     accessorKey: 'clicks',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Clicks'),
     meta: { align: 'right' as const },
-    cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.clicks)),
+    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.clicks)),
   },
   {
     accessorKey: 'impressions',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Impressions'),
     meta: { align: 'right' as const },
-    cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.impressions)),
+    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.impressions)),
   },
   {
     accessorKey: 'ctr',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'CTR'),
     meta: { align: 'right' as const },
-    cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums' }, `${formatMetric((row.original.ctr ?? 0) * 100, 1)}%`),
+    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, `${formatMetric((row.original.ctr ?? 0) * 100, 1)}%`),
   },
   {
     accessorKey: 'position',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Position'),
     meta: { align: 'right' as const },
-    cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.position, 1)),
+    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.position, 1)),
   },
 ]
 

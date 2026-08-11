@@ -1,22 +1,25 @@
-<script lang="ts" setup generic="T extends Record<string, any>[], I extends T[0]">
+<script lang="ts" setup generic="I extends { date: string | number | Date, clicks: number, impressions: number, position: number, ctr: number }">
 import { Area, Scale } from '@unovis/ts'
 import { VisArea, VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue'
 import { addDays, format, subDays } from 'date-fns'
 import { graphLineMode } from '~~/layers/core/app/composables/state'
 
+type MetricKey = 'clicks' | 'impressions' | 'position' | 'ctr'
+
 const props = defineProps<{
-  value: T
-  columns?: (keyof I | { key: keyof I, type: 'area' | 'line' })[]
-  colors?: Record<keyof I, string>
+  value: I[]
+  columns?: (MetricKey | { key: MetricKey, type: 'area' | 'line' })[]
+  colors?: Partial<Record<MetricKey, string>>
   height?: number | string
   labels?: boolean
 }>()
 
 const emits = defineEmits<{
-  tooltip: [data: T | null]
+  tooltip: [data: I | null]
 }>()
 
-const { value } = toRefs(props)
+const value = computed(() => props.value)
+const selectedColumns = computed(() => props.columns ?? [])
 
 const y = computed(() => {
   return props.columns?.map((col) => {
@@ -47,7 +50,7 @@ function tickFormat(d: number) {
 }
 
 let isMouseOver = false
-function template(d: DataRecord) {
+function template(d: I) {
   if (isMouseOver) {
     emits('tooltip', d)
   }
@@ -65,7 +68,7 @@ const events = {
     mouseover: () => {
       isMouseOver = true
     },
-    mouseleave: (data: DataRecord[]) => {
+    mouseleave: () => {
       isMouseOver = false
       emits('tooltip', null)
     },
@@ -73,21 +76,22 @@ const events = {
 }
 
 const positionScale = computed(() => Scale.scaleLinear()
-  .domain([Math.min(...value.value.map((d: any) => d.position)), Math.max(...value.value.map((d: any) => d.position))])
+  .domain([Math.min(...value.value.map(d => d.position)), Math.max(...value.value.map(d => d.position))])
   .range([80, 0]))
 
 const clicksScale = computed(() => Scale.scaleLinear()
-  .domain([Math.min(...value.value.map((d: any) => d.clicks)), Math.max(...value.value.map((d: any) => d.clicks))])
+  .domain([Math.min(...value.value.map(d => d.clicks)), Math.max(...value.value.map(d => d.clicks))])
   .range([80, 0]))
 
 const ctrScale = computed(() => Scale.scaleLinear()
-  .domain([Math.min(...value.value.map((d: any) => d.ctr * 100)), Math.max(...value.value.map((d: any) => d.ctr * 100))])
+  .domain([Math.min(...value.value.map(d => d.ctr * 100)), Math.max(...value.value.map(d => d.ctr * 100))])
   .range([80, 0]))
 
 const clicks = (d: I) => d.clicks
 const position = (d: I) => d.position
 const ctr = (d: I) => d.ctr * 100
 const impressions = (d: I) => d.impressions
+const x = (_d: I, index: number) => index
 </script>
 
 <template>
@@ -98,12 +102,12 @@ const impressions = (d: I) => d.impressions
     <!--    /> -->
     <VisXYContainer height="100" :data="value" :svg-defs="svgDefs" class="graph-next">
       <!--  impressions  -->
-      <VisLine v-if="columns.includes('impressions')" :curve-type="graphLineMode" :data="value" :x="(d, i) => i" color="rgba(156, 39, 176, 0.7)" :y="impressions" :events="events" />
+      <VisLine v-if="selectedColumns.includes('impressions')" :curve-type="graphLineMode" :data="value" :x="x" color="rgba(156, 39, 176, 0.7)" :y="impressions" :events="events" />
       <!--  clicks  -->
-      <VisArea v-if="columns.includes('clicks')" color="url(#gradient0)" :x="(d, i) => i" :y-scale="clicksScale" :y="clicks" />
+      <VisArea v-if="selectedColumns.includes('clicks')" color="url(#gradient0)" :x="x" :y-scale="clicksScale" :y="clicks" />
       <!--  position  -->
-      <VisLine v-if="columns.includes('position')" :x="(d, i) => i" :y-scale="positionScale" :y="position" color="orange" />
-      <VisLine v-if="columns.includes('ctr')" :x="(d, i) => i" :y="ctr" :y-scale="ctrScale" color="green" />
+      <VisLine v-if="selectedColumns.includes('position')" :x="x" :y-scale="positionScale" :y="position" color="orange" />
+      <VisLine v-if="selectedColumns.includes('ctr')" :x="x" :y="ctr" :y-scale="ctrScale" color="green" />
       <VisCrosshair :template="template" />
       <VisTooltip />
       <VisAxis type="x" tick-text-align="left" :tick-line="false" :grid-line="false" :num-ticks="3" :tick-format="tickFormat" tick-padding="0" tick-text-font-size="10px" />

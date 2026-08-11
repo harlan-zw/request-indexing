@@ -45,7 +45,6 @@ export default defineProApiHandler({ body: bodySchema }, async ({ db, caller, bo
     requestedUrl: site.property || simpleDomain,
     gscPropertyUrl: body.gscSiteUrl,
     webhookUrl: getGscdumpWebhookUrl(),
-    webhookEvents: ['user.lifecycle.changed', 'site.lifecycle.changed', 'site.analytics.ready', 'site.indexing.ready', 'site.auth.failed', 'job.failed'],
   }).catch((err) => {
     const statusCode = err.statusCode || err.status || 500
     const message = err.data?.message || err.message || 'Registration failed'

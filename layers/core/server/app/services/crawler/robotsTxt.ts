@@ -114,15 +114,15 @@ export function parseRobotsTxt(s: string): ParsedRobotsTxt {
   }
 }
 
-export function asArray(v: any) {
-  return typeof v === 'undefined' ? [] : (Array.isArray(v) ? v : [v])
+export function asArray<T>(value: Arrayable<T> | undefined): T[] {
+  return value === undefined ? [] : (Array.isArray(value) ? value : [value])
 }
 
 export function indexableFromGroup(groups: RobotsGroupInput[], path: string) {
   let indexable = true
-  const wildCardGroups = groups.filter((group: any) => asArray(group.userAgent).includes('*'))
+  const wildCardGroups = groups.filter(group => asArray(group.userAgent).includes('*'))
   for (const group of wildCardGroups) {
-    if (asArray(group.disallow).includes((rule: string) => rule === '/'))
+    if (asArray(group.disallow).includes('/'))
       return false
     const hasDisallowRule = asArray(group.disallow)
       // filter out empty rule

@@ -25,7 +25,7 @@ export default defineMcpGscSiteTool({
       const result = await gscdump.getSitemaps(site.gscdumpSiteId)
       return jsonResult({
         site: site.url,
-        sitemaps: result.sitemaps.map((s: any) => ({
+        sitemaps: result.sitemaps.map(s => ({
           path: s.path,
           type: s.type || 'sitemap',
           isIndex: s.isSitemapsIndex || false,
@@ -34,7 +34,7 @@ export default defineMcpGscSiteTool({
           errors: s.errors || 0,
           warnings: s.warnings || 0,
           isPending: s.isPending || false,
-          contents: s.contents?.map((c: any) => ({
+          contents: s.contents?.map(c => ({
             type: c.type,
             submitted: c.submitted,
             indexed: c.indexed,

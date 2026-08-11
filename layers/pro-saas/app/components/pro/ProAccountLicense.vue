@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  session: any
+  session: { subscriptionStatus?: string | null }
 }>()
 const emit = defineEmits<{ refresh: [] }>()
 const proFetch = useProFetch()
@@ -16,7 +16,12 @@ function linkStripe() {
     body: { email: stripeEmail.value },
   })
     .then(() => emit('refresh'))
-    .catch((e) => { linkError.value = e.data?.message || 'Failed to link account' })
+    .catch((error: unknown) => {
+      const data = typeof error === 'object' && error !== null && 'data' in error ? error.data : undefined
+      linkError.value = typeof data === 'object' && data !== null && 'message' in data && typeof data.message === 'string'
+        ? data.message
+        : 'Failed to link account'
+    })
     .finally(() => { linking.value = false })
 }
 

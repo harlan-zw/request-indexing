@@ -1,19 +1,19 @@
 <script setup lang="ts">
+import type { ContentNavigationItem } from '@nuxt/content'
+
 interface RelatedPage {
   path: string
   title: string
 }
 
-interface SurroundLink {
-  _path: string
-  title: string
-  description?: string
-}
+type ContentSurroundLink = ContentNavigationItem & { description?: string }
 
-defineProps<{
-  surround?: (SurroundLink | null)[]
+const props = defineProps<{
+  surround?: (ContentSurroundLink | null)[]
   relatedPages?: RelatedPage[]
 }>()
+
+const contentSurround = computed(() => props.surround?.filter((link): link is ContentSurroundLink => link !== null) ?? [])
 </script>
 
 <template>
@@ -35,6 +35,6 @@ defineProps<{
         </UButton>
       </div>
     </div>
-    <UContentSurround v-if="surround?.filter(Boolean).length" :surround="surround as any" />
+    <UContentSurround v-if="contentSurround.length" :surround="contentSurround" />
   </div>
 </template>

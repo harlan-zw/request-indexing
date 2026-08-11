@@ -27,10 +27,16 @@ interface QueuePayload {
   env: Record<string, unknown>
 }
 
+declare module 'nitropack' {
+  interface NitroRuntimeHooks {
+    'cloudflare:queue': (payload: QueuePayload) => void | Promise<void>
+  }
+}
+
 const JOB_QUEUES = ['ri-default']
 
 export default defineNitroPlugin((nitroApp) => {
-  nitroApp.hooks.hook('cloudflare:queue' as any, async (payload: QueuePayload) => {
+  nitroApp.hooks.hook('cloudflare:queue', async (payload) => {
     const { batch, env } = payload
 
     if (JOB_QUEUES.includes(batch.queue)) {

@@ -4,20 +4,21 @@ import { eq } from 'drizzle-orm'
 import { getQuery } from 'ufo'
 import { users } from '~~/layers/core/server/db/schema'
 
-const wsHooks = new Map<string, () => void>()
+const wsHooks = new Map<number, () => void>()
 
 export default defineWebSocketHandler({
   async open(peer) {
     const userId = getUserId(peer)
     // convert public id to user id
     const user = await useDrizzle().query.users.findFirst({
-      where: eq(users.publicId, userId),
+      where: eq(users.userId, userId),
     })
     if (!user)
       return
 
     const nitro = useNitroApp()
-    wsHooks.set(userId, (nitro.hooks as any).hook(`ws:message:${user.publicId}`, (message: unknown) => {
+    const hook = nitro.hooks.hook as unknown as (name: `ws:message:${string}`, callback: (message: unknown) => void) => () => void
+    wsHooks.set(userId, hook(`ws:message:${user.publicId}`, (message) => {
       peer.send(stringify(message))
     }))
   },
@@ -41,6 +42,6 @@ export default defineWebSocketHandler({
 })
 
 function getUserId(peer: Peer) {
-  const query = getQuery((peer as any).url || '')
-  return query.userId as string
+  const query = getQuery(peer.request.url || '')
+  return Number(query.userId)
 }

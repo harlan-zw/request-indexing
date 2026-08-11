@@ -1,3 +1,4 @@
+import type { H3Event } from 'h3'
 import { logger } from '~~/shared/server/logger'
 import { safeAuthRedirect } from '../../../shared/utils/auth-redirect'
 import { attachIdentityToCurrentSession, signInOrCreate } from '../../utils/auth/finalize'
@@ -13,13 +14,14 @@ function buildHandler(providerId: string) {
   if (!provider)
     return null
 
-  const sharedOnError = (event: any, error: any) => {
+  const sharedOnError = (event: H3Event, error: unknown) => {
     logger.error(`[auth/${providerId}] OAuth error:`, error)
-    return sendRedirect(event, `/pro?error=${encodeURIComponent(error?.message || 'auth_failed')}`)
+    const message = error instanceof Error ? error.message : 'auth_failed'
+    return sendRedirect(event, `/pro?error=${encodeURIComponent(message)}`)
   }
 
-  const sharedOnSuccess = async (event: any, ctx: any) => {
-    const identity = await provider.resolveIdentity(event, ctx)
+  const sharedOnSuccess = async (event: H3Event, context: unknown) => {
+    const identity = await provider.resolveIdentity(event, context)
     // Google sign-in requires verified email — primary identifier is sub, but
     // unverified emails are not trustworthy enough to allow account creation.
     if (providerId === 'google' && !identity.emailVerified) {

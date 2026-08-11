@@ -28,15 +28,16 @@ import {
   usages,
   userSites,
 } from '~~/layers/core/server/db/schema'
+import { dispatchEvent } from '#domain-events/server'
 import { sites } from '#layers/pro-saas/server/database'
-import { dispatchProEvent } from '#layers/pro-saas/server/utils/dispatch'
 import { defineProApiHandler, getProLogger } from '#layers/pro-saas/server/utils/handler'
 
 export default defineProApiHandler(async (event) => {
   const access = await requireTeamSite(event, { ability: 'manage-sites' })
   const { db, site, team, caller } = access
 
-  await dispatchProEvent(event, 'pro:site:removed', {
+  await dispatchEvent('pro:site:removed', {
+    event,
     siteId: site.siteId,
     teamId: team.teamId,
     userId: caller.user.id,

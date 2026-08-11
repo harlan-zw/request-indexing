@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { SiteSelect } from '#shared/types/database'
-import type { SitesPreview } from '~~/layers/core/app/types'
+import type { SitePreview, SitesPreview } from '~~/layers/core/app/types'
 import { useFriendlySiteUrl, useHumanFriendlyNumber } from '~~/layers/design-system/composables/formatting'
 
 const props = defineProps<{
@@ -17,7 +16,7 @@ const data = ref<SitesPreview>(props.sites)
 
 // const isPending = computed(() => !props.sites.length)
 
-const selected = ref<SiteSelect[]>(props.modelValue)
+const selected = ref<string[]>([...props.modelValue])
 const maxSites = 3
 
 watch(selected, () => {
@@ -25,7 +24,7 @@ watch(selected, () => {
 })
 
 const toast = useToast()
-function select(row: SiteSelect) {
+function select(row: SitePreview) {
   if (!selected.value.includes(row.siteId)) {
     if (selected.value.length < maxSites)
       selected.value.push(row.siteId)
@@ -40,10 +39,10 @@ function select(row: SiteSelect) {
 const sitePage = ref(1)
 const pageCount = 6
 
-const siteRows = computed<SiteSelect[]>(() => {
+const siteRows = computed<SitePreview[]>(() => {
   return (data.value || []).map((site) => {
-    const sitemapWarningsCount = site.sitemaps?.reduce((acc, curr) => acc + (Number.parseInt(curr.warnings) || 0), 0)
-    const sitemapErrorsCount = site.sitemaps?.reduce((acc, curr) => acc + (Number.parseInt(curr.errors) || 0), 0)
+    const sitemapWarningsCount = site.sitemaps?.reduce((acc, curr) => acc + (Number(curr.warnings) || 0), 0)
+    const sitemapErrorsCount = site.sitemaps?.reduce((acc, curr) => acc + (Number(curr.errors) || 0), 0)
     return {
       ...site,
       sitemapWarningsCount,
@@ -52,7 +51,7 @@ const siteRows = computed<SiteSelect[]>(() => {
   }).sort((a, b) => b.pageCount30Day - a.pageCount30Day)
 })
 
-const paginatedSites = computed<SiteSelect[]>(() => {
+const paginatedSites = computed<SitePreview[]>(() => {
   return siteRows.value.slice((sitePage.value - 1) * pageCount, (sitePage.value) * pageCount)
 })
 
@@ -66,7 +65,7 @@ onMounted(() => {
   //   }
   // })
   if (!selected.value?.length)
-    selected.value = siteRows.value.filter(s => props.modelValue.includes(s.siteId))
+    selected.value = siteRows.value.map(s => s.siteId).filter(id => props.modelValue.includes(id))
 })
 
 // const tableSelectedRows = computed(() => {
@@ -78,7 +77,9 @@ const nuxtApp = useNuxtApp()
 const sideEffects: (() => void)[] = []
 async function resync() {
   // we need to wait for the ws to update the sites
-  sideEffects.push(nuxtApp.hooks.hook('app:users:syncGscSites', (ctx) => {
+  interface SyncContext { syncedSites: number, createdSites: number }
+  const hook = nuxtApp.hooks.hook as unknown as (name: 'app:users:syncGscSites', callback: (ctx: SyncContext) => void) => () => void
+  sideEffects.push(hook('app:users:syncGscSites', (ctx) => {
     isSyncing.value = false
     toast.add({ title: 'Google Search Console Synced', description: `Found ${ctx.syncedSites} existing sites and ${ctx.createdSites} new sites.`, color: 'success' })
     sideEffects.forEach(fn => fn())
@@ -103,12 +104,12 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2 mb-1">
                 <SiteFavicon :site="site" />
                 <div class="font-bold text-gray-800 dark:text-gray-100">
-                  {{ useFriendlySiteUrl(site.domain || site.property) }}
+                  {{ useFriendlySiteUrl(site.domain) }}
                 </div>
               </div>
               <div class="flex gap-2 text-xs">
                 <div>
-                  {{ site.property.startsWith('sc-domain:') ? 'Domain' : 'URL' }} Property
+                  {{ site.domain.startsWith('sc-domain:') ? 'Domain' : 'URL' }} Property
                 </div>
                 <div v-if="!site.pageCount30Day">
                   <UIcon name="i-ph-arrows-clockwise-duotone" class="w-4 h-4 animate-spin" />

@@ -37,7 +37,7 @@ export const uiTableFeatures = tableFeatures({
 })
 
 export type UiTableFeatures = typeof uiTableFeatures
-export type UiTableColumn<T extends RowData> = ColumnDef<UiTableFeatures, T, any>
+export type UiTableColumn<T extends RowData> = ColumnDef<UiTableFeatures, T, unknown>
 export type UiTableRow<T extends RowData> = Row<UiTableFeatures, T>
 
 export interface UiTableProps<T extends RowData> {
@@ -55,7 +55,7 @@ export interface UiTableProps<T extends RowData> {
   size?: 'xs' | 'sm' | 'md'
   loading?: boolean
   loadingRows?: number
-  rowId?: string | ((row: T) => string)
+  rowId?: Extract<keyof T, string> | ((row: T) => string)
   manualPagination?: boolean
   disablePagination?: boolean
   total?: number

@@ -747,7 +747,7 @@ const zoomRangeLabel = computed(() => {
           :full-prev-value="fullPrev"
           :columns="selectedColumns"
           :loading="loading"
-          @tooltip="(d: any, p: any, e: boolean) => onTooltip(d, p, e)"
+          @tooltip="onTooltip"
         />
 
         <!-- Empty state -->

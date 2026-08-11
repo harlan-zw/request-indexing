@@ -92,10 +92,10 @@ export async function cancelStripeSubscription(event: H3Event, subscriptionId: s
   const stripe = useStripeClient(event)
   return stripe.subscriptions.cancel(subscriptionId)
     .then(sub => ({ ok: true, status: sub.status }))
-    .catch((err: any) => ({
+    .catch((error: unknown) => ({
       ok: false,
-      status: err?.statusCode,
-      message: err?.message || String(err),
+      status: typeof error === 'object' && error !== null && 'statusCode' in error ? String(error.statusCode) : undefined,
+      message: error instanceof Error ? error.message : String(error),
     }))
 }
 

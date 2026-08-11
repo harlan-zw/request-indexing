@@ -1,4 +1,3 @@
-import type { SitemapperResponse } from 'sitemapper'
 import type { ParsedRobotsTxt } from './robotsTxt'
 import { $fetch } from 'ofetch'
 import { withBase } from 'ufo'
@@ -79,7 +78,7 @@ export async function processPage(options: { robots: ParsedRobotsTxt, url: strin
   if (location && location !== url)
     return { indexable: false, reason: 'redirect' }
 
-  const html = String((res as any)._data ?? '')
+  const html = String(res._data ?? '')
 
   // check for robots meta tag blocking page, need to use regex here
   // tag may have noindex, but also "noindex, nofollow" or "nofollow, noindex"

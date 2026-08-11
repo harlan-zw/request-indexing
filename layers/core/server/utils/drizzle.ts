@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import type { BatchItem } from 'drizzle-orm/batch'
 import { drizzle } from 'drizzle-orm/d1'
 import * as schema from '../db/schema'
 
@@ -22,8 +23,11 @@ export function useDrizzle(event?: H3Event) {
   }
 
   // Try to get from global context (for background tasks, etc.)
-  // @ts-expect-error - globalThis may have cloudflare context
-  const globalD1 = globalThis.__env__?.DB || globalThis.DB
+  const bindings = globalThis as typeof globalThis & {
+    __env__?: { DB?: D1Database }
+    DB?: D1Database
+  }
+  const globalD1 = bindings.__env__?.DB || bindings.DB
   if (globalD1) {
     _db = drizzle(globalD1, { schema })
     return _db
@@ -35,23 +39,24 @@ export function useDrizzle(event?: H3Event) {
 /**
  * We can't send more than a certain kb threshold to the db at once, we need to chunk them up further.
  */
-export async function chunkedBatch<T extends any[]>(arr: T, chunkSize: number = 0): Promise<any[] | void> {
+export async function chunkedBatch<T extends BatchItem<'sqlite'>>(arr: readonly T[], chunkSize: number = 0): Promise<void> {
   const db = useDrizzle()
   // dynamic chunk size based on arr length with cloudflare worker and d1 limits
   if (chunkSize === 0) {
     chunkSize = Math.max(100, Math.ceil(arr.length / 100))
   }
-  const chunks: T[][] = arr.reduce((acc: any[], val) => {
-    if (acc.length === 0 || acc[acc.length - 1].length >= chunkSize)
+  const chunks = arr.reduce<T[][]>((acc, val) => {
+    if (acc.length === 0 || acc[acc.length - 1]!.length >= chunkSize)
       acc.push([])
 
-    acc[acc.length - 1].push(val)
+    acc[acc.length - 1]!.push(val)
     return acc
   }, [])
 
   await Promise.all(chunks.map(async (workload) => {
-    if (workload.length)
-      await db.batch(workload as unknown as readonly [any, ...any[]])
+    const [first, ...rest] = workload
+    if (first)
+      await db.batch([first, ...rest])
   }))
 }
 

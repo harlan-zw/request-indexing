@@ -5,6 +5,7 @@ import type { teamCreateSchema, teamMemberRoleUpdateSchema, teamUpdateSchema } f
 import type { CurrentTeamContext } from '../utils/require-current-team'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import { logWarn } from '~~/shared/logging'
+import { dispatchEvent } from '#domain-events/server'
 import { findIdentityByProviderEmail } from '#layers/pro-saas-auth/server/utils/auth/identity'
 import { ProError } from '../../shared/errors'
 import {
@@ -16,7 +17,6 @@ import {
   userIdentities,
   users,
 } from '../database'
-import { dispatchProEvent } from '../utils/dispatch'
 import { generatePlaintextToken, hashToken, tokenLast4 } from '../utils/team-domain'
 
 type DB = ReturnType<typeof useDrizzle>
@@ -242,7 +242,8 @@ export async function updateTeamMemberRole(
       metadata: { from: previous.role, to: input.role },
     })
 
-    await dispatchProEvent(event, 'pro:membership:role-changed', {
+    await dispatchEvent('pro:membership:role-changed', {
+      event,
       teamId: ctx.team.teamId,
       userId: targetUserId,
       role: input.role,
@@ -277,7 +278,8 @@ export async function removeTeamMember(event: H3Event, ctx: CurrentTeamContext, 
     metadata: previous ? { role: previous.role } : null,
   })
 
-  await dispatchProEvent(event, 'pro:membership:removed', {
+  await dispatchEvent('pro:membership:removed', {
+    event,
     teamId: ctx.team.teamId,
     userId: targetUserId,
     role: previous?.role ?? 'unknown',

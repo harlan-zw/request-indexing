@@ -16,10 +16,10 @@ import type { WebhookEnvelope } from '@gscdump/contracts'
 import { parseWebhookPayloadResult, WEBHOOK_SIGNATURE_HEADER } from '@gscdump/sdk/webhook'
 import { eq } from 'drizzle-orm'
 import { logWarn } from '~~/shared/logging'
+import { dispatchEvent } from '#domain-events/server'
 import { scheduleGscdumpOnboardingReconcile } from '#layers/pro-gsc/server/utils/reconcile-gscdump-onboarding'
 import { syncStatusPatch } from '#layers/pro-gsc/shared/utils/gscdump-webhook'
 import { sites, users } from '#layers/pro-saas/server/database'
-import { dispatchProEvent } from '#layers/pro-saas/server/utils/dispatch'
 
 // Events that mean "the account or property state moved"; re-read lifecycle so
 // onboarding converges without waiting for the reconcile cron.
@@ -117,7 +117,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await dispatchProEvent(event, 'pro:gsc:webhook', {
+  await dispatchEvent('pro:gsc:webhook', {
+    event,
     envelope,
     userId: localUser.userId,
     siteId: localSite?.siteId ?? null,

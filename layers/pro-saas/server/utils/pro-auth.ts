@@ -100,7 +100,7 @@ export async function validatePlaintextProToken(event: H3Event, apiKey: string) 
 
   // core `sites` has no direct teamId; team→site relation lives on `team_sites`.
   // Until pro-gsc / pro-saas resync the team-site join, expose an empty list.
-  const teamSites: Awaited<ReturnType<typeof db.select>> = [] as any
+  const teamSites: Array<Record<string, never>> = []
 
   return {
     user,

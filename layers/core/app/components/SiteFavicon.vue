@@ -1,8 +1,6 @@
 <script lang="ts" setup>
-import type { SiteSelect } from '#shared/types/database'
-
 defineProps<{
-  site: SiteSelect
+  site: { domain: string }
 }>()
 </script>
 

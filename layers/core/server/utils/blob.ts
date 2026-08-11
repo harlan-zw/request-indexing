@@ -14,8 +14,11 @@ function getR2Bucket(event?: H3Event): R2Bucket {
       return bucket
   }
 
-  // @ts-expect-error - globalThis may have cloudflare context
-  const globalBucket = globalThis.__env__?.BLOB || globalThis.BLOB
+  const bindings = globalThis as typeof globalThis & {
+    __env__?: { BLOB?: R2Bucket }
+    BLOB?: R2Bucket
+  }
+  const globalBucket = bindings.__env__?.BLOB || bindings.BLOB
   if (globalBucket)
     return globalBucket
 

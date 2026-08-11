@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TableColumn } from '@nuxt/ui'
 import type { AnalysisPreset, GscdumpAnalysisParams, GscdumpAnalysisResult } from '~~/layers/core/app/composables/useGscdump'
 
 const props = defineProps<{
@@ -40,7 +41,12 @@ watch(search, () => {
   page.value = 1
 })
 
-const presetColumns: Record<string, Array<{ key: string, label: string }>> = {
+interface AnalysisColumn {
+  key: keyof GscdumpAnalysisResult
+  label: string
+}
+
+const presetColumns: Record<string, AnalysisColumn[]> = {
   'striking-distance': [
     { key: 'keyword', label: 'Keyword' },
     { key: 'position', label: 'Position' },
@@ -106,18 +112,24 @@ const presetColumns: Record<string, Array<{ key: string, label: string }>> = {
 }
 
 const columns = computed(() => presetColumns[props.preset] || presetColumns['non-brand'])
+const tableColumns = computed<TableColumn<GscdumpAnalysisResult>[]>(() => (columns.value ?? []).map(column => ({
+  accessorKey: column.key,
+  header: column.label,
+})))
 
-function formatCell(row: GscdumpAnalysisResult, key: string) {
-  const v = (row as any)[key]
+function formatCell(row: GscdumpAnalysisResult, key: keyof GscdumpAnalysisResult) {
+  const v = row[key]
   if (v == null)
     return '-'
-  if (key === 'ctr')
+  if (key === 'ctr' && typeof v === 'number')
     return `${useHumanFriendlyNumber(v * 100, 1)}%`
-  if (key === 'clicksChangePercent' || key === 'decayPercent')
+  if ((key === 'clicksChangePercent' || key === 'decayPercent') && typeof v === 'number')
     return `${useHumanFriendlyNumber(v, 1)}%`
-  if (key === 'position')
+  if (key === 'position' && typeof v === 'number')
     return useHumanFriendlyNumber(v, 1)
-  return useHumanFriendlyNumber(v)
+  if (Array.isArray(v))
+    return v.join(', ')
+  return typeof v === 'number' ? useHumanFriendlyNumber(v) : v
 }
 </script>
 
@@ -179,19 +191,19 @@ function formatCell(row: GscdumpAnalysisResult, key: string) {
 
     <UTable
       :loading="status === 'pending'"
-      :rows="data?.keywords || []"
-      :columns="columns"
+      :data="data?.keywords || []"
+      :columns="tableColumns"
       :ui="{
         th: 'px-2 py-2 text-xs font-normal',
         td: 'px-2 py-1',
       }"
     >
-      <template #keyword-data="{ row }">
-        <span class="text-xs text-blue-600">{{ row.keyword }}</span>
+      <template #keyword-cell="{ row }">
+        <span class="text-xs text-blue-600">{{ row.original.keyword }}</span>
       </template>
-      <template v-for="col in columns.filter(c => c.key !== 'keyword')" :key="col.key" #[`${col.key}-data`]="{ row }">
+      <template v-for="col in columns?.filter(c => c.key !== 'keyword')" :key="col.key" #[`${String(col.key)}-cell`]="{ row }">
         <div class="text-right font-mono text-xs">
-          {{ formatCell(row, col.key) }}
+          {{ formatCell(row.original, col.key) }}
         </div>
       </template>
     </UTable>

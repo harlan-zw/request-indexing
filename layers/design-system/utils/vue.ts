@@ -62,7 +62,7 @@ export function getSlotTextContent(slot: Slot): string {
  * // input (receives modified input size)
  * const { inputSize } = useFormLayout(props)
  */
-export function makeProvider<T extends Record<string, any>>(
+export function makeProvider<T extends object>(
   key: string,
   defaults: T,
 ) {
@@ -98,7 +98,7 @@ export function makeProvider<T extends Record<string, any>>(
     return Object.fromEntries(
       Object.keys(defaults).map(key => [
         key,
-        computed(() => context.value[key]),
+        computed(() => context.value[key as keyof T]),
       ]),
     ) as { [K in keyof T]: ComputedRef<T[K]> }
   }
@@ -108,20 +108,21 @@ export function deepUnref<T>(obj: T): T {
   const value = toValue(obj)
 
   if (!value || typeof value !== 'object') {
-    return value as any
+    return value as T
   }
 
   if (Array.isArray(value)) {
-    return value.map(deepUnref) as any
+    return value.map(deepUnref) as T
   }
 
-  const result: Record<string, any> = {}
+  const result: Record<string, unknown> = {}
+  const record = value as Record<string, unknown>
   for (const key in value) {
     // Skip Vue's internal ref properties
     if (key.startsWith('__v_') || key === '_rawValue' || key === '_value') {
       continue
     }
-    result[key] = deepUnref(value[key])
+    result[key] = deepUnref(record[key])
   }
   return result as T
 }

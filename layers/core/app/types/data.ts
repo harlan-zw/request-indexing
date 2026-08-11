@@ -14,8 +14,26 @@ export interface GscDataComparison<T extends GscDataRow> {
 export interface SitePage extends GscDataRow {
   url: string
   lastInspected?: number
-  inspectionResult?: any
-  urlNotificationMetadata?: any
+  inspectionResult?: {
+    inspectionResultLink?: string
+    indexStatusResult?: {
+      verdict?: string
+      coverageState?: string
+      robotsTxtState?: string
+      indexingState?: string
+      lastCrawlTime?: string
+    }
+  }
+  urlNotificationMetadata?: {
+    latestUpdate?: { notifyTime?: string, type?: string }
+  }
+}
+
+export interface SitemapSummary {
+  path?: string
+  errors?: number | string
+  warnings?: number | string
+  [key: string]: unknown
 }
 
 export interface UserSite {
@@ -48,7 +66,7 @@ export interface SiteAnalytics {
       totalImpressions: number
     }
   }
-  sitemaps: any[]
+  sitemaps: SitemapSummary[]
   indexedUrls: string[]
   period: {
     url: string
@@ -90,7 +108,7 @@ export interface SiteExpanded extends SiteAnalytics {
 }
 
 export interface SitePreview {
-  sitemaps: any[]
+  sitemaps: SitemapSummary[]
   siteId: string
   domain: string
   pageCount30Day: number

@@ -28,7 +28,7 @@ const totalSites = ref(0)
 
 async function refresh() {
   // TODO avoid duplicate fetches
-  data.value = await $fetch('/api/sites/preview', {
+  const response = await $fetch('/api/sites/preview', {
     // query: {
     //   force: 'true',
     // },
@@ -36,18 +36,26 @@ async function refresh() {
     .finally(() => {
       pending.value = false
     })
-    .then(s => s.sites)
-  if (data.value.filter(s => !!s.lastSynced).length)
-    isSetup.value = true
+  data.value = response.sites.map((site): SitePreview => ({
+    ...site,
+    domain: site.domain ?? '',
+    startOfData: site.startOfData ?? '',
+    sitemaps: site.sitemaps.map(sitemap => ({
+      path: typeof sitemap.path === 'string' ? sitemap.path : undefined,
+      errors: typeof sitemap.errors === 'string' || typeof sitemap.errors === 'number' ? sitemap.errors : undefined,
+      warnings: typeof sitemap.warnings === 'string' || typeof sitemap.warnings === 'number' ? sitemap.warnings : undefined,
+    })),
+  }))
+  isSetup.value = response.jobStatus === 'ready'
 
   key.value++
 }
 
 const { user, fetch } = useUserSession()
 
-const isPending = computed(() => pending.value || data.value?.isPending)
+const isPending = computed(() => pending.value)
 const backups = ref(true)
-const selectedSites = ref<string[]>(siteData.value?.sites?.map(s => s.siteId) || [])
+const selectedSites = ref<string[]>(siteData.value?.sites?.map(s => String(s.siteId)) || [])
 const maxSites = 6
 const toast = useToast()
 const submitError = ref('')
@@ -89,14 +97,14 @@ let ws: WebSocket | undefined
 
 async function connect() {
   const isSecure = location.protocol === 'https:'
-  const url = `${(isSecure ? 'wss://' : 'ws://') + location.host}/_ws?userId=${user.value!.userId}`
+  const url = `${(isSecure ? 'wss://' : 'ws://') + location.host}/_ws?userId=${user.value!.id}`
   ws && ws.close()
 
   ws = new WebSocket(url)
 
   ws.addEventListener('message', ({ data }) => {
-    const job = JSON.parse(data) as { name: keyof TaskMap, payload: any }
-    const payload = JSON.parse(job.payload)
+    const job = JSON.parse(data) as { name: keyof TaskMap, payload: string }
+    const payload = JSON.parse(job.payload) as { sites: unknown[] }
     if (job.name === 'sites/setup') {
       if (payload.sites.length > 1)
         totalSites.value += payload.sites.length

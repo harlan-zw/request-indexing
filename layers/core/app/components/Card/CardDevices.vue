@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-const props = defineProps<{ devices: { period: any[], prevPeriod: any[] } }>()
+interface DeviceTraffic {
+  device: string
+  country: string
+  clicks: number
+  keywords: number
+}
+
+const props = defineProps<{ devices: { period: DeviceTraffic[], prevPeriod: DeviceTraffic[] } }>()
 
 const { devices } = toRefs(props)
 

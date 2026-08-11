@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AnalysisResult } from '@gscdump/engine/analysis-types'
 import type { BuilderState, GscdumpDataDetailResponse, Period } from '#layers/pro-gsc/shared/public'
+import { eq, page, queryCanonical } from 'gscdump/query'
 import { useProGscdump } from '#layers/pro-gsc/app/composables/useProGscdump'
 import { useTrackGscEngine } from '../../composables/useGscEngineStats'
 import { useGscQuery } from '../../composables/useGscQuery'
@@ -21,12 +22,12 @@ const container = useTemplateRef<HTMLElement>('container')
 // Build query state for trend data
 const trendState = computed<BuilderState>(() => {
   const range = periodToDateRange(props.period ?? '28d')
-  const filterColumn = props.type === 'page' ? 'page' : 'queryCanonical'
+  const filterColumn = props.type === 'page' ? page : queryCanonical
   return {
     dimensions: ['date'],
     filter: andFilter(
       dateFilter(range),
-      { type: 'equals', column: filterColumn, value: props.identifier },
+      eq(filterColumn, props.identifier),
     ),
     orderBy: { column: 'date', dir: 'asc' },
   }

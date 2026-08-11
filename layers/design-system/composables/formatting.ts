@@ -53,9 +53,9 @@ export function useFriendlySiteUrl(url: MaybeRef<string>) {
   return format(url)
 }
 
-export function formatIndexingTimeAgo(date: string, absAgo?: boolean): string
-export function formatIndexingTimeAgo(date: MaybeRef<string>, absAgo?: boolean): string | ComputedRef<string> {
-  const format = (_d: string) => {
+export function formatIndexingTimeAgo(date: string | number, absAgo?: boolean): string
+export function formatIndexingTimeAgo(date: MaybeRef<string | number>, absAgo?: boolean): string | ComputedRef<string> {
+  const format = (_d: string | number) => {
     const d = new Date(_d)
     const hourDiff = differenceInHours(new Date(), d)
     if (hourDiff < 1 || absAgo)

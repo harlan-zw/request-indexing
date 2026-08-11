@@ -1,3 +1,4 @@
+import type { BuilderStateWire } from '@gscdump/contracts'
 import { eq } from 'drizzle-orm'
 import { authenticateUser } from '~~/layers/core/server/app/utils/auth'
 import { sites } from '~~/layers/core/server/db/schema'
@@ -16,8 +17,8 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const gscdump = useGscdumpClient()
 
-  const state = JSON.parse(decodeURIComponent(query.q as string))
-  const comparison = query.qc ? JSON.parse(decodeURIComponent(query.qc as string)) : undefined
+  const state = JSON.parse(decodeURIComponent(String(query.q))) as BuilderStateWire
+  const comparison = query.qc ? JSON.parse(decodeURIComponent(String(query.qc))) as BuilderStateWire : undefined
 
   return gscdump.getDataDetail(site.gscdumpSiteId, state, { comparison })
 })

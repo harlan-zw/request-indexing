@@ -6,11 +6,20 @@ definePageMeta({
 const { data: guides } = await useAsyncData('all-guides', async () => {
   const items = await queryCollection('guides').all()
   return items.slice().sort((a, b) => {
-    const ao = (a as any).navigation?.order ?? Number.POSITIVE_INFINITY
-    const bo = (b as any).navigation?.order ?? Number.POSITIVE_INFINITY
+    const ao = getNavigationOrder(a)
+    const bo = getNavigationOrder(b)
     return ao - bo
   })
 })
+
+function getNavigationOrder(item: unknown): number {
+  if (!item || typeof item !== 'object' || !('navigation' in item))
+    return Number.POSITIVE_INFINITY
+  const navigation = item.navigation
+  if (!navigation || typeof navigation !== 'object' || !('order' in navigation))
+    return Number.POSITIVE_INFINITY
+  return typeof navigation.order === 'number' ? navigation.order : Number.POSITIVE_INFINITY
+}
 
 useSeoMeta({
   title: 'Google Indexing API Guides',

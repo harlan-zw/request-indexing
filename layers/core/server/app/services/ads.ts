@@ -1,5 +1,5 @@
 export async function fetchKeywordHistorialData(keywords: string[]) {
-  const { GoogleAdsApi } = await import('google-ads-api')
+  const { enums, GoogleAdsApi, services } = await import('google-ads-api')
   const { adsApiToken: developer_token, adsCustomerId: customer_id, adsClientId: client_id, adsClientSecret: client_secret, adsRefreshToken: refresh_token } = useRuntimeConfig().google
   const client = new GoogleAdsApi({
     client_id,
@@ -12,18 +12,16 @@ export async function fetchKeywordHistorialData(keywords: string[]) {
     refresh_token,
   })
 
-  const res = await customer.keywordPlanIdeas.generateKeywordHistoricalMetrics({
+  const res = await customer.keywordPlanIdeas.generateKeywordHistoricalMetrics(new services.GenerateKeywordHistoricalMetricsRequest({
     keywords,
     customer_id,
-    keyword_plan_network: 'GOOGLE_SEARCH',
-  } as any).catch((err: unknown) => {
-    return { err }
-  }).then((res: any) => res.results)
-  return res
+    keyword_plan_network: enums.KeywordPlanNetwork.GOOGLE_SEARCH,
+  }))
+  return res.results
 }
 
 export async function fetchKeywordIdeas(keyword: string | string[]) {
-  const { GoogleAdsApi } = await import('google-ads-api')
+  const { enums, GoogleAdsApi, services } = await import('google-ads-api')
   const { adsApiToken: developer_token, adsCustomerId: customer_id, adsClientId: client_id, adsClientSecret: client_secret, adsRefreshToken: refresh_token } = useRuntimeConfig().google
 
   const client = new GoogleAdsApi({
@@ -37,15 +35,15 @@ export async function fetchKeywordIdeas(keyword: string | string[]) {
     refresh_token,
   })
 
-  const res = await customer.keywordPlanIdeas.generateKeywordIdeas({
+  const res = await customer.keywordPlanIdeas.generateKeywordIdeas(new services.GenerateKeywordIdeasRequest({
     keyword_seed: { keywords: Array.isArray(keyword) ? keyword : [keyword] },
     customer_id,
-    keyword_plan_network: 'GOOGLE_SEARCH',
+    keyword_plan_network: enums.KeywordPlanNetwork.GOOGLE_SEARCH,
     page_size: 100,
     historical_metrics_options: {
       include_average_cpc: true,
     },
-  } as any)
+  }))
   console.log('got res', res)
   // update usage for the response
 

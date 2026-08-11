@@ -12,10 +12,11 @@ import type {
 } from '@gscdump/contracts'
 import type { RollingPeriod } from '@gscdump/sdk/period'
 import type { GscdumpV1Client, GscdumpV1OperationInput, GscdumpV1OperationResponse } from '@gscdump/sdk/v1'
-import type { BuilderState } from 'gscdump/query'
+import type { BuilderState, Column, Filter, Metric } from 'gscdump/query'
 import { toPartnerError } from '@gscdump/sdk/partner-errors'
 import { periodToDays as gscPeriodToDays } from '@gscdump/sdk/period'
 import { createGscdumpV1Client } from '@gscdump/sdk/v1'
+import { and, between, contains, country, date, device, daysAgo as gscDaysAgo, page as pageColumn, queryCanonical, query as queryColumn } from 'gscdump/query'
 
 export type {
   GscdumpAnalysisPreset as AnalysisPreset,
@@ -70,7 +71,7 @@ export interface GscdumpAnalysisResponse {
   meta: {
     siteUrl: string
     presetDescription: string
-    params: Record<string, any>
+    params: Record<string, unknown>
   }
 }
 
@@ -508,18 +509,27 @@ export function periodToDays(period: Period | string): number {
 }
 
 export function daysAgo(days: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() - days)
-  return d.toISOString().split('T')[0]!
+  return gscDaysAgo(days)
 }
+
+type GscdumpTableDimension = 'page' | 'query' | 'queryCanonical' | 'country' | 'device' | 'date'
+
+const GSCDUMP_DIMENSION_COLUMNS = {
+  country,
+  date,
+  device,
+  page: pageColumn,
+  query: queryColumn,
+  queryCanonical,
+} satisfies Record<GscdumpTableDimension, Column<GscdumpTableDimension>>
 
 export interface GscdumpTableOptions {
   siteId: MaybeRefOrGetter<string | undefined>
-  dimension: 'page' | 'query' | 'queryCanonical' | 'country' | 'device' | 'date'
+  dimension: GscdumpTableDimension
   period?: MaybeRefOrGetter<Period>
   pageSize?: number
-  defaultSort?: { column: string, direction: 'asc' | 'desc' }
-  extraFilters?: MaybeRefOrGetter<Array<{ type: string, column: string, value: string }> | undefined>
+  defaultSort?: { column: Metric | 'date', direction: 'asc' | 'desc' }
+  extraFilters?: MaybeRefOrGetter<Array<Filter<object>> | undefined>
 }
 
 export interface GscdumpTableResponse<T = GscdumpDataRow> {
@@ -541,7 +551,7 @@ export function useGscdumpTableData<T = GscdumpDataRow>(options: GscdumpTableOpt
   const q = ref('')
   const page = ref(1)
   const filter = ref<GscComparisonFilter | 'default'>('default')
-  const sort = ref(defaultSort ?? { column: 'clicks', direction: 'desc' as const })
+  const sort = ref<{ column: Metric | 'date', direction: 'asc' | 'desc' }>(defaultSort ?? { column: 'clicks', direction: 'desc' })
   const _isLoading = ref(false)
   const isLoading = computed(() => _isLoading.value)
   const error = ref<GscdumpError | null>(null)
@@ -568,29 +578,23 @@ export function useGscdumpTableData<T = GscdumpDataRow>(options: GscdumpTableOpt
     const days = periodToDays(_period.value)
     const offset = (page.value - 1) * pageSize
 
+    const filters = [
+      between(date, daysAgo(days), daysAgo(1)),
+      q.value ? contains(GSCDUMP_DIMENSION_COLUMNS[dimension], q.value) : null,
+      ..._extraFilters.value,
+    ].filter((value): value is Filter<object> => value != null)
+
     const state: BuilderState = {
       dimensions: [dimension],
-      filter: {
-        type: 'and',
-        filters: [
-          { type: 'between', column: 'date', from: daysAgo(days), to: daysAgo(1) },
-          ...(q.value ? [{ type: 'contains' as const, column: dimension, value: q.value }] : []),
-          ..._extraFilters.value,
-        ],
-      } as unknown as BuilderState['filter'],
-      orderBy: { column: sort.value.column as any, dir: sort.value.direction },
+      filter: and(...filters),
+      orderBy: { column: sort.value.column, dir: sort.value.direction },
       rowLimit: pageSize,
       startRow: offset,
     }
 
     const comparison: BuilderState = {
       dimensions: [dimension],
-      filter: {
-        type: 'between',
-        column: 'date',
-        from: daysAgo(days * 2),
-        to: daysAgo(days + 1),
-      } as unknown as BuilderState['filter'],
+      filter: between(date, daysAgo(days * 2), daysAgo(days + 1)),
     }
 
     const gscdump = useGscdump()
@@ -634,12 +638,12 @@ export function useGscdumpTableData<T = GscdumpDataRow>(options: GscdumpTableOpt
     page.value = newPage
   }
 
-  function setSort(column: string, direction: 'asc' | 'desc' = 'desc') {
+  function setSort(column: Metric | 'date', direction: 'asc' | 'desc' = 'desc') {
     sort.value = { column, direction }
     page.value = 1
   }
 
-  function toggleSort(column: string) {
+  function toggleSort(column: Metric | 'date') {
     if (sort.value.column === column)
       sort.value.direction = sort.value.direction === 'asc' ? 'desc' : 'asc'
     else
@@ -697,13 +701,13 @@ export function useGscdumpDates(
 
       const state: BuilderState = {
         dimensions: ['date'],
-        filter: { type: 'between', column: 'date', from: daysAgo(days), to: daysAgo(1) } as unknown as BuilderState['filter'],
+        filter: between(date, daysAgo(days), daysAgo(1)),
         orderBy: { column: 'date', dir: 'asc' },
       }
 
       const comparison: BuilderState = {
         dimensions: ['date'],
-        filter: { type: 'between', column: 'date', from: daysAgo(days * 2), to: daysAgo(days + 1) } as unknown as BuilderState['filter'],
+        filter: between(date, daysAgo(days * 2), daysAgo(days + 1)),
       }
 
       const result = await queryAnalyticsReportDetail({

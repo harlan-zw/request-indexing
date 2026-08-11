@@ -3,7 +3,7 @@ import type { SitePage } from '~~/layers/core/app/types'
 import { formatIndexingTimeAgo } from '~~/layers/design-system/composables/formatting'
 
 const props = defineProps<{
-  value: Required<SitePage>
+  value: SitePage
 }>()
 
 const root = computed(() => {
@@ -33,7 +33,7 @@ const value = computed(() => {
           <UChip color="error" />
         </UButton>
       </template>
-      <template #panel>
+      <template #content>
         <div class="p-4">
           <div>
             <div class="text-gray-800 dark:text-gray-100 font-semibold mb-2">
@@ -61,7 +61,7 @@ const value = computed(() => {
               <div class="text-gray-700 dark:text-gray-200">
                 Last Crawled
               </div>
-              <div>{{ formatIndexingTimeAgo(value.indexStatusResult.lastCrawlTime, true) }}</div>
+              <div>{{ value.indexStatusResult.lastCrawlTime ? formatIndexingTimeAgo(value.indexStatusResult.lastCrawlTime, true) : 'Unknown' }}</div>
             </div>
           </div>
           <slot />
@@ -79,7 +79,7 @@ const value = computed(() => {
             Why am I seeing this?
           </div>
         </div>
-        <template #panel>
+        <template #content>
           <div class="p-4 text-sm space-y-2">
             <div>Google knows about your URL but has not indexed it yet.<br>Click the Request Indexing button to move it along.</div>
           </div>
@@ -92,7 +92,7 @@ const value = computed(() => {
             Why am I seeing this?
           </div>
         </div>
-        <template #panel>
+        <template #content>
           <div class="p-4 text-sm space-y-2">
             <div>You have submitted a Request Index request.<br>We're waiting for Google to process it.</div>
           </div>
@@ -105,7 +105,7 @@ const value = computed(() => {
             Why am I seeing this?
           </div>
         </div>
-        <template #panel>
+        <template #content>
           <div class="p-4 text-sm space-y-2">
             <div>Google has reported that this URL has been indexed. Congrats! <br>But it doesn't mean people can find it just yet.</div>
             <div>We'll track this URL here until it has appeared on a<br> search page at least once. Use the "Hide Actioned" filter to hide this.</div>

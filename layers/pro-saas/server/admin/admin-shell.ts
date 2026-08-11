@@ -16,7 +16,7 @@ export type AdminFieldType
 
 export type AdminBadgeVariant = 'success' | 'warning' | 'error' | 'info' | 'neutral'
 
-export interface AdminFieldDef<T = any> {
+export interface AdminFieldDef<T = unknown> {
   type: AdminFieldType
   key: string
   label?: string
@@ -38,7 +38,7 @@ export interface AdminListQuery {
   filters?: Record<string, unknown>
 }
 
-export interface AdminListResult<T = any> {
+export interface AdminListResult<T = unknown> {
   rows: T[]
   total: number
   relations?: Record<string, Record<string, Record<string, unknown>>>
@@ -60,7 +60,7 @@ export interface AdminActionResult {
   redirect?: string
 }
 
-export interface AdminActionDef<T = any> {
+export interface AdminActionDef<T = unknown> {
   key: string
   label: string
   variant?: 'primary' | 'danger'
@@ -83,7 +83,7 @@ export interface AdminCardDef {
   load: (ctx: AdminCtx) => Promise<AdminCardData>
 }
 
-export interface AdminResourceDef<T = any> {
+export interface AdminResourceDef<T = unknown> {
   key: string
   label: string
   singular: string

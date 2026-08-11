@@ -13,10 +13,19 @@ interface SerpResult {
   type: string
 }
 
-interface SerpResponse {
-  keyword: string
-  totalResults: number
-  items: SerpResult[]
+interface SerpTaskResult {
+  total?: number
+  items?: SerpResult[]
+}
+
+interface DataForSeoResponse<T> {
+  tasks?: Array<{ result?: T[] }>
+}
+
+interface DomainRankResult {
+  items?: Array<{
+    metrics?: { organic?: { etv?: number, count?: number } }
+  }>
 }
 
 export interface IndexCheckResult {
@@ -48,21 +57,20 @@ function getAuthHeader(): string {
   return `Basic ${btoa(`${login}:${password}`)}`
 }
 
-async function dataforseoFetch<T>(endpoint: string, body: unknown): Promise<T> {
-  const response = await $fetch(`https://api.dataforseo.com/v3${endpoint}`, {
+async function dataforseoFetch<T>(endpoint: string, body: Record<string, unknown>[]): Promise<T> {
+  return $fetch<T>(`https://api.dataforseo.com/v3${endpoint}`, {
     ...DATAFORSEO_RETRY_OPTIONS,
     method: 'POST',
     headers: {
       'Authorization': getAuthHeader(),
       'Content-Type': 'application/json',
     },
-    body: body as Record<string, any>,
+    body,
   })
-  return response as T
 }
 
 export async function checkUrlIndexed(url: string): Promise<IndexCheckResult> {
-  const data = await dataforseoFetch<any>('/serp/google/organic/live/advanced', [
+  const data = await dataforseoFetch<DataForSeoResponse<SerpTaskResult>>('/serp/google/organic/live/advanced', [
     {
       keyword: `site:${url}`,
       location_code: 2840, // US
@@ -73,8 +81,7 @@ export async function checkUrlIndexed(url: string): Promise<IndexCheckResult> {
 
   const task = data?.tasks?.[0]
   const result = task?.result?.[0]
-  const items: SerpResult[] = (result?.items || [])
-    .filter((item: any) => item.type === 'organic')
+  const items = (result?.items || []).filter(item => item.type === 'organic')
 
   const normalizedUrl = url.replace(/\/$/, '').toLowerCase()
   const match = items.find((item: SerpResult) => {
@@ -107,16 +114,16 @@ export async function checkUrlsIndexed(urls: string[]): Promise<IndexCheckResult
 
   for (let i = 0; i < tasks.length; i += batchSize) {
     const batch = tasks.slice(i, i + batchSize)
-    const data = await dataforseoFetch<any>('/serp/google/organic/live/advanced', batch)
+    const data = await dataforseoFetch<DataForSeoResponse<SerpTaskResult>>('/serp/google/organic/live/advanced', batch)
 
     for (let j = 0; j < batch.length; j++) {
       const task = data?.tasks?.[j]
       const result = task?.result?.[0]
-      const items = (result?.items || []).filter((item: any) => item.type === 'organic')
+      const items = (result?.items || []).filter(item => item.type === 'organic')
       const url = urls[i + j]!
       const normalizedUrl = url.replace(/\/$/, '').toLowerCase()
 
-      const match = items.find((item: any) => {
+      const match = items.find((item) => {
         const itemUrl = item.url.replace(/\/$/, '').toLowerCase()
         return itemUrl === normalizedUrl || itemUrl.startsWith(normalizedUrl)
       })
@@ -136,7 +143,7 @@ export async function checkUrlsIndexed(urls: string[]): Promise<IndexCheckResult
 
 export async function getDomainOverview(domain: string): Promise<DomainOverviewResult> {
   // Get estimated indexed pages via site: query
-  const siteData = await dataforseoFetch<any>('/serp/google/organic/live/advanced', [
+  const siteData = await dataforseoFetch<DataForSeoResponse<SerpTaskResult>>('/serp/google/organic/live/advanced', [
     {
       keyword: `site:${domain}`,
       location_code: 2840,
@@ -148,9 +155,9 @@ export async function getDomainOverview(domain: string): Promise<DomainOverviewR
   const siteResult = siteData?.tasks?.[0]?.result?.[0]
   const estimatedIndexedPages = siteResult?.total || 0
   const topOrganicPages = (siteResult?.items || [])
-    .filter((item: any) => item.type === 'organic')
+    .filter(item => item.type === 'organic')
     .slice(0, 10)
-    .map((item: any) => ({
+    .map(item => ({
       url: item.url,
       traffic: 0, // SERP data doesn't have traffic, but we show the URL
       keywords: 0,
@@ -161,7 +168,7 @@ export async function getDomainOverview(domain: string): Promise<DomainOverviewR
   let organicKeywords = 0
 
   try {
-    const domainData = await dataforseoFetch<any>('/dataforseo_labs/google/domain_rank_overview/live', [
+    const domainData = await dataforseoFetch<DataForSeoResponse<DomainRankResult>>('/dataforseo_labs/google/domain_rank_overview/live', [
       {
         target: domain,
         location_code: 2840,

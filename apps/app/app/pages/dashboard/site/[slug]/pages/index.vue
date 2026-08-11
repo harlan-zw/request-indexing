@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-const props = defineProps<{ site: any }>()
+import type { SiteSelect } from '#shared/types/database'
+
+defineProps<{ site: SiteSelect & { gscdumpSiteId: string, property: string } }>()
 
 definePageMeta({
   title: 'Pages',

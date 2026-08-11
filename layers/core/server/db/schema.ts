@@ -137,6 +137,13 @@ export const sessions = sqliteTable('sessions', {
 
 export type TeamSelect = typeof teams.$inferSelect
 
+export interface StoredSitemap {
+  path?: string
+  errors?: number | string
+  warnings?: number | string
+  [key: string]: unknown
+}
+
 export const teamUser = sqliteTable('team_user', {
   teamId: integer('team_id').notNull().references(() => teams.teamId),
   userId: integer('user_id').notNull().references(() => users.userId),
@@ -165,7 +172,7 @@ export const sites = sqliteTable('sites', {
   // hides domain properties which we've split into multiple sites
   active: integer('active', { mode: 'boolean' }).notNull().default(false),
   // isDomainProperty: integer('is_domain_property', { mode: 'boolean' }).notNull().default(false),
-  sitemaps: text('sitemaps', { mode: 'json' }).$type<any[]>(),
+  sitemaps: text('sitemaps', { mode: 'json' }).$type<StoredSitemap[]>(),
 
   // for split domain properties
   domain: text('domain'),
@@ -196,7 +203,7 @@ export const sitePaths = sqliteTable('site_paths', {
   firstSeenIndexed: integer('first_seen_indexed'),
   isIndexed: integer('is_indexed', { mode: 'boolean' }).notNull().default(false),
   indexingVerdict: text('indexing_verdict'),
-  inspectionPayload: text('inspection_payload', { mode: 'json' }).$type<any>(),
+  inspectionPayload: text('inspection_payload', { mode: 'json' }).$type<unknown>(),
   lastInspected: integer('last_inspected'),
 
   ...timestamps,

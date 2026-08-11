@@ -22,17 +22,13 @@ useSeoMeta({
   description: () => page.value?.description,
 })
 
-useHead({
-  link: () => {
-    return [
-      ...(surround.value?.length
-        ? surround.value.filter(Boolean).map((s: any, i: number) => ({
-            rel: i === 0 ? 'prev' : 'next',
-            href: joinURL('https://requestindexing.com/', s.path),
-          }))
-        : []),
-    ]
-  },
+const navigationLinks = computed(() => {
+  return surround.value?.flatMap((item, index) => item?.path
+    ? [{
+        rel: index === 0 ? 'prev' as const : 'next' as const,
+        href: joinURL('https://requestindexing.com/', item.path),
+      }]
+    : []) ?? []
 })
 
 defineOgImage('Guide', {
@@ -89,6 +85,9 @@ const humanUpdatedDate = computed(() => page.value?.updatedAt
 </script>
 
 <template>
+  <Head>
+    <Link v-for="link in navigationLinks" :key="link.rel" :rel="link.rel" :href="link.href" />
+  </Head>
   <div class="flex justify-between w-full">
     <div class="xl:mx-auto w-full max-w-[66ch]">
       <UPageHeader v-bind="page" :ui="{ title: 'text-center text-balance xl:leading-normal min-w-full', description: 'text-center' }">
@@ -109,7 +108,7 @@ const humanUpdatedDate = computed(() => page.value?.updatedAt
       <UPageBody prose class="pb-0">
         <ContentRenderer v-if="page?.body" :value="page" />
         <USeparator v-if="surround?.length || page?.relatedPages?.length" class="my-8" />
-        <ContentNext :surround="surround as any" :related-pages="page?.relatedPages" />
+        <ContentNext :surround="surround" :related-pages="page?.relatedPages" />
       </UPageBody>
     </div>
 

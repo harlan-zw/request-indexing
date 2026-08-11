@@ -1,3 +1,4 @@
+import type { Column, Filter, Metric } from 'gscdump/query'
 import type {
   BuilderState,
   GscComparisonFilter,
@@ -5,6 +6,7 @@ import type {
   GscdumpDataRow,
 } from '../../../shared/gscdump-api'
 import type { CompareMode, Period } from '../useGscPeriod'
+import { contains, country, date, device, page as pageColumn, queryCanonical, query as queryColumn } from 'gscdump/query'
 import { andFilter, dateFilter } from '../../../shared/utils/filter-wire'
 import { compareRange, periodToDateRange } from '../useGscPeriod'
 import { useProGscdumpData } from './useProGscdumpData'
@@ -16,9 +18,18 @@ export interface ProGscdumpTableOptions {
   stableData?: MaybeRefOrGetter<boolean>
   compareMode?: MaybeRefOrGetter<CompareMode>
   pageSize?: number
-  defaultSort?: { column: string, direction: 'asc' | 'desc' }
-  extraFilters?: MaybeRefOrGetter<Array<{ type: string, column: string, value: string }> | undefined>
+  defaultSort?: { column: Metric | 'date', direction: 'asc' | 'desc' }
+  extraFilters?: MaybeRefOrGetter<Array<Filter<object>> | undefined>
 }
+
+const DIMENSION_COLUMNS = {
+  country,
+  date,
+  device,
+  page: pageColumn,
+  query: queryColumn,
+  queryCanonical,
+} satisfies Record<ProGscdumpTableOptions['dimension'], Column<ProGscdumpTableOptions['dimension']>>
 
 /**
  * Consumer-owned table state backed by the typed v1 analytics report.
@@ -35,7 +46,7 @@ export function useProGscdumpTableData<T = GscdumpDataRow>(options: ProGscdumpTa
   const q = ref('')
   const page = ref(1)
   const filter = ref<GscComparisonFilter | 'default'>('default')
-  const sort = ref(options.defaultSort ?? { column: 'clicks', direction: 'desc' as const })
+  const sort = ref<{ column: Metric | 'date', direction: 'asc' | 'desc' }>(options.defaultSort ?? { column: 'clicks', direction: 'desc' })
 
   const range = computed(() => periodToDateRange(_period.value, _stableData.value))
   const comparisonRange = computed(() => compareRange(range.value, _compareMode.value))
@@ -43,10 +54,10 @@ export function useProGscdumpTableData<T = GscdumpDataRow>(options: ProGscdumpTa
     dimensions: [dimension],
     filter: andFilter(
       dateFilter(range.value),
-      q.value ? { type: 'contains', column: dimension, value: q.value } : null,
+      q.value ? contains(DIMENSION_COLUMNS[dimension], q.value) : null,
       ..._extraFilters.value,
     ),
-    orderBy: { column: sort.value.column, dir: sort.value.direction } as BuilderState['orderBy'],
+    orderBy: { column: sort.value.column, dir: sort.value.direction },
     rowLimit: pageSize,
     startRow: (page.value - 1) * pageSize,
   }))
@@ -55,7 +66,7 @@ export function useProGscdumpTableData<T = GscdumpDataRow>(options: ProGscdumpTa
         dimensions: [dimension],
         filter: andFilter(
           dateFilter(comparisonRange.value),
-          q.value ? { type: 'contains', column: dimension, value: q.value } : null,
+          q.value ? contains(DIMENSION_COLUMNS[dimension], q.value) : null,
           ..._extraFilters.value,
         ),
       }
@@ -73,12 +84,12 @@ export function useProGscdumpTableData<T = GscdumpDataRow>(options: ProGscdumpTa
     page.value = newPage
   }
 
-  function setSort(column: string, direction: 'asc' | 'desc' = 'desc') {
+  function setSort(column: Metric | 'date', direction: 'asc' | 'desc' = 'desc') {
     sort.value = { column, direction }
     page.value = 1
   }
 
-  function toggleSort(column: string) {
+  function toggleSort(column: Metric | 'date') {
     setSort(column, sort.value.column === column && sort.value.direction === 'desc' ? 'asc' : 'desc')
   }
 

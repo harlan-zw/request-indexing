@@ -15,6 +15,14 @@ import { getCaller, requireCaller, requireSubscription } from './get-caller'
 import { requireCurrentTeam } from './require-current-team'
 import { requireSiteAccess } from './require-site-access'
 
+declare module 'h3' {
+  interface H3EventContext {
+    __caller?: Caller
+    logger?: ConsolaInstance
+    requestId?: string
+  }
+}
+
 function statusToProCode(status: number): ProErrorCode {
   switch (status) {
     case 400: return 'validation_failed'
@@ -34,19 +42,19 @@ function statusToProCode(status: number): ProErrorCode {
 const baseLogger = createConsola({ defaults: { tag: 'pro-api' } })
 
 function createLogger(event: H3Event, requestId: string): ConsolaInstance {
-  const callerId = (event.context as any).__caller?.user?.id
-  const teamId = (event.context as any).__caller?.currentTeamId
+  const callerId = event.context.__caller?.user.id
+  const teamId = event.context.__caller?.currentTeamId
   const tag = ['pro-api', requestId.slice(0, 8), callerId, teamId].filter(Boolean).join(':')
   return baseLogger.withTag(tag)
 }
 
 export function getProLogger(event: H3Event): ConsolaInstance {
-  const existing = (event.context as any).logger as ConsolaInstance | undefined
+  const existing = event.context.logger
   if (existing)
     return existing
   const requestId = ensureRequestId(event)
   const logger = createLogger(event, requestId)
-  ;(event.context as any).logger = logger
+  event.context.logger = logger
   return logger
 }
 
@@ -59,8 +67,19 @@ function ensureRequestId(event: H3Event): string {
   return id
 }
 
-function isH3StyleError(e: unknown): e is { statusCode: number, statusMessage?: string, data?: any, message?: string } {
-  return typeof e === 'object' && e !== null && typeof (e as any).statusCode === 'number'
+interface H3StyleError {
+  statusCode: number
+  statusMessage?: string
+  data?: unknown
+  message?: string
+}
+
+function isH3StyleError(error: unknown): error is H3StyleError {
+  return typeof error === 'object' && error !== null && 'statusCode' in error && typeof error.statusCode === 'number'
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null ? value as Record<string, unknown> : {}
 }
 
 // Options-bag form of defineProApiHandler. Absorbs the per-route prelude
@@ -168,36 +187,26 @@ async function buildHandlerCtx<O extends ProHandlerOptions>(
   return ctx as ProHandlerCtx<O>
 }
 
-export function defineProApiHandler<T>(fn: (event: H3Event) => T | Promise<T>): EventHandler<EventHandlerRequest, T>
-export function defineProApiHandler<O extends ProHandlerOptions, T>(
-  options: O,
-  fn: (ctx: ProHandlerCtx<O>) => T | Promise<T>,
-): EventHandler<EventHandlerRequest, T>
-export function defineProApiHandler<T>(
-  fnOrOptions: ((event: H3Event) => T | Promise<T>) | ProHandlerOptions,
-  maybeFn?: (ctx: any) => T | Promise<T>,
-) {
-  const isOptionsForm = typeof fnOrOptions !== 'function'
-  const options = isOptionsForm ? (fnOrOptions as ProHandlerOptions) : undefined
-  const handler = (isOptionsForm ? maybeFn! : fnOrOptions) as
-    | ((event: H3Event) => T | Promise<T>)
-    | ((ctx: any) => T | Promise<T>)
+type HandlerMode<O extends ProHandlerOptions, T>
+  = | { _tag: 'event', handler: (event: H3Event) => T | Promise<T> }
+    | { _tag: 'context', options: O, handler: (ctx: ProHandlerCtx<O>) => T | Promise<T> }
 
+function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T>): EventHandler<EventHandlerRequest, Promise<T>> {
   return defineEventHandler(async (event) => {
     const requestId = ensureRequestId(event)
     const startedAt = Date.now()
     setResponseHeader(event, 'x-request-id', requestId)
-    const logger = (event.context as any).logger as ConsolaInstance | undefined ?? createLogger(event, requestId)
-    ;(event.context as any).logger = logger
-    let ctx: any
+    const logger = event.context.logger ?? createLogger(event, requestId)
+    event.context.logger = logger
+    let ctx: ProHandlerCtx<O> | undefined
     let statusCode = 200
     let errorCode: string | null = null
     try {
-      if (options) {
-        ctx = await buildHandlerCtx(event, options)
-        return await (handler as (ctx: any) => T | Promise<T>)(ctx)
+      if (mode._tag === 'context') {
+        ctx = await buildHandlerCtx(event, mode.options)
+        return await mode.handler(ctx)
       }
-      return await (handler as (event: H3Event) => T | Promise<T>)(event)
+      return await mode.handler(event)
     }
     catch (e) {
       if (e instanceof ProError) {
@@ -217,13 +226,13 @@ export function defineProApiHandler<T>(
       }
       if (isH3StyleError(e)) {
         statusCode = e.statusCode
-        const data = (e.data && typeof e.data === 'object') ? e.data : {}
-        if ((data as any).code && (data as any).requestId)
+        const data = asRecord(e.data)
+        if (typeof data.code === 'string' && typeof data.requestId === 'string')
           throw e
-        const code = (data as any).code ?? statusToProCode(e.statusCode)
+        const code = statusToProCode(e.statusCode)
         errorCode = code
-        const message = (data as any).message ?? e.statusMessage ?? e.message ?? code
-        ;(e as any).data = {
+        const message = typeof data.message === 'string' ? data.message : e.statusMessage ?? e.message ?? code
+        e.data = {
           ...data,
           code,
           message,
@@ -245,7 +254,7 @@ export function defineProApiHandler<T>(
       })
     }
     finally {
-      const usage = options?.usage
+      const usage = mode._tag === 'context' ? mode.options.usage : undefined
       if (usage) {
         const auth = event.context.proAuth as { teamId?: number | null, tokenId?: number | null, user?: { id?: number | null } } | undefined
         const usageOptions = usage === true ? {} : usage
@@ -273,6 +282,22 @@ export function defineProApiHandler<T>(
   })
 }
 
+export function defineProApiHandler<T>(fn: (event: H3Event) => T | Promise<T>): EventHandler<EventHandlerRequest, Promise<T>>
+export function defineProApiHandler<O extends ProHandlerOptions, T>(
+  options: O,
+  fn: (ctx: ProHandlerCtx<O>) => T | Promise<T>,
+): EventHandler<EventHandlerRequest, Promise<T>>
+export function defineProApiHandler<O extends ProHandlerOptions, T>(
+  fnOrOptions: ((event: H3Event) => T | Promise<T>) | O,
+  maybeFn?: (ctx: ProHandlerCtx<O>) => T | Promise<T>,
+): EventHandler<EventHandlerRequest, Promise<T>> {
+  if (typeof fnOrOptions === 'function')
+    return createProHandler({ _tag: 'event', handler: fnOrOptions })
+  if (!maybeFn)
+    throw new TypeError('The options form requires a handler function.')
+  return createProHandler({ _tag: 'context', options: fnOrOptions, handler: maybeFn })
+}
+
 /**
  * Read + validate a JSON body against a Zod schema. ZodErrors become
  * `ProError('validation_failed')` with `{ issues }` details, so routes get the
@@ -282,7 +307,7 @@ export async function readProValidatedBody<S extends ZodTypeAny>(
   event: H3Event,
   schema: S,
 ): Promise<import('zod').z.infer<S>> {
-  // Safe: any parse error becomes `undefined`, which zod then rejects with the
+  // Safe: a parse error becomes `undefined`, which zod then rejects with the
   // canonical `validation_failed` envelope below.
   // eslint-disable-next-line harlanzw/no-silent-catch -- parse failure is re-surfaced as validation_failed
   const body = await readBody(event).catch(() => undefined)
@@ -348,12 +373,12 @@ async function runIdempotent<T>(
 export function defineIdempotentHandler<T>(
   fn: (event: H3Event) => T | Promise<T>,
   options?: IdempotencyOptions,
-): EventHandler<EventHandlerRequest, T>
+): EventHandler<EventHandlerRequest, Promise<T>>
 export function defineIdempotentHandler<O extends ProHandlerOptions, T>(
   handlerOptions: O,
   fn: (ctx: ProHandlerCtx<O>) => T | Promise<T>,
   options?: IdempotencyOptions,
-): EventHandler<EventHandlerRequest, T>
+): EventHandler<EventHandlerRequest, Promise<T>>
 export function defineIdempotentHandler<O extends ProHandlerOptions, T>(
   fnOrHandlerOptions: ((event: H3Event) => T | Promise<T>) | O,
   maybeFnOrOptions?: ((ctx: ProHandlerCtx<O>) => T | Promise<T>) | IdempotencyOptions,
@@ -363,7 +388,7 @@ export function defineIdempotentHandler<O extends ProHandlerOptions, T>(
     const fn = fnOrHandlerOptions
     const options = (maybeFnOrOptions ?? {}) as IdempotencyOptions
     return defineProApiHandler<T>(async (event) => {
-      const callerId = (event.context as any).__caller?.user?.id
+      const callerId = event.context.__caller?.user.id
       return await runIdempotent(event, callerId, options, () => fn(event))
     })
   }

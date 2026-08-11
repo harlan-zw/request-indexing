@@ -15,13 +15,13 @@ const periodLabel = computed(() => {
 const { data: sitemapsData } = useProGscdumpSitemaps(
   computed(() => gscdumpSiteId.value ?? undefined),
   { immediate: !!gscdumpSiteId.value },
-) as { data: Ref<any> }
+)
 
 const { data: changesData } = useProGscdumpSitemapChanges(
   computed(() => gscdumpSiteId.value ?? undefined),
   computed(() => dateRange.value.days),
   { immediate: !!gscdumpSiteId.value },
-) as { data: Ref<any> }
+)
 
 interface SitemapRow {
   id: string
@@ -41,7 +41,7 @@ interface SitemapRow {
 const rows = computed<SitemapRow[]>(() => {
   if (!sitemapsData.value?.sitemaps?.length)
     return []
-  return sitemapsData.value.sitemaps.map((s: any) => {
+  return sitemapsData.value.sitemaps.map((s) => {
     const latest = sitemapsData.value?.perSitemapHistory?.[s.path]?.at(-1)
     return {
       id: s.path,
@@ -93,7 +93,7 @@ const healthAlerts = computed(() => {
 const urlChangeTimeline = computed(() => {
   if (!sitemapsData.value?.history?.length)
     return []
-  return sitemapsData.value.history.toReversed().map((h: any) => ({
+  return sitemapsData.value.history.toReversed().map(h => ({
     date: h.date,
     urlCount: h.urlCount,
     urlDelta: h.urlDelta,
@@ -102,14 +102,14 @@ const urlChangeTimeline = computed(() => {
   }))
 })
 
-const hasUrlChanges = computed(() => urlChangeTimeline.value.some((d: any) => d.urlDelta !== 0))
+const hasUrlChanges = computed(() => urlChangeTimeline.value.some(d => d.urlDelta !== 0))
 
 // Content change days
 const contentChangeDates = computed(() => {
   if (!sitemapsData.value?.perSitemapHistory)
     return new Set<string>()
   const dates = new Set<string>()
-  for (const entries of Object.values(sitemapsData.value.perSitemapHistory) as any[]) {
+  for (const entries of Object.values(sitemapsData.value.perSitemapHistory)) {
     for (const entry of entries) {
       if (entry.changed)
         dates.add(entry.date)
@@ -120,7 +120,7 @@ const contentChangeDates = computed(() => {
 
 const recentUrlChanges = computed(() =>
   urlChangeTimeline.value
-    .filter((d: any) => d.urlDelta !== 0 || contentChangeDates.value.has(d.date))
+    .filter(d => d.urlDelta !== 0 || contentChangeDates.value.has(d.date))
     .slice(-10)
     .reverse(),
 )
@@ -137,10 +137,8 @@ function formatShortDate(dateStr: string): string {
 }
 
 // Recent changes
-function normalizeChangeItem(item: any): { url: string, sitemap: string, ts: number } {
-  if (Array.isArray(item))
-    return { url: item[0], sitemap: item[1], ts: item[2] }
-  return { url: item.url, sitemap: item.sitemap, ts: item.firstSeenAt ?? item.removedAt }
+function normalizeChangeItem(item: { url: string, sitemap: string, firstSeenAt?: number, removedAt?: number }): { url: string, sitemap: string, ts: number } {
+  return { url: item.url, sitemap: item.sitemap, ts: item.firstSeenAt ?? item.removedAt ?? 0 }
 }
 const recentAdded = computed(() => (changesData.value?.added?.slice(0, 5) ?? []).map(normalizeChangeItem))
 const recentRemoved = computed(() => (changesData.value?.removed?.slice(0, 5) ?? []).map(normalizeChangeItem))
@@ -209,7 +207,7 @@ function sitemapHealth(r: SitemapRow): SemanticStatus {
   <div class="flex flex-col *:min-w-0">
     <!-- ═══ HERO ZONE ═══ -->
     <ProPageZone tier="primary" first>
-      <UiStats :data="(heroStats as any)" variant="cards" />
+      <UiStats :data="heroStats" variant="cards" />
 
       <!-- Alerts -->
       <Alert

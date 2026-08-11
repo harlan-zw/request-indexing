@@ -3,7 +3,7 @@ import type { GscdumpError, GscdumpErrorCode } from '#layers/pro-gsc/app/composa
 import { parseGscdumpError } from '#layers/pro-gsc/app/composables/_gscdump-error'
 
 const props = defineProps<{
-  error: GscdumpError | Error | null
+  error: unknown
   compact?: boolean
 }>()
 

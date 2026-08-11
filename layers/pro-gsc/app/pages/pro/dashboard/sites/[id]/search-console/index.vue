@@ -244,6 +244,10 @@ const deviceStats = computed(() => {
   })
 })
 
+function getDeviceMetric(item: { row: GscdumpDataRow }) {
+  return getMetricValue(item.row)
+}
+
 // Get metric value from row
 function getMetricValue(row: GscdumpDataRow, metric = primaryMetric.value): number {
   return row[metric] ?? 0
@@ -772,7 +776,7 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                 :items="deviceStats"
                 empty-icon="i-lucide-smartphone"
                 empty-text="No device data available"
-                :bar-value="primaryMetric !== 'position' ? (item: any) => getMetricValue(item.row) : undefined"
+                :bar-value="primaryMetric !== 'position' ? getDeviceMetric : undefined"
               >
                 <template #default="{ item: device }">
                   <div class="flex items-center gap-2">

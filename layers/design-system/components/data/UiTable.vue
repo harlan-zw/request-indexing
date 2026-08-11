@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends Record<string, any>">
+<script setup lang="ts" generic="T extends object">
 import type {
   ColumnFiltersState,
   ColumnVisibilityState,
@@ -101,11 +101,14 @@ function getTextAlignClass(align?: 'left' | 'center' | 'right'): string {
 }
 
 function resolveRowId(row: T): string {
-  if (!rowId)
-    return row.id
   if (typeof rowId === 'function')
     return rowId(row)
-  return row[rowId]
+  if (!rowId)
+    throw new TypeError('A row ID field is required when using a custom row resolver.')
+  const value = row[rowId]
+  if (typeof value !== 'string' && typeof value !== 'number')
+    throw new TypeError(`Row ID field "${rowId}" must contain a string or number.`)
+  return String(value)
 }
 
 function handleRowClick(row: T, tanstackRow: UiTableRow<T>) {
@@ -139,7 +142,7 @@ const table = useTable({
   onSortingChange: u => sortingModel.value = functionalUpdate(u, sortingModel.value),
   onColumnFiltersChange: u => columnFilters.value = functionalUpdate(u, columnFilters.value),
   onColumnVisibilityChange: u => columnVisibility.value = functionalUpdate(u, columnVisibility.value),
-  getRowId: resolveRowId,
+  ...(rowId && { getRowId: resolveRowId }),
   onRowSelectionChange(u) {
     const target = controlledSelection ? selectedModel : rowSelection
     target.value = functionalUpdate(u, target.value ?? {})

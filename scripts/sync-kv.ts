@@ -67,9 +67,10 @@ async function main() {
       pushed += items.length
       process.stdout.write('ok')
     }
-    catch (err: any) {
+    catch (err: unknown) {
       errors += items.length
-      process.stdout.write(`FAIL: ${err.message?.slice(0, 200)}`)
+      const message = err instanceof Error ? err.message : String(err)
+      process.stdout.write(`FAIL: ${message.slice(0, 200)}`)
     }
   }
 

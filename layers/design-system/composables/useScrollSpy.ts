@@ -1,5 +1,4 @@
 import type { Ref } from 'vue'
-// @ts-expect-error - @vueuse/core is transitive
 import { useThrottleFn } from '@vueuse/core'
 import { nextTick, onMounted, ref } from 'vue'
 
@@ -10,7 +9,7 @@ interface Section {
   id: SectionId
   label?: string
 
-  [key: string]: any
+  [key: string]: unknown
 }
 
 type SectionInput = SectionId | Section

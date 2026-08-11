@@ -36,7 +36,7 @@ export async function requireEventSite(event: H3Event, user: UserSelect) {
         },
       },
     },
-  }) as (typeof sites.$inferSelect & { teamSites: Array<{ googleAccount: any }> }) | undefined
+  })
   if (!site) {
     throw createError({
       statusCode: 404,
