@@ -247,7 +247,7 @@ export default defineNuxtConfig({
             { queue: 'ri-dlq', binding: 'QUEUE_DLQ' },
           ],
           consumers: [
-            { queue: 'ri-default', max_batch_size: 1, max_batch_timeout: 10, max_concurrency: 5, max_retries: 5, dead_letter_queue: 'ri-dlq' },
+            { queue: 'ri-default', max_batch_size: 1, max_batch_timeout: 10, max_concurrency: 5, max_retries: 3, dead_letter_queue: 'ri-dlq' },
             { queue: 'ri-dlq', max_batch_size: 1, max_batch_timeout: 60, max_concurrency: 1, max_retries: 3 },
           ],
         },
