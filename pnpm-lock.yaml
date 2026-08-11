@@ -22,8 +22,8 @@ catalogs:
       specifier: ^2.0.6
       version: 2.0.6
     '@harlan-zw/nuxt-cloudflare':
-      specifier: 0.0.4
-      version: 0.0.4
+      specifier: 0.0.6
+      version: 0.0.6
     '@harlan-zw/nuxt-domain-events':
       specifier: 0.0.1
       version: 0.0.1
@@ -429,7 +429,7 @@ importers:
         version: 5.20260810.1
       '@harlan-zw/nuxt-cloudflare':
         specifier: 'catalog:'
-        version: 0.0.4(db0@0.3.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3)))(ioredis@5.10.1(supports-color@10.2.2))(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))
+        version: 0.0.6(better-sqlite3@13.0.3)(db0@0.3.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3)))(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3))(ioredis@5.10.1(supports-color@10.2.2))(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(supports-color@10.2.2)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))
       '@harlan-zw/nuxt-dx':
         specifier: 'catalog:'
         version: 0.0.1(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))
@@ -1630,8 +1630,8 @@ packages:
     resolution: {integrity: sha512-uHBEUzeJAARf5danssJbMO9E5fcX8XDhNZWkB8ZH623birWlQE6jp8hin1clSih8TUOzQycI14bYYmZA0jFOig==}
     engines: {node: '>=22'}
 
-  '@harlan-zw/nuxt-cloudflare@0.0.4':
-    resolution: {integrity: sha512-to327OmwZWLUk6umY8kcB2LMA3kYxB7rEVGKarazD0cLnW6eCLq1VmpHU55xECcFZHMkA81yARxtD6P+fa2CiQ==}
+  '@harlan-zw/nuxt-cloudflare@0.0.6':
+    resolution: {integrity: sha512-3Ad8ohrBQ/e/O/I9w3xSLaZAnmiq3SEGLbiilvx7IR/1z5b0TD+z7hDQGgOweH2SwzvKYfV2jRUpsvTLQcLODQ==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -6189,6 +6189,16 @@ packages:
       crossws:
         optional: true
 
+  h3@2.0.1-rc.25:
+    resolution: {integrity: sha512-uIK++Up28xDt4n0+bSWfVssRivNXpUmMmA6CCiK6j9+utLcBMcFK97Gn9PlSZwAPW9oLy3CjGJ4ag40CY9YYtQ==}
+    engines: {node: '>=20.11.1'}
+    hasBin: true
+    peerDependencies:
+      crossws: ^0.4.9
+    peerDependenciesMeta:
+      crossws:
+        optional: true
+
   has-property-descriptors@1.0.2:
     resolution: {integrity: sha512-55JNKuIW+vq4Ke1BjOTjM2YctQIvCT7GFzHwmfZPGo5wnrgkid0YQtnAleFSqumZm4az3n2BS+erby5ipJdgrg==}
 
@@ -10479,11 +10489,13 @@ snapshots:
       - typebox
       - valibot
 
-  '@harlan-zw/nuxt-cloudflare@0.0.4(db0@0.3.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3)))(ioredis@5.10.1(supports-color@10.2.2))(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))':
+  '@harlan-zw/nuxt-cloudflare@0.0.6(better-sqlite3@13.0.3)(db0@0.3.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3)))(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3))(ioredis@5.10.1(supports-color@10.2.2))(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(oxc-parser@0.143.0)(rolldown@1.2.3)(supports-color@10.2.2)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))(wrangler@4.120.0(@cloudflare/workers-types@5.20260810.1)(@types/node@25.6.0))':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(oxc-parser@0.143.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))
       citty: 0.2.2
       consola: 3.4.2
+      h3: 2.0.1-rc.25
+      nitropack: 2.13.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3))(oxc-parser@0.143.0)(rolldown@1.2.3)(supports-color@10.2.2)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0))
       nuxt: 4.5.2(3b78b38175d1b6794df87321ad9a5310)
       pathe: 2.0.3
       unstorage: 1.17.5(db0@0.3.4(better-sqlite3@13.0.3)(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260810.1)(@opentelemetry/api@1.9.1)(better-sqlite3@13.0.3)))(ioredis@5.10.1(supports-color@10.2.2))
@@ -10497,22 +10509,40 @@ snapshots:
       - '@azure/storage-blob'
       - '@capacitor/preferences'
       - '@deno/kv'
+      - '@electric-sql/pglite'
+      - '@farmfe/core'
+      - '@libsql/client'
       - '@netlify/blobs'
       - '@planetscale/database'
+      - '@rspack/core'
       - '@upstash/redis'
       - '@vercel/blob'
       - '@vercel/functions'
       - '@vercel/kv'
       - aws4fetch
+      - bare-abort-controller
+      - better-sqlite3
+      - bun-types-no-globals
+      - crossws
       - db0
+      - drizzle-orm
+      - encoding
       - idb-keyval
       - ioredis
       - magic-string
       - magicast
+      - mysql2
       - oxc-parser
+      - react-native-b4a
       - rolldown
+      - sqlite3
+      - supports-color
+      - unloader
       - unplugin
       - uploadthing
+      - vite
+      - webpack
+      - xml2js
 
   '@harlan-zw/nuxt-domain-events@0.0.1(magic-string@1.1.0)(magicast@0.5.4)(nuxt@4.5.2(3b78b38175d1b6794df87321ad9a5310))(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.27.3)(rolldown@1.2.3)(rollup@4.60.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)(tsx@4.23.11)(yaml@2.9.0)))':
     dependencies:
@@ -15878,6 +15908,11 @@ snapshots:
   h3@2.0.1-rc.20:
     dependencies:
       rou3: 0.8.1
+      srvx: 0.11.22
+
+  h3@2.0.1-rc.25:
+    dependencies:
+      rou3: 0.9.1
       srvx: 0.11.22
 
   has-property-descriptors@1.0.2:

@@ -51,7 +51,7 @@ catalog:
   '@gscdump/contracts': ^2.0.6
   '@gscdump/engine': ^2.0.6
   '@gscdump/sdk': ^2.0.6
-  '@harlan-zw/nuxt-cloudflare': 0.0.5
+  '@harlan-zw/nuxt-cloudflare': 0.0.6
   '@harlan-zw/nuxt-domain-events': 0.0.1
   '@harlan-zw/nuxt-dx': 0.0.1
   '@harlan-zw/nuxt-use-query': 0.0.1
