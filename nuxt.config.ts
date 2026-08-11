@@ -211,14 +211,16 @@ export default defineNuxtConfig({
     preset: 'cloudflare-durable',
     cloudflare: {
       deployConfig: true,
-      // Keep Nitro's hybrid Node bundling, then request the current Workers
-      // runtime explicitly. This prevents Nitro from pinning v1 with
-      // `no_nodejs_compat_v2`.
+      // Nitro adds `nodejs_compat` + `no_nodejs_compat_v2` here, pinning the
+      // worker to nodejs_compat v1. That is survivable now that nothing in the
+      // bundle needs v2's fuller `node:stream` (the googleapis/jws chain that
+      // did was removed). Declaring `nodejs_compat_v2` to get v2 is not an
+      // option while @harlan-zw/nuxt-cloudflare force-appends `nodejs_compat`,
+      // since Cloudflare rejects both flags together.
       nodeCompat: true,
       wrangler: {
         name: 'request-indexing',
         compatibility_date: '2026-08-11',
-        compatibility_flags: ['nodejs_compat_v2'],
         workers_dev: false,
         preview_urls: false,
         cache: { enabled: true, cross_version_cache: false },
