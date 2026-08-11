@@ -216,6 +216,11 @@ export default defineNuxtConfig({
         name: 'request-indexing',
         compatibility_date: '2026-08-11',
         compatibility_flags: ['nodejs_compat'],
+        workers_dev: false,
+        preview_urls: false,
+        cache: { enabled: true, cross_version_cache: false },
+        placement: { mode: 'smart' },
+        version_metadata: { binding: 'CF_VERSION_METADATA' },
         observability: {
           enabled: true,
           head_sampling_rate: 1,

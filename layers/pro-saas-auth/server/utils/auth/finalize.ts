@@ -31,7 +31,6 @@ export interface SignInOrCreateOpts {
 export async function signInOrCreate({ event, provider, identity }: SignInOrCreateOpts) {
   const db = useDrizzle(event)
   const source = readAuthSource(event)
-  const canCreateAccount = source === 'pro-free'
 
   const { user: existing, matchedBy } = await resolveExistingUser(
     db,
@@ -44,11 +43,12 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
   let isNewUser = false
 
   if (!existing) {
-    if (!canCreateAccount) {
-      if (source)
-        deleteCookie(event, 'auth-source')
-      return sendRedirect(event, `/login?error=${encodeURIComponent('no_account')}`)
-    }
+    // Sign-in is sign-up. This was previously gated on an `auth-source=pro-free`
+    // cookie set only by a `?source=` link on the old paid funnel's onboarding
+    // page. That page does not exist in this app, nothing links with that query
+    // param any more, so the gate was always closed and every new user was
+    // turned away with "no account found". The product is free during beta and
+    // Google-only, so a verified Google identity is sufficient to create one.
     // Create user via the canonical helper: inserts users row, creates a personal
     // team, and sets currentTeamId. Identity row written inline.
     const created = await createUserWithPersonalTeam(
@@ -75,7 +75,9 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
       return null
     })
     if (!created)
-      return sendRedirect(event, `/pro?error=${encodeURIComponent('Failed to create account')}`)
+      // `/login` renders the error UI; `/pro` does not exist in this app and
+      // returned 404, hiding the failure behind a missing page.
+      return sendRedirect(event, `/login?error=${encodeURIComponent('Failed to create account')}`)
     dbUserId = created.user.userId
     apiKey = created.user.apiKey ?? apiKey
     isNewUser = true
@@ -138,8 +140,8 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
   if (isNewUser) {
     if (source)
       deleteCookie(event, 'auth-source')
-    if (source === 'pro-free')
-      return sendRedirect(event, '/pro/onboarding?intent=free')
+    // There is no onboarding page in this app; new users land on the dashboard,
+    // which walks them through connecting Search Console.
     return sendRedirect(event, '/dashboard')
   }
 

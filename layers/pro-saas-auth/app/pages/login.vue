@@ -138,10 +138,7 @@ useSeoMeta({
       class="mb-4"
     >
       <p v-if="errorVariant === 'no_account'" class="text-muted mt-0.5">
-        <ULink to="/pro/onboarding" class="font-medium text-highlighted hover:text-primary transition-colors">
-          Create an account
-        </ULink>
-        first, then come back here to sign in.
+        <span class="font-medium text-highlighted">Sign in with Google</span> to create one.
       </p>
     </ProAlert>
 
@@ -223,9 +220,7 @@ useSeoMeta({
 
     <p class="mt-7 text-xs text-muted">
       New to Request Indexing?
-      <ULink to="/pro/onboarding" class="font-medium text-highlighted hover:text-primary transition-colors">
-        Create a free account
-      </ULink>
+      <span class="font-medium text-highlighted">Sign in with Google above to create a free account.</span>
     </p>
   </div>
 </template>

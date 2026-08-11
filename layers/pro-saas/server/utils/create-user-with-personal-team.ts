@@ -3,6 +3,14 @@ import { eq } from 'drizzle-orm'
 import { logWarn } from '~~/shared/logging'
 import { teams, userIdentities, users } from '../database'
 
+/**
+ * `currentTeamId` is deliberately excluded: this helper creates the personal
+ * team and owns that value. The column is NOT NULL, so accepting it from
+ * callers is how the previous version ended up inserting users before their
+ * team existed.
+ */
+export type CreateUserInput = Omit<NewUser, 'currentTeamId'>
+
 export interface CreateUserIdentityInput {
   provider: AuthProviderId
   providerUserId: string
@@ -26,7 +34,7 @@ export interface CreateUserIdentityInput {
  */
 export async function createUserWithPersonalTeam(
   db: ReturnType<typeof useDrizzle>,
-  userInsert: NewUser,
+  userInsert: CreateUserInput,
   identity?: CreateUserIdentityInput,
 ) {
   // Team first, owner backfilled second. `users.current_team_id` is NOT NULL in
@@ -86,6 +94,6 @@ export async function createUserWithPersonalTeam(
   }
 }
 
-function personalTeamName(u: NewUser, identity?: CreateUserIdentityInput): string {
+function personalTeamName(u: CreateUserInput, identity?: CreateUserIdentityInput): string {
   return identity?.displayName || u.email?.split('@')[0] || 'My team'
 }
