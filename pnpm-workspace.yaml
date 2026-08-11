@@ -86,7 +86,6 @@ catalog:
   drizzle-orm: ^0.45.2
   eslint: ^10.8.1
   google-ads-api: ^24.1.0
-  googleapis-common: ^9.0.1
   googlethis: ^1.8.0
   gscdump: ^2.0.6
   h3: ^1.15.11
