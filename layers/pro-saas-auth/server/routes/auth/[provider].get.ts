@@ -62,12 +62,15 @@ export default defineEventHandler(async (event) => {
   if (!providerId)
     throw createError({ statusCode: 404 })
 
-  // Feature flag for Google. GitHub is always on.
-  if (providerId === 'google') {
-    const features = useAppConfig().proSaas?.features
-    if (!features?.googleSignIn)
-      throw createError({ statusCode: 404, statusMessage: 'Google sign-in is disabled' })
-  }
+  // Both providers are feature-flagged. GitHub is off by default: Search
+  // Console access needs Google, so a GitHub-only account cannot use the
+  // product. Enforced here, not just hidden in the UI, so hitting the route
+  // directly cannot create one.
+  const features = useAppConfig().proSaas?.features
+  if (providerId === 'google' && !features?.googleSignIn)
+    throw createError({ statusCode: 404, statusMessage: 'Google sign-in is disabled' })
+  if (providerId === 'github' && !features?.githubSignIn)
+    throw createError({ statusCode: 404, statusMessage: 'GitHub sign-in is disabled' })
 
   const handler = buildHandler(providerId)
   if (!handler)

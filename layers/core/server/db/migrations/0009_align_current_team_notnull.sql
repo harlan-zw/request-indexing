@@ -1,0 +1,23 @@
+-- No-op by design. Do not replace this with the table rebuild drizzle-kit
+-- generates for it.
+--
+-- `users.current_team_id` has been NOT NULL in the live database since
+-- migration 0000. schema.ts had drifted to nullable, and the drizzle snapshot
+-- recorded it as nullable too, so `drizzle-kit generate` saw no diff and never
+-- emitted a correction. The drift stayed invisible until every signup failed:
+-- `createUserWithPersonalTeam` inserted the user before their personal team
+-- existed, so it had no team id to supply.
+--
+-- schema.ts now declares `.notNull()`, matching the database. That makes the
+-- generated diff want to ADD a constraint the database already enforces, via a
+-- full `__new_users` rebuild. Rebuilding this table on D1 was attempted three
+-- times and failed each time on commit-time foreign key validation, with
+-- `foreign_keys=OFF`, with `defer_foreign_keys`, and as a single transaction.
+-- There is nothing to migrate, so this file exists only to carry the snapshot
+-- forward and keep the journal honest.
+--
+-- The real fix is in application code: the team row is created first and the
+-- user is inserted pointing at it, then the team's owner is backfilled.
+-- `teams.owner_id` is nullable, which is what makes that ordering legal.
+
+SELECT 1;

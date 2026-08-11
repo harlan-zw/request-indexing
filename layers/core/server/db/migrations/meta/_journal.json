@@ -64,6 +64,13 @@
       "when": 1786454958163,
       "tag": "0008_drop_crawler_citation",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786458861152,
+      "tag": "0009_align_current_team_notnull",
+      "breakpoints": true
     }
   ]
 }

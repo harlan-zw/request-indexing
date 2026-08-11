@@ -12,6 +12,7 @@ await fetchSession()
 
 const { features } = useProSaasFeatures()
 const googleEnabled = computed(() => features.value.googleSignIn)
+const githubEnabled = computed(() => features.value.githubSignIn)
 
 const route = useRoute()
 
@@ -99,7 +100,7 @@ interface ProviderButton {
 
 const providerButtons = computed<ProviderButton[]>(() => {
   const all: ProviderButton[] = [
-    { id: 'github', label: 'Sign in with GitHub', icon: 'i-simple-icons-github', enabled: true },
+    { id: 'github', label: 'Sign in with GitHub', icon: 'i-simple-icons-github', enabled: githubEnabled.value },
     { id: 'google', label: 'Sign in with Google', icon: 'i-simple-icons-google', enabled: googleEnabled.value },
   ]
   const enabled = all.filter(p => p.enabled)

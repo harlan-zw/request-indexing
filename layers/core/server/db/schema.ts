@@ -59,7 +59,13 @@ export const users = sqliteTable('users', {
   // indexingOAuthId: text('indexing_oauth_id'),
   lastIndexingOAuthId: text('last_indexing_oauth_id'),
 
-  currentTeamId: integer('current_team_id').references((): AnySQLiteColumn => teams.teamId),
+  // NOT NULL to match the live database, which migration 0000 created that way.
+  // This was previously declared nullable, and drizzle's snapshot recorded it as
+  // nullable too, so `drizzle-kit generate` saw no diff and never emitted a fix.
+  // The mismatch was invisible until every signup failed: user rows were being
+  // inserted before their personal team existed. Declaring it here makes the
+  // type system reject that ordering instead of production doing it.
+  currentTeamId: integer('current_team_id').notNull().references((): AnySQLiteColumn => teams.teamId),
 
   // gscdump partner integration
   gscdumpUserId: text('gscdump_user_id'),
