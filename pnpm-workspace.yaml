@@ -1,7 +1,7 @@
 minimumReleaseAgeExclude:
   - nuxt-ai-ready@1.7.9
   - '@harlan-zw/nuxt-cloudflare'
-  - '@harlan-zw/nuxt-domain-events@0.0.1'
+  - '@harlan-zw/nuxt-domain-events@0.0.1 || 0.0.3'
   - '@harlan-zw/nuxt-dx@0.0.1'
   - '@harlan-zw/nuxt-use-query@0.0.1'
   - nuxt-skew-protection@1.4.3
@@ -52,7 +52,7 @@ catalog:
   '@gscdump/engine': ^2.0.6
   '@gscdump/sdk': ^2.0.6
   '@harlan-zw/nuxt-cloudflare': 0.0.7
-  '@harlan-zw/nuxt-domain-events': 0.0.1
+  '@harlan-zw/nuxt-domain-events': 0.0.3
   '@harlan-zw/nuxt-dx': 0.0.1
   '@harlan-zw/nuxt-use-query': 0.0.1
   '@iconify-json/carbon': ^1.2.25
