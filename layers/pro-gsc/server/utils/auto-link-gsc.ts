@@ -1,9 +1,9 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import type { GscdumpAvailableSite } from './gscdump-client'
 import { eq } from 'drizzle-orm'
+import { isVerifiedGscPermission, matchGscSite, normalizeRegistrationTarget, pickBestGscProperty } from 'gscdump'
 import { logWarn } from '~~/shared/logging'
 import { sites } from '#layers/pro-saas/server/database'
-import { isVerifiedGscPermission, pickBestGscProperty } from './google'
 import { useGscdumpClient } from './gscdump-client'
 import { getGscdumpWebhookUrl } from './gscdump-origin'
 import { updateOnboardingState } from './onboarding'
@@ -51,7 +51,7 @@ export async function autoLinkGsc(opts: {
   // has no access to it — leaving the site auto-linked to a property that can
   // never sync. pickBestGscProperty ranks verified > unverified first.
   const matchingGsc = opts.preferredSiteUrl
-    ? availableSites.find(p => p.siteUrl === opts.preferredSiteUrl)
+    ? availableSites.find(p => p.siteUrl === opts.preferredSiteUrl && matchGscSite(origin, p.siteUrl))
     : pickBestGscProperty(origin, availableSites)
   if (!matchingGsc)
     return undefined
@@ -65,7 +65,9 @@ export async function autoLinkGsc(opts: {
     return undefined
   }
 
-  const simpleDomain = extractDomain(origin)
+  const simpleDomain = normalizeRegistrationTarget(origin)
+  if (!simpleDomain)
+    return undefined
   let gscdumpSiteId: string | undefined
   let gscdumpSiteUrl: string | undefined
 

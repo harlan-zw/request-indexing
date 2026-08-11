@@ -85,7 +85,7 @@ defineExpose({ tableData })
           v-for="f in allFilters"
           :key="f.key"
           class="cursor-pointer"
-          :ui="{ rounded: 'rounded-full' }"
+          :ui="{ base: 'rounded-full' }"
           :color="tableData.filter.value === f.key ? 'green' : 'gray'"
           :variant="tableData.filter.value === f.key ? 'subtle' : 'soft'"
           @click="tableData.toggleFilter(f.key)"
@@ -105,8 +105,8 @@ defineExpose({ tableData })
       :rows="tableData.rows.value"
       :columns="visibleColumns"
       :ui="{
-        th: { padding: 'px-2 py-2', size: 'text-xs', font: 'font-normal' },
-        td: { padding: 'px-2 py-1' },
+        th: 'px-2 py-2 text-xs font-normal',
+        td: 'px-2 py-1',
       }"
     >
       <template v-for="col in visibleColumns" :key="col.key" #[`${col.key}-data`]="data">

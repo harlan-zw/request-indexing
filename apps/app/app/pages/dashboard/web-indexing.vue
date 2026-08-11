@@ -23,7 +23,7 @@ const sites = computed(() => (data.value?.sites || []))
           </h2>
         </NuxtLink>
       </CardTitle>
-      <UCard v-if="site.gscdumpSiteId" :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+      <UCard v-if="site.gscdumpSiteId" :ui="{ body: 'sm:px-3 sm:py-2' }">
         <GscdumpIndexingSummary :site-id="site.gscdumpSiteId" />
       </UCard>
       <div v-else class="text-sm text-gray-500 py-4">

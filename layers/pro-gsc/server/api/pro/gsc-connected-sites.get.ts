@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm'
-import { analyticsStatusToSyncStatus, useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
+import { logger } from '~~/shared/server/logger'
+import { lifecycleSiteToUserSite, useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
 import { users } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
 
@@ -22,19 +23,14 @@ export default defineProApiHandler({}, async ({ db, caller }): Promise<{ sites: 
   if (!user?.gscdumpUserId)
     return { sites: [] }
 
-  const lifecycle = await useGscdumpClient().getUserLifecycle(user.gscdumpUserId).catch(() => null)
+  const lifecycle = await useGscdumpClient().getUserLifecycle(user.gscdumpUserId).catch((error) => {
+    logger.warn('[gsc-connected-sites] gscdump lifecycle error:', error)
+    return null
+  })
   if (!lifecycle)
     return { sites: [] }
 
   return {
-    sites: lifecycle.sites.map(site => ({
-      siteId: site.siteId,
-      siteUrl: site.gscPropertyUrl || site.requestedUrl,
-      syncStatus: analyticsStatusToSyncStatus(site.analytics.status),
-      syncProgress: site.analytics.progress,
-      lastSyncAt: site.updatedAt ? Date.parse(site.updatedAt) : null,
-      newestDateSynced: site.analytics.syncedRange.newest,
-      oldestDateSynced: site.analytics.syncedRange.oldest,
-    })),
+    sites: lifecycle.sites.map(lifecycleSiteToUserSite),
   }
 })

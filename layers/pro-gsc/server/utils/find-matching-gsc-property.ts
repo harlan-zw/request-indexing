@@ -1,4 +1,5 @@
-import { matchGscSite } from './google'
+import { pickBestGscProperty } from 'gscdump'
+import { logWarn } from '~~/shared/logging'
 import { useGscdumpClient } from './gscdump-client'
 
 /**
@@ -14,6 +15,9 @@ export async function findMatchingGscProperty(
   if (!gscdumpUserId)
     return undefined
   const gscdump = useGscdumpClient()
-  const available = await gscdump.getAvailableSites(gscdumpUserId).catch(() => null)
-  return available?.sites?.find(gsc => matchGscSite(origin, gsc.siteUrl))?.siteUrl
+  const available = await gscdump.getAvailableSites(gscdumpUserId).catch((error) => {
+    logWarn('gscdump.proxy.failed', error, { stage: 'available-sites.match', gscdumpUserId })
+    return null
+  })
+  return available ? pickBestGscProperty(origin, available.sites)?.siteUrl : undefined
 }

@@ -268,12 +268,12 @@ const filters = [
   <div v-if="!mock" class="flex justify-between mb-3">
     <div v-if="value?.length">
       <div>
-        <UTooltip :ui="{ width: 'max-w-md' }" text="Non-Indexed pages are initially guessed from your page impressions.">
+        <UTooltip :ui="{ content: 'max-w-md' }" text="Non-Indexed pages are initially guessed from your page impressions.">
           <div><strong>{{ value.filter(row => getUpdatedRow(row).inspectionResult?.indexStatusResult?.verdict === 'NEUTRAL').length }}</strong> Confirmed non-indexed pages.</div>
         </UTooltip>
       </div>
       <div>
-        <UTooltip :ui="{ width: 'max-w-md' }" text="Total pages that you've 'Requested Indexing' on">
+        <UTooltip :ui="{ content: 'max-w-md' }" text="Total pages that you've 'Requested Indexing' on">
           <div><strong>{{ value.filter(row => !!getUpdatedRow(row)?.urlNotificationMetadata?.latestUpdate).length }}</strong> Indexing requests.</div>
         </UTooltip>
       </div>

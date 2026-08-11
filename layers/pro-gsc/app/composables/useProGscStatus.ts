@@ -1,4 +1,4 @@
-import { analyticsStatusToSyncStatus } from '@gscdump/sdk/lifecycle'
+import { lifecycleSiteToSyncStatus } from '@gscdump/sdk/lifecycle'
 
 interface TableProgress {
   name: string
@@ -109,26 +109,27 @@ export function useProGscStatus(siteId: MaybeRefOrGetter<string>) {
       if (!lifecycleSite)
         return null
       const analyticsStatus = lifecycleSite.analytics.status
-      const syncStatus = analyticsStatusToSyncStatus(analyticsStatus)
+      const lifecycleStatus = lifecycleSiteToSyncStatus(lifecycleSite)
+      const syncStatus = lifecycleStatus.syncStatus
       const activeAnalytics = ['queued', 'preparing', 'syncing'].includes(analyticsStatus)
       const activeSitemaps = ['discovering', 'syncing'].includes(lifecycleSite.sitemaps.status)
       const activeIndexing = ['discovering', 'checking', 'waiting_for_sitemaps'].includes(lifecycleSite.indexing.status)
       return {
         syncStatus,
         permissionLost: lifecycleSite.latestError?.code === 'permission_lost',
-        oldestDateSynced: lifecycleSite.analytics.syncedRange.oldest,
-        newestDateSynced: lifecycleSite.analytics.syncedRange.newest,
-        lastSyncAt: lifecycleSite.updatedAt ? Date.parse(lifecycleSite.updatedAt) : null,
-        lastError: lifecycleSite.latestError?.message ?? null,
-        progress: lifecycleSite.analytics.progress.percent,
-        daysSynced: lifecycleSite.analytics.progress.completed,
-        daysAvailable: lifecycleSite.analytics.progress.total,
-        isSyncing: activeAnalytics || activeSitemaps || activeIndexing,
-        hasData: lifecycleSite.analytics.queryable,
-        isComplete: lifecycleSite.analytics.queryable && !activeAnalytics,
+        oldestDateSynced: lifecycleStatus.oldestDateSynced,
+        newestDateSynced: lifecycleStatus.newestDateSynced,
+        lastSyncAt: lifecycleStatus.lastSyncAt,
+        lastError: lifecycleStatus.lastError,
+        progress: lifecycleStatus.progress,
+        daysSynced: lifecycleStatus.daysSynced,
+        daysAvailable: lifecycleStatus.daysAvailable,
+        isSyncing: lifecycleStatus.isSyncing || activeSitemaps || activeIndexing,
+        hasData: lifecycleStatus.hasData,
+        isComplete: lifecycleStatus.hasData && !activeAnalytics,
         phase: syncStatus === 'error' ? 'error' : activeIndexing ? 'indexing' : activeAnalytics || activeSitemaps ? 'syncing' : 'complete',
-        totalRowsSynced: lifecycleSite.analytics.progress.completed,
-        hasMinimumData: lifecycleSite.analytics.queryable,
+        totalRowsSynced: lifecycleStatus.daysSynced,
+        hasMinimumData: lifecycleStatus.hasData,
         tablesProgress: [],
         indexing: {
           queued: 0,

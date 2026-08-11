@@ -6,20 +6,12 @@ const props = defineProps<{
   site: SiteSelect
 }>()
 
-const emits = defineEmits<{
-  hide: []
-}>()
-
 const { period: dashboardPeriod } = useDashboardPeriod()
 
 const { data, status } = useGscdumpDates(
   () => props.site.gscdumpSiteId,
   dashboardPeriod,
 )
-
-function hide() {
-  emits('hide')
-}
 </script>
 
 <template>
@@ -34,7 +26,7 @@ function hide() {
         </div>
       </NuxtLink>
     </CardTitle>
-    <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+    <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
       <div class="flex gap-5 items-center">
         <div v-if="status === 'pending'" class="h-full flex items-center justify-center w-full py-8">
           <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-400" />

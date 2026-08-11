@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const props = defineProps<{ site: any }>()
+const { site } = defineProps<{ site: any }>()
 
 definePageMeta({
   layout: 'dashboard',
@@ -11,7 +11,7 @@ definePageMeta({
 
 <template>
   <div class="space-y-7">
-    <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+    <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
       <GscdumpSitemaps :site-id="site.gscdumpSiteId" />
     </UCard>
   </div>

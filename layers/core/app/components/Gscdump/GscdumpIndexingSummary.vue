@@ -24,7 +24,7 @@ const trendGraph = computed(() => {
     </div>
     <template v-else-if="data?.summary">
       <div class="grid grid-cols-4 gap-4 mb-6">
-        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+        <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
           <div class="text-xs text-gray-500">
             Total URLs
           </div>
@@ -32,7 +32,7 @@ const trendGraph = computed(() => {
             {{ useHumanFriendlyNumber(data.summary.totalUrls) }}
           </div>
         </UCard>
-        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+        <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
           <div class="text-xs text-gray-500">
             Indexed
           </div>
@@ -40,7 +40,7 @@ const trendGraph = computed(() => {
             {{ useHumanFriendlyNumber(data.summary.indexed) }}
           </div>
         </UCard>
-        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+        <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
           <div class="text-xs text-gray-500">
             Not Indexed
           </div>
@@ -48,7 +48,7 @@ const trendGraph = computed(() => {
             {{ useHumanFriendlyNumber(data.summary.notIndexed) }}
           </div>
         </UCard>
-        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+        <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
           <div class="text-xs text-gray-500">
             Indexed %
           </div>

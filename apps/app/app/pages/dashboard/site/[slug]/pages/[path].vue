@@ -30,7 +30,7 @@ const pageFilter = computed(() => [
         </div>
       </template>
       <template #default="{ open }">
-        <UButton color="neutral" variant="ghost" size="xl" class="flex items-center gap-1" :ui="{ padding: { xl: 'pl-0 ' } }">
+        <UButton color="neutral" variant="ghost" size="xl" class="flex items-center gap-1 pl-0">
           <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
           <h2 class="text-xl font-semibold">
             {{ path }}

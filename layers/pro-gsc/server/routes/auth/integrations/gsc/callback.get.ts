@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import { exchangeAuthCodeResult } from 'gscdump'
 import { logger } from '~~/shared/server/logger'
 import { scheduleGscdumpOnboardingReconcile } from '#layers/pro-gsc/server/utils/reconcile-gscdump-onboarding'
 
@@ -28,34 +29,21 @@ export default defineEventHandler(async (event) => {
   const protocol = host?.includes('localhost') ? 'http' : 'https'
   const redirectUri = `${protocol}://${host}/auth/integrations/gsc/callback`
 
-  // Exchange code for tokens
-  const tokenRes = await $fetch<{
-    access_token: string
-    refresh_token?: string
-    expires_in: number
-    scope?: string // Space-separated scopes granted by user
-  }>('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    body: new URLSearchParams({
-      client_id: config.oauth.google.clientId,
-      client_secret: config.oauth.google.clientSecret,
-      grant_type: 'authorization_code',
-      code: code as string,
-      redirect_uri: redirectUri,
-    }).toString(),
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-  }).catch((err) => {
-    logger.error('[google auth] token exchange failed:', err.data || err.message)
+  const tokenResult = await exchangeAuthCodeResult(
+    String(code),
+    config.oauth.google.clientId,
+    config.oauth.google.clientSecret,
+    redirectUri,
+  )
+  if (!tokenResult.ok) {
+    logger.error('[google auth] token exchange failed:', tokenResult.error)
     throw createError({ statusCode: 422, statusMessage: 'Failed to exchange authorization code' })
-  })
-
-  if (!tokenRes.access_token) {
-    throw createError({ statusCode: 422, statusMessage: 'Failed to get access token' })
   }
+  const tokenRes = tokenResult.value
 
   // Get user info (id, email, name)
   const googleUser = await $fetch<{ id: string, email: string, name?: string }>('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: { Authorization: `Bearer ${tokenRes.access_token}` },
+    headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
   }).catch((err) => {
     logger.error('[google auth] failed to get user info:', err.message)
     return null
@@ -84,8 +72,7 @@ export default defineEventHandler(async (event) => {
 
   const existingRefreshToken = (existingAuthAccount?.tokens as { refresh_token?: string | null } | undefined)?.refresh_token ?? null
   // Use new refresh token if provided, otherwise keep existing
-  const refreshToken = tokenRes.refresh_token || existingRefreshToken
-  const tokenExpiryMs = Date.now() + tokenRes.expires_in * 1000
+  const refreshToken = tokenRes.refreshToken || existingRefreshToken
 
   // Sync user with gscdump.com partner API
   let gscdumpUserId = existingUser?.gscdumpUserId
@@ -95,11 +82,10 @@ export default defineEventHandler(async (event) => {
   let gscdumpSyncMessage: string | null = null
   if (googleUser?.id && refreshToken) {
     const gscdump = useGscdumpClient()
-    const tokenExpiryUnix = Math.floor(Date.now() / 1000) + tokenRes.expires_in
     const tokenParams = {
-      accessToken: tokenRes.access_token,
+      accessToken: tokenRes.accessToken,
       refreshToken,
-      tokenExpiresAt: tokenExpiryUnix,
+      tokenExpiresAt: tokenRes.expiresAt,
     }
 
     if (gscdumpUserId) {
@@ -173,13 +159,6 @@ export default defineEventHandler(async (event) => {
     .catch((err: any) => {
       logger.error('[google auth] db update failed:', err.message)
     })
-
-  // Silence unused locals (will be wired into google_accounts row when the
-  // auth flow consolidates here; for now upstream `auth/google.get.ts` writes it).
-  void tokenRes.access_token
-  void tokenRes.scope
-  void refreshToken
-  void tokenExpiryMs
 
   await emitFirstProEvent(db, session.user.id, 'gsc_connected', {
     email: googleUser?.email ?? null,

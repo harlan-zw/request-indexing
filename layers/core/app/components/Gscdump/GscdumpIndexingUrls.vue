@@ -78,8 +78,8 @@ const verdictColor: Record<string, string> = {
       :rows="data?.urls || []"
       :columns="columns"
       :ui="{
-        th: { padding: 'px-2 py-2', size: 'text-xs', font: 'font-normal' },
-        td: { padding: 'px-2 py-1' },
+        th: 'px-2 py-2 text-xs font-normal',
+        td: 'px-2 py-1',
       }"
     >
       <template #url-data="{ row }">

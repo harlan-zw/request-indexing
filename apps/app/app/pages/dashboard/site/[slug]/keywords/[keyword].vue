@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const props = defineProps<{ site: any }>()
+const { site } = defineProps<{ site: any }>()
 
 definePageMeta({
   title: 'Keywords',
@@ -10,12 +10,8 @@ const keyword = useRoute().params.keyword as string
 
 const router = useRouter()
 function changeKeyword(value: any) {
-  router.push(`/dashboard/site/${props.site.siteId}/keywords/${encodeURIComponent(value.value || value)}`)
+  router.push(`/dashboard/site/${site.siteId}/keywords/${encodeURIComponent(value.value || value)}`)
 }
-
-const keywordFilter = computed(() => [
-  { type: 'equals', column: 'query', value: keyword },
-])
 
 const pagesForKeywordFilter = computed(() => [
   { type: 'contains', column: 'query', value: keyword },
@@ -33,7 +29,7 @@ const pagesForKeywordFilter = computed(() => [
         </div>
       </template>
       <template #default="{ open }">
-        <UButton color="neutral" variant="ghost" size="xl" class="flex items-center gap-1" :ui="{ padding: { xl: 'pl-0 ' } }">
+        <UButton color="neutral" variant="ghost" size="xl" class="flex items-center gap-1 pl-0">
           <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
           <h2 class="text-xl font-semibold">
             {{ keyword }}

@@ -33,8 +33,12 @@ const { data, status } = useGscdumpAnalysis(
   params,
 )
 
-watch(() => props.preset, () => { page.value = 1 })
-watch(search, () => { page.value = 1 })
+watch(() => props.preset, () => {
+  page.value = 1
+})
+watch(search, () => {
+  page.value = 1
+})
 
 const presetColumns: Record<string, Array<{ key: string, label: string }>> = {
   'striking-distance': [
@@ -120,7 +124,7 @@ function formatCell(row: GscdumpAnalysisResult, key: string) {
 <template>
   <div>
     <div v-if="data?.summary" class="grid grid-cols-4 gap-4 mb-6">
-      <UCard v-if="data.summary.brandClicks != null" :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+      <UCard v-if="data.summary.brandClicks != null" :ui="{ body: 'sm:px-3 sm:py-2' }">
         <div class="text-xs text-gray-500">
           Brand Clicks
         </div>
@@ -128,7 +132,7 @@ function formatCell(row: GscdumpAnalysisResult, key: string) {
           {{ useHumanFriendlyNumber(data.summary.brandClicks) }}
         </div>
       </UCard>
-      <UCard v-if="data.summary.nonBrandClicks != null" :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+      <UCard v-if="data.summary.nonBrandClicks != null" :ui="{ body: 'sm:px-3 sm:py-2' }">
         <div class="text-xs text-gray-500">
           Non-Brand Clicks
         </div>
@@ -136,7 +140,7 @@ function formatCell(row: GscdumpAnalysisResult, key: string) {
           {{ useHumanFriendlyNumber(data.summary.nonBrandClicks) }}
         </div>
       </UCard>
-      <UCard v-if="data.summary.brandShare != null" :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+      <UCard v-if="data.summary.brandShare != null" :ui="{ body: 'sm:px-3 sm:py-2' }">
         <div class="text-xs text-gray-500">
           Brand Share
         </div>
@@ -178,8 +182,8 @@ function formatCell(row: GscdumpAnalysisResult, key: string) {
       :rows="data?.keywords || []"
       :columns="columns"
       :ui="{
-        th: { padding: 'px-2 py-2', size: 'text-xs', font: 'font-normal' },
-        td: { padding: 'px-2 py-1' },
+        th: 'px-2 py-2 text-xs font-normal',
+        td: 'px-2 py-1',
       }"
     >
       <template #keyword-data="{ row }">

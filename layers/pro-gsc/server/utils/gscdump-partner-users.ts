@@ -6,7 +6,8 @@
 // own purge runs async; this just needs to fire-and-acknowledge.
 
 import type { H3Event } from 'h3'
-import { getGscdumpPartnerApiUrl } from './gscdump-origin'
+import { isGscdumpV1Error } from '@gscdump/sdk/v1'
+import { createGscdumpPublicV1Client } from './gscdump-origin'
 
 export interface PartnerDeleteResult {
   ok: boolean
@@ -19,18 +20,13 @@ export async function deletePartnerUser(event: H3Event, gscdumpUserId: string): 
   const apiKey = config.gscdump?.apiKey
   if (!apiKey)
     return { ok: false, message: 'NUXT_GSCDUMP_API_KEY not configured' }
-  try {
-    const res = await $fetch<{ ok: true, queued?: boolean }>(
-      `${getGscdumpPartnerApiUrl(event)}/users/${gscdumpUserId}`,
-      { method: 'DELETE', headers: { 'x-api-key': apiKey } },
-    )
-    return { ok: true, message: JSON.stringify(res) }
-  }
-  catch (err: any) {
-    return {
+
+  return createGscdumpPublicV1Client(event)
+    .deleteUser({ params: { userId: gscdumpUserId } })
+    .then(response => ({ ok: true, message: JSON.stringify(response.data) }))
+    .catch((error: unknown) => ({
       ok: false,
-      status: err?.statusCode || err?.response?.status,
-      message: err?.data?.message || err?.message || String(err),
-    }
-  }
+      status: isGscdumpV1Error(error) ? error.status : undefined,
+      message: error instanceof Error ? error.message : String(error),
+    }))
 }

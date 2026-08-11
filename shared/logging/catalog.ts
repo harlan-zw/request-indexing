@@ -70,7 +70,6 @@ export const LOG_CATALOG = {
   'email.send_failed': 'transactional email send failed; user does not see it but it should have shipped',
 
   // Google Indexing API
-  'indexing.token_persist_failed': 'Google Indexing API access token was auto-refreshed but persisting it back to google_accounts failed; next request will refresh again',
   'indexing.job_record_failed': 'indexing_jobs tracking row insert/update failed after a successful Google Indexing API submission',
   'indexing.usage_record_failed': 'usages counter increment failed after a successful Google Indexing API submission',
   'indexing.revoke_failed': 'Google token revoke call failed during indexing OAuth disconnect; local grant was still removed',

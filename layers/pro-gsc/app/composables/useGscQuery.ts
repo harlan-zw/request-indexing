@@ -1,5 +1,6 @@
 import type { AnalysisParams, AnalysisResult } from '@gscdump/engine/analysis-types'
 import type { ComputedRef, MaybeRefOrGetter, Ref, WatchSource } from 'vue'
+import { classifyGscError } from '@gscdump/sdk/gsc-error'
 import { computed, onScopeDispose, ref, shallowRef, toValue, watch } from 'vue'
 
 export type GscQueryEngine = 'auto' | 'browser' | 'server'
@@ -74,13 +75,7 @@ function isEmpty(value: unknown): boolean {
 }
 
 function errorStatus(error: unknown): GscQueryStatus {
-  const status = (error as { status?: number, statusCode?: number } | null)?.status
-    ?? (error as { status?: number, statusCode?: number } | null)?.statusCode
-  if (status === 401 || status === 403)
-    return 'auth-missing'
-  if (status === 429)
-    return 'rate-limited'
-  return status == null ? 'network' : 'error'
+  return classifyGscError(error).status
 }
 
 /**

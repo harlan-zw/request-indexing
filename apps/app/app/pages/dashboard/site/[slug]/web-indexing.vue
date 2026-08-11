@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const props = defineProps<{ site: any }>()
+const { site } = defineProps<{ site: any }>()
 
 definePageMeta({
   layout: 'dashboard',
@@ -13,18 +13,18 @@ definePageMeta({
   <div class="space-y-7">
     <div class="grid grid-cols-12 gap-7">
       <div class="col-span-9 space-y-7">
-        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+        <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
           <GscdumpIndexingSummary :site-id="site.gscdumpSiteId" />
         </UCard>
         <div>
           <CardTitle>URLs</CardTitle>
-          <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
             <GscdumpIndexingUrls :site-id="site.gscdumpSiteId" />
           </UCard>
         </div>
       </div>
       <div class="col-span-3 space-y-7">
-        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+        <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
           <h2 class="mb-2 flex items-center text-sm font-semibold">
             <UIcon name="i-ph-info-duotone" class="w-5 h-5 mr-1 text-gray-500" />
             How it works
@@ -38,7 +38,7 @@ definePageMeta({
         </UCard>
         <div>
           <CardTitle>Diagnostics</CardTitle>
-          <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
             <GscdumpIndexingDiagnostics :site-id="site.gscdumpSiteId" />
           </UCard>
         </div>

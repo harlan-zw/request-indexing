@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const props = defineProps<{ site: any }>()
+const { site } = defineProps<{ site: any }>()
 
 definePageMeta({
   layout: 'dashboard',
@@ -50,7 +50,7 @@ const currentTab = computed(() => tabItems[tab.value])
     </div>
     <div class="grid grid-cols-12 gap-7">
       <div class="col-span-9 space-y-7">
-        <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+        <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
           <GscdumpChart :gscdump-site-id="site.gscdumpSiteId" />
         </UCard>
         <div>
@@ -59,7 +59,7 @@ const currentTab = computed(() => tabItems[tab.value])
               Pages
             </NuxtLink>
           </CardTitle>
-          <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
             <GscdumpPagesTable
               :site-id="site.gscdumpSiteId"
               :page-size="5"
@@ -76,7 +76,7 @@ const currentTab = computed(() => tabItems[tab.value])
               Keywords
             </NuxtLink>
           </CardTitle>
-          <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
             <GscdumpKeywordsTable
               :site-id="site.gscdumpSiteId"
               :page-size="5"
@@ -95,7 +95,7 @@ const currentTab = computed(() => tabItems[tab.value])
               Countries
             </NuxtLink>
           </CardTitle>
-          <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
             <GscdumpCountriesTable
               :site-id="site.gscdumpSiteId"
               :page-size="5"
@@ -110,7 +110,7 @@ const currentTab = computed(() => tabItems[tab.value])
           <CardTitle>
             Devices
           </CardTitle>
-          <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+          <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
             <GscdumpDevicesCard :site-id="site.gscdumpSiteId" />
           </UCard>
         </div>

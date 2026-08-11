@@ -1,6 +1,7 @@
 import type { PartnerLifecycleSite } from '#layers/pro-gsc/shared/gscdump-api'
 import { subDays } from 'date-fns'
 import { eq } from 'drizzle-orm'
+import { matchGscSite, normalizeRegistrationTarget } from 'gscdump'
 import { logger } from '~~/shared/server/logger'
 import { analyticsStatusToSyncStatus, findLifecycleSite, useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
 // TODO(pro-saas-cleanup): re-wire stats fetch when V1 site-signals lands.
@@ -97,7 +98,7 @@ export default defineProApiHandler({ team: true }, async ({ team: ctx }): Promis
       siteId: s.id,
       siteName: s.name,
       siteUrl: s.url!,
-      domain: extractDomain(s.url!),
+      domain: normalizeRegistrationTarget(s.url!) ?? s.url!,
       gscdumpSiteId: s.gscdumpSiteId,
       gscdumpSiteUrl: s.gscdumpSiteUrl,
     }))
@@ -193,8 +194,7 @@ export default defineProApiHandler({ team: true }, async ({ team: ctx }): Promis
   const seenLifecycleSiteIds = new Set<string>()
 
   const properties = availableSitesRes.sites.map((prop) => {
-    const propDomain = extractDomain(prop.siteUrl)
-    const matchingSite = siteDomains.find(sd => sd.domain === propDomain)
+    const matchingSite = siteDomains.find(sd => matchGscSite(sd.siteUrl, prop.siteUrl))
     const lifecycleSite = findLifecycleSite(lifecycle, matchingSite?.gscdumpSiteId || prop.siteId || prop.siteUrl)
     if (lifecycleSite)
       seenLifecycleSiteIds.add(lifecycleSite.siteId)
@@ -232,11 +232,10 @@ export default defineProApiHandler({ team: true }, async ({ team: ctx }): Promis
     if (seenLifecycleSiteIds.has(lifecycleSite.siteId))
       continue
     const propUrl = lifecycleSite.gscPropertyUrl || lifecycleSite.requestedUrl
-    const propDomain = extractDomain(propUrl)
     const matchingSite = siteDomains.find(sd =>
       sd.gscdumpSiteId === lifecycleSite.siteId
-      || sd.domain === propDomain
-      || extractDomain(sd.gscdumpSiteUrl || '') === propDomain,
+      || matchGscSite(sd.siteUrl, propUrl)
+      || (sd.gscdumpSiteUrl != null && matchGscSite(sd.gscdumpSiteUrl, propUrl)),
     )
     properties.push({
       siteUrl: propUrl,

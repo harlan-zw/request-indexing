@@ -85,7 +85,7 @@ const columns = computed(() => [
   {
     accessorKey: 'verdict',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Verdict'),
-    align: 'right' as const,
+    meta: { align: 'right' as const },
     cell: ({ row }: any) => {
       const r = row.original as Mismatch
       return h(ProStatusBadge, {

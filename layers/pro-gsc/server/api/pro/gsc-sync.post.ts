@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import { normalizeRegistrationTarget } from 'gscdump'
 import { z } from 'zod'
 import { useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
 import { getGscdumpWebhookUrl } from '#layers/pro-gsc/server/utils/gscdump-origin'
@@ -34,7 +35,9 @@ export default defineProApiHandler({ body: bodySchema }, async ({ db, caller, bo
 
   // Register with gscdump
   const gscdump = useGscdumpClient()
-  const simpleDomain = extractDomain(body.gscSiteUrl)
+  const simpleDomain = normalizeRegistrationTarget(body.gscSiteUrl)
+  if (!simpleDomain)
+    throw createError({ statusCode: 400, message: 'Invalid Search Console property' })
   await gscdump.waitForUserReady(dbUser.gscdumpUserId)
 
   const registration = await gscdump.registerSite({

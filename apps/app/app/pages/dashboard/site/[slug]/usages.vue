@@ -36,7 +36,7 @@ function keyToLabel(key: string) {
           <UIcon name="i-ph-database-duotone" class="w-5 h-5 text-gray-500" />
           API Usages
         </CardTitle>
-        <UCard v-if="data" :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+        <UCard v-if="data" :ui="{ body: 'sm:px-3 sm:py-2' }">
           <div class="text-sm mb-4 space-y-7">
             <div v-for="row in data" :key="row.key">
               <ProgressPercent :value="row.usage">

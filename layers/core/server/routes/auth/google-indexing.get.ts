@@ -1,6 +1,7 @@
 import type { UserSession } from '~~/layers/core/app/types'
 import type { GoogleAccountsSelect, GoogleOAuthClientsSelect } from '~~/layers/core/server/db/schema'
 import { and, eq } from 'drizzle-orm'
+import { GSC_INDEXING_SCOPE } from 'gscdump'
 import {
   createError,
   defineEventHandler,
@@ -21,7 +22,7 @@ const USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
 
 // openid+email+profile fill the `google_accounts.payload` row (Google user
 // profile); auth/indexing is the actual grant this flow exists for.
-const INDEXING_SCOPES = ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/indexing']
+const INDEXING_SCOPES = ['openid', 'email', 'profile', GSC_INDEXING_SCOPE]
 
 interface GoogleTokenResponse {
   access_token: string

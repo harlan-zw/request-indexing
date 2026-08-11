@@ -1,10 +1,9 @@
 import { and, eq } from 'drizzle-orm'
+import { revokeOAuthTokenResult } from 'gscdump'
 import { defineEventHandler } from 'h3'
 import { authenticateUser } from '~~/layers/core/server/app/utils/auth'
 import { googleAccounts, users } from '~~/layers/core/server/db/schema'
 import { logWarn } from '~~/shared/logging'
-
-const REVOKE_URL = 'https://oauth2.googleapis.com/revoke'
 
 // Disconnects the pooled Google Indexing API grant (`google_accounts`,
 // type='indexing'). Idempotent: calling this with nothing connected is a
@@ -22,11 +21,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const revocationToken = account.tokens.refresh_token || account.tokens.access_token
-  await $fetch(REVOKE_URL, {
-    method: 'POST',
-    body: new URLSearchParams({ token: revocationToken }).toString(),
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-  }).catch(err => logWarn('indexing.revoke_failed', err, { userId: user.userId }))
+  const revocation = await revokeOAuthTokenResult(revocationToken)
+  if (!revocation.ok)
+    logWarn('indexing.revoke_failed', revocation.error, { userId: user.userId })
 
   await db.delete(googleAccounts).where(eq(googleAccounts.googleAccountId, account.googleAccountId))
 

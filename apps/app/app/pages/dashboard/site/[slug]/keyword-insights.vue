@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const props = defineProps<{ site: any }>()
+const { site } = defineProps<{ site: any }>()
 
 definePageMeta({
   layout: 'dashboard',
@@ -29,7 +29,7 @@ definePageMeta({
       </div>
     </div>
     <div class="col-span-1 space-y-7">
-      <UCard :ui="{ body: { padding: 'sm:px-2 sm:py-2' } }">
+      <UCard :ui="{ body: 'sm:px-2 sm:py-2' }">
         <h2 class="mb-2 flex items-center text-sm font-semibold">
           <UIcon name="i-ph-info-duotone" class="w-5 h-5 mr-1 text-gray-500" />
           How it works
@@ -38,7 +38,7 @@ definePageMeta({
           Keyword insights show search volume and difficulty data for your ranking keywords, helping identify optimization opportunities.
         </div>
       </UCard>
-      <UCard :ui="{ body: { padding: 'sm:px-2 sm:py-2' } }">
+      <UCard :ui="{ body: 'sm:px-2 sm:py-2' }">
         <h2 class="mb-2 flex items-center text-sm font-semibold">
           <UIcon name="i-ph-caret-double-right-duotone" class="w-5 h-5 mr-1 text-gray-500" />
           Track keyword

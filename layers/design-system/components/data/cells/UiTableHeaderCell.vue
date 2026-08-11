@@ -1,9 +1,10 @@
-<script setup lang="ts" generic="T">
-import type { Header } from '@tanstack/vue-table'
+<script setup lang="ts" generic="T extends RowData">
+import type { Header, RowData } from '@tanstack/vue-table'
+import type { UiTableFeatures } from '../table-features'
 import { FlexRender } from '@tanstack/vue-table'
 
 const { header, sortDirection } = defineProps<{
-  header: Header<T, unknown>
+  header: Header<UiTableFeatures, T, unknown>
   sortDirection: 'asc' | 'desc' | false
 }>()
 
@@ -13,9 +14,9 @@ const def = computed(() => header.column.columnDef)
 const sortable = computed(() => header.column.getCanSort())
 
 const justifyClass = computed(() => {
-  if (def.value.align === 'center')
+  if (def.value.meta?.align === 'center')
     return 'justify-center'
-  if (def.value.align === 'right')
+  if (def.value.meta?.align === 'right')
     return 'justify-end'
   return 'justify-start'
 })
@@ -38,7 +39,7 @@ const buttonClass = 'flex items-center gap-1 w-full text-[11px] font-semibold up
 </script>
 
 <template>
-  <UiTooltip v-if="def.tooltip" :text="def.tooltip">
+  <UiTooltip v-if="def.meta?.tooltip" :text="def.meta.tooltip">
     <button
       v-if="sortable"
       type="button"
@@ -46,11 +47,11 @@ const buttonClass = 'flex items-center gap-1 w-full text-[11px] font-semibold up
       :aria-label="isHeaderEmpty ? `Sort by ${header.column.id}` : undefined"
       @click.stop="emit('sort', header.column.id)"
     >
-      <FlexRender v-if="!header.isPlaceholder" :render="def.header" :props="header.getContext()" />
+      <FlexRender v-if="!header.isPlaceholder" :header="header" />
       <UIcon :name="sortIcon" class="size-3 text-dimmed transition-transform duration-150" :class="sortIconRotate" aria-hidden="true" />
     </button>
     <div v-else class="flex items-center gap-1" :class="justifyClass">
-      <FlexRender v-if="!header.isPlaceholder" :render="def.header" :props="header.getContext()" />
+      <FlexRender v-if="!header.isPlaceholder" :header="header" />
     </div>
   </UiTooltip>
   <button
@@ -60,10 +61,10 @@ const buttonClass = 'flex items-center gap-1 w-full text-[11px] font-semibold up
     :aria-label="isHeaderEmpty ? `Sort by ${header.column.id}` : undefined"
     @click.stop="emit('sort', header.column.id)"
   >
-    <FlexRender v-if="!header.isPlaceholder" :render="def.header" :props="header.getContext()" />
+    <FlexRender v-if="!header.isPlaceholder" :header="header" />
     <UIcon :name="sortIcon" class="size-3 text-dimmed transition-transform duration-150" :class="sortIconRotate" aria-hidden="true" />
   </button>
   <div v-else class="flex items-center gap-1" :class="justifyClass">
-    <FlexRender v-if="!header.isPlaceholder" :render="def.header" :props="header.getContext()" />
+    <FlexRender v-if="!header.isPlaceholder" :header="header" />
   </div>
 </template>

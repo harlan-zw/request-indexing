@@ -6,14 +6,13 @@
 // through here once and KV-cache the result for 60s. Webhook can punch the
 // cache when settings change (Phase 7).
 
+import type { GscdumpUserSettings } from '@gscdump/contracts'
+import type { PartnerFetch } from '@gscdump/sdk/partner'
 import type { H3Event } from 'h3'
+import { createPartnerClient } from '@gscdump/sdk/partner'
 import { createError } from 'h3'
 import { logWarn } from '~~/shared/logging'
 import { getGscdumpApiUrl } from './gscdump-origin'
-
-interface GscdumpUserSettings {
-  browserAnalyzerEnabled: boolean
-}
 
 const TTL_SECONDS = 60
 const cacheKey = (userId: number): string => `gsc:settings:${userId}`
@@ -27,6 +26,14 @@ function normalizeSettings(settings: Partial<GscdumpUserSettings> | null | undef
 function getKV(event: H3Event): KVNamespace | null {
   const env = event.context.cloudflare?.env as { KV?: KVNamespace } | undefined
   return env?.KV ?? null
+}
+
+function createSettingsClient(event: H3Event, apiKey: string) {
+  return createPartnerClient({
+    apiBase: getGscdumpApiUrl(event),
+    apiKey,
+    fetch: $fetch as unknown as PartnerFetch,
+  })
 }
 
 export async function loadGscdumpSettings(
@@ -46,9 +53,10 @@ export async function loadGscdumpSettings(
     }
   }
 
-  const settings = await $fetch<GscdumpUserSettings>(`${getGscdumpApiUrl(event)}/user/settings`, {
-    headers: { 'x-api-key': apiKey },
-  }).catch(() => null)
+  const settings = await createSettingsClient(event, apiKey).getUserSettings().catch((error) => {
+    logWarn('gscdump.proxy.failed', error, { stage: 'settings.get', userId })
+    return null
+  })
 
   const out = normalizeSettings(settings)
 
@@ -68,11 +76,10 @@ export async function patchGscdumpSettings(
   if (!apiKey)
     return { browserAnalyzerEnabled: true }
 
-  const updated = await $fetch<GscdumpUserSettings>(`${getGscdumpApiUrl(event)}/user/settings`, {
-    method: 'PATCH',
-    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
-    body,
-  }).catch(() => null)
+  const updated = await createSettingsClient(event, apiKey).patchUserSettings(body).catch((error) => {
+    logWarn('gscdump.proxy.failed', error, { stage: 'settings.patch', userId })
+    return null
+  })
 
   if (!updated) {
     throw createError({

@@ -1,4 +1,5 @@
 import { and, eq, ne } from 'drizzle-orm'
+import { introspectAccessTokenResult, refreshAccessToken } from 'gscdump'
 import { z } from 'zod'
 import { logger } from '~~/shared/server/logger'
 import * as schema from '#layers/pro-saas/server/database'
@@ -9,18 +10,10 @@ const Body = z.object({
   provider: z.enum(['google']),
 })
 
-interface GoogleUserinfoV3 {
-  sub: string
-  email: string
-  email_verified: boolean
-  name?: string
-  picture?: string
-}
-
 // Promote an existing integration grant (today: Google via GSC) into a
 // `user_identities` sign-in row. No second OAuth bounce: we refresh the live
-// access token using the stored refresh token, hit userinfo v3, and verify
-// `email_verified=true` + `sub` matches what we stored. Conflict-checks
+// access token using the stored refresh token, introspect it, and verify
+// the email and account identifier match what we stored. Conflict-checks
 // against any other user's identity rows before inserting.
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -56,42 +49,38 @@ export default defineEventHandler(async (event) => {
   // here rather than reusing the stored one (the stored access token may have
   // expired; refresh tokens last longer).
   const config = useRuntimeConfig(event)
-  const tokenRes = await $fetch<{ access_token?: string, id_token?: string }>('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    body: new URLSearchParams({
-      client_id: config.oauth.google.clientId,
-      client_secret: config.oauth.google.clientSecret,
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-    }).toString(),
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-  }).catch((err) => {
-    logger.error('[promote-google] refresh failed:', err?.data ?? err?.message)
+  const tokenRes = await refreshAccessToken(
+    refreshToken,
+    config.oauth.google.clientId,
+    config.oauth.google.clientSecret,
+  ).catch((error) => {
+    logger.error('[promote-google] refresh failed:', error)
     return null
   })
 
-  if (!tokenRes?.access_token)
+  if (!tokenRes)
     throw createError({ statusCode: 422, statusMessage: 'Re-consent required', data: { reason: 'REAUTH_REQUIRED' } })
 
-  const userinfo = await $fetch<GoogleUserinfoV3>('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${tokenRes.access_token}` },
-  }).catch((err) => {
-    logger.error('[promote-google] userinfo failed:', err?.message)
-    return null
-  })
+  const tokenInfoResult = await introspectAccessTokenResult(tokenRes.accessToken)
+  if (!tokenInfoResult.ok)
+    logger.error('[promote-google] token introspection failed:', tokenInfoResult.error)
 
-  if (!userinfo)
+  if (!tokenInfoResult.ok)
     throw createError({ statusCode: 422, statusMessage: 'Re-consent required', data: { reason: 'REAUTH_REQUIRED' } })
-  if (!userinfo.email_verified)
+  const tokenInfo = tokenInfoResult.value
+  const googleSub = tokenInfo.subject ?? tokenInfo.userId
+  if (!tokenInfo.emailVerified)
     throw createError({ statusCode: 422, statusMessage: 'Email not verified by Google', data: { reason: 'EMAIL_NOT_VERIFIED' } })
-  if (userinfo.sub !== gscUserSub)
+  if (googleSub !== gscUserSub)
     throw createError({ statusCode: 409, statusMessage: 'Google account identifier changed', data: { reason: 'SUB_MISMATCH' } })
+  if (!tokenInfo.email)
+    throw createError({ statusCode: 422, statusMessage: 'Google account email is unavailable', data: { reason: 'EMAIL_UNAVAILABLE' } })
 
   // Conflict: this Google account is already a sign-in for someone else.
   const conflict = await db.query.userIdentities.findFirst({
     where: and(
       eq(schema.userIdentities.provider, 'google'),
-      eq(schema.userIdentities.providerUserId, userinfo.sub),
+      eq(schema.userIdentities.providerUserId, googleSub),
       ne(schema.userIdentities.userId, userId),
     ),
   }).catch(() => null)
@@ -102,12 +91,12 @@ export default defineEventHandler(async (event) => {
     userId,
     provider: 'google',
     identity: {
-      providerUserId: userinfo.sub,
-      email: userinfo.email,
+      providerUserId: googleSub,
+      email: tokenInfo.email,
       emailVerified: true,
-      name: userinfo.name ?? null,
-      avatarUrl: userinfo.picture ?? null,
-      allVerifiedEmails: [userinfo.email],
+      name: googleAccount.payload?.name ?? null,
+      avatarUrl: googleAccount.payload?.picture ?? null,
+      allVerifiedEmails: [tokenInfo.email],
     },
   })
 

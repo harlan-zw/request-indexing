@@ -1,36 +1,100 @@
-// Pure error mapping for gscdump API failures. Kept separate from useProGscdump
-// so it is unit-testable without the composable harness.
+import type { PartnerErrorKind } from '@gscdump/sdk/partner-errors'
+import { toPartnerError } from '@gscdump/sdk/partner-errors'
 
-export interface GscdumpError {
+export type GscdumpErrorCode
+  = | 'AUTH'
+    | 'PERMISSION'
+    | 'NOT_FOUND'
+    | 'PROVISIONING'
+    | 'RATE_LIMIT'
+    | 'SERVER'
+    | 'NETWORK'
+    | 'VALIDATION'
+    | 'UNKNOWN'
+
+interface GscdumpErrorBase {
   message: string
-  code: 'AUTH' | 'NOT_FOUND' | 'RATE_LIMIT' | 'SERVER' | 'NETWORK' | 'UNKNOWN'
   status?: number
-  retry?: boolean
 }
 
-export function parseGscdumpError(e: unknown): GscdumpError {
-  if (e instanceof Error) {
-    const fetchError = e as Error & { status?: number, statusCode?: number, data?: { message?: string } }
-    const status = fetchError.status || fetchError.statusCode
+export type GscdumpError
+  = | (GscdumpErrorBase & { code: 'AUTH' | 'PERMISSION' | 'NOT_FOUND' | 'PROVISIONING' | 'VALIDATION', retry: false })
+    | (GscdumpErrorBase & { code: 'RATE_LIMIT' | 'SERVER' | 'NETWORK' | 'UNKNOWN', retry: true })
 
-    if (status === 401 || status === 403) {
-      return { message: 'Authentication failed. Please reconnect your account.', code: 'AUTH', status, retry: false }
-    }
-    if (status === 404) {
-      return { message: 'Data not found. The site may not be synced yet.', code: 'NOT_FOUND', status, retry: false }
-    }
-    if (status === 429) {
-      return { message: 'Rate limited. Please wait a moment and try again.', code: 'RATE_LIMIT', status, retry: true }
-    }
-    if (status && status >= 500) {
-      return { message: 'Server error. Please try again later.', code: 'SERVER', status, retry: true }
-    }
-    if (e.message.includes('fetch') || e.message.includes('network') || e.message.includes('Failed to fetch')) {
-      return { message: 'Network error. Check your connection.', code: 'NETWORK', retry: true }
-    }
+function messageFor(kind: PartnerErrorKind, message: string): string {
+  switch (kind) {
+    case 'auth':
+      return 'Authentication failed. Please reconnect your account.'
+    case 'permission':
+      return 'Search Console permission is missing. Please reconnect your account.'
+    case 'not-found':
+      return 'Data not found. The site may not be synced yet.'
+    case 'provisioning':
+      return 'Search Console data is still being prepared.'
+    case 'rate-limit':
+      return 'Rate limited. Please wait a moment and try again.'
+    case 'server':
+      return 'Server error. Please try again later.'
+    case 'network':
+      return 'Network error. Check your connection.'
+    case 'validation':
+      return message || 'Search Console rejected this request.'
+    case 'unknown':
+      return message || 'An unexpected error occurred.'
+  }
+}
 
-    return { message: fetchError.data?.message || e.message || 'An error occurred', code: 'UNKNOWN', status, retry: true }
+export function isGscdumpError(error: unknown): error is GscdumpError {
+  if (!error || typeof error !== 'object')
+    return false
+  const value = error as Partial<GscdumpError>
+  if (typeof value.message !== 'string')
+    return false
+  switch (value.code) {
+    case 'AUTH':
+    case 'PERMISSION':
+    case 'NOT_FOUND':
+    case 'PROVISIONING':
+    case 'VALIDATION':
+      return value.retry === false
+    case 'RATE_LIMIT':
+    case 'SERVER':
+    case 'NETWORK':
+    case 'UNKNOWN':
+      return value.retry === true
+    default:
+      return false
+  }
+}
+
+export function parseGscdumpError(error: unknown): GscdumpError {
+  if (isGscdumpError(error))
+    return error
+
+  const partnerError = toPartnerError(error)
+  const base = {
+    message: messageFor(partnerError.kind, partnerError.message),
+    status: partnerError.statusCode,
   }
 
-  return { message: 'An unexpected error occurred', code: 'UNKNOWN', retry: true }
+  switch (partnerError.kind) {
+    case 'auth':
+      return { ...base, code: 'AUTH', retry: false }
+    case 'permission':
+      return { ...base, code: 'PERMISSION', retry: false }
+    case 'not-found':
+      return { ...base, code: 'NOT_FOUND', retry: false }
+    case 'provisioning':
+      return { ...base, code: 'PROVISIONING', retry: false }
+    case 'rate-limit':
+      return { ...base, code: 'RATE_LIMIT', retry: true }
+    case 'server':
+      return { ...base, code: 'SERVER', retry: true }
+    case 'network':
+      return { ...base, code: 'NETWORK', retry: true }
+    case 'validation':
+      return { ...base, code: 'VALIDATION', retry: false }
+    case 'unknown':
+      return { ...base, code: 'UNKNOWN', retry: true }
+  }
 }

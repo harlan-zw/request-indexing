@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnDef } from '@tanstack/vue-table'
+import type { UiTableColumn } from '~~/layers/design-system/components/data/table-features'
 
 definePageMeta({ layout: 'kit' })
 useHead({ title: 'Data tables · Brand Kit' })
@@ -47,14 +47,6 @@ function scoreBg(score: number | null) {
     return 'bg-warning/10 text-warning'
   return 'bg-error/10 text-error'
 }
-function metricStatus(v: number, good: number, poor: number): 'good' | 'ni' | 'poor' {
-  if (v <= good)
-    return 'good'
-  if (v <= poor)
-    return 'ni'
-  return 'poor'
-}
-
 const statusColor: Record<PageRow['status'], 'primary' | 'warning' | 'neutral'> = {
   indexed: 'primary',
   pending: 'warning',
@@ -67,7 +59,7 @@ const TableTrendCellC = resolveComponent('TableTrendCell')
 const TableScoreTileC = resolveComponent('TableScoreTile')
 const UBadgeC = resolveComponent('UBadge')
 
-const columns: ColumnDef<PageRow>[] = [
+const columns: UiTableColumn<PageRow>[] = [
   {
     accessorKey: 'path',
     header: 'Page',

@@ -18,12 +18,12 @@ export function encryptToken(token: string, secretKey: string): string {
   const cipher = createCipheriv('aes-256-gcm', secretKey, iv)
 
   let encrypted = cipher.update(token, 'utf8', 'hex')
-  encrypted += cipher.final('hex')
+  encrypted += Buffer.from(cipher.final()).toString('hex')
 
-  const authTag = cipher.getAuthTag().toString('hex')
+  const authTag = Buffer.from(cipher.getAuthTag()).toString('hex')
 
   // Return the IV, encrypted token, and authTag in a single string
-  return `${iv.toString('hex')}:${encrypted}:${authTag}`
+  return `${Buffer.from(iv).toString('hex')}:${encrypted}:${authTag}`
 }
 
 // Function to decrypt a token

@@ -1,3 +1,4 @@
+import { GSC_INDEXING_SCOPE, GSC_READ_SCOPE, GSC_WRITE_SCOPE } from 'gscdump'
 import { withQuery } from 'ufo'
 import { randomUUID } from 'uncrypto'
 
@@ -16,15 +17,15 @@ export default defineEventHandler(async (event) => {
   const scopes = ['email']
   if (requestedScope === 'full') {
     scopes.push(
-      'https://www.googleapis.com/auth/webmasters',
-      'https://www.googleapis.com/auth/indexing',
+      GSC_WRITE_SCOPE,
+      GSC_INDEXING_SCOPE,
     )
   }
   else if (requestedScope === 'write') {
-    scopes.push('https://www.googleapis.com/auth/webmasters')
+    scopes.push(GSC_WRITE_SCOPE)
   }
   else if (requestedScope === 'read') {
-    scopes.push('https://www.googleapis.com/auth/webmasters.readonly')
+    scopes.push(GSC_READ_SCOPE)
   }
 
   const state = randomUUID()

@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import { normalizeRegistrationTarget } from 'gscdump'
 import { z } from 'zod'
 import { useGscdumpTeamsClient } from '#layers/pro-gsc/server/utils/gscdump-teams-client'
 import { sites, teams, users } from '#layers/pro-saas/server/database'
@@ -11,10 +12,9 @@ const bodySchema = z.object({
 export default defineProApiHandler({ body: bodySchema, site: true }, async ({ event, body, site: access }) => {
   const { db, siteId, caller } = access
   const { gscSiteUrl } = body
-  // Normalize: bare domains need a protocol for URL parsing
-  const normalizedOrigin = gscSiteUrl.startsWith('sc-domain:') || gscSiteUrl.startsWith('http')
-    ? gscSiteUrl
-    : `https://${gscSiteUrl}`
+  const registrationTarget = normalizeRegistrationTarget(gscSiteUrl)
+  if (!registrationTarget)
+    throw createError({ statusCode: 400, message: 'Invalid Search Console property' })
 
   // Get user's gscdump ID
   const [user] = await db.select({ gscdumpUserId: users.gscdumpUserId })
@@ -30,7 +30,7 @@ export default defineProApiHandler({ body: bodySchema, site: true }, async ({ ev
     db,
     gscdumpUserId: user.gscdumpUserId,
     siteId,
-    origin: normalizedOrigin,
+    origin: registrationTarget,
     preferredSiteUrl: gscSiteUrl,
   })
 
@@ -70,6 +70,6 @@ export default defineProApiHandler({ body: bodySchema, site: true }, async ({ ev
   return {
     success: true,
     gscdumpSiteId,
-    gscdumpSiteUrl: extractDomain(gscSiteUrl),
+    gscdumpSiteUrl: registrationTarget,
   }
 })

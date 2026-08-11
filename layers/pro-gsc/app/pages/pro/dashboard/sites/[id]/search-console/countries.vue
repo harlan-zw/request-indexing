@@ -62,25 +62,25 @@ const columns = [
   {
     accessorKey: 'clicks',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Clicks'),
-    align: 'right' as const,
+    meta: { align: 'right' as const },
     cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.clicks)),
   },
   {
     accessorKey: 'impressions',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Impressions'),
-    align: 'right' as const,
+    meta: { align: 'right' as const },
     cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.impressions)),
   },
   {
     accessorKey: 'ctr',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'CTR'),
-    align: 'right' as const,
+    meta: { align: 'right' as const },
     cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums' }, `${formatMetric((row.original.ctr ?? 0) * 100, 1)}%`),
   },
   {
     accessorKey: 'position',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Position'),
-    align: 'right' as const,
+    meta: { align: 'right' as const },
     cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.position, 1)),
   },
 ]

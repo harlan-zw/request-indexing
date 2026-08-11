@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { AnalysisPreset } from '~~/layers/core/app/composables/useGscdump'
 
-const props = defineProps<{ site: any }>()
+const { site } = defineProps<{ site: any }>()
 
 definePageMeta({
   layout: 'dashboard',
@@ -58,7 +58,7 @@ const showBrandInput = computed(() => ['non-brand', 'brand-only'].includes(activ
       {{ presets.find(p => p.key === activePreset)?.description }}
     </div>
 
-    <UCard :ui="{ body: { padding: 'sm:px-3 sm:py-2' } }">
+    <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
       <GscdumpAnalysis
         :site-id="site.gscdumpSiteId"
         :preset="activePreset"

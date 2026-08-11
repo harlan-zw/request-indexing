@@ -4,7 +4,7 @@
 import type { H3Event } from 'h3'
 import Stripe from 'stripe'
 
-export const STRIPE_API_VERSION = '2026-04-22.dahlia' as const
+export const STRIPE_API_VERSION = '2026-07-29.dahlia' as const
 
 export function useStripeClient(event: H3Event): Stripe {
   const config = useRuntimeConfig(event)

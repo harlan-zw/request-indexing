@@ -1,105 +1,36 @@
+import type {
+  GscComparisonFilter,
+  GscdumpAnalysisParams,
+  GscdumpDataDetailResponse,
+  GscdumpDataResponse,
+  GscdumpDataRow,
+  GscdumpIndexingDiagnosticsResponse,
+  GscdumpIndexingResponse,
+  GscdumpIndexingUrlsResponse,
+  GscdumpMeta,
+  GscdumpSitemapsResponse,
+} from '@gscdump/contracts'
+import type { RollingPeriod } from '@gscdump/sdk/period'
 import type { GscdumpV1Client, GscdumpV1OperationInput, GscdumpV1OperationResponse } from '@gscdump/sdk/v1'
 import type { BuilderState } from 'gscdump/query'
+import { toPartnerError } from '@gscdump/sdk/partner-errors'
+import { periodToDays as gscPeriodToDays } from '@gscdump/sdk/period'
 import { createGscdumpV1Client } from '@gscdump/sdk/v1'
 
-export interface GscdumpDataRow {
-  page?: string
-  query?: string
-  queryCanonical?: string
-  country?: string
-  device?: string
-  date?: string
-  clicks: number
-  impressions: number
-  ctr: number
-  position: number
-  prevClicks?: number
-  prevImpressions?: number
-  prevCtr?: number
-  prevPosition?: number
-  topKeyword?: string
-  topPage?: string
-  variantCount?: number
-  variants?: Array<{ query: string, clicks: number, impressions: number, position: number }>
-  difficulty?: number
-  searchVolume?: number
-  cpc?: number
-  firstDate?: string
-  lastDate?: string
-}
-
-export interface GscdumpMeta {
-  siteUrl: string
-  syncStatus: string
-  newestDateSynced: string | null
-  oldestDateSynced: string | null
-  dataDelay: string
-  enrichment?: {
-    lastEnriched: number
-    isDue: boolean
-  }
-}
-
-export interface GscdumpDataResponse {
-  rows: GscdumpDataRow[]
-  totalCount: number
-  totals: {
-    clicks: number
-    impressions: number
-    ctr: number
-    position: number
-  }
-  meta: GscdumpMeta
-}
-
-export interface GscdumpDataDetailResponse {
-  daily: Array<{
-    date: string
-    clicks: number
-    impressions: number
-    ctr: number
-    position: number
-  }>
-  totals: {
-    clicks: number
-    impressions: number
-    ctr: number
-    position: number
-  }
-  previousTotals?: {
-    clicks: number
-    impressions: number
-    ctr: number
-    position: number
-  }
-  meta: GscdumpMeta
-}
-
-export type AnalysisPreset
-  = | 'non-brand'
-    | 'brand-only'
-    | 'striking-distance'
-    | 'opportunity'
-    | 'movers-rising'
-    | 'movers-declining'
-    | 'decay'
-    | 'zero-click'
-
-export interface GscdumpAnalysisParams {
-  preset: AnalysisPreset
-  startDate: string
-  endDate: string
-  prevStartDate?: string
-  prevEndDate?: string
-  brandTerms?: string
-  limit?: number
-  offset?: number
-  search?: string
-  minImpressions?: number
-  minPosition?: number
-  maxPosition?: number
-  maxCtr?: number
-}
+export type {
+  GscdumpAnalysisPreset as AnalysisPreset,
+  GscComparisonFilter,
+  GscdumpAnalysisParams,
+  GscdumpDataDetailResponse,
+  GscdumpDataResponse,
+  GscdumpDataRow,
+  GscdumpIndexingDiagnosticsResponse,
+  GscdumpIndexingResponse,
+  GscdumpIndexingUrlsResponse,
+  GscdumpMeta,
+  GscdumpSitemap,
+  GscdumpSitemapsResponse,
+} from '@gscdump/contracts'
 
 export interface GscdumpAnalysisResult {
   keyword: string
@@ -142,99 +73,6 @@ export interface GscdumpAnalysisResponse {
     params: Record<string, any>
   }
 }
-
-export interface GscdumpSitemap {
-  path: string
-  errors: number
-  warnings: number
-  urlCount: number
-  lastDownloaded: string | null
-  isPending: boolean
-  fetchedAt: number
-}
-
-export interface GscdumpSitemapsResponse {
-  sitemaps: GscdumpSitemap[]
-  history: Array<{ date: string, errors: number, warnings: number, urlCount: number }>
-  meta: { siteUrl: string, syncStatus: string | null }
-}
-
-export interface GscdumpIndexingResponse {
-  trend: Array<{
-    date: string
-    totalUrls: number
-    indexedCount: number
-    notIndexedCount: number
-    errorCount: number
-    indexedPercent: number
-    issues: {
-      blockedByRobots: number
-      noindexDetected: number
-      soft404: number
-      redirect: number
-      notFound: number
-      serverError: number
-    }
-    coverage: {
-      submittedIndexed: number
-      crawledNotIndexed: number
-      discoveredNotCrawled: number
-    }
-  }>
-  summary: {
-    totalUrls: number
-    indexed: number
-    notIndexed: number
-    pending: number
-    indexedPercent: number
-    oldestCheck: string | null
-    newestCheck: string | null
-    change7d: number | null
-    change28d: number | null
-  }
-  meta: { siteUrl: string, syncStatus: string }
-}
-
-export interface GscdumpIndexingUrlsResponse {
-  urls: Array<{
-    url: string
-    verdict: 'PASS' | 'FAIL' | 'PARTIAL' | 'NEUTRAL'
-    coverageState: string
-    indexingState: string
-    robotsTxtState: string
-    pageFetchState: string
-    lastCrawlTime: string | null
-    crawlingUserAgent: string | null
-    userCanonical: string | null
-    googleCanonical: string | null
-    firstCheckedAt: string
-    lastCheckedAt: string
-    checkCount: number
-  }>
-  pagination: {
-    total: number
-    limit: number
-    offset: number
-    hasMore: boolean
-  }
-  meta: { siteUrl: string, filter: string }
-}
-
-export interface GscdumpIndexingDiagnosticsResponse {
-  summary: {
-    totalUrls: number
-    indexed: number
-    indexedPercent: number
-  }
-  issues: Array<{
-    type: string
-    label: string
-    count: number
-    severity: 'error' | 'warning' | 'info'
-  }>
-}
-
-export type GscComparisonFilter = 'new' | 'lost' | 'improving' | 'declining'
 
 type V1ReportState = GscdumpV1OperationInput<'analytics.reports.query'>['body']['state']
 type V1AvailableSitesData = GscdumpV1OperationResponse<'partner.users.sites.available.list'>['data']
@@ -284,24 +122,23 @@ export interface GscdumpError {
 }
 
 function parseGscdumpError(e: unknown): GscdumpError {
-  if (e instanceof Error) {
-    const fetchError = e as Error & { status?: number, statusCode?: number, data?: { message?: string } }
-    const status = fetchError.status || fetchError.statusCode
-
-    if (status === 401 || status === 403)
+  const error = toPartnerError(e)
+  const status = error.statusCode
+  switch (error.kind) {
+    case 'auth':
+    case 'permission':
       return { message: 'Authentication failed. Please reconnect your account.', code: 'AUTH', status, retry: false }
-    if (status === 404)
+    case 'not-found':
       return { message: 'Data not found. The site may not be synced yet.', code: 'NOT_FOUND', status, retry: false }
-    if (status === 429)
+    case 'rate-limit':
       return { message: 'Rate limited. Please wait a moment and try again.', code: 'RATE_LIMIT', status, retry: true }
-    if (status && status >= 500)
+    case 'server':
       return { message: 'Server error. Please try again later.', code: 'SERVER', status, retry: true }
-    if (e.message.includes('fetch') || e.message.includes('network'))
-      return { message: 'Network error. Check your connection.', code: 'NETWORK', retry: true }
-
-    return { message: fetchError.data?.message || e.message || 'An error occurred', code: 'UNKNOWN', status, retry: true }
+    case 'network':
+      return { message: 'Network error. Check your connection.', code: 'NETWORK', status, retry: true }
+    default:
+      return { message: error.message || 'An error occurred', code: 'UNKNOWN', status, retry: true }
   }
-  return { message: 'An unexpected error occurred', code: 'UNKNOWN', retry: true }
 }
 
 const recentToasts = new Map<string, number>()
@@ -664,11 +501,10 @@ export function useGscdumpConnectedSites(options?: { immediate?: boolean }) {
 
 // ===== Table Data Helper =====
 
-export type Period = '7d' | '28d' | '3m' | '6m' | '12m'
+export type Period = RollingPeriod
 
 export function periodToDays(period: Period | string): number {
-  const map: Record<string, number> = { '7d': 7, '28d': 28, '3m': 90, '6m': 180, '12m': 365 }
-  return map[period] || 28
+  return gscPeriodToDays(period)
 }
 
 export function daysAgo(days: number): string {

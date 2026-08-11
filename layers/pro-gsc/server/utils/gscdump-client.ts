@@ -10,6 +10,10 @@ import type {
   DataQueryOptions,
   GscdumpAnalysisParams,
   GscdumpAvailableSite,
+  IndexingDiagnosticsParams,
+  IndexingUrlsParams,
+  RegisterPartnerUserParams,
+  UpdatePartnerUserTokensParams,
   WebhookEventType,
 } from '@gscdump/contracts'
 import type {
@@ -20,7 +24,6 @@ import type {
   PartnerLifecycleResponse,
   PartnerLifecycleSite,
 } from '../../shared/gscdump-api'
-import type { createGscdumpPartnerClient } from './gscdump-origin'
 import { GSCDUMP_ONBOARDING_CONTRACT_VERSION } from '@gscdump/contracts'
 import {
   findLifecycleSite as findSdkLifecycleSite,
@@ -45,11 +48,6 @@ export function lifecycleSiteToSyncStatus(site: PartnerLifecycleSite): ReturnTyp
 export function lifecycleSiteToUserSite(site: PartnerLifecycleSite): ReturnType<typeof lifecycleSdkSiteToUserSite> {
   return lifecycleSdkSiteToUserSite(site as never)
 }
-
-// Type-only: the legacy partner client is never instantiated any more (every
-// operation below runs through the v1 client), but its method signatures are
-// still the source of truth for a handful of parameter types.
-type LegacyClient = ReturnType<typeof createGscdumpPartnerClient>
 
 export function useGscdumpClient() {
   const client = createGscdumpPublicV1Client()
@@ -154,9 +152,9 @@ export function useGscdumpClient() {
 
   return {
     // User management
-    registerUser: (body: Parameters<LegacyClient['registerUser']>[0]) =>
+    registerUser: (body: RegisterPartnerUserParams) =>
       client.createUser({ body }).then(response => response.data).catch(rethrowV1AsH3),
-    updateUserTokens: (userId: string, body: Parameters<LegacyClient['updateUserTokens']>[1]) =>
+    updateUserTokens: (userId: string, body: UpdatePartnerUserTokensParams) =>
       client.updateUserTokens({ params: { userId }, body }).then(response => response.data).catch(rethrowV1AsH3),
     getUserLifecycle,
     getSiteSyncStatus,
@@ -223,9 +221,9 @@ export function useGscdumpClient() {
     // Indexing
     getIndexing: (siteId: string, days = 28) =>
       client.getSiteIndexing({ params: { siteId }, query: { days } }).then(response => response.data).catch(rethrowV1AsH3),
-    getIndexingUrls: (siteId: string, query: Parameters<LegacyClient['getIndexingUrls']>[1] = {}) =>
+    getIndexingUrls: (siteId: string, query: IndexingUrlsParams = {}) =>
       client.listSiteIndexingUrls({ params: { siteId }, query }).then(response => response.data).catch(rethrowV1AsH3),
-    getIndexingDiagnostics: (siteId: string, query: Parameters<LegacyClient['getIndexingDiagnostics']>[1] = {}) =>
+    getIndexingDiagnostics: (siteId: string, query: IndexingDiagnosticsParams = {}) =>
       client.getSiteIndexingDiagnostics({ params: { siteId }, query }).then(response => response.data).catch(rethrowV1AsH3),
   }
 }

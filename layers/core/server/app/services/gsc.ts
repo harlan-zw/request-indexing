@@ -2,10 +2,9 @@ import type {
   GoogleAccountsSelect,
   GoogleOAuthClientsSelect,
 } from '~~/layers/core/server/db/schema'
+import { OAuth2Client } from 'googleapis-common'
 
 export async function createGoogleOAuthClient(account: Pick<GoogleAccountsSelect, 'tokens'> & { googleOAuthClient: GoogleOAuthClientsSelect }) {
-  // @ts-expect-error - googleapis-common is transitive, types not resolvable directly
-  const { OAuth2Client } = await import('googleapis-common')
   return new OAuth2Client({
     forceRefreshOnFailure: true,
     credentials: account.tokens,

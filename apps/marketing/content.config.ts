@@ -16,10 +16,10 @@ const schema = z.object({
     path: z.string(),
     title: z.string(),
   })).optional(),
-  robots: defineRobotsSchema(),
-  sitemap: defineSitemapSchema(),
-  ogImage: defineOgImageSchema(),
-  schemaOrg: defineSchemaOrgSchema(),
+  robots: defineRobotsSchema({ z }),
+  sitemap: defineSitemapSchema({ z }),
+  ogImage: defineOgImageSchema({ z }),
+  schemaOrg: defineSchemaOrgSchema({ z }),
 })
 
 export default defineContentConfig({

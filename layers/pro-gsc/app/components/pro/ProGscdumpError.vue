@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { GscdumpError } from '#layers/pro-gsc/app/composables/_gscdump-error'
+import type { GscdumpError, GscdumpErrorCode } from '#layers/pro-gsc/app/composables/_gscdump-error'
+import { parseGscdumpError } from '#layers/pro-gsc/app/composables/_gscdump-error'
 
 const props = defineProps<{
   error: GscdumpError | Error | null
@@ -14,45 +15,40 @@ const emit = defineEmits<{
 const normalizedError = computed<GscdumpError | null>(() => {
   if (!props.error)
     return null
-
-  // Already a GscdumpError
-  if ('code' in props.error)
-    return props.error as GscdumpError
-
-  // Standard Error - convert to GscdumpError
-  const err = props.error as Error & { status?: number, statusCode?: number }
-  const status = err.status || err.statusCode
-  if (status === 401 || status === 403)
-    return { message: 'Authentication failed', code: 'AUTH', status, retry: false }
-  if (status === 429)
-    return { message: 'Rate limited', code: 'RATE_LIMIT', status, retry: true }
-  if (status && status >= 500)
-    return { message: 'Server error', code: 'SERVER', status, retry: true }
-
-  return { message: err.message || 'An error occurred', code: 'UNKNOWN', retry: true }
+  return parseGscdumpError(props.error)
 })
 
-const errorCodeToSemantic: Record<string, SemanticStatus> = {
+const errorCodeToSemantic: Record<GscdumpErrorCode, SemanticStatus> = {
   AUTH: 'warning',
+  PERMISSION: 'warning',
   NETWORK: 'warning',
   RATE_LIMIT: 'info',
   NOT_FOUND: 'neutral',
+  PROVISIONING: 'info',
+  VALIDATION: 'warning',
+  SERVER: 'error',
+  UNKNOWN: 'error',
 }
 
-const errorIcons: Record<string, string> = {
+const errorIcons: Record<GscdumpErrorCode, string> = {
   AUTH: 'i-lucide-key',
+  PERMISSION: 'i-lucide-lock',
   NETWORK: 'i-lucide-wifi-off',
   RATE_LIMIT: 'i-lucide-clock',
   NOT_FOUND: 'i-lucide-search-x',
+  PROVISIONING: 'i-lucide-clock',
+  VALIDATION: 'i-lucide-triangle-alert',
+  SERVER: 'i-lucide-triangle-alert',
+  UNKNOWN: 'i-lucide-triangle-alert',
 }
 
 const errorConfig = computed(() => {
   if (!normalizedError.value)
     return null
-  const code = normalizedError.value.code ?? 'UNKNOWN'
-  const status = errorCodeToSemantic[code] ?? 'error'
+  const code = normalizedError.value.code
+  const status = errorCodeToSemantic[code]
   const colors = semanticColors[status]
-  return { icon: errorIcons[code] ?? 'i-lucide-alert-circle', color: colors.text, bg: colors.bg }
+  return { icon: errorIcons[code], color: colors.text, bg: colors.bg }
 })
 </script>
 

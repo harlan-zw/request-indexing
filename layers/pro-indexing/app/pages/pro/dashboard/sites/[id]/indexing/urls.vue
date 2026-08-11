@@ -106,7 +106,7 @@ const columns = [
   {
     accessorKey: 'lastCrawlTime',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Last crawl'),
-    align: 'right' as const,
+    meta: { align: 'right' as const },
     cell: ({ row }: any) => h('span', { class: 'text-sm tabular-nums text-muted' }, formatDate(row.original.lastCrawlTime)),
   },
 ]

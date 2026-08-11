@@ -3,13 +3,13 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@11.1.2",
+  "packageManager": "pnpm@11.21.0",
   "license": "GPL-3.0-or-later",
   "scripts": {
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply request-indexin-bw2z --remote",
     "db:migrate:local": "wrangler d1 migrations apply request-indexin-bw2z --local",
-    "build": "NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=12288}\" nuxt build",
+    "build": "NODE_OPTIONS=\"${NODE_OPTIONS:---max-old-space-size=16384}\" nuxt build",
     "dev": "nuxt dev",
     "dev:link": "bash scripts/dev-link.sh",
     "tokens": "bun ./scripts/env.ts",
@@ -22,7 +22,6 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@googleapis/indexing": "catalog:",
     "@gscdump/contracts": "catalog:",
     "@gscdump/engine": "catalog:",
     "@gscdump/sdk": "catalog:",
@@ -38,11 +37,13 @@
     "@nuxt/image": "catalog:",
     "@nuxt/scripts": "catalog:",
     "@nuxt/ui": "catalog:",
+    "@nuxtjs/robots": "catalog:",
     "@nuxtjs/seo": "catalog:",
     "@nuxtjs/sitemap": "catalog:",
     "@takumi-rs/core": "catalog:",
     "@tanstack/table-core": "catalog:",
     "@tanstack/vue-table": "catalog:",
+    "@tanstack/vue-table-v8": "catalog:",
     "@unovis/ts": "catalog:",
     "@unovis/vue": "catalog:",
     "@vueuse/core": "catalog:",
@@ -52,6 +53,7 @@
     "devalue": "catalog:",
     "drizzle-orm": "catalog:",
     "google-ads-api": "catalog:",
+    "googleapis-common": "catalog:",
     "gscdump": "catalog:",
     "h3": "catalog:",
     "hookable": "catalog:",
@@ -79,7 +81,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
-    "@cloudflare/workers-types": "catalog:conflicts_conflicts_@cloudflare/workers-types_h4_20250510_0_h4_20260518_1",
+    "@cloudflare/workers-types": "catalog:",
     "@harlan-zw/nuxt-dx": "catalog:",
     "@nuxt/test-utils": "catalog:",
     "@sentry/nuxt": "catalog:",
@@ -92,11 +94,12 @@
     "googlethis": "catalog:",
     "node-fetch": "catalog:",
     "nuxt-og-image": "catalog:",
+    "nuxt-schema-org": "catalog:",
     "oxc-parser": "catalog:",
-    "typescript": "catalog:conflicts_conflicts_typescript_h5_6_0_h6_0_3",
+    "typescript": "catalog:",
     "unplugin": "catalog:",
     "vitest": "catalog:",
     "vue-tsc": "catalog:",
-    "wrangler": "catalog:conflicts_conflicts_wrangler_h3_90_0_h4_92_0"
+    "wrangler": "catalog:"
   }
 }

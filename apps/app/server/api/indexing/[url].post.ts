@@ -1,7 +1,7 @@
-import type { indexing_v3 } from '@googleapis/indexing/v3'
-import type { GaxiosError } from 'googleapis-common'
+import type { GscApiErrorInfo, IndexingMetadata, IndexingResult } from 'gscdump'
 import type { GoogleAccountsSelect } from '~~/layers/core/server/db/schema'
 import { and, eq } from 'drizzle-orm'
+import { getIndexingMetadata, googleSearchConsole, parseGoogleError, requestIndexing } from 'gscdump'
 import { createError, defineEventHandler, getQuery, getRouterParams } from 'h3'
 import { incrementUsage } from '~~/layers/core/server/app/services/usage'
 import { authenticateUser } from '~~/layers/core/server/app/utils/auth'
@@ -12,12 +12,32 @@ import { logWarn } from '~~/shared/logging'
 type IndexingTokens = GoogleAccountsSelect['tokens']
 
 type SubmitOutcome
-  = | { _tag: 'Ok', status: 'submitted' | 'already-submitted', metadata: indexing_v3.Schema$UrlNotificationMetadata | indexing_v3.Schema$PublishUrlNotificationResponse }
+  = | { _tag: 'Ok', status: 'submitted' | 'already-submitted', metadata: IndexingMetadata | IndexingResult }
     | { _tag: 'Err', reason: 'quota_exceeded' | 'unverified_property' | 'invalid_grant' | 'google_error', statusCode: number, message: string }
 
-function mapGaxiosError(error: GaxiosError): (SubmitOutcome & { _tag: 'Err' }) | null {
-  const status = error.status
-  const upstreamMessage = (error.response?.data as { error?: { message?: string } } | undefined)?.error?.message ?? error.message
+function parseGscError(error: unknown): GscApiErrorInfo | null {
+  if (!error || typeof error !== 'object')
+    return null
+
+  const gscError = error as { info?: GscApiErrorInfo, status?: number, statusCode?: number, data?: unknown, message?: string }
+  if (gscError.info)
+    return gscError.info
+
+  const status = gscError.statusCode ?? gscError.status
+  if (!status)
+    return null
+
+  const body = typeof gscError.data === 'string' ? gscError.data : JSON.stringify(gscError.data ?? {})
+  return parseGoogleError(body, status)
+}
+
+function mapGscError(error: unknown): (SubmitOutcome & { _tag: 'Err' }) | null {
+  const parsed = parseGscError(error)
+  if (!parsed)
+    return null
+
+  const status = parsed.code
+  const upstreamMessage = parsed.message
 
   if (status === 403) {
     return {
@@ -35,7 +55,7 @@ function mapGaxiosError(error: GaxiosError): (SubmitOutcome & { _tag: 'Err' }) |
       message: 'Google Indexing API daily quota was exceeded for this account. Try again tomorrow.',
     }
   }
-  if (status === 401) {
+  if (status === 401 || parsed.reason === 'invalid_grant' || parsed.reason === 'invalid_token') {
     return {
       _tag: 'Err',
       reason: 'invalid_grant',
@@ -46,7 +66,7 @@ function mapGaxiosError(error: GaxiosError): (SubmitOutcome & { _tag: 'Err' }) |
   return null
 }
 
-function wasSubmittedRecently(metadata: indexing_v3.Schema$UrlNotificationMetadata | undefined): boolean {
+function wasSubmittedRecently(metadata: IndexingMetadata | undefined): boolean {
   const notifyTime = metadata?.latestUpdate?.type === 'URL_UPDATED' ? metadata.latestUpdate.notifyTime : undefined
   if (!notifyTime)
     return false
@@ -58,68 +78,53 @@ interface SubmitOpts {
   tokens: IndexingTokens
   clientId: string
   clientSecret: string
-  onTokenRefresh: (tokens: IndexingTokens) => Promise<void>
 }
 
 // Notifies Google that a URL changed via the Web Search Indexing API. Skips
 // the publish call if we already notified Google about this exact URL in the
 // last 48 hours (Google discards more frequent notifications anyway).
 async function submitUrlToGoogle(opts: SubmitOpts): Promise<SubmitOutcome> {
-  const { indexing } = await import('@googleapis/indexing')
-  const { OAuth2Client } = await import('googleapis-common')
-
-  const oauth2Client = new OAuth2Client({ clientId: opts.clientId, clientSecret: opts.clientSecret })
-  oauth2Client.setCredentials(opts.tokens)
-  const api = indexing({ version: 'v3', auth: oauth2Client })
-
-  try {
-    let metadata: indexing_v3.Schema$UrlNotificationMetadata | undefined
-    try {
-      metadata = (await api.urlNotifications.getMetadata({ url: opts.targetUrl })).data
+  const refreshToken = opts.tokens.refresh_token
+  if (!refreshToken) {
+    return {
+      _tag: 'Err',
+      reason: 'invalid_grant',
+      statusCode: 401,
+      message: 'The Google indexing grant is missing a refresh token. Please reconnect your account.',
     }
-    catch (error) {
-      const gaxiosError = error as GaxiosError
-      // A 404 just means Google has no record for this URL yet - safe to
-      // proceed to publish. Anything else that maps to a domain error should
-      // short-circuit here since publish would fail identically.
-      if (gaxiosError.status !== 404) {
-        const mapped = mapGaxiosError(gaxiosError)
-        if (mapped)
-          return mapped
-      }
-    }
-
-    if (wasSubmittedRecently(metadata)) {
-      return { _tag: 'Ok', status: 'already-submitted', metadata: metadata! }
-    }
-
-    const published = await api.urlNotifications.publish({
-      requestBody: { type: 'URL_UPDATED', url: opts.targetUrl },
-    })
-    return { _tag: 'Ok', status: 'submitted', metadata: published.data }
   }
-  catch (error) {
-    return mapGaxiosError(error as GaxiosError) ?? {
+
+  const client = googleSearchConsole({
+    clientId: opts.clientId,
+    clientSecret: opts.clientSecret,
+    refreshToken,
+  })
+
+  const metadataResult = await getIndexingMetadata(client, opts.targetUrl)
+    .then(value => ({ _tag: 'Ok' as const, value }))
+    .catch(error => ({ _tag: 'Err' as const, error }))
+
+  if (metadataResult._tag === 'Err') {
+    const parsed = parseGscError(metadataResult.error)
+    // A 404 means Google has no record for this URL. Publishing is safe.
+    if (parsed?.code !== 404) {
+      const mapped = mapGscError(metadataResult.error)
+      if (mapped)
+        return mapped
+    }
+  }
+  else if (wasSubmittedRecently(metadataResult.value)) {
+    return { _tag: 'Ok', status: 'already-submitted', metadata: metadataResult.value }
+  }
+
+  return requestIndexing(client, opts.targetUrl)
+    .then(metadata => ({ _tag: 'Ok' as const, status: 'submitted' as const, metadata }))
+    .catch((error: unknown): SubmitOutcome => mapGscError(error) ?? {
       _tag: 'Err',
       reason: 'google_error',
       statusCode: 502,
       message: error instanceof Error ? error.message : 'Google Indexing API request failed',
-    }
-  }
-  finally {
-    // google-auth-library transparently refreshes the access token when it
-    // has expired. Persist that new token so the next request doesn't have
-    // to refresh again; best-effort, the submission above already happened.
-    const fresh = oauth2Client.credentials
-    if (fresh.access_token && fresh.access_token !== opts.tokens.access_token) {
-      await opts.onTokenRefresh({
-        ...opts.tokens,
-        access_token: fresh.access_token,
-        expiry_date: fresh.expiry_date ?? opts.tokens.expiry_date,
-        refresh_token: fresh.refresh_token ?? opts.tokens.refresh_token,
-      }).catch(err => logWarn('indexing.token_persist_failed', err))
-    }
-  }
+    })
 }
 
 function toSitePath(url: string): string {
@@ -176,11 +181,6 @@ export default defineEventHandler(async (event) => {
     tokens: account.tokens,
     clientId: oauthClient.clientId,
     clientSecret: oauthClient.clientSecret,
-    onTokenRefresh: async (refreshed) => {
-      await db.update(googleAccounts)
-        .set({ tokens: refreshed })
-        .where(eq(googleAccounts.googleAccountId, account.googleAccountId))
-    },
   })
 
   if (result._tag === 'Err') {
