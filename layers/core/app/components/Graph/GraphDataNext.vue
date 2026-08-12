@@ -21,16 +21,6 @@ const emits = defineEmits<{
 const value = computed(() => props.value)
 const selectedColumns = computed(() => props.columns ?? [])
 
-const y = computed(() => {
-  return props.columns?.map((col) => {
-    if (typeof col === 'string') {
-      return (d: I) => d[col]
-    }
-    else {
-      return (d: I) => d[col.key]
-    }
-  })
-})
 const svgDefs = `
     <linearGradient id="gradient0" gradientTransform="rotate(90)" style="background-color: red;">
       <stop offset="20%" stop-color="rgba(33, 150, 243, 1" />
@@ -75,17 +65,32 @@ const events = {
   },
 }
 
+// Pixel band every series is drawn into. The container is 100px tall and the
+// x-axis takes the remainder.
+const PLOT_RANGE: [number, number] = [80, 0]
+
+// Count-like series are scaled from zero, not from their own minimum. With a
+// `[min, max]` domain a metric that is zero on most days mapped every one of
+// those days onto the same pixel row, which is why clicks rendered as a flat
+// line at y=80 with occasional blips instead of a curve.
+function countScale(values: number[]) {
+  const max = Math.max(0, ...values)
+  return Scale.scaleLinear().domain([0, max || 1]).range(PLOT_RANGE)
+}
+
+// Position is ranking, not a count: it never approaches zero and a [min, max]
+// domain is the right window for it.
 const positionScale = computed(() => Scale.scaleLinear()
   .domain([Math.min(...value.value.map(d => d.position)), Math.max(...value.value.map(d => d.position))])
-  .range([80, 0]))
+  .range(PLOT_RANGE))
 
-const clicksScale = computed(() => Scale.scaleLinear()
-  .domain([Math.min(...value.value.map(d => d.clicks)), Math.max(...value.value.map(d => d.clicks))])
-  .range([80, 0]))
+const clicksScale = computed(() => countScale(value.value.map(d => d.clicks)))
 
-const ctrScale = computed(() => Scale.scaleLinear()
-  .domain([Math.min(...value.value.map(d => d.ctr * 100)), Math.max(...value.value.map(d => d.ctr * 100))])
-  .range([80, 0]))
+// Impressions had no scale of its own, so it fell back to the shared container
+// scale and drew at negative y — clipped off the top edge of the chart.
+const impressionsScale = computed(() => countScale(value.value.map(d => d.impressions)))
+
+const ctrScale = computed(() => countScale(value.value.map(d => d.ctr * 100)))
 
 const clicks = (d: I) => d.clicks
 const position = (d: I) => d.position
@@ -102,7 +107,7 @@ const x = (_d: I, index: number) => index
     <!--    /> -->
     <VisXYContainer height="100" :data="value" :svg-defs="svgDefs" class="graph-next">
       <!--  impressions  -->
-      <VisLine v-if="selectedColumns.includes('impressions')" :curve-type="graphLineMode" :data="value" :x="x" color="rgba(156, 39, 176, 0.7)" :y="impressions" :events="events" />
+      <VisLine v-if="selectedColumns.includes('impressions')" :curve-type="graphLineMode" :data="value" :x="x" color="rgba(156, 39, 176, 0.7)" :y-scale="impressionsScale" :y="impressions" :events="events" />
       <!--  clicks  -->
       <VisArea v-if="selectedColumns.includes('clicks')" color="url(#gradient0)" :x="x" :y-scale="clicksScale" :y="clicks" />
       <!--  position  -->
