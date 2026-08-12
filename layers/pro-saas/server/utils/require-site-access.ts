@@ -30,11 +30,15 @@ export async function requireSiteAccess(
   if (!siteIdParam)
     throw createError({ statusCode: 400, message: 'Missing site ID' })
 
+  // `/api/sites/list` hands the browser `sites.public_id` ("kv1109"), so every
+  // link and fetch built from that roster carries a public id. This resolver
+  // only accepted the internal integer, so every `/api/pro/sites/[id]/*` route
+  // answered "Invalid site ID" for the ids the client actually holds. Resolve
+  // the public id first; the numeric form stays valid for server callers.
   const siteIdNum = Number(siteIdParam)
-  if (!Number.isFinite(siteIdNum))
-    throw createError({ statusCode: 400, message: 'Invalid site ID' })
-
-  const site = await db.select().from(sites).where(eq(sites.siteId, siteIdNum)).get()
+  const site = Number.isFinite(siteIdNum)
+    ? await db.select().from(sites).where(eq(sites.siteId, siteIdNum)).get()
+    : await db.select().from(sites).where(eq(sites.publicId, siteIdParam)).get()
   if (!site)
     throw createError({ statusCode: 404, message: 'Site not found' })
 

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { SiteSelect } from '#shared/types/database'
-import { useFriendlySiteUrl } from '~~/layers/design-system/composables/formatting'
 
 const props = defineProps<{
   site: SiteSelect
@@ -21,7 +20,7 @@ const { data, status } = useGscdumpDates(
         <SiteFavicon :site="site" />
         <div>
           <h2 class="font-bold">
-            {{ useFriendlySiteUrl(site.domain) }}
+            {{ siteLabel(site) }}
           </h2>
         </div>
       </NuxtLink>

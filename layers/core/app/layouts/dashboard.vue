@@ -60,16 +60,16 @@ const teamLinks = computed<NavigationMenuItem[]>(() => [
 ])
 
 const onlySiteLinks = computed<NavigationMenuItem[]>(() => sites.value.map((s) => {
-  const domain = s.domain || ''
+  const label = siteLabel(s)
   return {
-    label: useFriendlySiteUrl(domain),
+    label,
     to: s.isSynced ? `/dashboard/site/${s.siteId}/overview` : undefined,
     disabled: !s.isSynced,
     icon: s.isSynced ? undefined : 'i-ph-circle-x-duotone',
     avatar: s.isSynced
       ? {
-          text: domain,
-          src: `/_favicon?domain=${withoutTrailingSlash(domain)}`,
+          text: label,
+          src: `/_favicon?domain=${withoutTrailingSlash(label)}`,
         }
       : undefined,
   }
@@ -86,17 +86,17 @@ const domains = computed(() => {
 })
 
 const domainMenuItems = computed<DropdownMenuItem[]>(() => domains.value.map(d => ({
-  label: useFriendlySiteUrl(d.domain || ''),
+  label: siteLabel(d),
   to: `/dashboard/site/${d.siteId}/overview`,
 })))
 
 const siteSwitcherItems = computed<DropdownMenuItem[]>(() => sites.value.map((s) => {
-  const domain = s.domain || ''
+  const label = siteLabel(s)
   return {
-    label: useFriendlySiteUrl(domain),
+    label,
     avatar: {
-      text: domain,
-      src: `/_favicon?domain=${withoutTrailingSlash(domain)}`,
+      text: label,
+      src: `/_favicon?domain=${withoutTrailingSlash(label)}`,
     },
     onSelect: () => changeSite(s.siteId),
   }
@@ -125,7 +125,7 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
           <UButton color="neutral" variant="ghost" class="w-full justify-between" trailing-icon="i-heroicons-chevron-down-20-solid">
             <div class="flex items-center gap-2 min-w-0">
               <SiteFavicon :site="site" />
-              <span class="truncate">{{ useFriendlySiteUrl(site.domain || '') }}</span>
+              <span class="truncate">{{ siteLabel(site) }}</span>
             </div>
           </UButton>
         </UDropdownMenu>

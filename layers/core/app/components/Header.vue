@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuRoot, NavigationMenuTrigger, NavigationMenuViewport } from 'reka-ui'
-import { withoutTrailingSlash } from 'ufo'
 import { createLogoutHandler } from '~~/layers/core/app/composables/auth'
 import { fetchSites } from '~~/layers/core/app/composables/fetch'
 
@@ -48,7 +47,7 @@ const mobileTools = [
 
 const mobileSites = computed(() =>
   (sites.value ?? []).map(site => ({
-    label: withoutTrailingSlash(site.domain.replace('https://', '')),
+    label: siteLabel(site),
     icon: 'i-ph-browser-duotone',
     to: `/dashboard/site/${encodeURIComponent(site.siteId)}/overview`,
   })),

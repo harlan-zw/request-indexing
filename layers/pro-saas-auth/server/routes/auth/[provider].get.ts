@@ -1,5 +1,7 @@
 import type { H3Event } from 'h3'
+import type { ProSaasFeatures } from '#layers/pro-saas/shared/features'
 import { logger } from '~~/shared/server/logger'
+import { proSaasFeatureEnabled } from '#layers/pro-saas/shared/features'
 import { safeAuthRedirect } from '../../../shared/utils/auth-redirect'
 import { attachIdentityToCurrentSession, signInOrCreate } from '../../utils/auth/finalize'
 import { getAuthIntent } from '../../utils/auth/intent'
@@ -66,10 +68,14 @@ export default defineEventHandler(async (event) => {
   // Console access needs Google, so a GitHub-only account cannot use the
   // product. Enforced here, not just hidden in the UI, so hitting the route
   // directly cannot create one.
-  const features = useAppConfig().proSaas?.features
-  if (providerId === 'google' && !features?.googleSignIn)
+  // Read through `proSaasFeatureEnabled` so an absent `proSaas` key means
+  // "defaults", not "everything off". Nothing in this app defines
+  // `appConfig.proSaas`, so the previous `features?.googleSignIn` read was
+  // always undefined and `/auth/google` 404'd for every visitor.
+  const features = useAppConfig().proSaas?.features as Partial<ProSaasFeatures> | undefined
+  if (providerId === 'google' && !proSaasFeatureEnabled(features, 'googleSignIn'))
     throw createError({ statusCode: 404, statusMessage: 'Google sign-in is disabled' })
-  if (providerId === 'github' && !features?.githubSignIn)
+  if (providerId === 'github' && !proSaasFeatureEnabled(features, 'githubSignIn'))
     throw createError({ statusCode: 404, statusMessage: 'GitHub sign-in is disabled' })
 
   const handler = buildHandler(providerId)

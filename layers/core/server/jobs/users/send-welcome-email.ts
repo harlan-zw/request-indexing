@@ -22,6 +22,11 @@ export default defineJob({
     if (import.meta.dev)
       return
 
+    // Kill switch: NUXT_NOTIFICATIONS_ENABLED=false silences every outbound
+    // send while legacy data is being migrated.
+    if (!useRuntimeConfig().notificationsEnabled)
+      return
+
     const user = await ctx.db.query.users.findFirst({
       where: eq(users.userId, userId),
     })

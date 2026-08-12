@@ -53,6 +53,20 @@ export function useFriendlySiteUrl(url: MaybeRef<string>) {
   return format(url)
 }
 
+/**
+ * Display label for a site.
+ *
+ * `sites.domain` is nullable: rows imported from the old KV store carry only a
+ * Search Console `property` (`https://unhead.unjs.io/`, `sc-domain:nuxtseo.com`).
+ * Components used to read `site.domain` directly, which threw
+ * "Cannot read properties of null (reading 'replace')" the moment such a site
+ * reached the dashboard, and the `site.domain || ''` guards elsewhere rendered a
+ * blank label instead. Route every label through here so neither is possible.
+ */
+export function siteLabel(site: { domain?: string | null, property?: string | null }): string {
+  return useFriendlySiteUrl(site.domain || site.property || '')
+}
+
 export function formatIndexingTimeAgo(date: string | number, absAgo?: boolean): string
 export function formatIndexingTimeAgo(date: MaybeRef<string | number>, absAgo?: boolean): string | ComputedRef<string> {
   const format = (_d: string | number) => {

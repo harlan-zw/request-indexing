@@ -8,7 +8,11 @@
 // Nothing in the dashboard linked to it, so there was no way to reach it.
 const { session } = useUserSession()
 
-const isConnected = computed(() => Boolean(session.value?.gscdumpUserId))
+// `gscdumpUserId` alone is not enough: the browser's gscdump proxy also needs
+// the stored per-user API key, and accounts registered before that key was
+// persisted have one without the other. Keying on the id hid this prompt from
+// exactly the users who needed it.
+const isConnected = computed(() => Boolean(session.value?.gscdumpConnected))
 const returnTo = '/dashboard'
 </script>
 

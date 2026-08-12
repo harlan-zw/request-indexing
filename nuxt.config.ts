@@ -236,7 +236,17 @@ export default defineNuxtConfig({
         },
         vars: {
           NUXT_PUBLIC_BASE_URL: 'https://requestindexing.com',
-          NUXT_OAUTH_GOOGLE_CLIENT_ID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
+          // An OAuth client id is public (it ships in every authorize redirect),
+          // so it is a default here rather than a build-time requirement. It
+          // used to fall back to '', which meant any build run without the env
+          // var silently deployed a Worker that could not start a Google
+          // sign-in at all.
+          NUXT_OAUTH_GOOGLE_CLIENT_ID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID
+            || '32479086022-b2upoo15sfpo0fpmgdgi95fh6oths219.apps.googleusercontent.com',
+          // Kill switch for outbound user-facing sends (welcome email) and the
+          // daily site-sync fan-out. Set to 'false' while migrating legacy data
+          // so no user is emailed and no bulk sync is queued.
+          NUXT_NOTIFICATIONS_ENABLED: process.env.NUXT_NOTIFICATIONS_ENABLED || 'false',
         },
         durable_objects: {
           bindings: [
@@ -328,6 +338,9 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    // Gates every outbound user-facing send and the daily sync fan-out.
+    // Override with NUXT_NOTIFICATIONS_ENABLED.
+    notificationsEnabled: true,
     key: '', // .env NUXT_KEY
     session: {
       password: '',

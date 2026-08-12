@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { withoutTrailingSlash } from 'ufo'
-
 const { sites } = defineProps<{
-  sites: Array<{ siteId: string, domain: string }>
+  sites: Array<{ siteId: string | number, domain?: string | null, property?: string | null }>
 }>()
 
 const items = computed(() =>
   sites.map(site => ({
-    label: withoutTrailingSlash(site.domain.replace('https://', '')),
+    label: siteLabel(site),
     icon: 'i-ph-browser-duotone',
     to: `/dashboard/site/${encodeURIComponent(site.siteId)}/overview`,
   })),

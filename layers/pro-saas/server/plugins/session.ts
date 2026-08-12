@@ -1,5 +1,7 @@
 import type { AuthProviderId } from '#layers/pro-saas-auth/shared/types/auth'
 import { and, desc, eq } from 'drizzle-orm'
+import { teamSites } from '~~/layers/core/server/db/schema'
+import { logger } from '~~/shared/server/logger'
 import * as schema from '#layers/pro-saas/server/database'
 import { hasAuthenticatedSession } from '../utils/session-auth-state'
 
@@ -94,6 +96,13 @@ export default defineNitroPlugin(() => {
     session.gscEmail = user.gscEmail
     session.googleScopes = user.googleScopes
     session.gscdumpUserId = user.gscdumpUserId
+    // A gscdump user id alone does not make Search Console usable: every
+    // browser query goes through the same-origin v1 proxy, which needs the
+    // per-user API key too. Accounts registered before the callback persisted
+    // that key have an id and no key, so the dashboard hid its "Connect"
+    // prompt while every panel failed with `gscdump_api_key_missing`. This is
+    // the same predicate `/api/pro/gscdump-integration` reports.
+    session.gscdumpConnected = !!(user.gscdumpUserId && user.gscdumpApiKey)
     const toIso = (d: Date | null | undefined): string | null => {
       if (!d || Number.isNaN(d.getTime()))
         return null
@@ -117,10 +126,20 @@ export default defineNitroPlugin(() => {
             ),
           }).then(r => !!r).catch(() => false)
         : Promise.resolve(false),
+      // Sites are attached to a team through `team_sites`, not a `team_id`
+      // column on `sites`. The previous read used `schema.sites.teamId`, which
+      // does not exist: drizzle threw on every request and the catch below
+      // turned that into a silent `hasSites: false` for every user.
       user.currentTeamId
-        ? db.query.sites.findFirst({
-            where: eq(schema.sites.teamId, user.currentTeamId),
-          }).then(r => !!r).catch(() => false)
+        ? db.select({ siteId: teamSites.siteId })
+            .from(teamSites)
+            .where(eq(teamSites.teamId, user.currentTeamId))
+            .limit(1)
+            .then(rows => rows.length > 0)
+            .catch((error: unknown) => {
+              logger.error('[session] hasSites lookup failed:', error)
+              return false
+            })
         : Promise.resolve(false),
     ])
 
