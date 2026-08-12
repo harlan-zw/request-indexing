@@ -1,5 +1,5 @@
 import { sentryCloudflareNitroPlugin } from '@sentry/nuxt/module/plugins'
-import { createSentryDataCollection } from '../../shared/sentry'
+import { createSentryDataCollection, dropExpectedNotFound } from '../../shared/sentry'
 
 export default defineNitroPlugin((nitroApp) => {
   const { sentry } = useRuntimeConfig()
@@ -12,5 +12,6 @@ export default defineNitroPlugin((nitroApp) => {
     release: sentry.release || undefined,
     tracesSampleRate: sentry.tracesSampleRate,
     dataCollection: createSentryDataCollection(),
+    beforeSend: dropExpectedNotFound,
   })(nitroApp)
 })

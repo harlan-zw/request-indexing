@@ -25,6 +25,8 @@ useJobListener('sites/syncFinished', async () => {
         <CalenderFilter />
       </div>
     </div>
+    <ConnectSearchConsoleCard />
+
     <div class="space-y-10">
       <CardSite v-for="site in sites" :key="site.siteId" :site="site" />
     </div>

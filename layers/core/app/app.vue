@@ -1,6 +1,7 @@
 <script setup>
 import { domAnimation, LazyMotion, MotionConfig } from 'motion-v'
 import { ConfigProvider } from 'reka-ui'
+import { isRuntimeOnlyRoute } from '~~/shared/routes'
 
 const useIdFunction = () => useId()
 
@@ -43,7 +44,11 @@ useSeoMeta({
   twitterTitle: 'Get your pages indexed within 48 hours.',
 })
 
-defineOgImage('Splash')
+// Only prerendered routes get the site-wide OG image. `ogImage.zeroRuntime`
+// serves images as build-time files, so emitting this URL on a runtime-only
+// route points social crawlers at an image the worker cannot produce.
+if (!isRuntimeOnlyRoute(useRoute().path))
+  defineOgImage('Splash')
 </script>
 
 <template>

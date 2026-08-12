@@ -5,6 +5,7 @@ import { resolve } from 'path'
 import { globbySync } from 'globby'
 import { withoutRollupPlugin } from './scripts/rollup-plugins'
 import { CLOUDFLARE_REQUIRED_SECRETS } from './shared/cloudflare'
+import { runtimeOnlyRouteRules } from './shared/routes'
 import { SENTRY_DSN } from './shared/sentry'
 
 const tokens: Partial<OAuthPoolToken>[] = process.env.NUXT_OAUTH_POOL ? JSON.parse(process.env.NUXT_OAUTH_POOL) : []
@@ -184,14 +185,13 @@ export default defineNuxtConfig({
     database: { type: 'd1', bindingName: 'DB' },
   },
 
+  // `prerender: false` comes from `RUNTIME_ONLY_ROUTE_PREFIXES` so the same list
+  // that keeps a route out of the prerender also keeps the site-wide OG image
+  // off it. `ogImage.zeroRuntime` cannot render at runtime, so the two must
+  // never disagree.
   routeRules: {
+    ...runtimeOnlyRouteRules(),
     '/_alt/**': { robots: false, prerender: false },
-    '/dashboard/**': { prerender: false },
-    '/pro/**': { prerender: false },
-    '/account/**': { prerender: false },
-    '/auth/**': { prerender: false },
-    '/api/**': { prerender: false },
-    '/ws/**': { prerender: false },
   },
 
   nitro: {
