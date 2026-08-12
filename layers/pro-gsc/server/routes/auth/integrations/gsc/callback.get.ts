@@ -149,6 +149,36 @@ export default defineEventHandler(async (event) => {
         logger.log('[google auth] gscdump user registered:', gscdumpUserId)
       }
     }
+
+    // Repair seam for accounts that hold a gscdump user id but no API key.
+    // `updateUserTokens` only ever returns a key opportunistically, so those
+    // accounts took the branch above forever and never recovered one, leaving
+    // every browser query failing with `gscdump_api_key_missing` while the
+    // dashboard looked connected. Registration is gscdump's documented repair
+    // path: it is idempotent, and it re-mints for the partner that owns the
+    // user's tokens (see gscdump `shouldRemintUserApiKey`).
+    if (gscdumpUserId && !gscdumpApiKey) {
+      const reminted = await gscdump.registerUser({
+        userGoogleId: googleUser.id,
+        userEmail: googleUser.email,
+        userName: googleUser.name,
+        ...tokenParams,
+      }).catch((error: unknown) => {
+        const details = errorDetails(error)
+        logger.warn('[google auth] gscdump api key remint failed:', details.message, details.reason)
+        return null
+      })
+      // Adopt the key only when the idempotent call returned the same user.
+      // A different id would mean a second gscdump user was created, which is
+      // worth an error rather than silently binding this account to it.
+      if (reminted?.userId === gscdumpUserId && reminted.apiKey) {
+        gscdumpApiKey = reminted.apiKey
+        logger.log('[google auth] gscdump api key reminted for:', gscdumpUserId)
+      }
+      else if (reminted && reminted.userId !== gscdumpUserId) {
+        logger.error('[google auth] gscdump remint returned a different user:', reminted.userId, 'expected', gscdumpUserId)
+      }
+    }
   }
   else if (googleUser?.id && !refreshToken) {
     gscdumpSyncFailed = true
