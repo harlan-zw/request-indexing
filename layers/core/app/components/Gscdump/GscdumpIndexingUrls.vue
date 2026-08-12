@@ -27,24 +27,31 @@ watch(search, () => {
   page.value = 1
 })
 
+// Nuxt UI v4 colors are semantic tokens; 'green'/'red'/'yellow'/'gray' are v2
+// names that the types reject and the runtime ignores.
+type BadgeColor = 'success' | 'error' | 'warning' | 'neutral'
+
 const tabs = [
-  { key: 'indexed' as const, label: 'Indexed', color: 'green' },
-  { key: 'not_indexed' as const, label: 'Not Indexed', color: 'red' },
-  { key: 'pending' as const, label: 'Pending', color: 'yellow' },
+  { key: 'indexed' as const, label: 'Indexed', color: 'success' as BadgeColor },
+  { key: 'not_indexed' as const, label: 'Not Indexed', color: 'error' as BadgeColor },
+  { key: 'pending' as const, label: 'Pending', color: 'warning' as BadgeColor },
 ]
 
+// Nuxt UI v4 tables are TanStack-backed: `{ key, label }` yields column defs
+// with no id and throws while building header groups, which 500'd this route
+// during server rendering.
 const columns = [
-  { key: 'url', label: 'URL' },
-  { key: 'verdict', label: 'Verdict' },
-  { key: 'coverageState', label: 'Coverage' },
-  { key: 'lastCrawlTime', label: 'Last Crawl' },
+  { accessorKey: 'url', header: 'URL' },
+  { accessorKey: 'verdict', header: 'Verdict' },
+  { accessorKey: 'coverageState', header: 'Coverage' },
+  { accessorKey: 'lastCrawlTime', header: 'Last Crawl' },
 ]
 
-const verdictColor: Record<string, string> = {
-  PASS: 'green',
-  FAIL: 'red',
-  PARTIAL: 'yellow',
-  NEUTRAL: 'gray',
+const verdictColor: Record<string, BadgeColor> = {
+  PASS: 'success',
+  FAIL: 'error',
+  PARTIAL: 'warning',
+  NEUTRAL: 'neutral',
 }
 </script>
 
@@ -75,39 +82,36 @@ const verdictColor: Record<string, string> = {
 
     <UTable
       :loading="status === 'pending'"
-      :rows="data?.urls || []"
+      :data="data?.urls || []"
       :columns="columns"
       :ui="{
         th: 'px-2 py-2 text-xs font-normal',
         td: 'px-2 py-1',
       }"
     >
-      <template #url-data="{ row }">
-        <span class="text-xs text-blue-600 truncate max-w-[400px] block" :title="row.url">{{ row.url }}</span>
+      <template #url-cell="{ row: r }">
+        <span class="text-xs text-blue-600 truncate max-w-[400px] block" :title="r.original.url">{{ r.original.url }}</span>
       </template>
-      <template #verdict-data="{ row }">
-        <UBadge :color="verdictColor[row.verdict] || 'neutral'" variant="subtle" size="xs">
-          {{ row.verdict }}
+      <template #verdict-cell="{ row: r }">
+        <UBadge :color="verdictColor[r.original.verdict ?? ''] ?? 'neutral'" variant="subtle" size="xs">
+          {{ r.original.verdict }}
         </UBadge>
       </template>
-      <template #coverageState-data="{ row }">
-        <span class="text-xs text-gray-600">{{ row.coverageState }}</span>
+      <template #coverageState-cell="{ row: r }">
+        <span class="text-xs text-gray-600">{{ r.original.coverageState }}</span>
       </template>
-      <template #lastCrawlTime-data="{ row }">
-        <span v-if="row.lastCrawlTime" class="text-xs text-gray-500">{{ formatIndexingTimeAgo(row.lastCrawlTime) }}</span>
+      <template #lastCrawlTime-cell="{ row: r }">
+        <span v-if="r.original.lastCrawlTime" class="text-xs text-gray-500">{{ formatIndexingTimeAgo(r.original.lastCrawlTime) }}</span>
         <span v-else class="text-xs text-gray-400">-</span>
       </template>
     </UTable>
 
     <div v-if="data?.pagination && data.pagination.total > pageSize" class="flex items-center gap-3 pt-3">
       <UPagination
-        v-model="page"
-        :inactive-button="{ variant: 'link' }"
-        :active-button="{ color: 'info', variant: 'link', class: 'underline' }"
-        :prev-button="false"
-        :next-button="{ variant: 'link' }"
+        v-model:page="page"
+        :items-per-page="pageSize"
         size="xs"
-        :page-count="pageSize"
+        variant="link"
         :max="5"
         :total="data.pagination.total"
       />

@@ -40,6 +40,18 @@ const visibleColumns = computed(() => {
   return props.columns.filter(c => !props.excludeColumns!.includes(c.key))
 })
 
+// Nuxt UI v4's table is TanStack-backed and needs `accessorKey`/`header`. This
+// component still passed the v2 `{ key, label }` shape, which produces column
+// defs with no id, so TanStack threw inside `recurseColumns` while building
+// header groups. That surfaced as a 500 on every server-rendered route holding
+// a table. The `{ key, label }` prop shape is kept as this component's public
+// API and translated here.
+const tableColumns = computed(() => visibleColumns.value.map(c => ({
+  accessorKey: c.key,
+  header: c.label,
+  meta: c.class ? { class: { th: c.class, td: c.class } } : undefined,
+})))
+
 const allFilters = computed(() => {
   return [
     { key: 'default' as const, label: 'Show all' },
@@ -98,20 +110,23 @@ defineExpose({ tableData })
         </UBadge>
       </div>
     </div>
-    <UDivider v-if="searchable || filters" />
+    <USeparator v-if="searchable || filters" />
+    <!-- Sorting stays manual through `tableData.toggleSort` in the header slot
+         below, so no TanStack sorting state is bound here. -->
     <UTable
-      v-model:sort="tableData.sort.value"
-      sort-mode="manual"
       :loading="tableData.isLoading.value"
-      :rows="tableData.rows.value"
-      :columns="visibleColumns"
+      :data="tableData.rows.value"
+      :columns="tableColumns"
       :ui="{
         th: 'px-2 py-2 text-xs font-normal',
         td: 'px-2 py-1',
       }"
     >
-      <template v-for="col in visibleColumns" :key="col.key" #[`${col.key}-data`]="data">
-        <slot :name="`${col.key}-data`" v-bind="data" :table-data="tableData" />
+      <!-- v4 renamed the cell slot to `-cell` and hands back a TanStack row.
+           Call sites still receive the `-data` name and a plain row object, so
+           this migration stays inside the component. -->
+      <template v-for="col in visibleColumns" :key="col.key" #[`${col.key}-cell`]="ctx">
+        <slot :name="`${col.key}-data`" v-bind="{ ...ctx, row: ctx.row.original }" :table-data="tableData" />
       </template>
       <template v-for="col in visibleColumns" :key="`h-${col.key}`" #[`${col.key}-header`]="data">
         <slot :name="`${col.key}-header`" v-bind="data">
@@ -128,16 +143,15 @@ defineExpose({ tableData })
       </template>
     </UTable>
     <div v-if="pagination && tableData.total.value > pageSize" class="flex items-center gap-3 pt-3">
+      <!-- v4 pagination: `v-model:page` + `items-per-page`; the v2
+           `page-count`/`max`/`*-button` props no longer exist. -->
       <UPagination
-        v-model="tableData.page.value"
-        :inactive-button="{ variant: 'link' }"
-        :active-button="{ color: 'info', variant: 'link', class: 'underline' }"
-        :prev-button="false"
-        :next-button="{ variant: 'link' }"
-        size="xs"
-        :page-count="pageSize"
-        :max="5"
+        v-model:page="tableData.page.value"
+        :items-per-page="pageSize"
         :total="tableData.total.value"
+        :sibling-count="2"
+        size="xs"
+        variant="link"
       />
     </div>
   </div>
