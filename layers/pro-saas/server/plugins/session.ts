@@ -1,6 +1,6 @@
 import type { AuthProviderId } from '#layers/pro-saas-auth/shared/types/auth'
 import { and, desc, eq } from 'drizzle-orm'
-import { teamSites } from '~~/layers/core/server/db/schema'
+import { googleAccounts, teamSites } from '~~/layers/core/server/db/schema'
 import { logger } from '~~/shared/server/logger'
 import * as schema from '#layers/pro-saas/server/database'
 import { hasAuthenticatedSession } from '../utils/session-auth-state'
@@ -87,14 +87,25 @@ export default defineNitroPlugin(() => {
 
     session.apiKey = user.apiKey
     session.deliveryEmail = primaryIdentityEmail || user.email || null
-    session.discordId = user.discordId
-    session.discordUsername = user.discordUsername
-    session.discordAvatar = user.discordAvatar
-    session.discordRoleAssigned = user.discordRoleAssigned
-    session.githubOrgInvited = user.githubOrgInvited
-    session.gscConnected = !!user.gscConnected
-    session.gscEmail = user.gscEmail
-    session.googleScopes = user.googleScopes
+
+    // GSC connection state lives on `google_accounts`, not on a `users` column.
+    // These three used to read `user.gscConnected` / `user.gscEmail` /
+    // `user.googleScopes`, which the live `users` table has never had: the
+    // reads were always `undefined`, so `gscConnected` was permanently false
+    // for every user and `pro-gate.global.ts` plus both integration-readiness
+    // policies gated on a constant. Derived here the same way
+    // `/api/pro/gsc-properties` derives it.
+    const googleAccount = await db.select()
+      .from(googleAccounts)
+      .where(eq(googleAccounts.userId, user.userId))
+      .get()
+      .catch((error: unknown) => {
+        logger.error('[session] google account lookup failed:', error)
+        return null
+      })
+    session.gscConnected = !!googleAccount
+    session.gscEmail = (googleAccount?.payload as { email?: string | null } | undefined)?.email ?? null
+    session.googleScopes = googleAccount?.tokens?.scope ?? null
     session.gscdumpUserId = user.gscdumpUserId
     // A gscdump user id alone does not make Search Console usable: every
     // browser query goes through the same-origin v1 proxy, which needs the
@@ -103,18 +114,16 @@ export default defineNitroPlugin(() => {
     // prompt while every panel failed with `gscdump_api_key_missing`. This is
     // the same predicate `/api/pro/gscdump-integration` reports.
     session.gscdumpConnected = !!(user.gscdumpUserId && user.gscdumpApiKey)
+    // Discord, GitHub-org and monthly-report fields used to be published here
+    // from `users` columns that do not exist in this database. Every one
+    // resolved to undefined, and nothing outside the session plugin read them.
+    // They are gone rather than left as permanent falsey values that read like
+    // real state.
     const toIso = (d: Date | null | undefined): string | null => {
       if (!d || Number.isNaN(d.getTime()))
         return null
       return d.toISOString()
     }
-    session.monthlyReportEmail = !!user.monthlyReportEmail
-    session.monthlyReportDiscord = !!user.monthlyReportDiscord
-    session.monthlyReportDisabled = !!user.monthlyReportDisabled
-    session.lastMonthlyReportAt = toIso(user.lastMonthlyReportAt)
-    session.monthlyReportFailedAt = toIso(user.monthlyReportFailedAt)
-    session.monthlyReportFailureReason = user.monthlyReportFailureReason
-    session.reportScope = user.reportScope || 'all'
     session.onboardingCompletedAt = toIso(user.onboardingCompletedAt)
 
     const [hasMcpConnection, hasSites] = await Promise.all([
