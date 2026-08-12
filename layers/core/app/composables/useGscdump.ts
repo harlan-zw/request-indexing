@@ -656,8 +656,15 @@ export function useGscdumpTableData<T = GscdumpDataRow>(options: GscdumpTableOpt
       refresh()
   }, { deep: true })
 
+  // Client-only, like every other composable in this file (they all pass
+  // `server: false` to `useAsyncData`). This one instead fired an async
+  // `refresh()` straight out of an immediate watcher, so it ran during the
+  // server render and 500'd every route that mounts a table — overview, pages,
+  // keywords, keyword-insights — while client-side navigation to the same
+  // routes worked. The response is caller-scoped and never part of the
+  // server-rendered HTML, so there is nothing to gain by fetching it here.
   watch(_siteId, (id) => {
-    if (id)
+    if (id && import.meta.client)
       refresh()
   }, { immediate: true })
 
