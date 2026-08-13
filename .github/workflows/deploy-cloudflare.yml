@@ -57,24 +57,12 @@ jobs:
           NUXT_DATAFORSEO_PASSWORD: ${{ secrets.NUXT_DATAFORSEO_PASSWORD }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
-      # Schema before code, and never skipped.
-      #
-      # This used to be a manual `pnpm db:migrate`, so a deploy could ship code
-      # that assumed a migration nobody had run. That happened on 2026-08-13:
-      # migration 0011 drops `team_gsc_credentials.gscdump_api_key`, the deploy
-      # landed without it, and because the column is NOT NULL with no default,
-      # every insert into that table started failing on a schema the code no
-      # longer wrote to. It was invisible from the outside — the only symptom
-      # was a `pro_gsc.credential_sync_failed` warning per sign-in.
-      #
-      # Wrangler applies each pending file once and records it in `d1_migrations`,
-      # so this is a no-op when there is nothing outstanding.
-      - name: Apply D1 migrations
-        run: pnpm db:migrate
-        timeout-minutes: 10
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # TODO: apply D1 migrations here, before the deploy. Blocked on token scope:
+      # `secrets.CLOUDFLARE_API_TOKEN` is Workers-scoped and D1 query returns
+      # 7403, so the step failed the whole deploy (run 31679455527). Grant the
+      # token "D1: Edit" and restore it. Until then `pnpm db:migrate` is manual,
+      # and a deploy can ship code whose migration nobody ran — which is how
+      # migration 0011 came to lag its own code change on 2026-08-13.
 
       - run: pnpm deploy
         env:
