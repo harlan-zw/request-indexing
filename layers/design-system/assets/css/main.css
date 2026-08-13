@@ -28,6 +28,19 @@
   --ui-radius: 0.625rem;
 }
 
+.dashboard-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .dashboard-container {
+    padding-inline: 1.5rem;
+  }
+}
+
 /* neutral-500 (text-muted) fails WCAG AA as text color on light surfaces
    (4.37:1, needs 4.5:1); one shade darker clears it. Scoped to light mode:
    dark surfaces already have enough contrast. NOTE: primary-500 also fails
