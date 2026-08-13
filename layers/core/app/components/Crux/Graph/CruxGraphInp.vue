@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { format } from 'date-fns'
-import { createChart } from 'lightweight-charts'
+import { BaselineSeries, ColorType, createChart } from 'lightweight-charts'
 import { useHumanMs } from '~~/layers/design-system/composables/formatting'
 
 const props = defineProps<{
@@ -10,8 +10,8 @@ const props = defineProps<{
 
 const colorMode = useColorMode()
 
-const chart = ref(null)
-const container = ref(null)
+const chart = ref<HTMLElement | null>(null)
+const container = ref<HTMLElement | null>(null)
 
 const tooltipData = ref({
   inp: 0,
@@ -22,7 +22,7 @@ const darkTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -30,9 +30,6 @@ const darkTheme = {
     },
     watermark: {
       color: 'rgba(0, 0, 0, 0)',
-    },
-    crosshair: {
-      color: '#758696',
     },
     grid: {
       vertLines: {
@@ -43,23 +40,13 @@ const darkTheme = {
       },
     },
   },
-  series: {
-    topColor: 'rgba(32, 226, 47, 0.56)',
-    bottomColor: 'rgba(32, 226, 47, 0.04)',
-    lineColor: 'rgba(32, 226, 47, 1)',
-  },
-  series2: {
-    topColor: 'rgba(156, 39, 176, 0.4)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.5)',
-  },
-}
+} as const
 
 const lightTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -77,23 +64,12 @@ const lightTheme = {
       },
     },
   },
-  series: {
-    topColor: 'rgba(33, 150, 243, 0.9)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 0.5)',
-  },
-  // this is the impressions from google search console, we want to use a similar purple
-  series2: {
-    topColor: 'rgba(156, 39, 176, 0.3)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.4)',
-  },
-}
+} as const
 
 const themesData = {
   Dark: darkTheme,
   Light: lightTheme,
-}
+} as const
 
 onMounted(() => {
   const _chart = createChart(chart.value!, {
@@ -116,10 +92,7 @@ onMounted(() => {
   })
   _chart.timeScale().fitContent()
 
-  const areaSeries = _chart.addBaselineSeries({
-    topColor: 'rgba(33, 150, 243, 0.56)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 1)',
+  const areaSeries = _chart.addSeries(BaselineSeries, {
     lineWidth: 2,
     priceLineVisible: false,
     lastValueVisible: false,
@@ -143,7 +116,7 @@ onMounted(() => {
     const _container = container.value!
     if (
       param.point === undefined
-      || !param.time
+      || typeof param.time !== 'string'
       || param.point.x < 0
       || param.point.x > _container.clientWidth
       || param.point.y < 0
@@ -159,8 +132,8 @@ onMounted(() => {
       // thus it will be YYYY-MM-DD
       const dateStr = format(new Date(param.time), 'MMM d, yyyy')
       // toolTip.style.display = 'block'
-      const _inp = param.seriesData.get(areaSeries)!
-      const inp = _inp.value !== undefined ? _inp.value : _inp.time
+      const point = param.seriesData.get(areaSeries)
+      const inp = point && 'value' in point ? point.value : 0
 
       tooltipData.value = {
         inp,
@@ -169,9 +142,8 @@ onMounted(() => {
     }
   })
 
-  function syncToTheme(theme) {
+  function syncToTheme(theme: keyof typeof themesData) {
     _chart.applyOptions(themesData[theme].chart)
-    areaSeries.applyOptions(themesData[theme].series)
   }
 
   syncToTheme(colorMode.value === 'dark' ? 'Dark' : 'Light')

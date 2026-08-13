@@ -4,7 +4,7 @@ import type { UserSession } from '~~/layers/core/app/types/auth'
 import { differenceInDays, differenceInHours, formatDistanceToNow } from 'date-fns'
 import { defu } from 'defu'
 import { joinURL, withBase, withHttps } from 'ufo'
-import { createLogoutHandler, createSessionReloader, useAuthenticatedUser } from '~~/layers/core/app/composables/auth'
+import { createLogoutHandler, createSessionReloader } from '~~/layers/core/app/composables/auth'
 import { formatIndexingTimeAgo } from '~~/layers/design-system/composables/formatting'
 
 const props = defineProps<{ mock?: boolean, value: SitePage[], site: GoogleSearchConsoleSite }>()

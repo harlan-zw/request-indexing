@@ -22,11 +22,10 @@ export default defineEventHandler(async (event) => {
   const outcome = await runDataForSEORequest(() => checkUrlIndexed(normalizedUrl))
 
   if (outcome._tag === 'Unavailable') {
-    setResponseStatus(event, 503, 'Service Unavailable')
-    return {
-      error: true,
+    throw createError({
+      statusCode: 503,
       message: 'Index status is temporarily unavailable. Please try again shortly.',
-    }
+    })
   }
 
   return {

@@ -43,7 +43,7 @@ const columns = [
   >
     <template #query-data="{ row }">
       <NuxtLink
-        :to="`/dashboard/site/${siteId}/keywords/${encodeURIComponent(row.query)}`"
+        :to="`/dashboard/site/${siteId}/keywords/${encodeURIComponent(row.query ?? '')}`"
         class="text-blue-600 hover:underline truncate max-w-[250px] block text-xs"
         :title="row.query"
       >

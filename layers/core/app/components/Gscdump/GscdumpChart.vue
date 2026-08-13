@@ -6,7 +6,6 @@ const props = withDefaults(defineProps<{
   gscdumpSiteId: string
   period?: import('~~/layers/core/app/composables/useGscdump').Period
   fill?: boolean
-  selectedCharts?: string[]
 }>(), {
   fill: false,
 })
@@ -14,7 +13,7 @@ const props = withDefaults(defineProps<{
 const { period: dashboardPeriod } = useDashboardPeriod()
 const activePeriod = computed(() => props.period || dashboardPeriod.value)
 
-const { data, status } = useGscdumpDates(
+const { data, status, error, refresh } = useGscdumpDates(
   () => props.gscdumpSiteId,
   activePeriod,
 )
@@ -22,15 +21,9 @@ const { data, status } = useGscdumpDates(
 const graph = computed(() => {
   if (!data.value?.dates?.length)
     return []
-  const period = data.value.period
   return data.value.dates.map((row) => {
-    const clicks = row.clicks || 0
-    const impressions = row.impressions || 0
     return {
       ...row,
-      clicksRelative: period.clicks ? (clicks / period.clicks) * 33 : 0,
-      impressionsRelative: period.impressions ? (impressions / period.impressions) * 100 : 0,
-      ctrRelative: impressions ? (clicks / impressions) * 100 : 0,
     }
   })
 })
@@ -78,9 +71,14 @@ const prevPeriod = computed(() => data.value?.prevPeriod)
 </script>
 
 <template>
-  <div class="flex flex-col justify-center">
-    <div v-if="status === 'pending'" class="flex items-center justify-center py-8">
-      <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 animate-spin text-gray-400" />
+  <div class="flex min-w-0 flex-col justify-center">
+    <div v-if="status === 'pending'" class="flex items-center justify-center py-8" aria-live="polite">
+      <UIcon name="i-heroicons-arrow-path" class="size-5 animate-spin text-muted" />
+      <span class="sr-only">Loading performance data</span>
+    </div>
+    <div v-else-if="error" class="flex min-h-24 items-center justify-center gap-3 text-sm text-muted" role="alert">
+      <span>Performance data could not load.</span>
+      <UButton label="Retry" color="neutral" variant="outline" size="sm" class="min-h-10" @click="refresh()" />
     </div>
     <template v-else-if="data?.dates?.length">
       <GraphButtonGroup v-model="googleSearchConsoleColumns" :buttons="buttons" class="mb-2">
@@ -102,8 +100,11 @@ const prevPeriod = computed(() => data.value?.prevPeriod)
         <template #position-trend>
           <TrendPercentage v-if="!tooltipData && data?.period" compact negative :value="data.period.position" :prev-value="prevPeriod?.position" />
         </template>
+        <template #ctr-icon>
+          <IconCtr class="size-4 text-emerald-500 opacity-80" />
+        </template>
         <template #ctr-trend>
-          <TrendPercentage v-if="!tooltipData && data?.period" compact negative :value="data.period.ctr" :prev-value="prevPeriod?.ctr" />
+          <TrendPercentage v-if="!tooltipData && data?.period" compact :value="data.period.ctr" :prev-value="prevPeriod?.ctr" />
         </template>
       </GraphButtonGroup>
       <GraphDataNext
@@ -114,7 +115,7 @@ const prevPeriod = computed(() => data.value?.prevPeriod)
         @tooltip="e => tooltipData = e"
       />
     </template>
-    <div v-else class="text-sm text-gray-500 py-4">
+    <div v-else class="py-4 text-sm text-muted">
       No data available for this period.
     </div>
   </div>

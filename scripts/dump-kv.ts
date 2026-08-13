@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
+import process from 'node:process'
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL!
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN!

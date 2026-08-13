@@ -12,48 +12,50 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'update:model-value': [key: string]
+  'update:modelValue': [value: string[]]
 }>()
 
-// tailwind safelist
-// border-b-blue-500
-// border-b-blue-300
-// border-b-purple-500
-// border-b-purple-300
-// border-b-orange-500
-// border-b-orange-300
-// border-b-green-300
-// border-b-green-500
-// hover:border-b-blue-500
-// hover:border-b-purple-500
-// hover:border-b-orange-500
-// hover:border-b-green-500
-// text-blue-500
-// text-purple-500
-// text-orange-500
-// text-green-500
+const colorClasses = {
+  blue: { active: 'border-b-blue-500', icon: 'text-blue-500' },
+  purple: { active: 'border-b-purple-500', icon: 'text-purple-500' },
+  orange: { active: 'border-b-orange-500', icon: 'text-orange-500' },
+  green: { active: 'border-b-emerald-500', icon: 'text-emerald-500' },
+} as const
 
-function selectButton(tab) {
+function getColorClasses(color: string) {
+  return colorClasses[color as keyof typeof colorClasses] ?? colorClasses.blue
+}
+
+function selectButton(tab: GraphButton) {
   const val = props.modelValue.includes(tab.key)
     ? props.modelValue.filter(v => v !== tab.key)
     : [...props.modelValue, tab.key]
-  emit('update:model-value', val)
+  emit('update:modelValue', val)
 }
 </script>
 
 <template>
-  <div class="flex gap-2">
-    <button v-for="(tab, key) in buttons" :key="key" type="button" class="w-[80px] transition group border-b-2" :class="[`hover:border-b-${tab.color}-500`, modelValue.includes(tab.key) ? `border-b-${tab.color}-300` : 'border-b-transparent']" @click="selectButton(tab)">
-      <div class="text-xs flex items-center gap-1">
+  <div class="grid grid-cols-2 gap-1 sm:flex sm:gap-2">
+    <button
+      v-for="tab in buttons"
+      :key="tab.key"
+      type="button"
+      class="group min-h-11 min-w-0 border-b-2 px-1 text-left transition-colors sm:w-28"
+      :class="modelValue.includes(tab.key) ? getColorClasses(tab.color).active : 'border-b-transparent hover:border-b-default'"
+      :aria-label="`Toggle ${tab.label} chart`"
+      :aria-pressed="modelValue.includes(tab.key)"
+      @click="selectButton(tab)"
+    >
+      <div class="flex items-center gap-1 text-sm">
         <slot :name="`${tab.key}-icon`">
-          <UIcon :name="tab.icon" class="w-4 h-4 opacity-80" :class="`text-${tab.color}-500`" />
+          <span class="size-4" :class="getColorClasses(tab.color).icon" />
         </slot>
-        <div class="text-gray-500/80">
+        <div class="truncate text-muted">
           {{ tab.label }}
         </div>
       </div>
-      <div class="flex items-center gap-1">
-        <span class="text-xl text-gray-800 dark:text-blue-300 font-mono">
+      <div class="flex min-w-0 items-center gap-1">
+        <span class="shrink-0 font-mono text-lg text-highlighted tabular-nums">
           <slot :name="`${tab.key}-value`">
             {{ useHumanFriendlyNumber(tab.value) }}
           </slot>

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { format } from 'date-fns'
-import { createChart } from 'lightweight-charts'
+import { BaselineSeries, ColorType, createChart } from 'lightweight-charts'
 
 const props = defineProps<{
   value?: { time: string, value: number }[]
@@ -9,8 +9,8 @@ const props = defineProps<{
 
 const colorMode = useColorMode()
 
-const chart = ref(null)
-const container = ref(null)
+const chart = ref<HTMLElement | null>(null)
+const container = ref<HTMLElement | null>(null)
 
 const tooltipData = ref({
   lcp: 0,
@@ -21,7 +21,7 @@ const darkTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -29,9 +29,6 @@ const darkTheme = {
     },
     watermark: {
       color: 'rgba(0, 0, 0, 0)',
-    },
-    crosshair: {
-      color: '#758696',
     },
     grid: {
       vertLines: {
@@ -43,22 +40,26 @@ const darkTheme = {
     },
   },
   series: {
-    topColor: 'rgba(32, 226, 47, 0.56)',
-    bottomColor: 'rgba(32, 226, 47, 0.04)',
-    lineColor: 'rgba(32, 226, 47, 1)',
+    baseLineColor: 'rgba(32, 226, 47, 1)',
+    topLineColor: 'rgba(32, 226, 47, 1)',
+    topFillColor1: 'rgba(32, 226, 47, 0.56)',
+    topFillColor2: 'rgba(32, 226, 47, 0.04)',
+    bottomLineColor: 'rgba(32, 226, 47, 1)',
+    bottomFillColor1: 'rgba(32, 226, 47, 0.56)',
+    bottomFillColor2: 'rgba(32, 226, 47, 0.04)',
   },
   series2: {
     topColor: 'rgba(156, 39, 176, 0.4)',
     bottomColor: 'rgba(156, 39, 176, 0.04)',
     lineColor: 'rgba(156, 39, 176, 0.5)',
   },
-}
+} as const
 
 const lightTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -77,9 +78,13 @@ const lightTheme = {
     },
   },
   series: {
-    topColor: 'rgba(33, 150, 243, 0.9)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 0.5)',
+    baseLineColor: 'rgba(33, 150, 243, 0.5)',
+    topLineColor: 'rgba(33, 150, 243, 0.5)',
+    topFillColor1: 'rgba(33, 150, 243, 0.9)',
+    topFillColor2: 'rgba(33, 150, 243, 0.04)',
+    bottomLineColor: 'rgba(33, 150, 243, 0.5)',
+    bottomFillColor1: 'rgba(33, 150, 243, 0.9)',
+    bottomFillColor2: 'rgba(33, 150, 243, 0.04)',
   },
   // this is the impressions from google search console, we want to use a similar purple
   series2: {
@@ -87,12 +92,12 @@ const lightTheme = {
     bottomColor: 'rgba(156, 39, 176, 0.04)',
     lineColor: 'rgba(156, 39, 176, 0.4)',
   },
-}
+} as const
 
 const themesData = {
   Dark: darkTheme,
   Light: lightTheme,
-}
+} as const
 
 onMounted(() => {
   const _chart = createChart(chart.value!, {
@@ -115,10 +120,7 @@ onMounted(() => {
   })
   _chart.timeScale().fitContent()
 
-  const areaSeries = _chart.addBaselineSeries({
-    topColor: 'rgba(33, 150, 243, 0.56)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 1)',
+  const areaSeries = _chart.addSeries(BaselineSeries, {
     lineWidth: 2,
     priceLineVisible: false,
     lastValueVisible: false,
@@ -176,7 +178,7 @@ onMounted(() => {
       return
     if (
       param.point === undefined
-      || !param.time
+      || typeof param.time !== 'string'
       || param.point.x < 0
       || param.point.x > _container.clientWidth
       || param.point.y < 0
@@ -192,8 +194,8 @@ onMounted(() => {
       // thus it will be YYYY-MM-DD
       const dateStr = format(new Date(param.time), 'MMM d, yyyy')
       // toolTip.style.display = 'block'
-      const _lcp = param.seriesData.get(areaSeries)!
-      const lcp = _lcp.value !== undefined ? _lcp.value : _clicks.time
+      const point = param.seriesData.get(areaSeries)
+      const lcp = point && 'value' in point ? point.value : 0
 
       tooltipData.value = {
         lcp,
@@ -202,7 +204,7 @@ onMounted(() => {
     }
   })
 
-  function syncToTheme(theme) {
+  function syncToTheme(theme: keyof typeof themesData) {
     _chart.applyOptions(themesData[theme].chart)
     areaSeries.applyOptions(themesData[theme].series)
   }

@@ -6,14 +6,14 @@
 import type { H3Event } from 'h3'
 import type { Team, TeamAuditEventKind, TeamRole } from '../database'
 import { logWarn } from '~~/shared/logging'
+import { logger } from '~~/shared/server/logger'
+import { teamApiTokens, teamAuditEvents } from '../database'
 
 // `sendEmail` from the upstream host was deleted during port. Stub to a logger
 // call until request-indexing wires Postmark (already a dep in package.json).
 async function sendEmail(_event: H3Event, opts: { to: string, subject: string, html: string }) {
   console.warn('[email.send_stub]', { to: opts.to, subject: opts.subject })
 }
-import { logger } from '~~/shared/server/logger'
-import { teamApiTokens, teamAuditEvents } from '../database'
 
 const TOKEN_PREFIX = 'nsp_team_'
 

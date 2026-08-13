@@ -1,5 +1,5 @@
-import { lifecycleSiteToSyncStatus } from '@gscdump/sdk/lifecycle'
 import type { PartnerLifecycleSite } from '../../shared/gscdump-api'
+import { lifecycleSiteToSyncStatus } from '@gscdump/sdk/lifecycle'
 
 interface TableProgress {
   name: string

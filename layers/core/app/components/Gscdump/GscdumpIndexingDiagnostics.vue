@@ -5,10 +5,12 @@ const props = defineProps<{
 
 const { data, status } = useGscdumpIndexingDiagnostics(() => props.siteId)
 
-const severityColor: Record<string, string> = {
-  error: 'red',
-  warning: 'yellow',
-  info: 'blue',
+type SeverityColor = 'error' | 'warning' | 'info' | 'neutral'
+
+const severityColor: Record<string, SeverityColor> = {
+  error: 'error',
+  warning: 'warning',
+  info: 'info',
 }
 
 const severityIcon: Record<string, string> = {

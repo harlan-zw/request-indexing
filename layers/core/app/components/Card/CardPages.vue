@@ -14,7 +14,7 @@ const graph = computed(
     return {
       date: _.date,
       pages: props.dates.slice(0, i)
-        .reduce((acc, row) => Math.max(acc, row.pages), 0),
+        .reduce((acc, row) => Math.max(acc, row.pages ?? 0), 0),
     }
   }),
 )
@@ -25,14 +25,7 @@ const lastEntry = computed(() => {
   return props.dates[props.dates.length - 1]
 })
 
-const graphColours = {
-  pages: {
-    // indigo
-    topColor: 'rgba(63, 81, 181, 0.9)',
-    bottomColor: 'rgba(63, 81, 181, 0.04)',
-    lineColor: 'rgba(63, 81, 181, 0.5)',
-  },
-}
+const graphColours = { pages: 'rgba(63, 81, 181, 0.5)' }
 </script>
 
 <template>
@@ -45,10 +38,10 @@ const graphColours = {
     </div>
     <div class="flex items-center gap-1">
       <div class="text-xl font-semibold">
-        {{ useHumanFriendlyNumber(lastEntry?.pages) }}
+        {{ useHumanFriendlyNumber(lastEntry?.pages ?? 0) }}
       </div>
-      <TrendPercentage :value="period?.pages" :prev-value="prevPeriod?.pages" />
+      <TrendPercentage :value="period?.pages ?? 0" :prev-value="prevPeriod?.pages ?? 0" />
     </div>
-    <GraphData :value="graph!" :columns="['pages']" :colors="graphColours" @tooltip="e => tooltipData = e" />
+    <GraphData :value="graph!" :columns="['pages']" :colors="graphColours" />
   </div>
 </template>

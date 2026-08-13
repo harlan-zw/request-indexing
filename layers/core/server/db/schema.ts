@@ -33,6 +33,8 @@ export const teams = sqliteTable('teams', {
   backupsEnabled: integer('backups_enabled').notNull().default(0),
   onboardedStep: text('onboarded_step'),
   // pro-saas augment: explicit owner (nullable until backfilled to personal-team creator)
+  // Mutual team and user foreign keys require one lazy forward reference.
+  // eslint-disable-next-line ts/no-use-before-define
   ownerId: integer('owner_id').references((): AnySQLiteColumn => users.userId, { onDelete: 'cascade' }),
   // gscdump partner team mirror id
   gscdumpTeamId: text('gscdump_team_id'),

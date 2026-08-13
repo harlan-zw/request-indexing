@@ -195,7 +195,7 @@ const tableUi = {
     </template>
 
     <UTable :data="paginatedRows" :columns="tableColumns" :ui="tableUi">
-      <template v-for="column in displayColumns" #[`${column.key}-header`]="data">
+      <template v-for="column in displayColumns" :key="column.key" #[`${column.key}-header`]="data">
         <slot
           v-if="$slots[`${column.key}-header`]"
           :name="`${column.key}-header`"
@@ -224,7 +224,7 @@ const tableUi = {
         />
       </template>
 
-      <template v-for="column in displayColumns.filter(column => column.key !== 'expand')" #[`${column.key}-cell`]="data">
+      <template v-for="column in displayColumns.filter(column => column.key !== 'expand')" :key="column.key" #[`${column.key}-cell`]="data">
         <slot
           :name="`${column.key}-data`"
           v-bind="data"

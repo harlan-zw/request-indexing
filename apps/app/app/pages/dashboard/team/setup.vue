@@ -102,12 +102,6 @@ useJobListener('sites/setup', () => {
   key.value++
 })
 
-useJobListener('users/syncGscSites', () => {
-  refresh()
-  isSetup.value = true
-  key.value++
-})
-
 function setSelectedSites(val: string[]) {
   selectedSites.value = val
 }

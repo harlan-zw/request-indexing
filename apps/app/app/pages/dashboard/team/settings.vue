@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { fetchSites } from '~~/layers/core/app/composables/fetch'
+import type { SitesPreview } from '~~/layers/core/app/types'
 
 definePageMeta({
   layout: 'dashboard',
@@ -8,16 +8,12 @@ definePageMeta({
   description: 'Manage your team settings.',
 })
 
-const { data: siteData } = await fetchSites()
-
-const value = ref([])
-function syncSites(val) {
-  value.value = val
-}
+const { sites } = await $fetch<{ sites: SitesPreview }>('/api/sites/preview')
+const selectedSites = ref<string[]>([])
 </script>
 
 <template>
   <div class="max-w-3xl">
-    <TeamSiteSelector :sites="sites" :model-value="[]" @update:model-value="syncSites" />
+    <TeamSiteSelector v-model="selectedSites" :sites="sites" />
   </div>
 </template>

@@ -22,6 +22,13 @@ const props = withDefaults(defineProps<{
   pagination: true,
 })
 
+interface TableFilter {
+  key: GscComparisonFilter | 'default'
+  label: string
+  special?: boolean
+  description?: string
+}
+
 const { period: dashboardPeriod } = useDashboardPeriod()
 const activePeriod = computed(() => props.period || dashboardPeriod.value)
 
@@ -52,7 +59,7 @@ const tableColumns = computed(() => visibleColumns.value.map(c => ({
   meta: c.class ? { class: { th: c.class, td: c.class } } : undefined,
 })))
 
-const allFilters = computed(() => {
+const allFilters = computed<TableFilter[]>(() => {
   return [
     { key: 'default' as const, label: 'Show all' },
     ...(props.filters || [
@@ -99,7 +106,7 @@ defineExpose({ tableData })
           :key="f.key"
           class="cursor-pointer"
           :ui="{ base: 'rounded-full' }"
-          :color="tableData.filter.value === f.key ? 'green' : 'gray'"
+          :color="tableData.filter.value === f.key ? 'success' : 'neutral'"
           :variant="tableData.filter.value === f.key ? 'subtle' : 'soft'"
           @click="tableData.toggleFilter(f.key)"
         >

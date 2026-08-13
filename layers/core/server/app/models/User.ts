@@ -1,17 +1,27 @@
 import type { UserSelect } from '~~/layers/core/server/db/schema'
 import { differenceInDays, format, subDays, subYears } from 'date-fns'
 
+type UserPeriod = string | { start: string, end: string }
+
+function parseUserPeriod(analyticsRange: unknown, analyticsPeriod: string | null): UserPeriod {
+  if (typeof analyticsRange === 'string')
+    return analyticsRange
+  if (analyticsRange && typeof analyticsRange === 'object') {
+    const range = analyticsRange as Record<string, unknown>
+    if (typeof range.start === 'string' && typeof range.end === 'string')
+      return { start: range.start, end: range.end }
+  }
+  return analyticsPeriod ?? '30d'
+}
+
 export function userPeriodRange(user: UserSelect) {
-  // TODO(v1): analyticsRange/analyticsPeriod dropped from User in V1 schema; default to 30d.
-  const periodRange = (user as unknown as { analyticsRange?: string | { start: string, end: string }, analyticsPeriod?: string }).analyticsRange
-    || (user as unknown as { analyticsPeriod?: string }).analyticsPeriod
-    || '30d'
+  const periodRange = parseUserPeriod(user.analyticsRange, user.analyticsPeriod)
   let startPeriod: Date
   let endPeriod: Date
   let startPrevPeriod: Date
   let endPrevPeriod: Date
   if (typeof periodRange === 'string') {
-    endPeriod = dayjsPst()
+    endPeriod = new Date()
     if (periodRange === 'all') {
       // 100 years ago
       startPeriod = subYears(new Date(), 100)

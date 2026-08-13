@@ -17,7 +17,6 @@ const ROOT = join(import.meta.dirname!, '..')
 const DB_NAME = 'request-indexin-bw2z'
 
 const REMOTE = process.argv.includes('--remote')
-const LOCAL = process.argv.includes('--local') || !REMOTE
 
 interface PoolToken { id: string, client_id: string, client_secret: string, label: string }
 

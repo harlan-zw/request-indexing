@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-defineProps<{ trendingContent: { clicks: number, url: string, keyword: string }[] }>()
+defineProps<{
+  trendingContent: Array<{
+    clicks: number
+    prevClicks: number
+    url: string
+    keyword: string
+    keywordPosition: number
+  }>
+}>()
 </script>
 
 <template>

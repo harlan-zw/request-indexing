@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { SeriesMarker } from 'lightweight-charts'
-import { createChart } from 'lightweight-charts'
+import { AreaSeries, ColorType, createChart, createSeriesMarkers, LineSeries } from 'lightweight-charts'
 
 const props = defineProps<{
   clicks?: { time: string, value: number }[]
@@ -12,8 +12,8 @@ const props = defineProps<{
 
 const colorMode = useColorMode()
 
-const chart = ref(null)
-const container = ref(null)
+const chart = ref<HTMLElement | null>(null)
+const container = ref<HTMLElement | null>(null)
 
 const tooltipData = ref({
   clicks: 0,
@@ -25,7 +25,7 @@ const darkTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -33,9 +33,6 @@ const darkTheme = {
     },
     watermark: {
       color: 'rgba(0, 0, 0, 0)',
-    },
-    crosshair: {
-      color: '#758696',
     },
     grid: {
       vertLines: {
@@ -56,13 +53,13 @@ const darkTheme = {
     bottomColor: 'rgba(156, 39, 176, 0.04)',
     lineColor: 'rgba(156, 39, 176, 0.5)',
   },
-}
+} as const
 
 const lightTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -91,12 +88,12 @@ const lightTheme = {
     bottomColor: 'rgba(156, 39, 176, 0.04)',
     lineColor: 'rgba(156, 39, 176, 0.4)',
   },
-}
+} as const
 
 const themesData = {
   Dark: darkTheme,
   Light: lightTheme,
-}
+} as const
 
 onMounted(() => {
   const _chart = createChart(chart.value!, {
@@ -152,7 +149,7 @@ onMounted(() => {
     return false
   }).filter(Boolean) as SeriesMarker<string>[]
 
-  const clicksSeries = _chart.addAreaSeries({
+  const clicksSeries = _chart.addSeries(AreaSeries, {
     topColor: 'rgba(33, 150, 243, 0.56)',
     bottomColor: 'rgba(33, 150, 243, 0.04)',
     lineColor: 'rgba(33, 150, 243, 1)',
@@ -167,7 +164,7 @@ onMounted(() => {
   if (props.clicks && props.clicks.length)
     clicksSeries.setData(props.clicks)
 
-  const impressionsSeries = _chart.addAreaSeries({
+  const impressionsSeries = _chart.addSeries(AreaSeries, {
     topColor: 'rgba(33, 150, 243, 0.56)',
     bottomColor: 'rgba(33, 150, 243, 0.04)',
     lineColor: 'rgba(33, 150, 243, 1)',
@@ -181,10 +178,10 @@ onMounted(() => {
   })
   if (props.impressions && props.impressions.length) {
     impressionsSeries.setData(props.impressions)
-    impressionsSeries.setMarkers(markers)
+    createSeriesMarkers(impressionsSeries, markers)
   }
 
-  _chart.addLineSeries({
+  _chart.addSeries(LineSeries, {
     color: 'rgba(232, 113, 10, 0.5)',
     lineWidth: 2,
     priceScaleId: 'left',
@@ -194,7 +191,7 @@ onMounted(() => {
     lineType: 2,
   }).setData(props.position || [])
 
-  _chart.addLineSeries({
+  _chart.addSeries(LineSeries, {
     color: 'rgba(0, 137, 123, 0.5)',
     lineWidth: 2,
     priceScaleId: 'left',
@@ -208,7 +205,7 @@ onMounted(() => {
     const _container = container.value!
     if (
       param.point === undefined
-      || !param.time
+      || typeof param.time !== 'string'
       || param.point.x < 0
       || param.point.x > _container.clientWidth
       || param.point.y < 0
@@ -225,10 +222,10 @@ onMounted(() => {
       // thus it will be YYYY-MM-DD
       const dateStr = param.time
       // toolTip.style.display = 'block'
-      const _clicks = param.seriesData.get(clicksSeries)!
-      const clicks = _clicks.value !== undefined ? _clicks.value : _clicks.time
-      const _impressions = param.seriesData.get(impressionsSeries)
-      const impressions = _impressions?.value !== undefined ? _impressions?.value : _impressions?.time
+      const clicksPoint = param.seriesData.get(clicksSeries)
+      const clicks = clicksPoint && 'value' in clicksPoint ? clicksPoint.value : 0
+      const impressionsPoint = param.seriesData.get(impressionsSeries)
+      const impressions = impressionsPoint && 'value' in impressionsPoint ? impressionsPoint.value : 0
 
       tooltipData.value = {
         clicks,
@@ -238,7 +235,7 @@ onMounted(() => {
     }
   })
 
-  function syncToTheme(theme) {
+  function syncToTheme(theme: keyof typeof themesData) {
     _chart.applyOptions(themesData[theme].chart)
     clicksSeries.applyOptions(themesData[theme].series)
     impressionsSeries.applyOptions(themesData[theme].series2)

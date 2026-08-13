@@ -15,132 +15,6 @@ import { titleCase } from 'scule'
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
- * Kitchen-sink formatting function
- *
- * Supports complex formatting via simple, single, auto-completing string format:
- *
- * - format:arg1,arg2 [suffix]
- *
- * Functionality:
- *
- * - supports percent, number, currency, date, time and datetime formats
- * - types have optional preset suffixes, i.e. `percent:2' or 'date:month'
- * - number and date types supports custom formatting, i.e. `number:0,0.00000` or `date:Do MMM`
- * - supports suffixes via format `[placeholder], i.e. `number:short,2 [BTC]`
- * - supports multiple date values, i.e. timestamp, ISO string, short-date, or Date object
- * - supports nullish values with English placeholders
- *
- * @usage
- *
- *  formatValue(value, 'currency')
- *  formatValue(value, 'percent:2')
- *  formatValue(value, 'number:short,2 [BTC]')
- *  formatValue(value, 'date:Do MMM')
- *  formatValue('no format')
- *  formatValue(null)
- *
- * @see https://github.com/forged-com/forgd/blob/dev/docs/ui/formatting.md
- * @see https://github.com/forged-com/forgd/pull/1815
- * @see https://github.com/forged-com/forgd/pull/2254
- *
- * @param input     A number or string value (will be parsed)
- * @param fmt       A FormatType preset
- */
-export function formatValue(input: Value, fmt?: ValueFormat): string {
-  // empty string
-  if (input === '') {
-    return ''
-  }
-
-  // undefined
-  if (input === undefined) {
-    return '...'
-  }
-
-  // null
-  if (input === null) {
-    return 'N/A'
-  }
-
-  // NaN
-  if (Number.isNaN(input)) {
-    // dev guard: a NaN input means the caller mishandled types, surface in console rather than persist
-    console.warn('[formatValue] received NaN')
-    return 'NaN'
-  }
-
-  // no format
-  if (!fmt) {
-    return String(input)
-  }
-
-  // parse format
-  const parts = parseValueFormat(fmt)
-  if (!parts) {
-    return String(input)
-  }
-
-  // TODO return final fmt with function
-  const { type, rest, suffix } = parts
-  fmt = rest ? (`${type}:${rest}` as ValueFormat) : (type as ValueFormat)
-
-  // format
-  let output = String(input)
-  switch (type) {
-    case 'boolean':
-      if (typeof input === 'boolean') {
-        output = formatters.boolean(input, fmt as BooleanFormat)
-      }
-      break
-
-    case 'percent':
-      if (typeof input === 'number' || typeof input === 'string') {
-        output = formatters.percent(parseNumber(input), fmt as PercentFormat)
-      }
-      break
-
-    case 'number':
-      if (typeof input === 'number' || typeof input === 'string') {
-        output = formatters.number(parseNumber(input), fmt as NumberFormat)
-      }
-      break
-
-    case 'currency':
-      if (typeof input === 'number' || typeof input === 'string') {
-        output = formatters.currency(parseNumber(input), fmt as CurrencyFormat)
-      }
-      break
-
-    case 'date':
-      if (isDateTimeValue(input)) {
-        output = formatters.date(input, fmt as DateFormat)
-      }
-      break
-
-    case 'time':
-      if (isDateTimeValue(input)) {
-        output = formatters.time(input, fmt as TimeFormat)
-      }
-      break
-
-    case 'datetime':
-      if (isDateTimeValue(input)) {
-        output = formatters.datetime(input, fmt as DateTimeFormat)
-      }
-      break
-
-    case 'string':
-      if (typeof input === 'string' || typeof input === 'number') {
-        output = formatters.string(String(input), fmt as StringFormat)
-      }
-      break
-  }
-
-  // return with optional suffix
-  return suffix ? `${output} ${suffix}` : output
-}
-
-/**
  * Helper function to return a curried version of formatValue()
  *
  * @usage
@@ -152,6 +26,13 @@ export function makeFormatter(fmt: ValueFormat) {
   return function (value?: Value) {
     return formatValue(value, fmt)
   }
+}
+
+const dateSettings = {
+  locale: typeof navigator !== 'undefined' ? navigator.language : 'en-US',
+  get pattern() {
+    return this.locale === 'en-US' ? 'MM/dd/yyyy' : 'dd/MM/yyyy'
+  },
 }
 
 /**
@@ -489,6 +370,68 @@ const formatters = {
   },
 }
 
+/**
+ * Format a value with a typed preset and optional suffix.
+ */
+export function formatValue(input: Value, fmt?: ValueFormat): string {
+  if (input === '')
+    return ''
+  if (input === undefined)
+    return '...'
+  if (input === null)
+    return 'N/A'
+  if (Number.isNaN(input)) {
+    console.warn('[formatValue] received NaN')
+    return 'NaN'
+  }
+  if (!fmt)
+    return String(input)
+
+  const parts = parseValueFormat(fmt)
+  if (!parts)
+    return String(input)
+
+  const { type, rest, suffix } = parts
+  fmt = rest ? (`${type}:${rest}` as ValueFormat) : (type as ValueFormat)
+
+  let output = String(input)
+  switch (type) {
+    case 'boolean':
+      if (typeof input === 'boolean')
+        output = formatters.boolean(input, fmt as BooleanFormat)
+      break
+    case 'percent':
+      if (typeof input === 'number' || typeof input === 'string')
+        output = formatters.percent(parseNumber(input), fmt as PercentFormat)
+      break
+    case 'number':
+      if (typeof input === 'number' || typeof input === 'string')
+        output = formatters.number(parseNumber(input), fmt as NumberFormat)
+      break
+    case 'currency':
+      if (typeof input === 'number' || typeof input === 'string')
+        output = formatters.currency(parseNumber(input), fmt as CurrencyFormat)
+      break
+    case 'date':
+      if (isDateTimeValue(input))
+        output = formatters.date(input, fmt as DateFormat)
+      break
+    case 'time':
+      if (isDateTimeValue(input))
+        output = formatters.time(input, fmt as TimeFormat)
+      break
+    case 'datetime':
+      if (isDateTimeValue(input))
+        output = formatters.datetime(input, fmt as DateTimeFormat)
+      break
+    case 'string':
+      if (typeof input === 'string' || typeof input === 'number')
+        output = formatters.string(String(input), fmt as StringFormat)
+      break
+  }
+  return suffix ? `${output} ${suffix}` : output
+}
+
 // export const formatPercent = formatters.percent
 // export const formatNumber = formatters.number
 // export const formatCurrency = formatters.currency
@@ -509,13 +452,6 @@ const formatters = {
  *
  * This makes it simpler configure the date picker + communicate dates
  */
-const dateSettings = {
-  locale: typeof navigator !== 'undefined' ? navigator.language : 'en-US',
-  get pattern() {
-    return this.locale === 'en-US' ? 'MM/dd/yyyy' : 'dd/MM/yyyy'
-  },
-}
-
 /**
  * Parse date or date-like input to Date object
  *

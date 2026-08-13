@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { format } from 'date-fns'
-import { createChart } from 'lightweight-charts'
+import { BaselineSeries, ColorType, createChart } from 'lightweight-charts'
 import { useHumanMs } from '~~/layers/design-system/composables/formatting'
 
 const props = defineProps<{
@@ -10,8 +10,8 @@ const props = defineProps<{
 
 const colorMode = useColorMode()
 
-const chart = ref(null)
-const container = ref(null)
+const chart = ref<HTMLElement | null>(null)
+const container = ref<HTMLElement | null>(null)
 
 const tooltipData = ref({
   value: 0,
@@ -22,7 +22,7 @@ const darkTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -30,9 +30,6 @@ const darkTheme = {
     },
     watermark: {
       color: 'rgba(0, 0, 0, 0)',
-    },
-    crosshair: {
-      color: '#758696',
     },
     grid: {
       vertLines: {
@@ -44,22 +41,26 @@ const darkTheme = {
     },
   },
   series: {
-    topColor: 'rgba(32, 226, 47, 0.56)',
-    bottomColor: 'rgba(32, 226, 47, 0.04)',
-    lineColor: 'rgba(32, 226, 47, 1)',
+    baseLineColor: 'rgba(32, 226, 47, 1)',
+    topLineColor: 'rgba(32, 226, 47, 1)',
+    topFillColor1: 'rgba(32, 226, 47, 0.56)',
+    topFillColor2: 'rgba(32, 226, 47, 0.04)',
+    bottomLineColor: 'rgba(32, 226, 47, 1)',
+    bottomFillColor1: 'rgba(32, 226, 47, 0.56)',
+    bottomFillColor2: 'rgba(32, 226, 47, 0.04)',
   },
   series2: {
     topColor: 'rgba(156, 39, 176, 0.4)',
     bottomColor: 'rgba(156, 39, 176, 0.04)',
     lineColor: 'rgba(156, 39, 176, 0.5)',
   },
-}
+} as const
 
 const lightTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -78,9 +79,13 @@ const lightTheme = {
     },
   },
   series: {
-    topColor: 'rgba(33, 150, 243, 0.9)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 0.5)',
+    baseLineColor: 'rgba(33, 150, 243, 0.5)',
+    topLineColor: 'rgba(33, 150, 243, 0.5)',
+    topFillColor1: 'rgba(33, 150, 243, 0.9)',
+    topFillColor2: 'rgba(33, 150, 243, 0.04)',
+    bottomLineColor: 'rgba(33, 150, 243, 0.5)',
+    bottomFillColor1: 'rgba(33, 150, 243, 0.9)',
+    bottomFillColor2: 'rgba(33, 150, 243, 0.04)',
   },
   // this is the impressions from google search console, we want to use a similar purple
   series2: {
@@ -88,12 +93,12 @@ const lightTheme = {
     bottomColor: 'rgba(156, 39, 176, 0.04)',
     lineColor: 'rgba(156, 39, 176, 0.4)',
   },
-}
+} as const
 
 const themesData = {
   Dark: darkTheme,
   Light: lightTheme,
-}
+} as const
 
 onMounted(() => {
   const _chart = createChart(chart.value!, {
@@ -116,10 +121,7 @@ onMounted(() => {
   })
   _chart.timeScale().fitContent()
 
-  const areaSeries = _chart.addBaselineSeries({
-    topColor: 'rgba(33, 150, 243, 0.56)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 1)',
+  const areaSeries = _chart.addSeries(BaselineSeries, {
     lineWidth: 2,
     priceLineVisible: false,
     lastValueVisible: false,
@@ -168,7 +170,7 @@ onMounted(() => {
     }
     if (
       param.point === undefined
-      || !param.time
+      || typeof param.time !== 'string'
       || param.point.x < 0
       || param.point.x > _container.clientWidth
       || param.point.y < 0
@@ -184,14 +186,15 @@ onMounted(() => {
       // thus it will be YYYY-MM-DD
       const dateStr = format(new Date(param.time), 'MMM d, yyyy')
       // toolTip.style.display = 'block'
+      const point = param.seriesData.get(areaSeries)
       tooltipData.value = {
-        value: param.seriesData.get(areaSeries)?.value || 0,
+        value: point && 'value' in point ? point.value : 0,
         time: dateStr,
       }
     }
   })
 
-  function syncToTheme(theme) {
+  function syncToTheme(theme: keyof typeof themesData) {
     _chart.applyOptions(themesData[theme].chart)
     areaSeries.applyOptions(themesData[theme].series)
   }
@@ -211,7 +214,7 @@ onMounted(() => {
         <div class="dark:text-gray-400 text-gray-500 text-xs ">
           {{ tooltipData.time }}
         </div>
-        <div class="font-bold" :class="tooltipData.value >= moderate ? 'text-red-500' : tooltipData.value >= fast ? 'text-yellow-500' : 'text-green-500'">
+        <div class="font-bold" :class="tooltipData.value < 50 ? 'text-red-500' : tooltipData.value < 90 ? 'text-yellow-500' : 'text-green-500'">
           {{ useHumanMs(tooltipData.value) }}
         </div>
       </div>

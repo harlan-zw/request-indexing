@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import type { DatePickerDate, DatePickerRangeObject } from 'v-calendar/dist/types/src/use/datePicker'
 import { DatePicker as VCalendarDatePicker } from 'v-calendar'
 import 'v-calendar/dist/style.css'
+
+type CalendarDateValue = Date | Partial<{ year: number, month: number, day: number }>
+interface CalendarDateRange {
+  start: CalendarDateValue
+  end: CalendarDateValue
+}
+type CalendarModelValue = CalendarDateValue | CalendarDateRange | null
 
 defineOptions({
   inheritAttrs: false,
 })
 
-const props = defineProps({
-  modelValue: {
-    type: [Date, Object] as PropType<DatePickerDate | DatePickerRangeObject | null>,
-    default: null,
-  },
-})
-
-const emit = defineEmits(['update:model-value', 'close'])
-
+const emit = defineEmits<{ close: [] }>()
+const model = defineModel<CalendarModelValue>({ default: null })
 const date = computed({
-  get: () => props.modelValue,
-  set: (value) => {
-    emit('update:model-value', value)
+  get: () => model.value,
+  set: (value: CalendarModelValue) => {
+    model.value = value
     emit('close')
   },
 })
@@ -38,9 +37,7 @@ maxDate.setDate(maxDate.getDate() - 1)
 const minDate = new Date()
 minDate.setMonth(minDate.getMonth() - 16)
 
-const isRange = computed(() => {
-  return Boolean(props.modelValue.start && props.modelValue.end)
-})
+const isRange = computed(() => model.value !== null && !(model.value instanceof Date) && 'start' in model.value)
 </script>
 
 <template>
