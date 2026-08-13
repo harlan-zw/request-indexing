@@ -1,0 +1,38 @@
+name: CI
+
+# The pull request gate. This repository had no check of any kind: lint,
+# typecheck, and test ran nowhere, and deploy-cloudflare.yml built and shipped
+# every push to main unvalidated.
+#
+# The jobs live in harlan-zw/harlan-nuxt so every site shares one pinned copy.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    uses: harlan-zw/harlan-nuxt/.github/workflows/nuxt-site-ci.yml@main
+    with:
+      # GitHub-hosted on purpose. This repository is public, and a self-hosted
+      # runner on a public repository lets a fork pull request run code on the
+      # workstation.
+      runs-on: '["ubuntu-24.04"]'
+      # `postinstall` runs `nuxt prepare`, which typecheck resolves aliases
+      # through.
+      install-args: ''
+      # NOT `pnpm lint`. That script is `eslint . --fix`, which rewrites the
+      # working tree and then reports success, so as a gate it can never fail.
+      lint-command: pnpm exec eslint .
+      # No test script exists in this repository yet.
+      test-command: ''
+      typecheck-node-options: --max-old-space-size=16384
+      timeout-minutes: 30
