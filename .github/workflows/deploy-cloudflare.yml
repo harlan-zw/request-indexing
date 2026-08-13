@@ -58,11 +58,13 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       # TODO: apply D1 migrations here, before the deploy. Blocked on token scope:
-      # `secrets.CLOUDFLARE_API_TOKEN` is Workers-scoped and D1 query returns
-      # 7403, so the step failed the whole deploy (run 31679455527). Grant the
-      # token "D1: Edit" and restore it. Until then `pnpm db:migrate` is manual,
-      # and a deploy can ship code whose migration nobody ran — which is how
-      # migration 0011 came to lag its own code change on 2026-08-13.
+      # `secrets.CLOUDFLARE_API_TOKEN` is Workers-scoped, so `d1 migrations apply`
+      # returns 7403 and failed the whole deploy (run 31679455527). Grant that
+      # token "D1: Edit" and restore the step.
+      #
+      # Until then `pnpm db:migrate` is a manual step run with a D1-scoped token,
+      # so a deploy CAN ship code whose migration nobody applied. Nothing has
+      # gone wrong from this yet; the risk is that it is unenforced.
 
       - run: pnpm deploy
         env:
