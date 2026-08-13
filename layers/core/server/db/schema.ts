@@ -634,8 +634,10 @@ export const teamGscCredentials = sqliteTable('team_gsc_credentials', {
   publicId: text('public_id').notNull().$defaultFn(nanoid),
   teamId: integer('team_id').notNull().references(() => teams.teamId, { onDelete: 'cascade' }),
   userId: integer('user_id').notNull().references(() => users.userId, { onDelete: 'cascade' }),
+  // No credential column: the key lives once, on `users.gscdump_api_key`, and
+  // this row only records which member the team reads through plus its status.
+  // A copy here drifted silently on every repair-driven rotation.
   gscdumpUserId: text('gscdump_user_id').notNull(),
-  gscdumpApiKey: text('gscdump_api_key').notNull(),
   label: text('label'),
   status: text('status', { enum: ['active', 'revoked', 'failed'] }).$type<TeamGscCredentialStatus>().notNull().default('active'),
   lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),

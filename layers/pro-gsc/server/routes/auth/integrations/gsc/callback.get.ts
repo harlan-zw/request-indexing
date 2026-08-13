@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { exchangeAuthCodeResult } from 'gscdump'
 import { logger } from '~~/shared/server/logger'
+import { probeGscdumpUserKey, shouldRepairGscdumpKey } from '#layers/pro-gsc/server/utils/gscdump-key-repair'
 import { scheduleGscdumpOnboardingReconcile } from '#layers/pro-gsc/server/utils/reconcile-gscdump-onboarding'
 
 function errorDetails(error: unknown) {
@@ -87,6 +88,9 @@ export default defineEventHandler(async (event) => {
   // Sync user with gscdump.com partner API
   let gscdumpUserId = existingUser?.gscdumpUserId
   let gscdumpApiKey = existingUser?.gscdumpApiKey
+  // A key minted moments ago needs no probe, and probing one while the user's
+  // database is still provisioning would read as a rejection.
+  let mintedThisRequest = false
   let gscdumpSyncFailed = false
   let gscdumpSyncReason: string | null = null
   let gscdumpSyncMessage: string | null = null
@@ -115,9 +119,9 @@ export default defineEventHandler(async (event) => {
       }
       if (updated) {
         logger.log('[google auth] gscdump tokens updated:', gscdumpUserId, `${updated.sites.length} GSC properties accessible`)
-        // Store API key if returned and we don't have one yet
-        if ('apiKey' in updated && typeof updated.apiKey === 'string' && !gscdumpApiKey)
-          gscdumpApiKey = updated.apiKey
+        // This response carries no credential — `updateUserTokens` returns only
+        // `{ userId, updated, sites }`. Credentials come from registration,
+        // which the repair block below drives.
       }
       else {
         const details = errorDetails(lastError)
@@ -144,39 +148,50 @@ export default defineEventHandler(async (event) => {
       })
       if (registration) {
         gscdumpUserId = registration.userId
-        if (registration.apiKey)
+        if (registration.apiKey) {
           gscdumpApiKey = registration.apiKey
+          mintedThisRequest = true
+        }
         logger.log('[google auth] gscdump user registered:', gscdumpUserId)
       }
     }
 
-    // Repair seam for accounts that hold a gscdump user id but no API key.
-    // `updateUserTokens` only ever returns a key opportunistically, so those
-    // accounts took the branch above forever and never recovered one, leaving
-    // every browser query failing with `gscdump_api_key_missing` while the
-    // dashboard looked connected. Registration is gscdump's documented repair
-    // path: it is idempotent, and it re-mints for the partner that owns the
-    // user's tokens (see gscdump `shouldRemintUserApiKey`).
-    if (gscdumpUserId && !gscdumpApiKey) {
-      const reminted = await gscdump.registerUser({
-        userGoogleId: googleUser.id,
-        userEmail: googleUser.email,
-        userName: googleUser.name,
-        ...tokenParams,
-      }).catch((error: unknown) => {
-        const details = errorDetails(error)
-        logger.warn('[google auth] gscdump api key remint failed:', details.message, details.reason)
-        return null
-      })
-      // Adopt the key only when the idempotent call returned the same user.
-      // A different id would mean a second gscdump user was created, which is
-      // worth an error rather than silently binding this account to it.
-      if (reminted?.userId === gscdumpUserId && reminted.apiKey) {
-        gscdumpApiKey = reminted.apiKey
-        logger.log('[google auth] gscdump api key reminted for:', gscdumpUserId)
-      }
-      else if (reminted && reminted.userId !== gscdumpUserId) {
-        logger.error('[google auth] gscdump remint returned a different user:', reminted.userId, 'expected', gscdumpUserId)
+    // Repair seam for a missing OR dead credential. Holding a key proves
+    // nothing: gscdump compares hashes, so a key we lost track of looks
+    // identical to a working one and fails only at read time, leaving every
+    // browser query on `gscdump_api_key_missing`/401 while the dashboard reads
+    // as connected. Probe first, then re-mint only on an explicit rejection —
+    // a transient gscdump failure must not rotate a working credential.
+    // Registration is gscdump's repair path: idempotent, and scoped to this
+    // partner, so re-minting here cannot disturb another partner's credential
+    // for the same person.
+    if (gscdumpUserId && !mintedThisRequest) {
+      const probe = gscdumpApiKey
+        ? await probeGscdumpUserKey(event, gscdumpUserId, gscdumpApiKey)
+        : 'skipped'
+
+      if (shouldRepairGscdumpKey({ storedKey: gscdumpApiKey ?? null, probe })) {
+        logger.warn('[google auth] gscdump credential needs repair:', gscdumpUserId, `probe=${probe}`)
+        const reminted = await gscdump.registerUser({
+          userGoogleId: googleUser.id,
+          userEmail: googleUser.email,
+          userName: googleUser.name,
+          ...tokenParams,
+        }).catch((error: unknown) => {
+          const details = errorDetails(error)
+          logger.warn('[google auth] gscdump api key remint failed:', details.message, details.reason)
+          return null
+        })
+        // Adopt the key only when the idempotent call returned the same user.
+        // A different id would mean a second gscdump user was created, which is
+        // worth an error rather than silently binding this account to it.
+        if (reminted?.userId === gscdumpUserId && reminted.apiKey) {
+          gscdumpApiKey = reminted.apiKey
+          logger.log('[google auth] gscdump api key reminted for:', gscdumpUserId)
+        }
+        else if (reminted && reminted.userId !== gscdumpUserId) {
+          logger.error('[google auth] gscdump remint returned a different user:', reminted.userId, 'expected', gscdumpUserId)
+        }
       }
     }
   }
