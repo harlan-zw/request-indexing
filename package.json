@@ -27,6 +27,7 @@
     "@gscdump/sdk": "catalog:",
     "@harlan-zw/nuxt-domain-events": "catalog:",
     "@harlan-zw/nuxt-use-query": "catalog:",
+    "@harlan-zw/nuxt-wide-events": "catalog:",
     "@iconify-json/carbon": "catalog:",
     "@iconify-json/circle-flags": "catalog:",
     "@iconify-json/heroicons": "catalog:",

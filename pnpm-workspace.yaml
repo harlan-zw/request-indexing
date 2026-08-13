@@ -4,6 +4,7 @@ minimumReleaseAgeExclude:
   - '@harlan-zw/nuxt-domain-events@0.0.1 || 0.0.3'
   - '@harlan-zw/nuxt-dx@0.0.1'
   - '@harlan-zw/nuxt-use-query@0.0.1'
+  - '@harlan-zw/nuxt-wide-events@0.0.1'
   - nuxt-skew-protection@1.4.3
 
 shellEmulator: true
@@ -55,6 +56,7 @@ catalog:
   '@harlan-zw/nuxt-domain-events': 0.0.3
   '@harlan-zw/nuxt-dx': 0.0.6
   '@harlan-zw/nuxt-use-query': 0.0.1
+  '@harlan-zw/nuxt-wide-events': 0.0.1
   '@iconify-json/carbon': ^1.2.25
   '@iconify-json/circle-flags': ^1.2.10
   '@iconify-json/heroicons': ^1.2.3
