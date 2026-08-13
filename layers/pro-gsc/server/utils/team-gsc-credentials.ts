@@ -40,7 +40,6 @@ export async function ensureTeamGscCredential(
       teamId: args.teamId,
       userId: args.userId,
       gscdumpUserId: userRow.gscdumpUserId,
-      gscdumpApiKey: userRow.gscdumpApiKey,
       label: args.label ?? null,
       status: 'active',
     })
@@ -48,12 +47,22 @@ export async function ensureTeamGscCredential(
       target: [teamGscCredentials.teamId, teamGscCredentials.userId],
       set: {
         gscdumpUserId: userRow.gscdumpUserId,
-        gscdumpApiKey: userRow.gscdumpApiKey,
         status: 'active',
       },
     })
 }
 
+/**
+ * Which member's gscdump credential a team reads through, resolved to the LIVE
+ * key on the users row.
+ *
+ * `team_gsc_credentials` also carries a copy of the key, but reading that copy
+ * would hand out whatever was current the last time `ensureTeamGscCredential`
+ * ran. Every repair path (OAuth callback, resync) rotates `users.gscdump_api_key`
+ * and there is no way to notice the copy has drifted: gscdump compares hashes,
+ * so a stale key fails only at read time. The row decides membership and status;
+ * the user row owns the credential.
+ */
 export async function resolveTeamGscCredential(
   event: H3Event,
   args: { teamId: number, userId?: number },
@@ -65,15 +74,16 @@ export async function resolveTeamGscCredential(
 
   const row = await db
     .select({
-      gscdumpUserId: teamGscCredentials.gscdumpUserId,
-      gscdumpApiKey: teamGscCredentials.gscdumpApiKey,
+      gscdumpUserId: users.gscdumpUserId,
+      gscdumpApiKey: users.gscdumpApiKey,
       status: teamGscCredentials.status,
     })
     .from(teamGscCredentials)
+    .innerJoin(users, eq(users.userId, teamGscCredentials.userId))
     .where(whereClause)
     .get()
 
-  if (!row || row.status !== 'active')
+  if (!row || row.status !== 'active' || !row.gscdumpUserId || !row.gscdumpApiKey)
     return null
   return { gscdumpUserId: row.gscdumpUserId, gscdumpApiKey: row.gscdumpApiKey }
 }

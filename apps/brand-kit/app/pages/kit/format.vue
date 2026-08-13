@@ -15,7 +15,6 @@ const samples = computed(() => {
     { fmt: 'percent', out: formatValue(num / 100, 'percent') },
     { fmt: 'percent:2', out: formatValue(num / 100, 'percent:2') },
     { fmt: 'currency', out: formatValue(num, 'currency') },
-    { fmt: 'currency:EUR', out: formatValue(num, 'currency:EUR') },
   ]
 })
 

@@ -28,7 +28,9 @@ const emit = defineEmits<{
 
 const devSkeleton = useProDevSkeleton()
 const hydrated = ref(false)
-onMounted(() => { hydrated.value = true })
+onMounted(() => {
+  hydrated.value = true
+})
 
 const hasEverHadData = ref(false)
 watch(() => props.data.length, (len) => {
@@ -52,6 +54,7 @@ const chartHeight = computed(() => props.height ?? 220)
 
 // --- Tooltip state ---
 const tooltipData = ref<DataRow | null>(null)
+const isDragging = ref(false)
 
 function onTooltip(data: DataRow | null) {
   if (isDragging.value) {
@@ -107,7 +110,6 @@ interface BrushRange {
   endDate: string
 }
 
-const isDragging = ref(false)
 const dragRange = ref<BrushRange | null>(null)
 
 function idxToPixel(idx: number): number {

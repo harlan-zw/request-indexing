@@ -28,11 +28,15 @@ const columns = [
 
 const alpha3ToCountry = new Map(countries.map(c => [c['alpha-3'], c]))
 
-function countryName(code: string) {
+function countryName(code?: string) {
+  if (!code)
+    return 'Unknown'
   return alpha3ToCountry.get(code)?.name || code
 }
 
-function countryFlag(code: string) {
+function countryFlag(code?: string) {
+  if (!code)
+    return ''
   const c = alpha3ToCountry.get(code)
   if (!c)
     return ''

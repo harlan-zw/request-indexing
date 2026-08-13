@@ -6,6 +6,7 @@
 // we need to run them, if they stop we need to restart them
 // use execa
 
+import process from 'node:process'
 import { execa } from 'execa'
 
 const tasks = [
@@ -26,10 +27,10 @@ function bootstrapProcess(task) {
   taskProcess.on('exit', (code, signal) => {
     const end = Date.now()
     if (end - start < 1000) {
-      console.log(`Task ${task} failed to start`)
+      process.stdout.write(`Task ${task} failed to start\n`)
       return
     }
-    console.log(`Task ${task} exited with code ${code} and signal ${signal}`)
+    process.stdout.write(`Task ${task} exited with code ${code} and signal ${signal}\n`)
     // restart the task
     bootstrapProcess(task)
   })
@@ -48,5 +49,5 @@ async function init() {
 }
 
 init().then(() => {
-  console.log('ready')
+  process.stdout.write('ready\n')
 })

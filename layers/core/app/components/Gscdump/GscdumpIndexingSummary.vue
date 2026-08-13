@@ -15,6 +15,8 @@ const trendGraph = computed(() => {
     position: t.notIndexedCount,
   }))
 })
+
+const lastTrend = computed(() => data.value?.trend?.at(-1))
 </script>
 
 <template>
@@ -82,23 +84,23 @@ const trendGraph = computed(() => {
       </div>
 
       <div v-if="data.trend?.length" class="grid grid-cols-2 gap-6">
-        <div v-if="data.trend[data.trend.length - 1]?.issues">
+        <div v-if="lastTrend?.issues">
           <div class="text-xs text-gray-500 mb-2 font-semibold">
             Issues
           </div>
           <div class="space-y-1">
-            <div v-for="(count, issue) in data.trend[data.trend.length - 1].issues" :key="issue" class="flex justify-between text-xs">
+            <div v-for="(count, issue) in lastTrend.issues" :key="issue" class="flex justify-between text-xs">
               <span class="text-gray-600 capitalize">{{ String(issue).replace(/([A-Z])/g, ' $1').trim() }}</span>
               <span class="font-mono">{{ count }}</span>
             </div>
           </div>
         </div>
-        <div v-if="data.trend[data.trend.length - 1]?.coverage">
+        <div v-if="lastTrend?.coverage">
           <div class="text-xs text-gray-500 mb-2 font-semibold">
             Coverage
           </div>
           <div class="space-y-1">
-            <div v-for="(count, state) in data.trend[data.trend.length - 1].coverage" :key="state" class="flex justify-between text-xs">
+            <div v-for="(count, state) in lastTrend.coverage" :key="state" class="flex justify-between text-xs">
               <span class="text-gray-600 capitalize">{{ String(state).replace(/([A-Z])/g, ' $1').trim() }}</span>
               <span class="font-mono">{{ count }}</span>
             </div>

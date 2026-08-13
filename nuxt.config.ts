@@ -42,6 +42,7 @@ export default defineNuxtConfig({
     '@harlan-zw/nuxt-domain-events',
     '@harlan-zw/nuxt-use-query',
     '@harlan-zw/nuxt-cloudflare',
+    '@harlan-zw/nuxt-wide-events',
     '@harlan-zw/nuxt-dx',
     'nuxt-auth-utils',
     '@nuxt/image',
@@ -78,6 +79,18 @@ export default defineNuxtConfig({
   nuxtCloudflare: {
     kvCache: { binding: 'CACHE' },
     requiredSecrets: CLOUDFLARE_REQUIRED_SECRETS,
+  },
+
+  wideEvents: {
+    service: 'request-indexing',
+    request: true,
+    fields: [],
+    exclude: [
+      '/__nuxt_content/**',
+      '/_ipx/**',
+      '/_nuxt/**',
+      '/api/_nuxt_icon/**',
+    ],
   },
 
   domainEvents: {
@@ -223,7 +236,6 @@ export default defineNuxtConfig({
         compatibility_date: '2026-08-11',
         workers_dev: false,
         preview_urls: false,
-        cache: { enabled: true, cross_version_cache: false },
         placement: { mode: 'smart' },
         version_metadata: { binding: 'CF_VERSION_METADATA' },
         observability: {
@@ -322,7 +334,6 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: {
       include: [
-        '@gscdump/sdk',
         '@gscdump/sdk/v1',
         'motion-v',
         'reka-ui',
@@ -361,6 +372,10 @@ export default defineNuxtConfig({
     dataforseo: {
       login: '',
       password: '',
+    },
+    google: {
+      adsClientId: '',
+      adsClientSecret: '',
     },
     sentry: {
       dsn: SENTRY_DSN,

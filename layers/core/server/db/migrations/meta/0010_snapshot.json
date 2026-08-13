@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "85dbd7d9-3e5b-45de-a6e7-05e8862f7f76",
-  "prevId": "12f3eadc-1f66-433c-b679-266a4fc02f23",
+  "id": "892ef904-ceb9-47ed-97cf-3d680699d30e",
+  "prevId": "2d636e48-4ec0-4b4f-842e-b5300e0ff327",
   "tables": {
     "admin_events": {
       "name": "admin_events",
@@ -3063,13 +3063,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "gscdump_api_key": {
-          "name": "gscdump_api_key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "label": {
           "name": "label",
           "type": "text",
@@ -4130,7 +4123,7 @@
           "name": "current_team_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "gscdump_user_id": {

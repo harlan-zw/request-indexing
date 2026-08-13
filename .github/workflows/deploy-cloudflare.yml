@@ -57,6 +57,15 @@ jobs:
           NUXT_DATAFORSEO_PASSWORD: ${{ secrets.NUXT_DATAFORSEO_PASSWORD }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
+      # TODO: apply D1 migrations here, before the deploy. Blocked on token scope:
+      # `secrets.CLOUDFLARE_API_TOKEN` is Workers-scoped, so `d1 migrations apply`
+      # returns 7403 and failed the whole deploy (run 31679455527). Grant that
+      # token "D1: Edit" and restore the step.
+      #
+      # Until then `pnpm db:migrate` is a manual step run with a D1-scoped token,
+      # so a deploy CAN ship code whose migration nobody applied. Nothing has
+      # gone wrong from this yet; the risk is that it is unenforced.
+
       - run: pnpm deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

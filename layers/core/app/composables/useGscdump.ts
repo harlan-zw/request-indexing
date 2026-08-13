@@ -8,6 +8,8 @@ import type {
   GscdumpIndexingResponse,
   GscdumpIndexingUrlsResponse,
   GscdumpMeta,
+  GscdumpPageTrendResponse,
+  GscdumpQueryTrendResponse,
   GscdumpSitemapsResponse,
 } from '@gscdump/contracts'
 import type { RollingPeriod } from '@gscdump/sdk/period'
@@ -17,6 +19,7 @@ import { toPartnerError } from '@gscdump/sdk/partner-errors'
 import { periodToDays as gscPeriodToDays } from '@gscdump/sdk/period'
 import { createGscdumpV1Client } from '@gscdump/sdk/v1'
 import { and, between, contains, country, date, device, daysAgo as gscDaysAgo, page as pageColumn, queryCanonical, query as queryColumn } from 'gscdump/query'
+import { loadDashboardSiteSummary } from '../utils/dashboard-site-card'
 
 export type {
   GscdumpAnalysisPreset as AnalysisPreset,
@@ -198,6 +201,14 @@ export function useGscdump() {
     return runV1<GscdumpDataDetailResponse>(client => client.queryAnalyticsReportDetail(input), silent)
   }
 
+  function getQueryTrend(input: GscdumpV1OperationInput<'partner.sites.query.trend.get'>, silent = false) {
+    return runV1<GscdumpQueryTrendResponse>(client => client.getQueryTrend(input), silent)
+  }
+
+  function getPageTrend(input: GscdumpV1OperationInput<'partner.sites.page.trend.get'>, silent = false) {
+    return runV1<GscdumpPageTrendResponse>(client => client.getPageTrend(input), silent)
+  }
+
   function getSiteAnalysis(input: GscdumpV1OperationInput<'partner.sites.analysis.get'>, silent = false) {
     return runV1<GscdumpAnalysisResponse>(client => client.getSiteAnalysis(input), silent)
   }
@@ -228,6 +239,8 @@ export function useGscdump() {
     getSiteIndexing,
     getSiteIndexingDiagnostics,
     getSiteSitemaps,
+    getPageTrend,
+    getQueryTrend,
     listAvailableSites,
     listSiteIndexingUrls,
     queryAnalyticsReport,
@@ -656,8 +669,15 @@ export function useGscdumpTableData<T = GscdumpDataRow>(options: GscdumpTableOpt
       refresh()
   }, { deep: true })
 
+  // Client-only, like every other composable in this file (they all pass
+  // `server: false` to `useAsyncData`). This one instead fired an async
+  // `refresh()` straight out of an immediate watcher, so it ran during the
+  // server render and 500'd every route that mounts a table — overview, pages,
+  // keywords, keyword-insights — while client-side navigation to the same
+  // routes worked. The response is caller-scoped and never part of the
+  // server-rendered HTML, so there is nothing to gain by fetching it here.
   watch(_siteId, (id) => {
-    if (id)
+    if (id && import.meta.client)
       refresh()
   }, { immediate: true })
 
@@ -722,6 +742,44 @@ export function useGscdumpDates(
         meta: result.meta,
         hasPrevData: !!result.previousTotals,
       }
+    },
+    {
+      server: false,
+      immediate: options?.immediate ?? true,
+      watch: (options?.watch ?? true) ? [_siteId, _period] : undefined,
+    },
+  )
+}
+
+export function useGscdumpSiteSummary(
+  siteId: MaybeRefOrGetter<string | undefined>,
+  period: MaybeRefOrGetter<Period>,
+  options?: { immediate?: boolean, watch?: boolean },
+) {
+  const _siteId = computed(() => toValue(siteId))
+  const _period = computed(() => toValue(period))
+  const key = computed(() => `gscdump:site-summary:${_siteId.value}:${_period.value}`)
+
+  return useAsyncData(
+    key,
+    async () => {
+      const siteIdVal = _siteId.value
+      if (!siteIdVal)
+        return null
+
+      const days = periodToDays(_period.value)
+      const query = {
+        startDate: daysAgo(days),
+        endDate: daysAgo(1),
+        prevStartDate: daysAgo(days * 2),
+        prevEndDate: daysAgo(days + 1),
+      }
+      const { getPageTrend, getQueryTrend } = useGscdump()
+
+      return loadDashboardSiteSummary({
+        getQueryTotal: () => getQueryTrend({ params: { siteId: siteIdVal }, query }, true).then(result => result.total),
+        getPageTotal: () => getPageTrend({ params: { siteId: siteIdVal }, query }, true).then(result => result.total),
+      })
     },
     {
       server: false,

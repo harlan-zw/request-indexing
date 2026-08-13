@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { createChart } from 'lightweight-charts'
+import { BaselineSeries, ColorType, createChart, LineSeries } from 'lightweight-charts'
 
 const props = defineProps<{
   value?: { time: string, value: number }[]
@@ -9,8 +9,8 @@ const props = defineProps<{
 
 const colorMode = useColorMode()
 
-const chart = ref(null)
-const container = ref(null)
+const chart = ref<HTMLElement | null>(null)
+const container = ref<HTMLElement | null>(null)
 
 const tooltipData = ref({
   position: 0,
@@ -22,7 +22,7 @@ const darkTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -30,9 +30,6 @@ const darkTheme = {
     },
     watermark: {
       color: 'rgba(0, 0, 0, 0)',
-    },
-    crosshair: {
-      color: '#758696',
     },
     grid: {
       vertLines: {
@@ -44,22 +41,22 @@ const darkTheme = {
     },
   },
   series: {
-    topColor: 'rgba(32, 226, 47, 0.56)',
-    bottomColor: 'rgba(32, 226, 47, 0.04)',
-    lineColor: 'rgba(32, 226, 47, 1)',
+    baseLineColor: 'rgba(32, 226, 47, 1)',
+    topLineColor: 'rgba(32, 226, 47, 1)',
+    topFillColor1: 'rgba(32, 226, 47, 0.56)',
+    topFillColor2: 'rgba(32, 226, 47, 0.04)',
+    bottomLineColor: 'rgba(32, 226, 47, 1)',
+    bottomFillColor1: 'rgba(32, 226, 47, 0.56)',
+    bottomFillColor2: 'rgba(32, 226, 47, 0.04)',
   },
-  series2: {
-    topColor: 'rgba(156, 39, 176, 0.4)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.5)',
-  },
-}
+  series2: { color: 'rgba(156, 39, 176, 0.5)' },
+} as const
 
 const lightTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -78,22 +75,22 @@ const lightTheme = {
     },
   },
   series: {
-    topColor: 'rgba(33, 150, 243, 0.9)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 0.5)',
+    baseLineColor: 'rgba(33, 150, 243, 0.5)',
+    topLineColor: 'rgba(33, 150, 243, 0.5)',
+    topFillColor1: 'rgba(33, 150, 243, 0.9)',
+    topFillColor2: 'rgba(33, 150, 243, 0.04)',
+    bottomLineColor: 'rgba(33, 150, 243, 0.5)',
+    bottomFillColor1: 'rgba(33, 150, 243, 0.9)',
+    bottomFillColor2: 'rgba(33, 150, 243, 0.04)',
   },
   // this is the ctr from google search console, we want to use a similar purple
-  series2: {
-    topColor: 'rgba(156, 39, 176, 0.3)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.4)',
-  },
-}
+  series2: { color: 'rgba(156, 39, 176, 0.4)' },
+} as const
 
 const themesData = {
   Dark: darkTheme,
   Light: lightTheme,
-}
+} as const
 
 onMounted(() => {
   const _chart = createChart(chart.value!, {
@@ -116,8 +113,8 @@ onMounted(() => {
   })
   _chart.timeScale().fitContent()
 
-  const areaSeries = _chart.addBaselineSeries({
-    baselineColor: 'rgba(0, 137, 123, 0.5)',
+  const areaSeries = _chart.addSeries(BaselineSeries, {
+    baseLineColor: 'rgba(0, 137, 123, 0.5)',
 
     lineWidth: 2,
     priceScaleId: 'right',
@@ -130,7 +127,7 @@ onMounted(() => {
   if (props.value && props.value.length)
     areaSeries.setData(props.value)
 
-  const areaSeries2 = _chart.addLineSeries({
+  const areaSeries2 = _chart.addSeries(LineSeries, {
     color: 'rgba(232, 113, 10, 0.5)',
     lineWidth: 2,
     priceScaleId: 'left',
@@ -146,7 +143,7 @@ onMounted(() => {
     const _container = container.value!
     if (
       param.point === undefined
-      || !param.time
+      || typeof param.time !== 'string'
       || param.point.x < 0
       || param.point.x > _container.clientWidth
       || param.point.y < 0
@@ -163,10 +160,10 @@ onMounted(() => {
       // thus it will be YYYY-MM-DD
       const dateStr = param.time
       // toolTip.style.display = 'block'
-      const _position = param.seriesData.get(areaSeries)!
-      const position = _position.value !== undefined ? _position.value : _position.time
-      const _ctr = param.seriesData.get(areaSeries2)
-      const ctr = _ctr?.value !== undefined ? _ctr?.value : _ctr?.time
+      const positionPoint = param.seriesData.get(areaSeries)
+      const position = positionPoint && 'value' in positionPoint ? positionPoint.value : 0
+      const ctrPoint = param.seriesData.get(areaSeries2)
+      const ctr = ctrPoint && 'value' in ctrPoint ? ctrPoint.value : 0
 
       tooltipData.value = {
         position,
@@ -176,7 +173,7 @@ onMounted(() => {
     }
   })
 
-  function syncToTheme(theme) {
+  function syncToTheme(theme: keyof typeof themesData) {
     _chart.applyOptions(themesData[theme].chart)
     areaSeries.applyOptions(themesData[theme].series)
     areaSeries2.applyOptions(themesData[theme].series2)

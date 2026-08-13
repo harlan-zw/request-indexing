@@ -54,7 +54,7 @@ const mobileSites = computed(() =>
 )
 
 function withTitle<T extends { label: string }>(items: T[]) {
-  return items.map(m => ({ ...m, title: m.label }))
+  return items.map(m => ({ ...m, title: m.label, path: 'to' in m && typeof m.to === 'string' ? m.to : '' }))
 }
 
 const authDropdownItems = computed(() => {
@@ -185,7 +185,7 @@ const authDropdownItems = computed(() => {
         <template v-else>
           <UDropdownMenu :items="authDropdownItems" mode="hover" class="flex items-center">
             <UButton color="neutral" variant="ghost" class="p-0">
-              <UAvatar :src="user.picture" size="sm" />
+              <UAvatar :src="user?.avatarUrl || undefined" :alt="user?.name || user?.email || 'Account'" size="sm" />
               <UIcon name="i-heroicons-chevron-down" class="w-4 h-4 ml-1 opacity-50" />
             </UButton>
           </UDropdownMenu>

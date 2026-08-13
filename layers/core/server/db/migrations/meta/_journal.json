@@ -71,6 +71,13 @@
       "when": 1786458861152,
       "tag": "0009_align_current_team_notnull",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1786594043704,
+      "tag": "0011_drop_team_gsc_credential_key",
+      "breakpoints": true
     }
   ]
 }

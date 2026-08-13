@@ -70,7 +70,7 @@ export function formatFigure(
     case 'date':
       return new Date(value).toLocaleDateString()
     case 'currency':
-      return Intl.NumberFormat('en-US', {
+      return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: decimals,

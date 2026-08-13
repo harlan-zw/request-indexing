@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNode } from 'vue'
+
 const {
   size = 'md',
 } = defineProps<{

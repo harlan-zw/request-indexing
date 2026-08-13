@@ -302,7 +302,6 @@ export async function readProValidatedBody<S extends ZodTypeAny>(
 ): Promise<import('zod').z.infer<S>> {
   // Safe: a parse error becomes `undefined`, which zod then rejects with the
   // canonical `validation_failed` envelope below.
-  // eslint-disable-next-line harlanzw/no-silent-catch -- parse failure is re-surfaced as validation_failed
   const body = await readBody(event).catch(() => undefined)
   const result = schema.safeParse(body)
   if (!result.success) {

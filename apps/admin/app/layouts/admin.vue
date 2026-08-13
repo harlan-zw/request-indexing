@@ -116,8 +116,8 @@ const secondaryLinks: NavigationMenuItem[] = [{
         <div class="shrink-0 border-t border-[var(--ui-border)] p-4 space-y-2">
           <div v-if="user" class="flex items-center gap-3">
             <UAvatar
-              :src="user.picture"
-              :alt="user.name"
+              :src="user.avatarUrl || undefined"
+              :alt="user.name || user.email || 'Account'"
               size="sm"
             />
             <div class="flex-1 min-w-0">
@@ -164,8 +164,8 @@ const secondaryLinks: NavigationMenuItem[] = [{
             <!-- User info -->
             <div v-if="user" class="flex items-center gap-3 p-3 rounded-xl bg-[var(--ui-bg-elevated)] border border-[var(--ui-border)] mb-6">
               <UAvatar
-                :src="user.picture"
-                :alt="user.name"
+                :src="user.avatarUrl || undefined"
+                :alt="user.name || user.email || 'Account'"
                 size="md"
               />
               <div class="flex-1 min-w-0">

@@ -4,6 +4,7 @@ minimumReleaseAgeExclude:
   - '@harlan-zw/nuxt-domain-events@0.0.1 || 0.0.3'
   - '@harlan-zw/nuxt-dx@0.0.1'
   - '@harlan-zw/nuxt-use-query@0.0.1'
+  - '@harlan-zw/nuxt-wide-events@0.0.1'
   - nuxt-skew-protection@1.4.3
 
 shellEmulator: true
@@ -47,14 +48,15 @@ patchedDependencies:
   '@nuxt/ui@4.10.0': patches/@nuxt__ui@4.10.0.patch
 catalog:
   '@antfu/eslint-config': ^9.3.0
-  '@cloudflare/workers-types': ^5.20260810.1
-  '@gscdump/contracts': ^2.0.6
-  '@gscdump/engine': ^2.0.6
-  '@gscdump/sdk': ^2.0.6
+  '@cloudflare/workers-types': ^5.20260812.1
+  '@gscdump/contracts': ^2.2.0
+  '@gscdump/engine': ^2.2.0
+  '@gscdump/sdk': ^2.2.0
   '@harlan-zw/nuxt-cloudflare': 0.0.12
   '@harlan-zw/nuxt-domain-events': 0.0.3
-  '@harlan-zw/nuxt-dx': 0.0.1
+  '@harlan-zw/nuxt-dx': 0.0.6
   '@harlan-zw/nuxt-use-query': 0.0.1
+  '@harlan-zw/nuxt-wide-events': 0.0.1
   '@iconify-json/carbon': ^1.2.25
   '@iconify-json/circle-flags': ^1.2.10
   '@iconify-json/heroicons': ^1.2.3
@@ -72,8 +74,8 @@ catalog:
   '@nuxtjs/seo': ^5.3.12
   '@nuxtjs/sitemap': ^8.3.4
   '@sentry/nuxt': ^10.70.0
-  '@takumi-rs/core': ^2.7.0
-  '@takumi-rs/wasm': ^2.7.0
+  '@takumi-rs/core': ^2.7.1
+  '@takumi-rs/wasm': ^2.7.1
   '@tanstack/table-core': ^9.1.2
   '@tanstack/vue-table': ^9.1.2
   '@tanstack/vue-table-v8': npm:@tanstack/vue-table@8.21.3
@@ -92,7 +94,7 @@ catalog:
   eslint: ^10.8.1
   globby: ^16.2.3
   googlethis: ^1.8.0
-  gscdump: ^2.0.6
+  gscdump: ^2.2.0
   h3: ^1.15.11
   hookable: ^6.1.1
   klona: ^2.0.6
@@ -102,13 +104,13 @@ catalog:
   nitro-cloudflare-dev: ^0.2.2
   node-fetch: ^3.3.2
   nuxt: ^4.5.2
-  nuxt-ai-ready: ^1.7.9
+  nuxt-ai-ready: ^1.7.11
   nuxt-auth-utils: ^0.5.30
   nuxt-og-image: ^6.7.8
   nuxt-schema-org: ^6.2.9
-  nuxt-skew-protection: ^1.4.3
+  nuxt-skew-protection: ^1.4.4
   ohash: ^2.0.11
-  oxc-parser: 0.143.0
+  oxc-parser: 0.144.0
   postmark: ^5.1.0
   reka-ui: ^2.10.3
   scule: ^1.3.0
@@ -123,7 +125,7 @@ catalog:
   vue: ^3.5.41
   vue-router: ^5.2.0
   vue-tsc: ^3.3.9
-  wrangler: ^4.120.0
+  wrangler: ^4.121.0
   zod: ^4.4.3
 onlyBuiltDependencies:
   - better-sqlite3

@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, relative, sep } from 'node:path'
+import process from 'node:process'
 
 const DUMP_DIR = join(import.meta.dirname!, '..', '.data', 'kv-dump')
 const NAMESPACE_ID = process.env.KV_NAMESPACE_ID || '9ba09cd123b948f6835f5d20b2d97f6c'

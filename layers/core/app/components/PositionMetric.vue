@@ -1,23 +1,26 @@
 <script lang="ts" setup>
-const props = withDefaults(defineProps<{ value: number | string, size?: string }>(), {
+type BadgeSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+type BadgeColor = 'success' | 'warning' | 'error'
+
+const props = withDefaults(defineProps<{ value: number | string, size?: BadgeSize }>(), {
   size: 'lg',
 })
 
 const val = Number(props.value)
 // we're showing the Position metric from Google Search Console, we want to
 // alter the colour depending on the position of the keyword
-const color = computed(() => {
+const color = computed<BadgeColor>(() => {
   if (val < 10)
     // border-green-200
-    return 'green'
+    return 'success'
   if (val < 20)
     // border-amber-200
-    return 'amber'
+    return 'warning'
   if (val < 30)
     // border-orange-200
-    return 'orange'
+    return 'warning'
   // border-red-200
-  return 'red'
+  return 'error'
 })
 // we should show the value without decimals
 const formattedValue = computed(() => Math.round(val))
@@ -33,11 +36,17 @@ const padding = computed(() => {
       return 'px-2 py-1'
   }
 })
+
+const borderColor = computed(() => ({
+  success: 'border-success',
+  warning: 'border-warning',
+  error: 'border-error',
+})[color.value])
 </script>
 
 <template>
   <UTooltip :text="`Average position of ${useHumanFriendlyNumber(value)}.`">
-    <UBadge :size="size" :color="color" variant="soft" class="border" :class="[padding, `border-${color}-200`]">
+    <UBadge :size="size" :color="color" variant="soft" class="border" :class="[padding, borderColor]">
       {{ formattedValue }}
     </UBadge>
   </UTooltip>

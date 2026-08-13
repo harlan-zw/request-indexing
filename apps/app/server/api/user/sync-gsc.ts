@@ -1,4 +1,4 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   // const user = await authenticateUser(event)
 
   // await queueJob('users/syncGscSites', user, {

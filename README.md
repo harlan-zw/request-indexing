@@ -9,11 +9,11 @@ Search Console data and multi-engine submission, in one small app.
 <table>
 <tbody>
 <td align="center">
-<img width="800" height="0" /><br>
+<img alt="" width="800" height="0" /><br>
 <i></i> <a href="https://requestindexing.com/">requestindexing.com</a> <br>
 <sup>GPL-3.0 · Cloudflare-native · free during beta</sup><br>
 <sub>Built by <a href="https://harlanzw.com">Harlan Wilton</a> · maintainer of <a href="https://nuxtseo.com">Nuxt SEO</a><br> Follow <a href="https://twitter.com/harlan_zw">@harlan_zw</a> · Join <a href="https://discord.gg/275MBUBvgP">Discord</a></sub><br>
-<img width="800" height="0" />
+<img alt="" width="800" height="0" />
 </td>
 </tbody>
 </table>
@@ -87,7 +87,7 @@ The original Request Indexing was inspired by [google-indexing-script](https://g
 
 <p align="center">
   <a href="https://raw.githubusercontent.com/harlan-zw/static/main/sponsors.svg">
-    <img src='https://raw.githubusercontent.com/harlan-zw/static/main/sponsors.svg'/>
+    <img alt="Sponsors" src='https://raw.githubusercontent.com/harlan-zw/static/main/sponsors.svg'/>
   </a>
 </p>
 

@@ -1,0 +1,1 @@
+ALTER TABLE `team_gsc_credentials` DROP COLUMN `gscdump_api_key`;

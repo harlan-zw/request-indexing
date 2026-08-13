@@ -168,41 +168,41 @@ onMounted(() => {
   }
 
   function addSeries(col: Column) {
-      const key = typeof col === 'string' ? col : col.key
-      if (series.has(key))
-        return
-      const customColor = props.colors?.[key]
-      const palette = palettes[series.size % palettes.length]!
-      let nextSeries: ChartSeries
-      if ((typeof col === 'object' ? col.type : 'area') === 'area') {
-        nextSeries = chartApi.addSeries(AreaSeries, {
-          ...palette,
-          ...(customColor ? { topColor: customColor, bottomColor: 'transparent', lineColor: customColor } : {}),
-          lineWidth: 2,
-          priceLineVisible: props.labels,
-          lastValueVisible: props.labels,
-          priceScaleId: 'right',
-          priceFormat: {
-            type: 'volume',
-          },
-          lineType: LineType.WithSteps,
-        })
-      }
-      else {
-        nextSeries = chartApi.addSeries(LineSeries, {
-          color: customColor ?? palette.lineColor,
-          lineWidth: 4,
-          priceLineVisible: props.labels,
-          lastValueVisible: props.labels,
-          priceScaleId: 'right',
-          priceFormat: {
-            type: 'volume',
-          },
-          lineType: LineType.WithSteps,
-        })
-      }
-      nextSeries.setData(toSeriesData(key, props.value))
-      series.set(key, nextSeries)
+    const key = typeof col === 'string' ? col : col.key
+    if (series.has(key))
+      return
+    const customColor = props.colors?.[key]
+    const palette = palettes[series.size % palettes.length]!
+    let nextSeries: ChartSeries
+    if ((typeof col === 'object' ? col.type : 'area') === 'area') {
+      nextSeries = chartApi.addSeries(AreaSeries, {
+        ...palette,
+        ...(customColor ? { topColor: customColor, bottomColor: 'transparent', lineColor: customColor } : {}),
+        lineWidth: 2,
+        priceLineVisible: props.labels,
+        lastValueVisible: props.labels,
+        priceScaleId: 'right',
+        priceFormat: {
+          type: 'volume',
+        },
+        lineType: LineType.WithSteps,
+      })
+    }
+    else {
+      nextSeries = chartApi.addSeries(LineSeries, {
+        color: customColor ?? palette.lineColor,
+        lineWidth: 4,
+        priceLineVisible: props.labels,
+        lastValueVisible: props.labels,
+        priceScaleId: 'right',
+        priceFormat: {
+          type: 'volume',
+        },
+        lineType: LineType.WithSteps,
+      })
+    }
+    nextSeries.setData(toSeriesData(key, props.value))
+    series.set(key, nextSeries)
   }
 
   watch(() => props.columns ?? [], (newColumns, previousColumns) => {

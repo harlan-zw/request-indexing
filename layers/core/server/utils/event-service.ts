@@ -333,7 +333,7 @@ async function handleBatchDecrement(
     return { batchComplete: false, onFinishQueued: false }
 
   // Atomic decrement
-  const rows = await db.run(sql`
+  await db.run(sql`
     UPDATE job_batches
     SET pending_jobs = pending_jobs - 1,
         failed_jobs = failed_jobs + ${isFailed ? 1 : 0},
