@@ -19,8 +19,8 @@ permissions:
   contents: read
 
 jobs:
-  checks:
-    uses: harlan-zw/harlan-nuxt/.github/workflows/nuxt-site-ci.yml@main
+  harlan-desktop:
+    uses: harlan-zw/harlan-nuxt/.github/workflows/harlan-desktop-site-ci.yml@main
     with:
       # GitHub-hosted on purpose. This repository is public, and a self-hosted
       # runner on a public repository lets a fork pull request run code on the

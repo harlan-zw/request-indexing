@@ -53,7 +53,7 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - uses: harlan-zw/harlan-nuxt/.github/actions/setup@main
+      - uses: harlan-zw/harlan-nuxt/.github/actions/harlan-desktop-setup@main
         with:
           # `postinstall` runs `nuxt prepare`, which the build depends on.
           install-args: ''
