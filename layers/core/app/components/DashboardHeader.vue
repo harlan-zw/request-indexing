@@ -47,7 +47,7 @@ const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
         <UColorModeButton size="sm" />
         <UDropdownMenu :items="authDropdownItems" :content="{ align: 'end' }">
           <button class="flex items-center gap-2 rounded-md px-1 py-1 hover:bg-elevated transition-colors">
-            <UAvatar :src="user.picture" size="sm" />
+            <UAvatar :src="user.avatarUrl || undefined" :alt="user.name || user.email || 'Account'" size="sm" />
             <UIcon name="i-heroicons-chevron-down" class="size-4 text-dimmed" />
           </button>
         </UDropdownMenu>

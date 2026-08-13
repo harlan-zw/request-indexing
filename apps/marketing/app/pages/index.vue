@@ -122,7 +122,7 @@ const marketingTools = [
                 </template>
                 <template v-else>
                   <UButton to="/dashboard" size="xl" color="primary">
-                    <UAvatar :src="user.picture" size="xs" />
+                    <UAvatar :src="user.avatarUrl || undefined" :alt="user.name || user.email || 'Account'" size="xs" />
                     Dashboard
                   </UButton>
                 </template>
