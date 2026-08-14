@@ -6,7 +6,7 @@
  */
 
 import type { InjectionKey, Ref } from 'vue'
-import type { Caller, CallerSubscription } from '../../shared/caller'
+import type { Caller } from '../../shared/caller'
 
 export type WorkspaceStatus = 'empty' | 'partial' | 'synced'
 
@@ -17,7 +17,6 @@ interface WorkspaceStatusApi {
 
 interface ProSessionApi {
   caller: Ref<Caller | null>
-  subscription: ComputedRef<CallerSubscription | null>
   isAuthenticated: ComputedRef<boolean>
   isAdmin: ComputedRef<boolean>
   workspaceStatus: WorkspaceStatusApi
@@ -37,15 +36,11 @@ function createWorkspaceStatus(): WorkspaceStatusApi {
 
 export function createProSession(): ProSessionApi {
   const callerComposable = useCaller()
-  const subscription = computed<CallerSubscription | null>(
-    () => callerComposable.caller.value?.subscription ?? null,
-  )
   const isAuthenticated = computed(() => !!callerComposable.caller.value?.user)
   const isAdmin = computed(() => !!callerComposable.caller.value?.isAdmin)
 
   const api: ProSessionApi = {
     caller: callerComposable.caller as Ref<Caller | null>,
-    subscription,
     isAuthenticated,
     isAdmin,
     workspaceStatus: createWorkspaceStatus(),

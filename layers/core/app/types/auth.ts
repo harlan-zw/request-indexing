@@ -47,3 +47,13 @@ export interface UserSession {
     state: string
   }
 }
+
+declare module '#auth-utils' {
+  interface UserSession {
+    googleIndexingAuth?: {
+      indexingOAuthId: string
+      referrer: string
+      state: string
+    }
+  }
+}

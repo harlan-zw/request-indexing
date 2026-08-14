@@ -118,7 +118,7 @@ function toaster() {
       return new window.JSConfetti()
     },
   })
-  $script.addConfetti({ emojis: ['🍞'] })
+  $script.proxy.addConfetti({ emojis: ['🍞'] })
   toast.add({
     title: 'So you like easters eggs? 🥚',
     description: 'How about some bread? 🍞',

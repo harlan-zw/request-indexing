@@ -84,10 +84,6 @@ export async function validatePlaintextProToken(event: H3Event, apiKey: string) 
   if (!user)
     throw createError({ statusCode: 401, message: 'Token user not found' })
 
-  const blockedStatuses = ['past_due', 'paused', 'canceled', 'read_only', 'archived']
-  if (user.subscriptionStatus && blockedStatuses.includes(user.subscriptionStatus))
-    throw createError({ statusCode: 403, message: 'No active subscription' })
-
   // Best-effort usage update. Auth should not fail if bookkeeping does.
   db.update(teamApiTokens)
     .set({

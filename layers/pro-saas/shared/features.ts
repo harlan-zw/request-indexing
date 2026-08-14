@@ -1,8 +1,8 @@
 export interface ProSaasFeatures {
   accountDeletion: boolean
   api: boolean
-  billing: boolean
   feedback: boolean
+  githubSignIn: boolean
   googleSignIn: boolean
   invitations: boolean
   onboarding: boolean
@@ -14,8 +14,10 @@ export interface ProSaasFeatures {
 export const defaultProSaasFeatures = {
   accountDeletion: true,
   api: true,
-  billing: true,
   feedback: false,
+  // Off: every account must connect Google for Search Console, so a
+  // GitHub-only sign-in creates an account that can never use the product.
+  githubSignIn: false,
   googleSignIn: true,
   invitations: true,
   onboarding: true,

@@ -2,6 +2,7 @@ import type { H3Event } from 'h3'
 import type { AuthProviderId, NormalizedIdentity } from '../../../shared/types/auth'
 import { eq } from 'drizzle-orm'
 import { customAlphabet } from 'nanoid'
+import { logError } from '~~/shared/logging'
 import { logger } from '~~/shared/server/logger'
 import * as schema from '#layers/pro-saas/server/database'
 import { createUserWithPersonalTeam } from '#layers/pro-saas/server/utils/create-user-with-personal-team'
@@ -15,7 +16,7 @@ const { users } = schema
 const apiKeyAlphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const generateApiKey = customAlphabet(apiKeyAlphabet, 40)
 
-const AUTH_SOURCE_VALUES = ['pro-free', 'pro-trial', 'purchase-onboarding', 'purchase-wizard'] as const
+const AUTH_SOURCE_VALUES = ['pro-free'] as const
 type AuthSource = typeof AUTH_SOURCE_VALUES[number]
 function readAuthSource(event: H3Event): AuthSource | null {
   const raw = getCookie(event, 'auth-source')
@@ -31,42 +32,24 @@ export interface SignInOrCreateOpts {
 export async function signInOrCreate({ event, provider, identity }: SignInOrCreateOpts) {
   const db = useDrizzle(event)
   const source = readAuthSource(event)
-  const isPurchaseOnboarding = source === 'purchase-onboarding' || source === 'purchase-wizard'
-  const canCreateAccount = source === 'pro-free' || source === 'pro-trial' || isPurchaseOnboarding
 
   const { user: existing, matchedBy } = await resolveExistingUser(
     db,
     provider,
     identity.providerUserId,
-    identity.allVerifiedEmails,
   )
-
-  // Cross-provider conflict refusal: an account exists (matched by stripeEmail)
-  // but has no identity row for THIS provider. Refuse silent linking; instruct
-  // the user to sign in with the original provider, then link from settings.
-  if (existing && matchedBy === 'stripeEmail') {
-    const otherIdentities = await db.query.userIdentities.findMany({
-      where: eq(schema.userIdentities.userId, existing.userId),
-    }).catch(() => [])
-    if (otherIdentities.length && !otherIdentities.some(r => r.provider === provider)) {
-      const original = otherIdentities[0]!.provider
-      const emailParam = identity.email ? `&email=${encodeURIComponent(identity.email)}` : ''
-      if (source)
-        deleteCookie(event, 'auth-source')
-      return sendRedirect(event, `/login?error=use_existing_provider&provider=${original}${emailParam}`)
-    }
-  }
 
   let dbUserId: number | null = existing?.userId ?? null
   let apiKey: string = existing?.apiKey ?? generateApiKey()
   let isNewUser = false
 
   if (!existing) {
-    if (!canCreateAccount) {
-      if (source)
-        deleteCookie(event, 'auth-source')
-      return sendRedirect(event, `/login?error=${encodeURIComponent('no_account')}`)
-    }
+    // Sign-in is sign-up. This was previously gated on an `auth-source=pro-free`
+    // cookie set only by a `?source=` link on the old paid funnel's onboarding
+    // page. That page does not exist in this app, nothing links with that query
+    // param any more, so the gate was always closed and every new user was
+    // turned away with "no account found". The product is free during beta and
+    // Google-only, so a verified Google identity is sufficient to create one.
     // Create user via the canonical helper: inserts users row, creates a personal
     // team, and sets currentTeamId. Identity row written inline.
     const created = await createUserWithPersonalTeam(
@@ -89,16 +72,21 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
         avatarUrl: identity.avatarUrl ?? null,
       },
     ).catch((err) => {
-      logger.error('[auth] user insert failed:', err)
+      // Route through the structured logger, not a bare console.error: the
+      // console path never reached Sentry, so this failure was invisible in
+      // production and had to be diagnosed by reading the database by hand.
+      logError('auth.account_create_failed', err, { provider, providerUserId: identity.providerUserId })
       return null
     })
     if (!created)
-      return sendRedirect(event, `/pro?error=${encodeURIComponent('Failed to create account')}`)
+      // `/login` renders the error UI; `/pro` does not exist in this app and
+      // returned 404, hiding the failure behind a missing page.
+      return sendRedirect(event, `/login?error=${encodeURIComponent('Failed to create account')}`)
     dbUserId = created.user.userId
     apiKey = created.user.apiKey ?? apiKey
     isNewUser = true
   }
-  else if (matchedBy === 'identity') {
+  else if (matchedBy === 'identity' || matchedBy === 'legacy-sub') {
     // Refresh apiKey if missing.
     if (!existing.apiKey) {
       await db.update(users).set({ apiKey, updatedAt: Date.now() }).where(eq(users.userId, existing.userId)).catch((error: unknown) => logger.error('[auth] apikey refresh failed:', error))
@@ -156,12 +144,8 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
   if (isNewUser) {
     if (source)
       deleteCookie(event, 'auth-source')
-    if (isPurchaseOnboarding)
-      return sendRedirect(event, '/pro/onboarding?intent=purchase')
-    if (source === 'pro-free')
-      return sendRedirect(event, '/pro/onboarding?intent=free')
-    if (source === 'pro-trial')
-      return sendRedirect(event, '/pro/onboarding?intent=trial')
+    // There is no onboarding page in this app; new users land on the dashboard,
+    // which walks them through connecting Search Console.
     return sendRedirect(event, '/dashboard')
   }
 

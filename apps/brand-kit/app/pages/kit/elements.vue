@@ -1,6 +1,18 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'kit' })
 useHead({ title: 'Elements · Brand Kit' })
+
+function resolveGridTooltip({ row, col, value }: { row: number, col: number, value: unknown }) {
+  const count = Number(value)
+  return {
+    title: `Cell r${row}·c${col}`,
+    level: count > 60 ? 'success' as const : count > 30 ? 'warning' as const : 'neutral' as const,
+    details: [
+      { label: 'Hits', value: String(value) },
+      { label: 'Day', value: `2026-05-${String((col % 28) + 1).padStart(2, '0')}` },
+    ],
+  }
+}
 </script>
 
 <template>
@@ -89,14 +101,7 @@ useHead({ title: 'Elements · Brand Kit' })
             Hover any cell — a single tooltip element follows the cursor instead of mounting one per cell.
           </p>
           <UiTooltipGrid
-            :resolve="({ row, col, value }) => ({
-              title: `Cell r${row}·c${col}`,
-              level: value > 60 ? 'success' : value > 30 ? 'warning' : 'neutral',
-              details: [
-                { label: 'Hits', value: String(value) },
-                { label: 'Day', value: `2026-05-${String((col % 28) + 1).padStart(2, '0')}` },
-              ],
-            })"
+            :resolve="resolveGridTooltip"
           >
             <div class="grid grid-cols-12 gap-px">
               <div

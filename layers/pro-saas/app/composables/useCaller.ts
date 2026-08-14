@@ -7,7 +7,6 @@ import { logWarn } from '~~/shared/logging'
 
 const FETCH_KEY = 'app:caller'
 const LOGIN_PATH = '/login'
-const PRO_STATUSES = new Set(['trial', 'active'])
 
 function isProLoginPath(path: string): boolean {
   return path === LOGIN_PATH || path.startsWith(`${LOGIN_PATH}/`) || path.startsWith(`${LOGIN_PATH}?`)
@@ -64,20 +63,14 @@ export function useCaller() {
     error,
     status,
     user: computed(() => data.value?.user ?? null),
-    subscription: computed(() => data.value?.subscription ?? null),
     memberships: computed(() => data.value?.memberships ?? []),
     isAdmin: computed(() => !!data.value?.isAdmin),
-    isPro: computed(() => {
-      const s = data.value?.subscription.status
-      return !!data.value?.isAdmin || (!!s && PRO_STATUSES.has(s))
-    }),
-    isTrialing: computed(() => data.value?.subscription.status === 'trial'),
   }
 }
 
 /**
  * Imperative refresh — call after a server-side mutation that affected the
- * caller (subscription change, role flip, team rename).
+ * caller (role flip, team rename).
  */
 export async function useRefreshCaller(): Promise<void> {
   const nuxt = useNuxtApp()

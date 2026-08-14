@@ -2,6 +2,10 @@ import type { TaskMap } from '#shared/types/tasks'
 import { parse } from 'devalue'
 
 export default defineNuxtPlugin((nuxtApp) => {
+  const callHook = nuxtApp.hooks.callHook as unknown as (
+    name: string,
+    payload: TaskMap[keyof TaskMap],
+  ) => Promise<void>
   let ws: WebSocket | undefined
   const { user } = useUserSession()
   if (user.value) {
@@ -21,8 +25,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       const job = parse(ctx.data) as { name: keyof TaskMap, payload: TaskMap[keyof TaskMap] }
       const payload = job.payload
       const hookName = `app:${(job.name as string).replace('/', ':')}`
-      console.log('ws', hookName);
-      (nuxtApp.hooks.callHook as Function)(hookName, payload)
+      void callHook(hookName, payload)
       // console.log('ws message', job.name, payload)
       // if (job.name === 'users/syncGscSites') {
       //   totalSites.value = payload.totalSites

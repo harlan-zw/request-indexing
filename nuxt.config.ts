@@ -5,6 +5,7 @@ import { resolve } from 'path'
 import { globbySync } from 'globby'
 import { withoutRollupPlugin } from './scripts/rollup-plugins'
 import { CLOUDFLARE_REQUIRED_SECRETS } from './shared/cloudflare'
+import { runtimeOnlyRouteRules } from './shared/routes'
 import { SENTRY_DSN } from './shared/sentry'
 
 const tokens: Partial<OAuthPoolToken>[] = process.env.NUXT_OAUTH_POOL ? JSON.parse(process.env.NUXT_OAUTH_POOL) : []
@@ -31,12 +32,10 @@ export default defineNuxtConfig({
     './apps/brand-kit',
     './layers/design-system',
     './layers/pro-shell',
-    './layers/pro-saas-billing',
     './layers/pro-saas-auth',
     './layers/pro-saas',
     './layers/pro-gsc',
     './layers/pro-indexing',
-    './layers/pro-chat',
     './layers/core',
   ],
   nuxtDx: {
@@ -49,6 +48,7 @@ export default defineNuxtConfig({
     '@harlan-zw/nuxt-domain-events',
     '@harlan-zw/nuxt-use-query',
     '@harlan-zw/nuxt-cloudflare',
+    '@harlan-zw/nuxt-wide-events',
     '@harlan-zw/nuxt-dx',
     'nuxt-auth-utils',
     '@nuxt/image',
@@ -87,13 +87,24 @@ export default defineNuxtConfig({
     requiredSecrets: CLOUDFLARE_REQUIRED_SECRETS,
   },
 
+  wideEvents: {
+    service: 'request-indexing',
+    request: true,
+    fields: [],
+    exclude: [
+      '/__nuxt_content/**',
+      '/_ipx/**',
+      '/_nuxt/**',
+      '/api/_nuxt_icon/**',
+    ],
+  },
+
   domainEvents: {
     queues: [],
     observer: 'layers/pro-saas/server/utils/domain-event-observer.ts',
     allowEmptyEvents: [
       'pro:gsc:webhook',
       'pro:integration:linked',
-      'pro:subscription:changed',
       'pro:user:deleted',
     ],
   },
@@ -178,22 +189,28 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   skewProtection: {
+    // `ws` rides Nitro's Durable Object websocket (cloudflare-durable preset +
+    // nitro.experimental.websocket, both set below), so the server pushes its
+    // deploy version and the client detects a stale build on reconnect.
     updateStrategy: 'ws',
-    reloadStrategy: 'idle',
+    // `prompt` surfaces the update instead of reloading under the user, which
+    // matters on a dashboard where a reload can interrupt work. Rendered by
+    // `SkewNotification` in layers/core/app/app.vue; without that component this
+    // strategy detects the stale build and then does nothing visible.
+    reloadStrategy: 'prompt',
   },
 
   aiReady: {
     database: { type: 'd1', bindingName: 'DB' },
   },
 
+  // `prerender: false` comes from `RUNTIME_ONLY_ROUTE_PREFIXES` so the same list
+  // that keeps a route out of the prerender also keeps the site-wide OG image
+  // off it. `ogImage.zeroRuntime` cannot render at runtime, so the two must
+  // never disagree.
   routeRules: {
+    ...runtimeOnlyRouteRules(),
     '/_alt/**': { robots: false, prerender: false },
-    '/dashboard/**': { prerender: false },
-    '/pro/**': { prerender: false },
-    '/account/**': { prerender: false },
-    '/auth/**': { prerender: false },
-    '/api/**': { prerender: false },
-    '/ws/**': { prerender: false },
   },
 
   nitro: {
@@ -213,18 +230,20 @@ export default defineNuxtConfig({
     preset: 'cloudflare-durable',
     cloudflare: {
       deployConfig: true,
-      // `nodeCompat: true` is Nitro's legacy unenv shim, which emits
-      // `no_nodejs_compat_v2` and pins the worker to nodejs_compat v1. Under v1
-      // `node:stream` has no `Stream` export, so `jws` (pulled in eagerly by
-      // google-auth-library) calls `util.inherits(DataStream, undefined)` at
-      // module scope and the worker fails Cloudflare's startup validation with
-      // error 10021. Our compatibility_date is well past v2's 2024-09-23
-      // cutoff, so use the runtime's own Node implementation instead.
-      nodeCompat: false,
+      // Nitro adds `nodejs_compat` + `no_nodejs_compat_v2` here, pinning the
+      // worker to nodejs_compat v1. That is survivable now that nothing in the
+      // bundle needs v2's fuller `node:stream` (the googleapis/jws chain that
+      // did was removed). Declaring `nodejs_compat_v2` to get v2 is not an
+      // option while @harlan-zw/nuxt-cloudflare force-appends `nodejs_compat`,
+      // since Cloudflare rejects both flags together.
+      nodeCompat: true,
       wrangler: {
         name: 'request-indexing',
         compatibility_date: '2026-08-11',
-        compatibility_flags: ['nodejs_compat'],
+        workers_dev: false,
+        preview_urls: false,
+        placement: { mode: 'smart' },
+        version_metadata: { binding: 'CF_VERSION_METADATA' },
         observability: {
           enabled: true,
           head_sampling_rate: 1,
@@ -235,14 +254,17 @@ export default defineNuxtConfig({
         },
         vars: {
           NUXT_PUBLIC_BASE_URL: 'https://requestindexing.com',
-          NUXT_OAUTH_GOOGLE_CLIENT_ID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID || '',
-          NUXT_STRIPE_PRICE_PRO_MONTHLY: process.env.NUXT_STRIPE_PRICE_PRO_MONTHLY || '',
-          NUXT_STRIPE_PRICE_PRO_ANNUAL: process.env.NUXT_STRIPE_PRICE_PRO_ANNUAL || '',
-          NUXT_STRIPE_PRICE_GROWTH_MONTHLY: process.env.NUXT_STRIPE_PRICE_GROWTH_MONTHLY || '',
-          NUXT_STRIPE_PRICE_GROWTH_ANNUAL: process.env.NUXT_STRIPE_PRICE_GROWTH_ANNUAL || '',
-          NUXT_STRIPE_PRICE_SCALE_MONTHLY: process.env.NUXT_STRIPE_PRICE_SCALE_MONTHLY || '',
-          NUXT_STRIPE_PRICE_SCALE_ANNUAL: process.env.NUXT_STRIPE_PRICE_SCALE_ANNUAL || '',
-          NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+          // An OAuth client id is public (it ships in every authorize redirect),
+          // so it is a default here rather than a build-time requirement. It
+          // used to fall back to '', which meant any build run without the env
+          // var silently deployed a Worker that could not start a Google
+          // sign-in at all.
+          NUXT_OAUTH_GOOGLE_CLIENT_ID: process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID
+            || '32479086022-b2upoo15sfpo0fpmgdgi95fh6oths219.apps.googleusercontent.com',
+          // Kill switch for outbound user-facing sends (welcome email) and the
+          // daily site-sync fan-out. Set to 'false' while migrating legacy data
+          // so no user is emailed and no bulk sync is queued.
+          NUXT_NOTIFICATIONS_ENABLED: process.env.NUXT_NOTIFICATIONS_ENABLED || 'false',
         },
         durable_objects: {
           bindings: [
@@ -258,7 +280,7 @@ export default defineNuxtConfig({
             { queue: 'ri-dlq', binding: 'QUEUE_DLQ' },
           ],
           consumers: [
-            { queue: 'ri-default', max_batch_size: 1, max_batch_timeout: 10, max_concurrency: 5, max_retries: 5, dead_letter_queue: 'ri-dlq' },
+            { queue: 'ri-default', max_batch_size: 1, max_batch_timeout: 10, max_concurrency: 5, max_retries: 3, dead_letter_queue: 'ri-dlq' },
             { queue: 'ri-dlq', max_batch_size: 1, max_batch_timeout: 60, max_concurrency: 1, max_retries: 3 },
           ],
         },
@@ -318,7 +340,6 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: {
       include: [
-        '@gscdump/sdk',
         '@gscdump/sdk/v1',
         'motion-v',
         'reka-ui',
@@ -334,6 +355,9 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    // Gates every outbound user-facing send and the daily sync fan-out.
+    // Override with NUXT_NOTIFICATIONS_ENABLED.
+    notificationsEnabled: true,
     key: '', // .env NUXT_KEY
     session: {
       password: '',
@@ -355,6 +379,10 @@ export default defineNuxtConfig({
       login: '',
       password: '',
     },
+    google: {
+      adsClientId: '',
+      adsClientSecret: '',
+    },
     sentry: {
       dsn: SENTRY_DSN,
       enabled: process.env.NODE_ENV === 'production',
@@ -362,27 +390,10 @@ export default defineNuxtConfig({
       release: sentryRelease ?? '',
       tracesSampleRate: 0.05,
     },
-    stripe: {
-      secretKey: '',
-      webhookSecret: '',
-      apiVersion: '2026-04-22.dahlia',
-      prices: {
-        proMonthly: '',
-        proAnnual: '',
-        growthMonthly: '',
-        growthAnnual: '',
-        scaleMonthly: '',
-        scaleAnnual: '',
-      },
-      trialDays: 14,
-    },
     public: {
       baseUrl: 'https://requestindexing.com',
       indexing: {
         usageLimitPerUser: 15,
-      },
-      stripe: {
-        publishableKey: '',
       },
     },
     indexing: {

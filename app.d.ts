@@ -13,6 +13,23 @@ module '#auth-utils' {
   }
   export interface UserSession {
     apiKey?: string
+    /**
+     * Current team, populated by the session `fetch` hook. Null when the user
+     * has no `currentTeamId`. The dashboard layouts read `team.onboardedStep`
+     * to decide whether to push the user through setup.
+     */
+    /**
+     * Set when the user has completed the Search Console integration grant and
+     * been registered with gscdump. Null means the dashboard has no data source
+     * yet, which is what the connect prompt keys off.
+     */
+    gscdumpUserId?: string | null
+    team?: {
+      teamId: number
+      name: string
+      personalTeam: boolean
+      onboardedStep: string | null
+    } | null
   }
 }
 

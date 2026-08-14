@@ -50,6 +50,34 @@
       "when": 1786427313410,
       "tag": "0006_drop_psi_crux",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786453690418,
+      "tag": "0007_drop_billing",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1786454958163,
+      "tag": "0008_drop_crawler_citation",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786458861152,
+      "tag": "0009_align_current_team_notnull",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1786594043704,
+      "tag": "0011_drop_team_gsc_credential_key",
+      "breakpoints": true
     }
   ]
 }

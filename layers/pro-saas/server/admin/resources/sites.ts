@@ -1,8 +1,8 @@
-import type { AdminCtx, AdminListQuery } from '../admin-shell'
 import type { SQL, SQLWrapper } from 'drizzle-orm'
+import type { AdminCtx, AdminListQuery } from '../admin-shell'
 import { and, asc, count, desc, eq, inArray, like, or } from 'drizzle-orm'
-import { defineAdminResource } from '../admin-shell'
 import { sites, users } from '../../database/_surface'
+import { defineAdminResource } from '../admin-shell'
 
 interface SiteRow {
   id: string
@@ -108,7 +108,7 @@ export default defineAdminResource<SiteRow>({
     let userRels: Record<string, Record<string, unknown>> = {}
     if (userIds.length) {
       const relatedUsers = await db
-        .select({ id: users.userId, email: users.stripeEmail })
+        .select({ id: users.userId, email: users.email })
         .from(users)
         .where(inArray(users.userId, userIds))
       userRels = Object.fromEntries(relatedUsers.map(u => [u.id, { id: u.id, email: u.email ?? '' }]))

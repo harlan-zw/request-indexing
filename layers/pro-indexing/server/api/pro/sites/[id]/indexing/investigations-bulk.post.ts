@@ -26,7 +26,6 @@ export default defineProApiHandler({ body: bodySchema, site: { ability: 'write-d
   // can't hammer this with many max-size bulk writes.
   await checkProToolRateLimit(event, {
     userId: String(caller.user.id),
-    subscriptionStatus: caller.subscription.status,
   })
 
   if (action === 'set') {

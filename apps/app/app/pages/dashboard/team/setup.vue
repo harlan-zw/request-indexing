@@ -1,9 +1,33 @@
 <script lang="ts" setup>
 import type { SitePreview } from '~~/layers/core/app/types'
 import { useJobListener } from '~~/layers/core/app/composables/events'
+import { errorStatusCode } from '~~/shared/sentry'
 
-// const { data, pending, refresh, forceRefresh } = fetchSites('all')
-const data = ref<{ sites: SitePreview[], jobStatus: string }>([])
+interface SitesPreview {
+  sites: SitePreview[]
+  jobStatus: string
+}
+
+/**
+ * A 401 here means the cookie outlived the server session, which is an ordinary
+ * end of a long-open tab rather than a fault. It is returned as a value so the
+ * caller can send the user back to login instead of reporting an error.
+ */
+type SitesPreviewResult
+  = | { _tag: 'Ready', preview: SitesPreview }
+    | { _tag: 'SessionExpired' }
+
+function loadSitesPreview(): Promise<SitesPreviewResult> {
+  return $fetch<SitesPreview>('/api/sites/preview')
+    .then(preview => ({ _tag: 'Ready', preview }) as const)
+    .catch((error: unknown) => {
+      if (errorStatusCode(error) === 401)
+        return { _tag: 'SessionExpired' } as const
+      throw error
+    })
+}
+
+const data = ref<SitesPreview>({ sites: [], jobStatus: 'pending' })
 const key = ref(0)
 const pending = ref(true)
 
@@ -11,29 +35,34 @@ const isSetup = ref(false)
 const sitesSynced = ref(0)
 const totalSites = ref(0)
 
+const { fetch, clear } = useUserSession()
+const route = useRoute()
+
 async function refresh() {
   // TODO avoid duplicate fetches
-  data.value = await $fetch('/api/sites/preview', {
-    // query: {
-    //   force: 'true',
-    // },
+  const result = await loadSitesPreview().finally(() => {
+    pending.value = false
   })
-    .finally(() => {
-      pending.value = false
-    })
-  // if (data.value.filter(s => !!s.lastSynced).length)
-  sitesSynced.value = data.value.sites.filter(s => !!s.pageCount30Day).length
-  isSetup.value = data.value.jobStatus !== 'pending'
-  totalSites.value = data.value.sites.length
+
+  if (result._tag === 'SessionExpired') {
+    await clear()
+    await navigateTo({ path: '/login', query: { redirect: route.fullPath } })
+    return
+  }
+
+  data.value = result.preview
+  sitesSynced.value = result.preview.sites.filter(s => !!s.pageCount30Day).length
+  isSetup.value = result.preview.jobStatus !== 'pending'
+  totalSites.value = result.preview.sites.length
 
   key.value++
 }
 
-const { fetch } = useUserSession()
-
 const isPending = computed(() => pending.value)
 const backups = ref(true)
-const selectedSites = ref<SitePreview[]>([])
+// The selector emits site `publicId`s, which is also what
+// `teamOnboardingUpdateSchema` accepts on POST.
+const selectedSites = ref<string[]>([])
 const toast = useToast()
 const submitError = ref('')
 const isSubmitting = ref(false)
@@ -73,19 +102,11 @@ useJobListener('sites/setup', () => {
   key.value++
 })
 
-useJobListener('users/syncGscSites', () => {
-  refresh()
-  isSetup.value = true
-  key.value++
-})
-
-function setSelectedSites(val) {
+function setSelectedSites(val: string[]) {
   selectedSites.value = val
 }
 
-const sites = computed(() => {
-  return data.value?.sites || []
-})
+const sites = computed(() => data.value.sites)
 </script>
 
 <template>
@@ -130,15 +151,11 @@ const sites = computed(() => {
                 check it exists within <a class="underline" href="https://search.google.com/search-console" target="_blank">Google Search Console</a>.
               </p>
               <p class="dark:text-gray-400 text-gray-600 text-sm mb-5">
-                The free plan includes up to 3 sites, up to 10,000 pages and tracking up to 100 keywords. The Pro
-                plan is unlimited and is in development.
+                Free during the beta: up to 3 sites, up to 10,000 pages and tracking up to 100 keywords.
               </p>
               <div class="mb-3">
                 <div class="text-sm font-bold text-gray-700 mb-1">
                   Please select up to 3 sites to continue.
-                </div>
-                <div class="text-xs text-gray-500">
-                  The free plan offers limited sites, pro users have unlimited.
                 </div>
               </div>
               <div v-if="sitesSynced < totalSites">

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { SiteDateAnalyticsSelect, SiteSelect } from '#shared/types/database'
 import type { GraphButton } from '~~/layers/design-system/components/chart/GraphButtonGroup.vue'
+import type { SiteDateAnalyticsSelect, SiteSelect } from '#shared/types/database'
 
 const props = defineProps<{
   site: SiteSelect
@@ -14,7 +14,7 @@ const graph = computed(
   () => (props.dates || []).map((d) => {
     return {
       ...d,
-      ctr: d.ctr * 100,
+      ctr: (d.ctr ?? 0) * 100,
     }
   }),
 )
@@ -33,33 +33,21 @@ const tooltipEntry = computed(() => {
   return graph.value.find(row => row.date === tooltipData.value.time)
 })
 
-const graphColours = {
-  keywords: {
-    // indigo
-    topColor: 'rgba(63, 81, 181, 0.9)',
-    bottomColor: 'rgba(63, 81, 181, 0.04)',
-    lineColor: 'rgba(63, 81, 181, 0.5)',
-  },
-}
+const graphColours = { keywords: 'rgba(63, 81, 181, 0.5)' }
 
 const buttons = computed<GraphButton[]>(() => [
   {
     key: 'keywords',
     label: 'Keywords',
-    value: typeof tooltipEntry.value?.keywords !== 'undefined' ? tooltipEntry.value.keywords : props.period?.keywords,
+    value: tooltipEntry.value?.keywords ?? props.period?.keywords ?? 0,
     color: 'blue',
   },
 ])
 
 const selectedCharts = ref(['keywords', 'ctr'])
 
-function toggleChart(chart: string) {
-  if (selectedCharts.value.includes(chart)) {
-    selectedCharts.value = selectedCharts.value.filter(e => e !== chart)
-  }
-  else {
-    selectedCharts.value = [...selectedCharts.value, chart]
-  }
+function toggleChart(charts: string[]) {
+  selectedCharts.value = charts
 }
 </script>
 
@@ -70,10 +58,10 @@ function toggleChart(chart: string) {
         <UIcon name="i-ph-list-magnifying-glass" class="w-4 h-4 opacity-80" />
       </template>
       <template #keywords-trend>
-        <TrendPercentage compact :value="period?.keywords" :prev-value="prevPeriod?.keywords" />
+        <TrendPercentage compact :value="period?.keywords ?? 0" :prev-value="prevPeriod?.keywords ?? 0" />
       </template>
       <template #ctr-trend>
-        <TrendPercentage compact :value="period?.ctr" :prev-value="prevPeriod?.ctr" />
+        <TrendPercentage compact :value="period?.ctr ?? 0" :prev-value="prevPeriod?.ctr ?? 0" />
       </template>
       <template #ctr-icon>
         <UIcon name="i-ph-cursor" class="w-4 h-4 opacity-80" />

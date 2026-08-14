@@ -3,6 +3,14 @@ import { eq } from 'drizzle-orm'
 import { logWarn } from '~~/shared/logging'
 import { teams, userIdentities, users } from '../database'
 
+/**
+ * `currentTeamId` is deliberately excluded: this helper creates the personal
+ * team and owns that value. The column is NOT NULL, so accepting it from
+ * callers is how the previous version ended up inserting users before their
+ * team existed.
+ */
+export type CreateUserInput = Omit<NewUser, 'currentTeamId'>
+
 export interface CreateUserIdentityInput {
   provider: AuthProviderId
   providerUserId: string
@@ -14,42 +22,56 @@ export interface CreateUserIdentityInput {
 
 /**
  * Atomically create a new user + their personal team + set users.currentTeamId.
- * Every signup site (Stripe webhook lifetime checkout, future providers) MUST
- * use this helper so no user ever exists without a personal team.
+ * Every signup site MUST use this helper so no user ever exists without a
+ * personal team.
  *
  * D1 has no real transactions; we sequence carefully and best-effort rollback
  * if the team insert succeeds but the currentTeamId update fails.
  *
- * The `identity` arg is optional: webhook paths that already know a provider
- * identity (e.g. lifetime checkout with `client_reference_id`) can write the
- * `user_identities` row inline so the user can immediately sign in.
+ * The `identity` arg is optional: signup paths that already know a provider
+ * identity can write the `user_identities` row inline so the user can
+ * immediately sign in.
  */
 export async function createUserWithPersonalTeam(
   db: ReturnType<typeof useDrizzle>,
-  userInsert: NewUser,
+  userInsert: CreateUserInput,
   identity?: CreateUserIdentityInput,
 ) {
-  const userRow = await db.insert(users).values(userInsert).returning().get()
-  if (!userRow)
-    throw new Error('createUserWithPersonalTeam: user insert returned no row')
-
+  // Team first, owner backfilled second. `users.current_team_id` is NOT NULL in
+  // the live database (migration 0000 created it that way; schema.ts was later
+  // relaxed to nullable but no migration ever carried that across, and drizzle's
+  // snapshot already records it as nullable so it will never generate one).
+  // Inserting the user first therefore failed the constraint and every signup
+  // died with "Failed to create account". `teams.owner_id` is nullable, so
+  // ordering it this way satisfies both sides of the circular reference without
+  // rebuilding the table on production.
   const teamName = personalTeamName(userInsert, identity)
   const teamRow = await db.insert(teams).values({
-    ownerId: userRow.userId,
     name: teamName,
     personalTeam: true,
   }).returning().get()
 
-  if (!teamRow) {
-    // Best-effort cleanup; we're already throwing, surface the cleanup failure
-    // to logs but don't mask the original team-insert failure.
-    await db.delete(users).where(eq(users.userId, userRow.userId)).catch(err => logWarn('create_user.orphan_cleanup_failed', err, { userId: userRow.userId }))
+  if (!teamRow)
     throw new Error('createUserWithPersonalTeam: team insert returned no row')
+
+  const userRow = await db.insert(users)
+    .values({ ...userInsert, currentTeamId: teamRow.teamId })
+    .returning()
+    .get()
+    .catch(async (err: unknown) => {
+      // Do not leave an ownerless team behind if the user insert fails.
+      await db.delete(teams).where(eq(teams.teamId, teamRow.teamId)).catch(cleanupErr => logWarn('create_user.orphan_cleanup_failed', cleanupErr, { teamId: teamRow.teamId }))
+      throw err
+    })
+
+  if (!userRow) {
+    await db.delete(teams).where(eq(teams.teamId, teamRow.teamId)).catch(err => logWarn('create_user.orphan_cleanup_failed', err, { teamId: teamRow.teamId }))
+    throw new Error('createUserWithPersonalTeam: user insert returned no row')
   }
 
-  await db.update(users)
-    .set({ currentTeamId: teamRow.teamId, updatedAt: Date.now() })
-    .where(eq(users.userId, userRow.userId))
+  await db.update(teams)
+    .set({ ownerId: userRow.userId, updatedAt: Date.now() })
+    .where(eq(teams.teamId, teamRow.teamId))
 
   if (identity) {
     const now = new Date()
@@ -72,6 +94,6 @@ export async function createUserWithPersonalTeam(
   }
 }
 
-function personalTeamName(u: NewUser, identity?: CreateUserIdentityInput): string {
-  return identity?.displayName || u.stripeEmail?.split('@')[0] || 'My team'
+function personalTeamName(u: CreateUserInput, identity?: CreateUserIdentityInput): string {
+  return identity?.displayName || u.email?.split('@')[0] || 'My team'
 }

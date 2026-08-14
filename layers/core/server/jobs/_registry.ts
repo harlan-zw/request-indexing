@@ -1,5 +1,4 @@
 import type { TaskName } from '#shared/types/tasks'
-import type { TaskMap } from '#shared/types/tasks'
 import type { JobDefinition, JobHandler, QueueName } from './_types'
 
 // Import all job handlers

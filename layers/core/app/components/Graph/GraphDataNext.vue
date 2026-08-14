@@ -1,17 +1,18 @@
-<script lang="ts" setup generic="I extends { date: string | number | Date, clicks: number, impressions: number, position: number, ctr: number }">
-import { Area, Scale } from '@unovis/ts'
+<script lang="ts" setup generic="I extends { date: string | number | Date, clicks?: number | null, impressions?: number | null, position?: number | null, ctr?: number | null }">
+import { Scale } from '@unovis/ts'
 import { VisArea, VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue'
-import { addDays, format, subDays } from 'date-fns'
+import { format } from 'date-fns'
 import { graphLineMode } from '~~/layers/core/app/composables/state'
+import { resolveMetricDomain, resolvePlotRange } from '~~/layers/core/app/utils/dashboard-site-card'
+import { gscMetricColors } from '~~/layers/design-system/composables/proDataVizColors'
 
 type MetricKey = 'clicks' | 'impressions' | 'position' | 'ctr'
 
 const props = defineProps<{
   value: I[]
-  columns?: (MetricKey | { key: MetricKey, type: 'area' | 'line' })[]
+  columns?: MetricKey[]
   colors?: Partial<Record<MetricKey, string>>
   height?: number | string
-  labels?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -19,113 +20,77 @@ const emits = defineEmits<{
 }>()
 
 const value = computed(() => props.value)
-const selectedColumns = computed(() => props.columns ?? [])
+const selectedColumns = computed(() => new Set(props.columns ?? []))
+const chartHeight = computed(() => Number(props.height) || 100)
+const chartMargin = { left: 0, right: 0, top: 0, bottom: 24 }
+const chartId = useId().replace(/:/g, '')
+const clicksGradientId = `clicks-gradient-${chartId}`
+const metricColors = computed(() => ({
+  clicks: props.colors?.clicks ?? gscMetricColors.clicks.hex,
+  impressions: props.colors?.impressions ?? gscMetricColors.impressions.hex,
+  position: props.colors?.position ?? gscMetricColors.position.hex,
+  ctr: props.colors?.ctr ?? gscMetricColors.ctr.hex,
+}))
 
-const y = computed(() => {
-  return props.columns?.map((col) => {
-    if (typeof col === 'string') {
-      return (d: I) => d[col]
-    }
-    else {
-      return (d: I) => d[col.key]
-    }
-  })
-})
-const svgDefs = `
-    <linearGradient id="gradient0" gradientTransform="rotate(90)" style="background-color: red;">
-      <stop offset="20%" stop-color="rgba(33, 150, 243, 1" />
-      <stop offset="40%" stop-color="rgba(33, 150, 243, 0.25)" />
-      <stop offset="60%" stop-color="rgba(33, 150, 243, 0.2)" />
-      <stop offset="80%" stop-color="rgba(33, 150, 243, 0.1)" />
-    </linearGradient>
-  <linearGradient id="gradient1" gradientTransform="rotate(90)">
-      <stop offset="20%" stop-color="rgba(56, 39, 176, 0.3)" />
-      <stop offset="40%" stop-color="rgba(56, 39, 176, 0.2)" />
-      <stop offset="60%" stop-color="rgba(56, 39, 176, 0.1)" />
-      <stop offset="80%" stop-color="rgba(56, 39, 176, 0.05)" />
-    </linearGradient>`
-function tickFormat(d: number) {
-  // minus 90 days plus d
-  return format(addDays(subDays(new Date(), props.value.length), d), 'MMM d')
+const svgDefs = computed(() => `
+  <linearGradient id="${clicksGradientId}" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="${metricColors.value.clicks}" stop-opacity="0.24" />
+    <stop offset="100%" stop-color="${metricColors.value.clicks}" stop-opacity="0.02" />
+  </linearGradient>
+`)
+
+function tickFormat(index: number) {
+  const safeIndex = Math.min(value.value.length - 1, Math.max(0, Math.round(index)))
+  const row = value.value[safeIndex]
+  return row ? format(new Date(row.date), 'MMM d') : ''
 }
 
-let isMouseOver = false
 function template(d: I) {
-  if (isMouseOver) {
-    emits('tooltip', d)
-  }
-  return `<div class="text-sm text-gray-600 mb-2">${format(new Date(d.date), 'MMM d')}</div>
-    <div class="grid grid-cols-2 text-xs gap-1">
-      <div>Clicks: ${useHumanFriendlyNumber(d.clicks)}</div>
-      <div>Views: ${useHumanFriendlyNumber(d.impressions)}</div>
-      <div>Position: ${useHumanFriendlyNumber(d.position)}</div>
-      <div>CTR: ${useHumanFriendlyNumber(d.ctr * 100)}%</div>
+  emits('tooltip', d)
+  return `<div class="mb-2 text-sm text-muted">${format(new Date(d.date), 'MMM d')}</div>
+    <div class="grid grid-cols-2 gap-1 text-sm text-default tabular-nums">
+      <div>Clicks: ${useHumanFriendlyNumber(d.clicks ?? 0)}</div>
+      <div>Views: ${useHumanFriendlyNumber(d.impressions ?? 0)}</div>
+      <div>Position: ${useHumanFriendlyNumber(d.position ?? 0)}</div>
+      <div>CTR: ${useHumanFriendlyNumber((d.ctr ?? 0) * 100)}%</div>
   </div>`
 }
 
-const events = {
-  [Area.selectors.area]: {
-    mouseover: () => {
-      isMouseOver = true
-    },
-    mouseleave: () => {
-      isMouseOver = false
-      emits('tooltip', null)
-    },
-  },
+function metricScale(key: MetricKey, inverted = false) {
+  return computed(() => Scale.scaleLinear()
+    .domain(resolveMetricDomain(value.value.map(row => key === 'ctr' ? (row.ctr ?? 0) * 100 : (row[key] ?? 0))))
+    .range(resolvePlotRange(chartHeight.value, inverted)))
 }
 
-const positionScale = computed(() => Scale.scaleLinear()
-  .domain([Math.min(...value.value.map(d => d.position)), Math.max(...value.value.map(d => d.position))])
-  .range([80, 0]))
+const clicksScale = metricScale('clicks')
+const impressionsScale = metricScale('impressions')
+const positionScale = metricScale('position', true)
+const ctrScale = metricScale('ctr')
 
-const clicksScale = computed(() => Scale.scaleLinear()
-  .domain([Math.min(...value.value.map(d => d.clicks)), Math.max(...value.value.map(d => d.clicks))])
-  .range([80, 0]))
-
-const ctrScale = computed(() => Scale.scaleLinear()
-  .domain([Math.min(...value.value.map(d => d.ctr * 100)), Math.max(...value.value.map(d => d.ctr * 100))])
-  .range([80, 0]))
-
-const clicks = (d: I) => d.clicks
-const position = (d: I) => d.position
-const ctr = (d: I) => d.ctr * 100
-const impressions = (d: I) => d.impressions
+const clicks = (d: I) => d.clicks ?? 0
+const position = (d: I) => d.position ?? 0
+const ctr = (d: I) => (d.ctr ?? 0) * 100
+const impressions = (d: I) => d.impressions ?? 0
 const x = (_d: I, index: number) => index
 </script>
 
 <template>
-  <div class="relative">
-    <!--    <UButton -->
-    <!--      size="xs" color="neutral" variant="link" class="absolute -top-12 -right-2" icon="i-ph-chart-line" -->
-    <!--      @click="graphLineMode = 'step'" -->
-    <!--    /> -->
-    <VisXYContainer height="100" :data="value" :svg-defs="svgDefs" class="graph-next">
-      <!--  impressions  -->
-      <VisLine v-if="selectedColumns.includes('impressions')" :curve-type="graphLineMode" :data="value" :x="x" color="rgba(156, 39, 176, 0.7)" :y="impressions" :events="events" />
-      <!--  clicks  -->
-      <VisArea v-if="selectedColumns.includes('clicks')" color="url(#gradient0)" :x="x" :y-scale="clicksScale" :y="clicks" />
-      <!--  position  -->
-      <VisLine v-if="selectedColumns.includes('position')" :x="x" :y-scale="positionScale" :y="position" color="orange" />
-      <VisLine v-if="selectedColumns.includes('ctr')" :x="x" :y="ctr" :y-scale="ctrScale" color="green" />
+  <div
+    class="relative w-full min-w-0 overflow-clip"
+    role="img"
+    aria-label="Search performance trend chart"
+    :style="{ height: `${chartHeight}px` }"
+    @mouseleave="emits('tooltip', null)"
+  >
+    <VisXYContainer :height="chartHeight" :data="value" :svg-defs="svgDefs" :margin="chartMargin" :auto-margin="false" class="graph-next">
+      <VisLine v-if="selectedColumns.has('impressions')" :curve-type="graphLineMode" :data="value" :x="x" :color="metricColors.impressions" :y-scale="impressionsScale" :y="impressions" />
+      <VisArea v-if="selectedColumns.has('clicks')" :color="`url(#${clicksGradientId})`" :x="x" :y-scale="clicksScale" :y="clicks" />
+      <VisLine v-if="selectedColumns.has('clicks')" :curve-type="graphLineMode" :data="value" :x="x" :color="metricColors.clicks" :y-scale="clicksScale" :y="clicks" />
+      <VisLine v-if="selectedColumns.has('position')" :x="x" :y-scale="positionScale" :y="position" :color="metricColors.position" />
+      <VisLine v-if="selectedColumns.has('ctr')" :x="x" :y="ctr" :y-scale="ctrScale" :color="metricColors.ctr" />
       <VisCrosshair :template="template" />
       <VisTooltip />
-      <VisAxis type="x" tick-text-align="left" :tick-line="false" :grid-line="false" :num-ticks="3" :tick-format="tickFormat" tick-padding="0" tick-text-font-size="10px" />
+      <VisAxis type="x" tick-text-align="left" :tick-line="false" :grid-line="false" :domain-line="false" :num-ticks="3" :tick-format="tickFormat" tick-padding="4" tick-text-font-size="12px" tick-text-color="var(--ui-text-dimmed)" />
     </VisXYContainer>
   </div>
 </template>
-
-<style>
-  .css-wwpzge-area:first-child {
-    stroke: rgba(156, 39, 176, 0.5);
-    stroke-width: 2px !important;
-  }
-
-  .css-1r2ccq4-area-component > path {
-    stroke: hsl(207 75% 65% / 1) !important;
-    stroke-width: 2px !important;
-  }
-  .css-1sev1n1-tooltip {
-    bottom: 0 !important;
-  }
-</style>

@@ -6,17 +6,7 @@ import { issueDetails, issueGroups, issueIcons, issueTypeToGroup } from '#layers
 
 definePageMeta({ proTab: { feature: 'indexing', label: 'Issues', icon: 'i-lucide-alert-triangle', order: 10 } })
 
-const { siteId, gscdumpSiteId, siteName } = useSite()
-
-// Item 9 P1 stub — Ask AI deep-link (s2h page-of-origin).
-const askAiHref = computed(() => {
-  const q = new URLSearchParams({
-    prefill: `What's wrong with my indexing on ${siteName.value}?`,
-    scope: `@${siteName.value}`,
-    context: 's2h',
-  })
-  return `/pro/dashboard/sites/${siteId.value}/chat?${q.toString()}`
-})
+const { siteId, gscdumpSiteId } = useSite()
 
 const generatePrompt = inject<(row: IndexingIssueRow) => Promise<void>>('indexing-generate-prompt')!
 
@@ -142,17 +132,6 @@ function groupIssueCount(issues: IssueRow[]) {
     </template>
 
     <div class="flex flex-col *:min-w-0">
-      <div class="flex justify-end mb-3">
-        <UiMotionButton
-          size="xs"
-          color="neutral"
-          variant="subtle"
-          icon="i-lucide-bot-message-square"
-          :to="askAiHref"
-        >
-          Ask AI about these issues
-        </UiMotionButton>
-      </div>
       <!-- Hero: severity stat cards -->
       <ProPageZone tier="primary" first>
         <UiStats :data="heroStats" variant="cards" />

@@ -7,34 +7,11 @@ const props = defineProps<{
   compact?: boolean
 }>()
 
-const percentage = computed(() => {
-  const prev = Number(props.prevValue)
-  const current = Number(props.value)
-  if (prev === 0)
-    return 1
-  const mod = props.negative ? -1 : 1
-  return (current - prev) / ((prev + current) / 2) * mod
-})
-
-const isSame = computed(() => {
-  return Number(props.prevValue) === Number(props.value)
-})
+const percentage = computed(() => calcTrendPercent(Number(props.value), Number(props.prevValue)))
 </script>
 
 <template>
   <UTooltip v-if="prevValue" :text="`${useHumanFriendlyNumber(Number(prevValue))}${symbol || ''} previous period`">
-    <div v-if="isSame">
-      <div class="text-xs opacity-50">
-        ─
-      </div>
-    </div>
-    <div v-else-if="percentage > 0" class="text-xs items-center flex gap-1 text-green-500 font-mono">
-      <UIcon v-if="!compact" name="i-heroicons-arrow-trending-up" class="w-4 h-4 opacity-70" />
-      <div>{{ useHumanFriendlyNumber(Math.round(percentage * 100)) }}<span class="text-[10px]">%</span></div>
-    </div>
-    <div v-else class="text-xs  items-center flex gap-1 text-red-500 font-mono">
-      <UIcon v-if="!compact" name="i-heroicons-arrow-trending-down" class="w-4 h-4 opacity-70" />
-      <div>{{ useHumanFriendlyNumber(Math.round(percentage * 100)) }}<span class="text-[10px]">%</span></div>
-    </div>
+    <UiTrend :value="percentage" :inverted="negative" size="sm" />
   </UTooltip>
 </template>

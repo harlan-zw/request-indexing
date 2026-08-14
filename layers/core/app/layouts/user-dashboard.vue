@@ -4,16 +4,20 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const router = useRouter()
 const { session } = useUserSession()
 
-const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
+const isOnWelcome = computed(() => router.currentRoute.value.path === ONBOARDING_ROUTE)
 
-watch(isOnWelcome, (val) => {
-  if (!val && !session.value.team.onboardedStep)
-    router.push('/dashboard/team/setup')
+// A session with no team is an expected state, not a fault, so it is resolved
+// into `TeamOnboarding` rather than read through. Both absent states end up in
+// the same place: onboarding.
+const onboarding = computed(() => resolveTeamOnboarding(session.value))
+
+watch([isOnWelcome, onboarding], ([val, state]) => {
+  if (!val && needsOnboarding(state))
+    router.push(ONBOARDING_ROUTE)
 }, { immediate: true })
 
 const onlyDashboardLinks = computed<NavigationMenuItem[]>(() => [
   { label: 'Profile', to: '/account', icon: 'i-heroicons-user-circle' },
-  { label: 'Pro', to: '/account/upgrade', icon: 'i-heroicons-star' },
 ])
 
 const supportLinks: NavigationMenuItem[] = [

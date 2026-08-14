@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SitePreview, SitesPreview } from '~~/layers/core/app/types'
-import { useFriendlySiteUrl, useHumanFriendlyNumber } from '~~/layers/design-system/composables/formatting'
+import { useHumanFriendlyNumber } from '~~/layers/design-system/composables/formatting'
 
 const props = defineProps<{
   sites: SitesPreview
@@ -104,12 +104,12 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2 mb-1">
                 <SiteFavicon :site="site" />
                 <div class="font-bold text-gray-800 dark:text-gray-100">
-                  {{ useFriendlySiteUrl(site.domain) }}
+                  {{ siteLabel(site) }}
                 </div>
               </div>
               <div class="flex gap-2 text-xs">
                 <div>
-                  {{ site.domain.startsWith('sc-domain:') ? 'Domain' : 'URL' }} Property
+                  {{ (site.domain || '').startsWith('sc-domain:') ? 'Domain' : 'URL' }} Property
                 </div>
                 <div v-if="!site.pageCount30Day">
                   <UIcon name="i-ph-arrows-clockwise-duotone" class="w-4 h-4 animate-spin" />
@@ -145,7 +145,7 @@ onBeforeUnmount(() => {
           </div>
           <div class="max-w-[200px] text-gray-500 dark:text-gray-400 text-sm">
             <UIcon name="i-heroicons-information-circle" class="w-4 h-4 -mb-1" />
-            You can upgrade your account later to support more sites.
+            You can select up to {{ maxSites }} sites.
           </div>
         </div>
         <div class="max-w-[200px]">

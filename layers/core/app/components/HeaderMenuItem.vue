@@ -1,9 +1,11 @@
 <script setup lang="ts">
+type BadgeColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'warning' | 'neutral'
+
 const { icon, label, to, badge, itemDelay = 0 } = defineProps<{
   icon: string
   label: string
   to: string
-  badge?: { label: string, color?: string }
+  badge?: { label: string, color?: BadgeColor }
   itemDelay?: number
 }>()
 </script>

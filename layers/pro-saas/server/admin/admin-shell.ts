@@ -110,10 +110,18 @@ export interface AdminPanelDef {
   authorize?: (ctx: AdminCtx) => boolean | Promise<boolean>
 }
 
-export function defineAdminResource<T>(d: AdminResourceDef<T>): AdminResourceDef<T> { return d }
-export function defineAdminPanel(d: AdminPanelDef): AdminPanelDef { return d }
-export function defineAdminAction<T>(d: AdminActionDef<T>): AdminActionDef<T> { return d }
-export function defineAdminCard(d: AdminCardDef): AdminCardDef { return d }
+export function defineAdminResource<T>(d: AdminResourceDef<T>): AdminResourceDef<T> {
+  return d
+}
+export function defineAdminPanel(d: AdminPanelDef): AdminPanelDef {
+  return d
+}
+export function defineAdminAction<T>(d: AdminActionDef<T>): AdminActionDef<T> {
+  return d
+}
+export function defineAdminCard(d: AdminCardDef): AdminCardDef {
+  return d
+}
 
 /* ── Client manifest (resolve/load/handler/etc stripped) ────────────────── */
 

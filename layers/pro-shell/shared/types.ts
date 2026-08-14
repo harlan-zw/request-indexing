@@ -2,7 +2,6 @@
 // Imported by both the build-time module and runtime composables.
 
 import type { Component, Ref } from 'vue'
-import type { CallerPlan } from './caller'
 import type { IntegrationReadiness } from './policies/integration-readiness'
 
 /**
@@ -15,14 +14,6 @@ export interface ProFeatureRegistration {
   label: string
   icon: string
   group?: 'visibility' | 'health' | 'growth' | 'ai' | 'reports'
-  /**
-   * Subscription tier required to use this feature. Surfaced to the dashboard
-   * as an "Upgrade" CTA when the Caller is on a lower plan, AND enforced
-   * server-side via `defineProApiHandler({ subscription })` on the feature's
-   * handlers (ADR-0017). The two MUST stay in sync; the UI render is not a
-   * security boundary on its own. See ADR-0025.
-   */
-  subscription?: CallerPlan
   /**
    * External-account state the feature reads (e.g. GSC OAuth scope). Drives
    * the locked render only — not a server-side security check. Handlers under

@@ -174,7 +174,7 @@ export default defineEventHandler(async (event) => {
 
   // App-level fairness limit on top of Google's own per-project quota
   // (enforced downstream when the actual API call is made).
-  await checkProToolRateLimit(event, { userId: String(user.userId), subscriptionStatus: user.subscriptionStatus })
+  await checkProToolRateLimit(event, { userId: String(user.userId) })
 
   const result = await submitUrlToGoogle({
     targetUrl: url,

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useFriendlySiteUrl } from '~~/layers/design-system/composables/formatting'
-
 definePageMeta({
   layout: 'user-dashboard',
   title: 'Accounts',
@@ -9,8 +7,8 @@ definePageMeta({
 })
 
 const { fetch } = useUserSession()
-const user = useAuthenticatedUser()
 const { session } = useUserSession()
+const indexingAuth = computed(() => session.value?.googleIndexingAuth)
 const logout = createLogoutHandler()
 
 const toast = useToast()
@@ -58,16 +56,6 @@ function deleteAccount() {
   })
 }
 
-async function showSite(site: string) {
-  // save it upstream
-  session.value = await $fetch('/api/user/me', {
-    method: 'POST',
-    body: JSON.stringify({
-      hiddenSites: (user.value.hiddenSites || []).filter(s => s !== site),
-    }),
-  })
-}
-
 const confirmDeleteAccount = ref(false)
 </script>
 
@@ -82,26 +70,6 @@ const confirmDeleteAccount = ref(false)
       </div>
       <ProAccountApiKey />
     </div>
-    <div v-if="user.hiddenSites?.length">
-      <div class="mb-5">
-        <h2 class="text-lg font-bold flex items-center gap-1 mb-1">
-          <UIcon name="i-heroicons-eye-slash" class="mr-1.5" />
-          Hidden Sites
-        </h2>
-      </div>
-      <p class="text-gray-600 dark:text-gray-300 mb-3">
-        Sites you are hiding from your dashboard. You can toggle them at any time.
-      </p>
-      <ul class="ml-5 space-y-2">
-        <li v-for="(site, key) in user.hiddenSites" :key="key">
-          <SiteFavicon :site="site" class="mr-1.5 inline-block" />
-          {{ useFriendlySiteUrl(site) }}
-          <UButton variant="link" color="neutral" @click="showSite(site)">
-            Unhide
-          </UButton>
-        </li>
-      </ul>
-    </div>
     <div>
       <div class="mt-10 mb-5">
         <h2 class="text-lg flex items-center font-bold mb-1">
@@ -109,7 +77,7 @@ const confirmDeleteAccount = ref(false)
           Web Indexing API
         </h2>
       </div>
-      <template v-if="user.indexingOAuthIdNext">
+      <template v-if="indexingAuth?.indexingOAuthId">
         <p class="text-gray-600 dark:text-gray-300 mb-3">
           You have provided authenticated access to the Web Indexing API. You
           can safely revoke access at any time.

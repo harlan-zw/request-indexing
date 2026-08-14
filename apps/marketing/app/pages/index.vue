@@ -24,12 +24,6 @@ const faqItems = [
   },
 ]
 
-const quickFeatures = [
-  { icon: 'i-heroicons-bolt-solid', title: 'Request Indexing', description: 'Submit directly to Google\'s Indexing API.' },
-  { icon: 'i-heroicons-chart-bar-square-solid', title: 'Unified Dashboard', description: 'All your Search Console sites in one view.' },
-  { icon: 'i-heroicons-circle-stack-solid', title: 'Data Retention', description: 'Keep your historical insights forever.' },
-]
-
 const mockUrls = [
   { url: '/blog/getting-started', status: 'Submitted and indexed', verdict: 'pass', ago: '2 min ago' },
   { url: '/docs/configuration', status: 'Discovered - currently not indexed', verdict: 'neutral', ago: '5 min ago' },
@@ -63,15 +57,15 @@ const walkthroughSteps = [
     num: '03',
     eyebrow: 'Submit',
     title: 'Push URLs to the Indexing API',
-    description: 'Paste a list or connect a sitemap. We batch the requests and respect Google\'s 200/day publish quota.',
-    bullets: ['Bulk submission up to the daily quota', 'Automatic retry on transient failures', 'Programmatic access via API'],
+    description: 'Submit any URL from your dashboard with one click. We respect Google\'s 200/day publish quota so you don\'t have to track it yourself.',
+    bullets: ['New and updated URLs', 'Google\'s 200/day quota respected automatically', 'Duplicate submissions skipped for 48 hours'],
   },
   {
     num: '04',
     eyebrow: 'Track',
     title: 'Watch the status flip to indexed',
     description: 'We poll the getMetadata endpoint and update your dashboard. No more refreshing Search Console.',
-    bullets: ['Live status per URL', 'Alerts when pages drop out of the index', 'Export the full history as CSV'],
+    bullets: ['Live status per URL', 'Coverage over time, not just a snapshot', 'Retained past Google\'s 16-month window'],
   },
 ]
 
@@ -101,13 +95,13 @@ const marketingTools = [
   <div>
     <!-- Hero -->
     <div class="bg-verdant divider-tilt">
-      <UContainer class="z-1 relative max-w-8xl xl:max-w-[1400px]" :ui="{ container: 'max-w-8xl xl:max-w-[1335px]!' }">
+      <UContainer class="z-1 relative max-w-8xl xl:max-w-[1400px]" :ui="{ base: 'max-w-8xl xl:max-w-[1335px]!' }">
         <section class="py-5 sm:py-12 xl:py-20">
           <div class="xl:grid gap-8 lg:gap-12 xl:grid-cols-12 mx-auto w-full sm:px-6 lg:px-0 px-0">
             <div class="text-pretty mx-auto max-w-[50rem] xl:col-span-7 xl:ml-0 mb-10 xl:mb-0 flex flex-col justify-center">
               <div class="inline-flex items-center gap-2 rounded-full bg-primary/10 text-primary px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.15em] mb-6 mx-auto lg:mx-0 self-center lg:self-start">
                 <span class="size-1.5 rounded-full bg-primary animate-pulse" />
-                Free &amp; open source
+                Free during beta &middot; Open source
               </div>
               <h1 class="font-title font-bold leading-[0.98] tracking-[-0.045em] text-default text-center text-6xl sm:text-7xl lg:text-left lg:text-[5rem] xl:text-[6rem] mb-6">
                 Get your pages <span class="italic text-primary">indexed</span>
@@ -117,7 +111,7 @@ const marketingTools = [
               <p class="text-toned max-w-2xl text-center text-lg sm:text-xl lg:text-left mb-10 leading-relaxed">
                 Submit URLs straight to Google's <NuxtLink to="https://developers.google.com/search/apis/indexing-api/v3/quickstart" target="_blank" class="font-semibold text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-default rounded">
                   Indexing API
-                </NuxtLink>. Track coverage across every Search Console property in one place, keep your history past 16 months, and automate the whole thing from your deploy pipeline.
+                </NuxtLink>. Track coverage across every Search Console property in one place, and keep your history past Google's 16-month window.
               </p>
 
               <div class="flex items-center justify-center gap-3 flex-row sm:gap-4 lg:justify-start">
@@ -128,7 +122,7 @@ const marketingTools = [
                 </template>
                 <template v-else>
                   <UButton to="/dashboard" size="xl" color="primary">
-                    <UAvatar :src="user.picture" size="xs" />
+                    <UAvatar :src="user?.avatarUrl || undefined" :alt="user?.name || user?.email || 'Account'" size="xs" />
                     Dashboard
                   </UButton>
                 </template>
@@ -224,11 +218,11 @@ const marketingTools = [
                 </span>
                 <span class="inline-flex items-center gap-2 text-default">
                   <UIcon name="i-heroicons-check-circle" class="size-4 text-primary" />
-                  <span class="font-medium">Bulk + scheduled</span>
+                  <span class="font-medium">Per-page status</span>
                 </span>
                 <span class="inline-flex items-center gap-2 text-default">
                   <UIcon name="i-heroicons-check-circle" class="size-4 text-primary" />
-                  <span class="font-medium">Status webhooks</span>
+                  <span class="font-medium">One click from your dashboard</span>
                 </span>
               </div>
             </div>
@@ -267,14 +261,14 @@ const marketingTools = [
             </p>
           </div>
 
-          <!-- Supporting: Developer-grade -->
+          <!-- Supporting: Sitemaps -->
           <div class="lg:col-span-2 rounded-2xl border border-default bg-elevated p-8">
-            <UIcon name="i-heroicons-command-line" class="size-7 text-primary mb-5" />
+            <UIcon name="i-heroicons-map" class="size-7 text-primary mb-5" />
             <h3 class="font-title text-xl font-semibold text-default tracking-[-0.015em] mb-2">
-              Built for terminals too
+              Sitemaps, tracked
             </h3>
             <p class="text-toned text-sm leading-relaxed">
-              Programmatic API for CI/CD pipelines. Submit URLs from your deploy script, not your browser.
+              What you declared, what Google discovered, and what drifted between the two: one view instead of Search Console's own report.
             </p>
           </div>
         </div>
@@ -623,7 +617,7 @@ const marketingTools = [
                     Own your data
                   </div>
                   <div class="text-muted text-sm">
-                    Export it, access it via an API, or delete it. It is yours.
+                    Export it, or delete it. It's yours.
                   </div>
                 </div>
               </div>

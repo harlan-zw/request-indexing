@@ -12,20 +12,20 @@ const { data, refresh } = await fetchSites()
 const key = ref(0)
 const sites = computed(() => (data.value?.sites || []))
 
-useJobListener('sites/syncFinished', async () => {
+useJobListener('sites/sync-finished', async () => {
   await refresh()
   key.value++
 })
 </script>
 
 <template>
-  <div :key="key" class="space-y-7">
+  <div :key="key" class="space-y-6">
     <div class="flex items-center gap-3">
-      <div class="border border-dashed rounded-lg">
-        <CalenderFilter />
-      </div>
+      <CalenderFilter />
     </div>
-    <div class="space-y-10">
+    <ConnectSearchConsoleCard />
+
+    <div class="space-y-7">
       <CardSite v-for="site in sites" :key="site.siteId" :site="site" />
     </div>
   </div>

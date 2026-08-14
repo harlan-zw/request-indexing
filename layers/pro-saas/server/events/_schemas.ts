@@ -11,7 +11,6 @@ export const idSchema = z.number().int().positive()
 
 export const integrationKindSchema = z.enum([
   'gscdump',
-  'stripe',
   'github',
   'google',
   'resend',

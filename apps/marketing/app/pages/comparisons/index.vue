@@ -8,7 +8,7 @@ const { data: comparisons } = await useAsyncData('all-comparisons', () =>
 
 useSeoMeta({
   title: 'Request Indexing comparisons',
-  description: 'How Request Indexing differs from Indexly, SEO Gets, TagParrot, OmegaIndexer, and the rest of the AI-visibility and indexing tools landscape.',
+  description: 'How Request Indexing differs from Indexly, SEO Gets, TagParrot, OmegaIndexer, and the rest of the Google indexing tools landscape.',
 })
 
 defineOgImage('Page', {

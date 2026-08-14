@@ -9,9 +9,6 @@ export default defineEvent({
     event: requestEventSchema,
     userId: idSchema,
     email: z.string(),
-    stripeCustomerId: z.string().nullable(),
     gscdumpUserId: z.string().nullable(),
-    subscriptionId: z.string().nullable(),
-    subscriptionStatus: z.string().nullable(),
   }),
 })

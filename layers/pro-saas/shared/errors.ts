@@ -3,8 +3,6 @@
 export type ProErrorCode
   = | 'unauthorized'
     | 'forbidden'
-    | 'subscription_required'
-    | 'read_only'
     | 'team_not_found'
     | 'team_forbidden'
     | 'membership_required'
@@ -25,8 +23,6 @@ interface ProErrorDefaults {
 const DEFAULTS: Record<ProErrorCode, ProErrorDefaults> = {
   unauthorized: { statusCode: 401, message: 'Unauthorized' },
   forbidden: { statusCode: 403, message: 'Forbidden' },
-  subscription_required: { statusCode: 402, message: 'Pro subscription required' },
-  read_only: { statusCode: 423, message: 'Resource is read-only' },
   team_not_found: { statusCode: 404, message: 'Team not found' },
   team_forbidden: { statusCode: 403, message: 'Team access denied' },
   membership_required: { statusCode: 403, message: 'Team membership required' },

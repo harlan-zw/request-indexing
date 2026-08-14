@@ -10,7 +10,7 @@ import { defineProApiHandler } from '../../../../utils/handler'
 const apiKeyAlphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const generateApiKey = customAlphabet(apiKeyAlphabet, 40)
 
-export default defineProApiHandler({ authMethod: 'session' }, async ({ event, caller }) => {
+export default defineProApiHandler({ authMethod: 'session' }, async ({ caller }) => {
   const db = useDrizzle()
   const userId = caller.user.id
   const apiKey = generateApiKey()

@@ -1,11 +1,13 @@
 <script lang="ts" setup>
+type ProgressColor = 'error' | 'info' | 'success' | 'primary' | 'secondary' | 'warning' | 'neutral'
+
 const props = withDefaults(defineProps<{
   total?: string | number
   value: string | number
   tooltip?: string
-  color?: string
+  color?: ProgressColor
 }>(), {
-  color: 'blue',
+  color: 'info',
 })
 
 const percentage = computed(() => {

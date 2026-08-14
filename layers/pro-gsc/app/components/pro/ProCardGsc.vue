@@ -44,25 +44,14 @@ const emit = defineEmits<{
 }>()
 const devSkeleton = useProDevSkeleton()
 const hydrated = ref(false)
-onMounted(() => { hydrated.value = true })
+onMounted(() => {
+  hydrated.value = true
+})
 
 // Track whether we've ever successfully rendered data. Zoom-skeleton-suppression only
 // kicks in AFTER we've had data once — initial loads always show their skeleton.
 // Flipped by a watcher declared later (once `graph` exists) to avoid TDZ issues.
 const hasEverHadData = ref(false)
-
-// `loading` is evaluated lazily at render time, so it may reference zoom-aware
-// computeds declared later in the script without hitting the temporal dead zone.
-const loading = computed(() => {
-  if (!hydrated.value)
-    return false
-  // While zoomed AND we already had data, suppress the skeleton — siblings refetch
-  // in the background but the chart + hero render optimistically from memory.
-  // Initial loads (no prior data) keep their skeleton so the user doesn't see zeros.
-  if (isZoomed.value && hasEverHadData.value && displayedGraph.value.length > 0)
-    return false
-  return loadingProp || devSkeleton.value
-})
 
 const metricMeta: Record<string, { label: string, shortLabel: string, icon: string, description: string, color: string }> = {
   clicks: { label: 'Clicks', shortLabel: 'Clicks', icon: 'i-lucide-mouse-pointer-click', description: 'Total clicks from Google Search results to your site.', color: 'blue' },
@@ -106,18 +95,6 @@ watch(() => graph.value.length, (len) => {
 const tooltipData = ref<DateAnalytics | null>(null)
 const tooltipPrev = ref<DateAnalytics | null>(null)
 const tooltipEstimated = ref(false)
-
-function onTooltip(data: DateAnalytics | null, prev: DateAnalytics | null, isEstimated: boolean) {
-  // Suppress hover tooltip while dragging — the selection overlay owns the visual.
-  if (isDragging.value) {
-    tooltipData.value = null
-    tooltipPrev.value = null
-    return
-  }
-  tooltipData.value = data
-  tooltipPrev.value = prev
-  tooltipEstimated.value = isEstimated
-}
 
 const TOOLTIP_WIDTH = 200
 const EDGE_PAD = 8
@@ -211,18 +188,6 @@ function tooltipDelta(col: string): number {
   return calcTrendPercent(c as number, p as number)
 }
 
-// Calculate trend percentage for a metric
-function getTrend(col: string): number {
-  const cur = displayedPeriod.value
-  const prev = displayedPrevPeriod.value
-  if (!cur || !prev)
-    return 0
-  const current = col === 'ctr' ? cur.ctr * 100 : cur[col as keyof DateAnalytics] as number
-  const previous = col === 'ctr' ? prev.ctr * 100 : prev[col as keyof DateAnalytics] as number
-  const pct = calcTrendPercent(current, previous)
-  return col === 'position' ? -pct : pct
-}
-
 function formatMetricValue(col: string, data: PeriodTotals): string {
   if (col === 'clicks')
     return useProHumanFriendlyNumber(data.clicks)
@@ -252,6 +217,18 @@ interface BrushRange {
 
 const isDragging = ref(false)
 const dragRange = ref<BrushRange | null>(null)
+
+function onTooltip(data: DateAnalytics | null, prev: DateAnalytics | null, isEstimated: boolean) {
+  // Suppress hover tooltip while dragging. The selection overlay owns the visual.
+  if (isDragging.value) {
+    tooltipData.value = null
+    tooltipPrev.value = null
+    return
+  }
+  tooltipData.value = data
+  tooltipPrev.value = prev
+  tooltipEstimated.value = isEstimated
+}
 
 function idxToPixel(idx: number): number {
   const len = props.dates?.length ?? 0
@@ -499,6 +476,25 @@ const displayedPrevPeriod = computed<PeriodTotals | null>(() => {
     return props.prevPeriod
   return aggregate(displayedPrevSlice.value) ?? props.prevPeriod
 })
+
+const loading = computed(() => {
+  if (!hydrated.value)
+    return false
+  if (isZoomed.value && hasEverHadData.value && displayedGraph.value.length > 0)
+    return false
+  return loadingProp || devSkeleton.value
+})
+
+function getTrend(col: string): number {
+  const cur = displayedPeriod.value
+  const prev = displayedPrevPeriod.value
+  if (!cur || !prev)
+    return 0
+  const current = col === 'ctr' ? cur.ctr * 100 : cur[col as keyof DateAnalytics] as number
+  const previous = col === 'ctr' ? prev.ctr * 100 : prev[col as keyof DateAnalytics] as number
+  const pct = calcTrendPercent(current, previous)
+  return col === 'position' ? -pct : pct
+}
 
 function resetZoom() {
   emit('zoom', null)

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuRoot, NavigationMenuTrigger, NavigationMenuViewport } from 'reka-ui'
-import { withoutTrailingSlash } from 'ufo'
 import { createLogoutHandler } from '~~/layers/core/app/composables/auth'
 import { fetchSites } from '~~/layers/core/app/composables/fetch'
 
@@ -26,7 +25,6 @@ const megaMenuItems = computed(() => {
   items.push(
     { value: 'guides', label: 'Guides', icon: 'i-ph-books-duotone', to: '/guides', hasDropdown: true },
     { value: 'tools', label: 'Tools', icon: 'i-ph-wrench-duotone', to: '/tools', hasDropdown: true },
-    { value: 'pricing', label: 'Pricing', icon: 'i-ph-tag-duotone', to: '/pricing', hasDropdown: false },
   )
   return items
 })
@@ -49,14 +47,14 @@ const mobileTools = [
 
 const mobileSites = computed(() =>
   (sites.value ?? []).map(site => ({
-    label: withoutTrailingSlash(site.domain.replace('https://', '')),
+    label: siteLabel(site),
     icon: 'i-ph-browser-duotone',
     to: `/dashboard/site/${encodeURIComponent(site.siteId)}/overview`,
   })),
 )
 
 function withTitle<T extends { label: string }>(items: T[]) {
-  return items.map(m => ({ ...m, title: m.label }))
+  return items.map(m => ({ ...m, title: m.label, path: 'to' in m && typeof m.to === 'string' ? m.to : '' }))
 }
 
 const authDropdownItems = computed(() => {
@@ -73,11 +71,6 @@ const authDropdownItems = computed(() => {
     [
       { label: 'Account', to: '/account', icon: 'i-heroicons-user-circle' },
     ],
-    user.value?.access === 'pro'
-      ? false
-      : [
-          { label: 'Upgrade', to: '/account/upgrade', icon: 'i-heroicons-star' },
-        ],
     [
       {
         label: 'Logout',
@@ -85,7 +78,7 @@ const authDropdownItems = computed(() => {
         icon: 'i-heroicons-arrow-left-end-on-rectangle',
       },
     ],
-  ].filter(Boolean)
+  ]
 })
 </script>
 
@@ -192,8 +185,7 @@ const authDropdownItems = computed(() => {
         <template v-else>
           <UDropdownMenu :items="authDropdownItems" mode="hover" class="flex items-center">
             <UButton color="neutral" variant="ghost" class="p-0">
-              <UAvatar :src="user.picture" size="sm" />
-              <UBadge v-if="user.access === 'pro'" label="Pro" color="primary" variant="subtle" class="ml-1" size="sm" />
+              <UAvatar :src="user?.avatarUrl || undefined" :alt="user?.name || user?.email || 'Account'" size="sm" />
               <UIcon name="i-heroicons-chevron-down" class="w-4 h-4 ml-1 opacity-50" />
             </UButton>
           </UDropdownMenu>

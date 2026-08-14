@@ -50,7 +50,6 @@ export default defineNuxtModule<ProShellOptions>({
       'analysis',
       'competitors',
       'keywords',
-      'chat',
     ],
   },
   setup(options, nuxt) {

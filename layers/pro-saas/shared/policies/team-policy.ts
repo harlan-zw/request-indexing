@@ -10,7 +10,6 @@ export type TeamRole = 'admin' | 'editor' | 'viewer'
 export type Ability
   = | 'manage-team' // rename, settings
     | 'manage-members' // invite, change role, remove
-    | 'manage-billing' // owner-only
     | 'manage-sites' // add/remove sites, edit site settings
     | 'manage-api-tokens' // create/revoke any team API token; non-admins manage only their own
     | 'write-data' // run scans, edit briefs/keywords/competitors
@@ -24,7 +23,7 @@ const roleAbilities: Record<TeamRole, Ability[]> = {
   viewer: ['read-data'],
 }
 
-const ownerOnly: Ability[] = ['manage-billing', 'transfer-ownership', 'delete-team']
+const ownerOnly: Ability[] = ['transfer-ownership', 'delete-team']
 
 export interface AbilityContext {
   isOwner: boolean

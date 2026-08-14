@@ -20,7 +20,6 @@ const allowed = computed(() => policy.can(props.ability))
 const defaultTooltips: Record<Ability, string> = {
   'manage-team': 'Only admins can change team settings',
   'manage-members': 'Only admins can manage members',
-  'manage-billing': 'Only the team owner can manage billing',
   'manage-api-tokens': 'Only admins can manage API tokens',
   'manage-sites': 'Your role can\'t add or edit sites — ask an admin',
   'write-data': 'Your role is read-only — ask an admin to make changes',

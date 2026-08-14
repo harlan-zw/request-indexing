@@ -1,9 +1,9 @@
-import type { AdminCtx, AdminListQuery } from '../admin-shell'
 import type { SQL, SQLWrapper } from 'drizzle-orm'
+import type { AdminCtx, AdminListQuery } from '../admin-shell'
 import { and, asc, count, desc, eq, inArray, like, or } from 'drizzle-orm'
-import { defineAdminResource } from '../admin-shell'
 import { getUserDisplayMetaMap } from '../../../../pro-saas-auth/server/utils/auth/identity'
-import { feedback, users } from '../../database/_surface'
+import { feedback } from '../../database/_surface'
+import { defineAdminResource } from '../admin-shell'
 
 interface ProFeedbackRow {
   id: string
@@ -13,14 +13,12 @@ interface ProFeedbackRow {
   metadata: Record<string, unknown> | null
   createdAt: Date | null
   userId: string | null
-  subscriptionStatus: string | null
 }
 
 const sortableMap: Record<string, SQLWrapper> = {
   path: feedback.path,
   thumb: feedback.thumb,
   createdAt: feedback.createdAt,
-  subscriptionStatus: users.subscriptionStatus,
 }
 
 export default defineAdminResource<ProFeedbackRow>({
@@ -40,21 +38,6 @@ export default defineAdminResource<ProFeedbackRow>({
       badgeMap: { up: 'success', down: 'error' },
     },
     { type: 'text', key: 'comment', label: 'Comment', searchable: true },
-    {
-      type: 'badge',
-      key: 'subscriptionStatus',
-      label: 'Subscription',
-      sortable: true,
-      badgeMap: {
-        active: 'success',
-        trial: 'info',
-        past_due: 'warning',
-        paused: 'warning',
-        canceled: 'neutral',
-        read_only: 'neutral',
-        archived: 'neutral',
-      },
-    },
     {
       type: 'belongsTo',
       key: 'userId',
@@ -89,19 +72,6 @@ export default defineAdminResource<ProFeedbackRow>({
       label: 'Thumbs down',
       load: async ({ db }) => {
         const result = await db.select({ n: count() }).from(feedback).where(eq(feedback.thumb, 'down'))
-        return { value: result[0]?.n ?? 0 }
-      },
-    },
-    {
-      key: 'paying',
-      type: 'metric',
-      label: 'From paying users',
-      load: async ({ db }) => {
-        const result = await db
-          .select({ n: count() })
-          .from(feedback)
-          .leftJoin(users, eq(feedback.userId, users.userId))
-          .where(eq(users.subscriptionStatus, 'active'))
         return { value: result[0]?.n ?? 0 }
       },
     },
@@ -151,10 +121,8 @@ export default defineAdminResource<ProFeedbackRow>({
         metadata: feedback.metadata,
         createdAt: feedback.createdAt,
         userId: feedback.userId,
-        subscriptionStatus: users.subscriptionStatus,
       })
         .from(feedback)
-        .leftJoin(users, eq(feedback.userId, users.userId))
         .where(whereExpr)
         .orderBy(order)
         .limit(perPage)
@@ -188,10 +156,8 @@ export default defineAdminResource<ProFeedbackRow>({
         metadata: feedback.metadata,
         createdAt: feedback.createdAt,
         userId: feedback.userId,
-        subscriptionStatus: users.subscriptionStatus,
       })
       .from(feedback)
-      .leftJoin(users, eq(feedback.userId, users.userId))
       .where(eq(feedback.id, id))
       .limit(1)
     return (row as ProFeedbackRow | undefined) ?? null

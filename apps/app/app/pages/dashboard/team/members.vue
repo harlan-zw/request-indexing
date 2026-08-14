@@ -22,16 +22,13 @@ const rows = computed(() => {
 
 <template>
   <div class="max-w-3xl">
-    <h2 class="mb-4 font-bold text-xl">
-      Team Members
-    </h2>
     <UTable :data="rows">
       <template #user-cell="{ row }">
         <div class="flex items-center gap-2">
           <UAvatar :src="row.original.avatar ?? undefined" />
           <div>
             <div>{{ row.original.user }}</div>
-            <div class="text-gray-400 text-xs">
+            <div class="text-xs text-muted">
               {{ row.original.email }}
             </div>
           </div>

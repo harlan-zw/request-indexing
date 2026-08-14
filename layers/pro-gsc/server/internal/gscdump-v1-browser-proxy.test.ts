@@ -8,23 +8,7 @@ import {
 
 function makeCaller(overrides: Partial<Caller> = {}): Caller {
   return {
-    user: { id: 1, email: null, name: null, avatarUrl: null, providers: [], stripeEmail: null, apiKey: null, createdAt: null },
-    subscription: {
-      status: 'active',
-      plan: 'pro',
-      tier: 'pro',
-      billingCycle: 'monthly',
-      sitesLimit: null,
-      promptsLimit: null,
-      mcpEnabled: false,
-      apiAccessEnabled: false,
-      stripeCustomerId: null,
-      cancelAtPeriodEnd: false,
-      trialEndsAt: null,
-      currentPeriodEnd: null,
-      readOnlyUntil: null,
-      archivedAt: null,
-    },
+    user: { id: 1, email: null, name: null, avatarUrl: null, providers: [], apiKey: null, createdAt: null },
     memberships: [],
     currentTeamId: null,
     isAdmin: false,

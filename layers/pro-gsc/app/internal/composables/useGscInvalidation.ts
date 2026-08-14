@@ -19,7 +19,6 @@ export function useGscInvalidationMap(): Ref<InvalidationMap> {
   return useState<InvalidationMap>('gsc-invalidation', () => ({}))
 }
 
-// eslint-disable-next-line harlanzw/vue-require-composable-prefix -- imperative side-effect, not a composable
 export function bumpGscInvalidation(siteId: string): void {
   const map = useGscInvalidationMap()
   map.value = { ...map.value, [siteId]: (map.value[siteId] ?? 0) + 1 }

@@ -22,9 +22,8 @@ export async function resolveExistingUser(
   db: ReturnType<typeof useDrizzle>,
   provider: AuthProviderId,
   providerUserId: string,
-  verifiedEmails: string[],
 ) {
-  // 1. By identity row (the canonical answer).
+  // By identity row (the canonical answer).
   const identityRow = await db.query.userIdentities.findFirst({
     where: and(eq(userIdentities.provider, provider), eq(userIdentities.providerUserId, providerUserId)),
   }).catch(() => null)
@@ -33,14 +32,25 @@ export async function resolveExistingUser(
     if (user)
       return { user, matchedBy: 'identity' as const }
   }
-  // 2. Stripe-email match (verified by payment), only against verified emails.
-  if (verifiedEmails.length) {
-    const stripeMatch = await db.query.users.findFirst({
-      where: inArray(users.stripeEmail, verifiedEmails),
-    }).catch(() => null)
-    if (stripeMatch)
-      return { user: stripeMatch, matchedBy: 'stripeEmail' as const }
+
+  // Legacy fallback. Every account created before `user_identities` existed
+  // stored Google's `sub` directly on `users.sub`, and none of them has an
+  // identity row (the table is empty in production while `users` holds 2570
+  // rows). Without this, each of those users looks brand new on sign-in, and
+  // account creation then dies on the `users_email_unique` / `users_sub_unique`
+  // constraints, surfacing as "Failed to create account".
+  //
+  // Google only: `users.sub` predates multi-provider auth, so a GitHub id could
+  // never have been written there, and matching it cross-provider would let a
+  // GitHub account with a colliding id claim someone else's row. The caller
+  // upserts the identity row afterwards, so each legacy user takes this path
+  // once and is matched canonically from then on.
+  if (provider === 'google') {
+    const legacyUser = await db.query.users.findFirst({ where: eq(users.sub, providerUserId) }).catch(() => null)
+    if (legacyUser)
+      return { user: legacyUser, matchedBy: 'legacy-sub' as const }
   }
+
   return { user: null, matchedBy: null }
 }
 

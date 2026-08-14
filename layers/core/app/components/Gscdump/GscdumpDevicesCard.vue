@@ -23,6 +23,10 @@ const deviceIcon = {
   DESKTOP: 'i-heroicons-computer-desktop',
   TABLET: 'i-heroicons-device-tablet',
 } as Record<string, string>
+
+function iconForDevice(device?: string) {
+  return deviceIcon[device?.toUpperCase() ?? '']
+}
 </script>
 
 <template>
@@ -32,7 +36,7 @@ const deviceIcon = {
   <div v-else-if="tableData.rows.value.length" class="space-y-3">
     <div v-for="row in tableData.rows.value" :key="row.device">
       <div class="flex items-center gap-1 text-sm">
-        <UIcon v-if="deviceIcon[row.device?.toUpperCase()]" :name="deviceIcon[row.device?.toUpperCase()]" class="w-4 h-4 text-gray-500" />
+        <UIcon v-if="iconForDevice(row.device)" :name="iconForDevice(row.device)" class="w-4 h-4 text-gray-500" />
         <span class="capitalize text-xs text-gray-500">{{ row.device?.toLowerCase() }}</span>
       </div>
       <div class="text-lg font-mono">

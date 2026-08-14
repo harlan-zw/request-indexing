@@ -12,6 +12,7 @@ await fetchSession()
 
 const { features } = useProSaasFeatures()
 const googleEnabled = computed(() => features.value.googleSignIn)
+const githubEnabled = computed(() => features.value.githubSignIn)
 
 const route = useRoute()
 
@@ -42,7 +43,7 @@ const errorVariant = computed<'no_account' | 'conflict' | 'email_not_verified' |
 
 const errorTitle = computed(() => {
   if (noAccountFound.value)
-    return 'No Pro account found'
+    return 'No account found'
   if (conflictError.value)
     return 'Account exists with another sign-in method'
   if (emailNotVerified.value)
@@ -99,7 +100,7 @@ interface ProviderButton {
 
 const providerButtons = computed<ProviderButton[]>(() => {
   const all: ProviderButton[] = [
-    { id: 'github', label: 'Sign in with GitHub', icon: 'i-simple-icons-github', enabled: true },
+    { id: 'github', label: 'Sign in with GitHub', icon: 'i-simple-icons-github', enabled: githubEnabled.value },
     { id: 'google', label: 'Sign in with Google', icon: 'i-simple-icons-google', enabled: googleEnabled.value },
   ]
   const enabled = all.filter(p => p.enabled)
@@ -112,7 +113,7 @@ const providerButtons = computed<ProviderButton[]>(() => {
 useRobotsRule(false)
 useSeoMeta({
   title: 'Sign in',
-  description: 'Sign in to your Nuxt SEO Pro account.',
+  description: 'Sign in to your Request Indexing account.',
 })
 </script>
 
@@ -123,7 +124,7 @@ useSeoMeta({
         Welcome back
       </h1>
       <p class="text-muted text-sm leading-relaxed">
-        Sign in to your Pro dashboard.
+        Sign in to your dashboard.
       </p>
     </div>
 
@@ -137,10 +138,7 @@ useSeoMeta({
       class="mb-4"
     >
       <p v-if="errorVariant === 'no_account'" class="text-muted mt-0.5">
-        <ULink to="/pro/onboarding" class="font-medium text-highlighted hover:text-primary transition-colors">
-          Create a Pro account
-        </ULink>
-        first, then come back here to sign in.
+        <span class="font-medium text-highlighted">Sign in with Google</span> to create one.
       </p>
     </ProAlert>
 
@@ -221,10 +219,8 @@ useSeoMeta({
     </template>
 
     <p class="mt-7 text-xs text-muted">
-      New to Nuxt SEO Pro?
-      <ULink to="/pro/onboarding" class="font-medium text-highlighted hover:text-primary transition-colors">
-        Create a free account
-      </ULink>
+      New to Request Indexing?
+      <span class="font-medium text-highlighted">Sign in with Google above to create a free account.</span>
     </p>
   </div>
 </template>

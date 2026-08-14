@@ -1,4 +1,10 @@
 <script lang="ts">
+</script>
+
+<script lang="ts" setup generic="T extends object = Record<string, unknown>">
+import type { TableColumn } from '@nuxt/ui'
+import { useUrlSearchParams } from '@vueuse/core'
+
 export interface TableAsyncDataProps {
   filter?: string
   expandable?: boolean
@@ -13,11 +19,6 @@ export interface TableAsyncDataProps {
     special?: boolean
   }>
 }
-</script>
-
-<script lang="ts" setup generic="T extends object = Record<string, unknown>">
-import type { TableColumn } from '@nuxt/ui'
-import { useUrlSearchParams } from '@vueuse/core'
 
 interface LegacyTableColumn {
   key: string
@@ -39,7 +40,7 @@ interface TableAsyncDataResult<T> {
   totals?: unknown
 }
 
-type SortState = { column?: string, direction?: 'asc' | 'desc' }
+interface SortState { column?: string, direction?: 'asc' | 'desc' }
 
 interface TableAsyncDataGenericProps<T extends object> {
   filter?: string
@@ -224,7 +225,7 @@ const tableUi = {
     </template>
 
     <UTable :loading="isLoading" :data="rows" :columns="tableColumns" :ui="tableUi">
-      <template v-for="column in displayColumns" #[`${column.key}-header`]="data">
+      <template v-for="column in displayColumns" :key="column.key" #[`${column.key}-header`]="data">
         <slot
           v-if="$slots[`${column.key}-header`]"
           :name="`${column.key}-header`"
@@ -254,7 +255,7 @@ const tableUi = {
         />
       </template>
 
-      <template v-for="column in displayColumns.filter(column => column.key !== 'expand')" #[`${column.key}-cell`]="data">
+      <template v-for="column in displayColumns.filter(column => column.key !== 'expand')" :key="column.key" #[`${column.key}-cell`]="data">
         <slot
           :name="`${column.key}-data`"
           v-bind="data"

@@ -5,13 +5,17 @@ const props = defineProps<{
 
 const { data, status } = useGscdumpSitemaps(() => props.siteId)
 
+// Nuxt UI v4 tables are TanStack-backed and need `accessorKey`/`header`; the v2
+// `{ key, label }` shape produces column defs with no id. This table only
+// escaped the resulting server-render crash because it sits behind a `v-if` on
+// loaded data, so it never rendered during SSR.
 const columns = [
-  { key: 'path', label: 'Sitemap' },
-  { key: 'urlCount', label: 'URLs' },
-  { key: 'errors', label: 'Errors' },
-  { key: 'warnings', label: 'Warnings' },
-  { key: 'lastDownloaded', label: 'Last Downloaded' },
-  { key: 'status', label: 'Status' },
+  { accessorKey: 'path', header: 'Sitemap' },
+  { accessorKey: 'urlCount', header: 'URLs' },
+  { accessorKey: 'errors', header: 'Errors' },
+  { accessorKey: 'warnings', header: 'Warnings' },
+  { accessorKey: 'lastDownloaded', header: 'Last Downloaded' },
+  { accessorKey: 'status', header: 'Status' },
 ]
 
 const historyGraph = computed(() => {
@@ -40,37 +44,37 @@ const historyGraph = computed(() => {
       </div>
 
       <UTable
-        :rows="data.sitemaps"
+        :data="data.sitemaps"
         :columns="columns"
         :ui="{
           th: 'px-2 py-2 text-xs font-normal',
           td: 'px-2 py-1',
         }"
       >
-        <template #path-data="{ row }">
-          <span class="text-xs text-blue-600 truncate max-w-[300px] block" :title="row.path">{{ row.path }}</span>
+        <template #path-cell="{ row: r }">
+          <span class="text-xs text-blue-600 truncate max-w-[300px] block" :title="r.original.path">{{ r.original.path }}</span>
         </template>
-        <template #urlCount-data="{ row }">
-          <span class="text-xs font-mono text-right block">{{ useHumanFriendlyNumber(row.urlCount) }}</span>
+        <template #urlCount-cell="{ row: r }">
+          <span class="text-xs font-mono text-right block">{{ useHumanFriendlyNumber(r.original.urlCount) }}</span>
         </template>
-        <template #errors-data="{ row }">
-          <UBadge v-if="row.errors > 0" color="error" variant="subtle" size="xs">
-            {{ row.errors }}
+        <template #errors-cell="{ row: r }">
+          <UBadge v-if="r.original.errors > 0" color="error" variant="subtle" size="xs">
+            {{ r.original.errors }}
           </UBadge>
           <span v-else class="text-xs text-gray-400">0</span>
         </template>
-        <template #warnings-data="{ row }">
-          <UBadge v-if="row.warnings > 0" color="warning" variant="subtle" size="xs">
-            {{ row.warnings }}
+        <template #warnings-cell="{ row: r }">
+          <UBadge v-if="r.original.warnings > 0" color="warning" variant="subtle" size="xs">
+            {{ r.original.warnings }}
           </UBadge>
           <span v-else class="text-xs text-gray-400">0</span>
         </template>
-        <template #lastDownloaded-data="{ row }">
-          <span v-if="row.lastDownloaded" class="text-xs text-gray-500">{{ formatIndexingTimeAgo(row.lastDownloaded) }}</span>
+        <template #lastDownloaded-cell="{ row: r }">
+          <span v-if="r.original.lastDownloaded" class="text-xs text-gray-500">{{ formatIndexingTimeAgo(r.original.lastDownloaded) }}</span>
           <span v-else class="text-xs text-gray-400">-</span>
         </template>
-        <template #status-data="{ row }">
-          <UBadge v-if="row.isPending" color="warning" variant="subtle" size="xs">
+        <template #status-cell="{ row: r }">
+          <UBadge v-if="r.original.isPending" color="warning" variant="subtle" size="xs">
             Pending
           </UBadge>
           <UBadge v-else color="success" variant="subtle" size="xs">

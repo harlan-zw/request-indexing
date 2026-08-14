@@ -4,9 +4,9 @@
 // schema are not load-bearing. Every per-user table is deleted explicitly,
 // children before parents.
 //
-// Cross-system side-effects (Stripe cancel, gscdump partner DELETE, chat
-// purge, admin audit log) live in `pro:user:deleting` (pre, critical) and
-// `pro:user:deleted` (post, best-effort) listeners per ADR-0007.
+// Cross-system side-effects (gscdump partner DELETE, admin audit log) live in
+// `pro:user:deleting` (pre, critical) and `pro:user:deleted` (post,
+// best-effort) listeners per ADR-0007.
 //
 // Pass `dryRun: true` to count rows that would be deleted without mutating.
 // Returns a per-table summary suitable for storing in an audit log.
@@ -45,7 +45,6 @@ export interface DeleteUserResult {
     name: string | null
     email: string | null
     identities: Array<{ provider: string, email: string | null, displayName: string | null }>
-    stripeEmail: string | null
     gscdumpUserId: string | null
   } | null
   deleted: Record<string, number>
@@ -85,20 +84,17 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
     (a, b) => (b.lastUsedAt?.getTime() ?? 0) - (a.lastUsedAt?.getTime() ?? 0),
   )
   const primaryIdentity = sortedIdentities[0] ?? null
-  const primaryEmail = primaryIdentity?.email ?? user.stripeEmail ?? ''
+  const primaryEmail = primaryIdentity?.email ?? user.email ?? ''
 
-  // Pre-hook: critical listeners (e.g. Stripe cancel, gscdump partner DELETE)
-  // run BEFORE rows are purged so they can read the canonical row state. A
-  // throw here aborts the delete entirely — the caller surfaces it as 5xx.
+  // Pre-hook: critical listeners (e.g. gscdump partner DELETE) run BEFORE
+  // rows are purged so they can read the canonical row state. A throw here
+  // aborts the delete entirely — the caller surfaces it as 5xx.
   if (!dryRun) {
     await dispatchEvent('pro:user:deleting', {
       event,
       userId,
       email: primaryEmail,
-      stripeCustomerId: user.stripeCustomerId ?? null,
       gscdumpUserId: user.gscdumpUserId ?? null,
-      subscriptionId: user.subscriptionId ?? null,
-      subscriptionStatus: user.subscriptionStatus ?? null,
     })
   }
 
@@ -245,7 +241,6 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
       event,
       userId,
       email: primaryEmail,
-      stripeCustomerId: user.stripeCustomerId ?? null,
       gscdumpUserId: user.gscdumpUserId ?? null,
     }).catch((err: unknown) => {
       getProLogger(event).error('pro:user:deleted hook failed', err)
@@ -264,7 +259,6 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
         email: i.email,
         displayName: i.displayName,
       })),
-      stripeEmail: user.stripeEmail,
       gscdumpUserId: user.gscdumpUserId,
     },
     deleted,

@@ -1,24 +1,38 @@
 <script lang="ts" setup>
-import { createChart } from 'lightweight-charts'
+import { AreaSeries, ColorType, createChart } from 'lightweight-charts'
+
+interface ChartPoint {
+  time: string
+  value: number
+}
+
+interface SearchConsoleSeries {
+  clicks: ChartPoint[]
+  impressions: ChartPoint[]
+  ctr: ChartPoint[]
+  position: ChartPoint[]
+}
 
 const props = defineProps<{
-  value: { clicks: { time: string, value: number }[], impressions: { time: string, value: number }[] }
+  value: SearchConsoleSeries
   charts: ('clicks' | 'impressions' | 'ctr' | 'position')[]
   height?: number | string
 }>()
 
 const emits = defineEmits<{
-  tooltip: [data: { clicks: number, impressions: number, time: string } | null]
+  tooltip: [data: { clicks: number, impressions: number, ctr: number, position: number, time: string } | null]
 }>()
 
 const colorMode = useColorMode()
 
-const chart = ref(null)
-const container = ref(null)
+const chart = ref<HTMLElement | null>(null)
+const container = ref<HTMLElement | null>(null)
 
 const tooltipData = ref({
   clicks: 0,
   impressions: 0,
+  ctr: 0,
+  position: 0,
   time: '',
 })
 
@@ -26,7 +40,7 @@ const darkTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -34,9 +48,6 @@ const darkTheme = {
     },
     watermark: {
       color: 'rgba(0, 0, 0, 0)',
-    },
-    crosshair: {
-      color: '#758696',
     },
     grid: {
       vertLines: {
@@ -57,13 +68,13 @@ const darkTheme = {
     bottomColor: 'rgba(156, 39, 176, 0.04)',
     lineColor: 'rgba(156, 39, 176, 0.5)',
   },
-}
+} as const
 
 const lightTheme = {
   chart: {
     layout: {
       background: {
-        type: 'solid',
+        type: ColorType.Solid,
         color: 'transparent',
       },
       lineColor: '#2B2B43',
@@ -92,12 +103,12 @@ const lightTheme = {
     bottomColor: 'rgba(156, 39, 176, 0.04)',
     lineColor: 'rgba(156, 39, 176, 0.4)',
   },
-}
+} as const
 
 const themesData = {
   Dark: darkTheme,
   Light: lightTheme,
-}
+} as const
 
 onMounted(() => {
   const _chart = createChart(chart.value!, {
@@ -123,7 +134,7 @@ onMounted(() => {
   props.charts.forEach((chart) => {
     switch (chart) {
       case 'clicks':
-        _chart.addAreaSeries({
+        _chart.addSeries(AreaSeries, {
           topColor: 'rgba(33, 150, 243, 0.56)',
           bottomColor: 'rgba(33, 150, 243, 0.04)',
           lineColor: 'rgba(33, 150, 243, 1)',
@@ -138,7 +149,7 @@ onMounted(() => {
         }).setData(props.value.clicks)
         break
       case 'impressions':
-        _chart.addAreaSeries({
+        _chart.addSeries(AreaSeries, {
           topColor: 'rgba(156, 39, 176, 0.3)',
           bottomColor: 'rgba(156, 39, 176, 0.04)',
           lineColor: 'rgba(156, 39, 176, 0.4)',
@@ -154,7 +165,7 @@ onMounted(() => {
         break
       case 'position':
         // position uses an orange colour
-        _chart.addAreaSeries({
+        _chart.addSeries(AreaSeries, {
           topColor: 'rgba(255, 152, 0, 0.3)',
           bottomColor: 'rgba(255, 152, 0, 0.04)',
           lineColor: 'rgba(255, 152, 0, 0.4)',
@@ -168,6 +179,19 @@ onMounted(() => {
           lineType: 2,
         }).setData(props.value.position)
         break
+      case 'ctr':
+        _chart.addSeries(AreaSeries, {
+          topColor: 'rgba(0, 137, 123, 0.3)',
+          bottomColor: 'rgba(0, 137, 123, 0.04)',
+          lineColor: 'rgba(0, 137, 123, 0.4)',
+          lineWidth: 2,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          priceScaleId: 'right',
+          priceFormat: { type: 'percent' },
+          lineType: 2,
+        }).setData(props.value.ctr)
+        break
     }
   })
 
@@ -175,7 +199,7 @@ onMounted(() => {
     const _container = container.value!
     if (
       param.point === undefined
-      || !param.time
+      || typeof param.time !== 'string'
       || param.point.x < 0
       || param.point.x > _container.clientWidth
       || param.point.y < 0
@@ -184,6 +208,8 @@ onMounted(() => {
       tooltipData.value = {
         clicks: 0,
         impressions: 0,
+        ctr: 0,
+        position: 0,
         time: '',
       }
     }
@@ -191,12 +217,14 @@ onMounted(() => {
       // time will be in the same format that we supplied to setData.
       // thus it will be YYYY-MM-DD
       const dateStr = param.time
-      const clicks = props.value.clicks.find(d => d.time === dateStr).value
-      const impressions = props.value.impressions.find(d => d.time === dateStr).value
-      const position = props.value.position.find(d => d.time === dateStr).value
+      const clicks = props.value.clicks.find(d => d.time === dateStr)?.value ?? 0
+      const impressions = props.value.impressions.find(d => d.time === dateStr)?.value ?? 0
+      const position = props.value.position.find(d => d.time === dateStr)?.value ?? 0
+      const ctr = props.value.ctr.find(d => d.time === dateStr)?.value ?? 0
       tooltipData.value = {
         clicks,
         impressions,
+        ctr,
         position,
         time: dateStr,
       }
@@ -214,7 +242,7 @@ onMounted(() => {
     }
   })
 
-  function syncToTheme(theme) {
+  function syncToTheme(theme: keyof typeof themesData) {
     _chart.applyOptions(themesData[theme].chart)
     // areaSeries.applyOptions(themesData[theme].series)
     // areaSeries2.applyOptions(themesData[theme].series2)
@@ -236,6 +264,8 @@ watch(containerHovered, (val) => {
     tooltipData.value = {
       clicks: 0,
       impressions: 0,
+      ctr: 0,
+      position: 0,
       time: '',
     }
   }

@@ -27,7 +27,9 @@ const columns = [
   { key: 'topKeyword', label: 'Top Keyword', class: 'w-32' },
 ]
 
-function pageToPath(url: string) {
+function pageToPath(url?: string) {
+  if (!url)
+    return ''
   try {
     return new URL(url).pathname
   }
@@ -52,7 +54,7 @@ function pageToPath(url: string) {
   >
     <template #page-data="{ row }">
       <NuxtLink
-        :to="`/dashboard/site/${siteId}/pages/${encodeURIComponent(row.page)}`"
+        :to="`/dashboard/site/${siteId}/pages/${encodeURIComponent(row.page ?? '')}`"
         class="text-blue-600 hover:underline truncate max-w-[300px] block text-xs"
         :title="row.page"
       >

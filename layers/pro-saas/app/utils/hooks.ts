@@ -2,7 +2,7 @@
  * Nuxt Layer Hook contracts owned by pro-saas.
  *
  * pro-saas is the producer; consumer layers (pro-gsc, pro-perf, pro-reports,
- * pro-chat, nuxt-seo-pro) listen via `app/plugins/*.ts`. See
+ * nuxt-seo-pro) listen via `app/plugins/*.ts`. See
  * docs/adr/0010-page-flows-via-nuxt-layer-hooks.md and ADR-0015 (Site
  * Features now live in pro-shell's build-time registry).
  */
@@ -10,7 +10,7 @@ import type { Component } from 'vue'
 import type { Caller } from '#layers/pro-saas/shared/caller'
 
 /** A required external integration that gates a surface or feature. */
-export type SiteFeatureIntegration = 'gscdump' | 'lighthouse' | 'subscription' | null
+export type SiteFeatureIntegration = 'gscdump' | 'lighthouse' | null
 
 /** Context passed to Onboarding Step listeners and `isComplete` predicates. */
 export interface OnboardingContext {

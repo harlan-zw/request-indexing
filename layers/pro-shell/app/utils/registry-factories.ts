@@ -24,6 +24,6 @@ export function proFeatureSetup(opts: {
 }
 
 // `siteSurfaceSetup` removed for now — the SiteSurface contract lives in
-// the upstream `pro-saas` layer which we haven't copied. Re-add when
-// pro-saas-billing or a successor layer brings the `pro:site-surface` hook
-// contract back.
+// the upstream `pro-saas` layer which we haven't copied. Re-add if a future
+// layer brings the `pro:site-surface` hook contract back; billing is gone
+// and will not be that layer.

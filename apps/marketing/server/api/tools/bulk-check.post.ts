@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
   // Validate URLs
   for (const url of urls) {
     try {
-      new URL(url)
+      void new URL(url)
     }
     catch {
       throw createError({ statusCode: 400, message: `Invalid URL: ${url}` })

@@ -11,23 +11,27 @@ const { data: sitesData } = await fetchSites()
 
 const sites = computed(() => sitesData.value?.sites || [])
 
-const site = (sites.value || []).find(site => site.siteId === slug)
+// Computed, not a snapshot: this used to read `sites.value.find(...)` once
+// during setup. On a server render the roster is not resolved at that moment,
+// so `site` was `undefined` forever, `site.domain` below threw, and every
+// hard load of this route 500'd while client-side navigation worked.
+// `/api/sites/list` returns `sites.public_id` ("kv1112") as `siteId`, while the
+// row type declares the integer primary key. Compare as strings until that type
+// is honest, so the match does not depend on the lie.
+const site = computed(() => sites.value.find(s => String(s.siteId) === slug))
 
-// if (!sites.value || !site) {
-//   throw createError({
-//     statusCode: 404,
-//     statusMessage: 'Site Not Found',
-//   })
-// }
-// const route = useRoute()
-
-// const siteLoader = await fetchSite(site)
-// const { data, pending, refresh } = siteLoader
+// Only a loaded roster can prove a slug is wrong. Throwing while `sitesData`
+// is still null would turn "not fetched yet" into "does not exist".
+watchEffect(() => {
+  if (sitesData.value && !site.value) {
+    throw createError({ statusCode: 404, statusMessage: 'Site Not Found' })
+  }
+})
 
 useHead({
   titleTemplate: '%s %separator %domain %separator %site.name',
   templateParams: {
-    domain: useFriendlySiteUrl(site.domain),
+    domain: computed(() => site.value ? siteLabel(site.value) : ''),
   },
 })
 
@@ -78,16 +82,14 @@ useHead({
 //   const childSegment = route.path.split('/').pop()
 //   return navigateTo(`/dashboard/site/${encodeURIComponent(siteUrl)}/${childSegment}`)
 // }
-
-const domain = ref(site.domain)
-watch(domain, () => {
-  navigateTo(domain.value.to)
-})
 </script>
 
 <template>
   <div class="max-w-[1200px]">
+    <!-- Child pages declare `site` as required and dereference it immediately,
+         so they must never be mounted with an unresolved roster. -->
     <NuxtPage
+      v-if="site"
       :site="site"
     />
   </div>

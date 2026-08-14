@@ -3,7 +3,7 @@
 import type { ConsolaInstance } from 'consola'
 import type { EventHandler, EventHandlerRequest, H3Event } from 'h3'
 import type { ZodError, ZodTypeAny } from 'zod'
-import type { Caller, CallerPlan } from '../../shared/caller'
+import type { Caller } from '../../shared/caller'
 import type { ProErrorCode, ProErrorEnvelope } from '../../shared/errors'
 import type { Ability } from '../../shared/policies/team-policy'
 import type { CurrentTeamContext } from './require-current-team'
@@ -11,7 +11,7 @@ import type { RequireSiteAccessOptions } from './require-site-access'
 import { createConsola } from 'consola'
 import { ProError } from '../../shared/errors'
 import { recordApiUsageLater } from './api-usage'
-import { getCaller, requireCaller, requireSubscription } from './get-caller'
+import { getCaller, requireCaller } from './get-caller'
 import { requireCurrentTeam } from './require-current-team'
 import { requireSiteAccess } from './require-site-access'
 
@@ -27,13 +27,11 @@ function statusToProCode(status: number): ProErrorCode {
   switch (status) {
     case 400: return 'validation_failed'
     case 401: return 'unauthorized'
-    case 402: return 'subscription_required'
     case 403: return 'forbidden'
     case 404: return 'not_found'
     case 409: return 'conflict'
     case 410: return 'invitation_expired'
     case 422: return 'validation_failed'
-    case 423: return 'read_only'
     case 429: return 'rate_limited'
     default: return status >= 500 ? 'internal_error' : 'forbidden'
   }
@@ -109,8 +107,6 @@ export interface ProHandlerOptions<B extends ZodTypeAny = ZodTypeAny> {
   site?: boolean | RequireSiteAccessOptions
   /** Validate body via `readProValidatedBody(event, schema)` and put it on `ctx.body`. */
   body?: B
-  /** Enforce `requireSubscription(caller, plan)`; `true` means `'pro'`. */
-  subscription?: CallerPlan | true
   /** Record unified API usage for authenticated Pro/team routes. Off by default. */
   usage?: boolean | { source?: 'rest' | 'internal', action?: string }
 }
@@ -177,9 +173,6 @@ async function buildHandlerCtx<O extends ProHandlerOptions>(
     ctx.site = await requireSiteAccess(event, siteOpts)
     ctx.caller = (ctx.site as Awaited<ReturnType<typeof requireSiteAccess>>).caller
   }
-
-  if (options.subscription && ctx.caller)
-    requireSubscription(ctx.caller as Caller, options.subscription === true ? 'pro' : options.subscription)
 
   if (options.body)
     ctx.body = await readProValidatedBody(event, options.body)
@@ -309,7 +302,6 @@ export async function readProValidatedBody<S extends ZodTypeAny>(
 ): Promise<import('zod').z.infer<S>> {
   // Safe: a parse error becomes `undefined`, which zod then rejects with the
   // canonical `validation_failed` envelope below.
-  // eslint-disable-next-line harlanzw/no-silent-catch -- parse failure is re-surfaced as validation_failed
   const body = await readBody(event).catch(() => undefined)
   const result = schema.safeParse(body)
   if (!result.success) {

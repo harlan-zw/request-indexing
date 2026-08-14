@@ -3,8 +3,8 @@
 // site linked" hints in the dashboard. Schema is intentionally open; the
 // dashboard reads whichever keys it understands.
 //
-// V1 will replace this with a richer per-user onboarding state machine once
-// the citation-tracker + edge-worker flows define the steps.
+// V1 will replace this with a richer per-user onboarding state machine if
+// the onboarding flow grows more steps.
 
 export async function updateOnboardingState(userId: number, patch: Record<string, unknown>): Promise<void> {
   const storage = useStorage('cache')

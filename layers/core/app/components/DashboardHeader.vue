@@ -2,6 +2,10 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { createLogoutHandler } from '~~/layers/core/app/composables/auth'
 
+const { toggle = true } = defineProps<{
+  toggle?: boolean
+}>()
+
 const { user } = useUserSession()
 const logout = createLogoutHandler()
 const router = useRouter()
@@ -20,17 +24,12 @@ const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
   }
   const groups: DropdownMenuItem[][] = [
     [
-      { type: 'label', label: user.value.email },
+      { type: 'label', label: user.value?.email ?? '' },
     ],
     [
       { label: 'Account', to: '/account', icon: 'i-heroicons-user-circle' },
     ],
   ]
-  if (user.value.access !== 'pro') {
-    groups.push([
-      { label: 'Upgrade', to: '/account/upgrade', icon: 'i-heroicons-star', badge: '0 left' },
-    ])
-  }
   groups.push([
     {
       label: 'Logout',
@@ -43,17 +42,16 @@ const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
 </script>
 
 <template>
-  <UDashboardNavbar>
+  <UDashboardNavbar :toggle="toggle">
     <template #left>
       <slot />
     </template>
     <template #right>
       <div class="flex items-center gap-2">
-        <UColorModeButton size="sm" />
+        <UColorModeButton size="sm" class="min-h-11 min-w-11" />
         <UDropdownMenu :items="authDropdownItems" :content="{ align: 'end' }">
-          <button class="flex items-center gap-2 rounded-md px-1 py-1 hover:bg-elevated transition-colors">
-            <UAvatar :src="user.picture" size="sm" />
-            <UBadge v-if="user.access === 'pro'" label="Pro" color="primary" variant="subtle" />
+          <button aria-label="Open account menu" class="flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-elevated">
+            <UAvatar :src="user?.avatarUrl || undefined" :alt="user?.name || user?.email || 'Account'" size="sm" />
             <UIcon name="i-heroicons-chevron-down" class="size-4 text-dimmed" />
           </button>
         </UDropdownMenu>

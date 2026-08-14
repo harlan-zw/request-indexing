@@ -1,6 +1,7 @@
 <script setup>
 import { domAnimation, LazyMotion, MotionConfig } from 'motion-v'
 import { ConfigProvider } from 'reka-ui'
+import { isRuntimeOnlyRoute } from '~~/shared/routes'
 
 const useIdFunction = () => useId()
 
@@ -43,7 +44,11 @@ useSeoMeta({
   twitterTitle: 'Get your pages indexed within 48 hours.',
 })
 
-defineOgImage('Splash')
+// Only prerendered routes get the site-wide OG image. `ogImage.zeroRuntime`
+// serves images as build-time files, so emitting this URL on a runtime-only
+// route points social crawlers at an image the worker cannot produce.
+if (!isRuntimeOnlyRoute(useRoute().path))
+  defineOgImage('Splash')
 </script>
 
 <template>
@@ -56,6 +61,39 @@ defineOgImage('Splash')
           <NuxtLayout>
             <NuxtPage />
           </NuxtLayout>
+
+          <!--
+            Shown when the server reports a newer build than the one this tab
+            loaded. Paired with `skewProtection.reloadStrategy: 'prompt'` in
+            nuxt.config: the strategy detects the stale build, this renders the
+            choice. Without it, `prompt` would detect and then do nothing.
+          -->
+          <SkewNotification v-slot="{ isOpen, dismiss, reload }">
+            <Transition
+              enter-active-class="transition duration-300 ease-out"
+              enter-from-class="opacity-0 translate-y-2"
+              enter-to-class="opacity-100 translate-y-0"
+              leave-active-class="transition duration-200 ease-in"
+              leave-from-class="opacity-100 translate-y-0"
+              leave-to-class="opacity-0 translate-y-2"
+            >
+              <div v-if="isOpen" class="fixed bottom-4 right-4 z-50">
+                <div class="flex items-center gap-3 rounded-full bg-default px-4 py-3 shadow-lg ring ring-default">
+                  <UIcon name="i-lucide-sparkles" class="size-4 text-primary" />
+                  <span class="text-sm font-medium text-highlighted">New version available</span>
+                  <UButton size="xs" label="Refresh" @click="reload" />
+                  <UButton
+                    size="xs"
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-lucide-x"
+                    aria-label="Dismiss update notification"
+                    @click="dismiss"
+                  />
+                </div>
+              </div>
+            </Transition>
+          </SkewNotification>
         </UApp>
       </MotionConfig>
     </LazyMotion>

@@ -3,8 +3,8 @@ import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
 import { deleteAccountBodySchema } from '#layers/pro-saas/shared/validators/account'
 
 // Account deletion. `deleteAccount` -> `deleteUserData` already fires the
-// `pro:user:deleting` / `pro:user:deleted` hooks (gscdump purge, Stripe
-// cancel, etc listen there); this route only wires the caller + response.
+// `pro:user:deleting` / `pro:user:deleted` hooks (gscdump purge etc listen
+// there); this route only wires the caller + response.
 export default defineProApiHandler({
   body: deleteAccountBodySchema,
 }, async ({ event, db, caller, body }) => {

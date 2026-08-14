@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { GscdumpIndexingUrl } from '#layers/pro-gsc/shared/gscdump-api'
 import type { UiTableColumn } from '#layers/design-system/components/data/table-features'
+import type { GscdumpIndexingUrl } from '#layers/pro-gsc/shared/gscdump-api'
 import { h } from 'vue'
 import { ProStatusBadge } from '#components'
 import ProGscTableShell from '#layers/pro-gsc/app/components/pro/ProGscTableShell.vue'
