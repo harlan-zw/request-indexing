@@ -38,6 +38,12 @@ export default defineNuxtConfig({
     './layers/pro-indexing',
     './layers/core',
   ],
+  nuxtDx: {
+    report: true,
+    sizeBudget: {
+      overridesKb: { 'server/plugins/sentry.ts': 326 },
+    },
+  },
   modules: [
     '@harlan-zw/nuxt-domain-events',
     '@harlan-zw/nuxt-use-query',
