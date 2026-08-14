@@ -1,15 +1,16 @@
 import { sentryCloudflareNitroPlugin } from '@sentry/nuxt/module/plugins'
-import { createSentryDataCollection, dropExpectedNotFound } from '../../shared/sentry'
+import { createSentryDataCollection, dropExpectedNotFound, resolveServerSentryInitialization } from '../../shared/sentry'
 
 export default defineNitroPlugin((nitroApp) => {
   const { sentry } = useRuntimeConfig()
-  if (!sentry.enabled || !sentry.dsn)
+  const initialization = resolveServerSentryInitialization(sentry)
+  if (initialization._tag === 'Disabled')
     return
 
   sentryCloudflareNitroPlugin({
-    dsn: sentry.dsn,
+    dsn: initialization.dsn,
     environment: sentry.environment,
-    release: sentry.release || undefined,
+    release: initialization.release,
     tracesSampleRate: sentry.tracesSampleRate,
     dataCollection: createSentryDataCollection(),
     beforeSend: dropExpectedNotFound,

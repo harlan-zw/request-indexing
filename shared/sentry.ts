@@ -1,5 +1,30 @@
 export const SENTRY_DSN = 'https://285c1e24a3cb947359ebc30e95ad7746@o4510507748163584.ingest.us.sentry.io/4511887363080192'
 
+interface ServerSentryConfig {
+  enabled: boolean
+  dsn?: string
+  release?: string
+}
+
+export type ServerSentryInitialization
+  = | { _tag: 'Disabled', reason: 'disabled' | 'missing-dsn' | 'missing-release' }
+    | { _tag: 'Enabled', dsn: string, release: string }
+
+/**
+ * Local production-mode builds have no release ID. Keeping that state distinct
+ * prevents Wrangler preview failures from entering the production project.
+ */
+export function resolveServerSentryInitialization(config: ServerSentryConfig): ServerSentryInitialization {
+  if (!config.enabled)
+    return { _tag: 'Disabled', reason: 'disabled' }
+  if (!config.dsn)
+    return { _tag: 'Disabled', reason: 'missing-dsn' }
+  if (!config.release)
+    return { _tag: 'Disabled', reason: 'missing-release' }
+
+  return { _tag: 'Enabled', dsn: config.dsn, release: config.release }
+}
+
 export function createSentryDataCollection() {
   return {
     userInfo: false,
