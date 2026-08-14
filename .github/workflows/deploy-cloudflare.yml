@@ -1,9 +1,11 @@
 name: Deploy to Cloudflare
 
+# Runs only after CI passes on main. Before, this workflow built and shipped every
+# push to main with no check of any kind in front of it.
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -11,29 +13,60 @@ permissions:
 
 concurrency:
   group: deploy-cloudflare-production
-  cancel-in-progress: true
+  # A deploy in flight must finish. Wrangler uploads and activates a Worker
+  # version, and cancelling part-way leaves it uploaded but not activated.
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    # `github.sha` is the default branch tip for a `workflow_run` event, not the
+    # commit the run covered, so it cannot be compared against `head_sha` and
+    # cannot be checked out. Use `head_sha` throughout.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    # Both steps below needed almost the same secrets, so the list was written
+    # twice and had already diverged: the build carried
+    # NUXT_OAUTH_GOOGLE_CLIENT_ID, NUXT_UI_PRO_LICENSE, and SENTRY_AUTH_TOKEN
+    # that the deploy did not. One job-level block cannot drift against itself.
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      NUXT_DATAFORSEO_LOGIN: ${{ secrets.NUXT_DATAFORSEO_LOGIN }}
+      NUXT_DATAFORSEO_PASSWORD: ${{ secrets.NUXT_DATAFORSEO_PASSWORD }}
+      NUXT_GSCDUMP_API_KEY: ${{ secrets.NUXT_GSCDUMP_API_KEY }}
+      NUXT_GSCDUMP_WEBHOOK_SECRET: ${{ secrets.NUXT_GSCDUMP_WEBHOOK_SECRET }}
+      NUXT_KEY: ${{ secrets.NUXT_KEY }}
+      NUXT_OAUTH_GOOGLE_CLIENT_ID: ${{ secrets.NUXT_OAUTH_GOOGLE_CLIENT_ID }}
+      NUXT_OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.NUXT_OAUTH_GOOGLE_CLIENT_SECRET }}
+      NUXT_OAUTH_POOL: ${{ secrets.NUXT_OAUTH_POOL }}
+      NUXT_OAUTH_PRIVATE_POOL: ${{ secrets.NUXT_OAUTH_PRIVATE_POOL }}
+      NUXT_POSTMARK_API_KEY: ${{ secrets.NUXT_POSTMARK_API_KEY }}
+      NUXT_SESSION_PASSWORD: ${{ secrets.NUXT_SESSION_PASSWORD }}
+      NUXT_UI_PRO_LICENSE: ${{ secrets.NUXT_UI_PRO_LICENSE }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24
-          cache: pnpm
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - run: pnpm install --frozen-lockfile
+      - uses: harlan-zw/harlan-nuxt/.github/actions/harlan-desktop-setup@main
+        with:
+          # `postinstall` runs `nuxt prepare`, which the build depends on.
+          install-args: ''
 
+      # Accumulates prior deploys' client chunks so a browser session opened
+      # before the rollout still resolves its old `_nuxt` chunks
+      # (nuxt-skew-protection, fs storage). Keyed per commit so each build saves
+      # a fresh entry; the prefix restore-key picks up the accumulated set.
       - name: Cache for Nuxt SEO
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: node_modules/.cache/nuxt-seo
-          key: nuxt-skew-${{ github.sha }}
+          key: nuxt-skew-${{ github.event.workflow_run.head_sha || github.sha }}
           restore-keys: |
             nuxt-skew-
 
@@ -41,21 +74,6 @@ jobs:
         timeout-minutes: 30
         env:
           NODE_OPTIONS: --max-old-space-size=16384
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          NUXT_UI_PRO_LICENSE: ${{ secrets.NUXT_UI_PRO_LICENSE }}
-          NUXT_KEY: ${{ secrets.NUXT_KEY }}
-          NUXT_SESSION_PASSWORD: ${{ secrets.NUXT_SESSION_PASSWORD }}
-          NUXT_OAUTH_POOL: ${{ secrets.NUXT_OAUTH_POOL }}
-          NUXT_OAUTH_PRIVATE_POOL: ${{ secrets.NUXT_OAUTH_PRIVATE_POOL }}
-          NUXT_OAUTH_GOOGLE_CLIENT_ID: ${{ secrets.NUXT_OAUTH_GOOGLE_CLIENT_ID }}
-          NUXT_OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.NUXT_OAUTH_GOOGLE_CLIENT_SECRET }}
-          NUXT_POSTMARK_API_KEY: ${{ secrets.NUXT_POSTMARK_API_KEY }}
-          NUXT_GSCDUMP_API_KEY: ${{ secrets.NUXT_GSCDUMP_API_KEY }}
-          NUXT_GSCDUMP_WEBHOOK_SECRET: ${{ secrets.NUXT_GSCDUMP_WEBHOOK_SECRET }}
-          NUXT_DATAFORSEO_LOGIN: ${{ secrets.NUXT_DATAFORSEO_LOGIN }}
-          NUXT_DATAFORSEO_PASSWORD: ${{ secrets.NUXT_DATAFORSEO_PASSWORD }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       # TODO: apply D1 migrations here, before the deploy. Blocked on token scope:
       # `secrets.CLOUDFLARE_API_TOKEN` is Workers-scoped, so `d1 migrations apply`
@@ -67,16 +85,3 @@ jobs:
       # gone wrong from this yet; the risk is that it is unenforced.
 
       - run: pnpm deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          NUXT_DATAFORSEO_LOGIN: ${{ secrets.NUXT_DATAFORSEO_LOGIN }}
-          NUXT_DATAFORSEO_PASSWORD: ${{ secrets.NUXT_DATAFORSEO_PASSWORD }}
-          NUXT_GSCDUMP_API_KEY: ${{ secrets.NUXT_GSCDUMP_API_KEY }}
-          NUXT_GSCDUMP_WEBHOOK_SECRET: ${{ secrets.NUXT_GSCDUMP_WEBHOOK_SECRET }}
-          NUXT_KEY: ${{ secrets.NUXT_KEY }}
-          NUXT_OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.NUXT_OAUTH_GOOGLE_CLIENT_SECRET }}
-          NUXT_OAUTH_POOL: ${{ secrets.NUXT_OAUTH_POOL }}
-          NUXT_OAUTH_PRIVATE_POOL: ${{ secrets.NUXT_OAUTH_PRIVATE_POOL }}
-          NUXT_POSTMARK_API_KEY: ${{ secrets.NUXT_POSTMARK_API_KEY }}
-          NUXT_SESSION_PASSWORD: ${{ secrets.NUXT_SESSION_PASSWORD }}
