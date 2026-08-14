@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import { resolveCloudflareBindings } from '@harlan-zw/nuxt-cloudflare/bindings'
 
 export interface BlobObject {
   pathname: string
@@ -8,19 +9,9 @@ export interface BlobObject {
 }
 
 function getR2Bucket(event?: H3Event): R2Bucket {
-  if (event) {
-    const bucket = (event.context.cloudflare?.env as { BLOB?: R2Bucket })?.BLOB
-    if (bucket)
-      return bucket
-  }
-
-  const bindings = globalThis as typeof globalThis & {
-    __env__?: { BLOB?: R2Bucket }
-    BLOB?: R2Bucket
-  }
-  const globalBucket = bindings.__env__?.BLOB || bindings.BLOB
-  if (globalBucket)
-    return globalBucket
+  const bucket = resolveCloudflareBindings<{ BLOB?: R2Bucket }>(event)?.BLOB
+  if (bucket)
+    return bucket
 
   throw new Error('R2 bucket not available. Make sure BLOB binding is configured in wrangler.toml')
 }

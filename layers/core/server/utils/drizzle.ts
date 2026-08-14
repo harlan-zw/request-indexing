@@ -1,5 +1,6 @@
 import type { BatchItem } from 'drizzle-orm/batch'
 import type { H3Event } from 'h3'
+import { resolveCloudflareBindings } from '@harlan-zw/nuxt-cloudflare/bindings'
 import { drizzle } from 'drizzle-orm/d1'
 import * as schema from '../db/schema'
 
@@ -13,23 +14,9 @@ export function useDrizzle(event?: H3Event) {
   if (_db)
     return _db
 
-  // In production/CF Workers, get D1 from cloudflare env
-  if (event) {
-    const d1 = (event.context.cloudflare?.env as { DB?: D1Database })?.DB
-    if (d1) {
-      _db = drizzle(d1, { schema })
-      return _db
-    }
-  }
-
-  // Try to get from global context (for background tasks, etc.)
-  const bindings = globalThis as typeof globalThis & {
-    __env__?: { DB?: D1Database }
-    DB?: D1Database
-  }
-  const globalD1 = bindings.__env__?.DB || bindings.DB
-  if (globalD1) {
-    _db = drizzle(globalD1, { schema })
+  const d1 = resolveCloudflareBindings<{ DB?: D1Database }>(event)?.DB
+  if (d1) {
+    _db = drizzle(d1, { schema })
     return _db
   }
 
