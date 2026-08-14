@@ -1,5 +1,27 @@
 import { describe, expect, it } from 'vitest'
-import { dropExpectedNotFound, errorStatusCode } from '../shared/sentry'
+import { dropExpectedNotFound, errorStatusCode, resolveServerSentryInitialization } from '../shared/sentry'
+
+describe('resolveServerSentryInitialization', () => {
+  it('keeps an unversioned local build out of production Sentry', () => {
+    expect(resolveServerSentryInitialization({
+      enabled: true,
+      dsn: 'https://public@example.invalid/1',
+      release: '',
+    })).toEqual({ _tag: 'Disabled', reason: 'missing-release' })
+  })
+
+  it('enables a versioned production build', () => {
+    expect(resolveServerSentryInitialization({
+      enabled: true,
+      dsn: 'https://public@example.invalid/1',
+      release: 'abc123',
+    })).toEqual({
+      _tag: 'Enabled',
+      dsn: 'https://public@example.invalid/1',
+      release: 'abc123',
+    })
+  })
+})
 
 describe('errorStatusCode', () => {
   it('reads an h3 error status', () => {
