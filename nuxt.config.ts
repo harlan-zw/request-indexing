@@ -6,12 +6,17 @@ import { globbySync } from 'globby'
 import { withoutRollupPlugin } from './scripts/rollup-plugins'
 import { CLOUDFLARE_REQUIRED_SECRETS } from './shared/cloudflare'
 import { runtimeOnlyRouteRules } from './shared/routes'
-import { SENTRY_DSN } from './shared/sentry'
+import { resolveSentryTarget, SENTRY_DSN } from './shared/sentry'
 
 const tokens: Partial<OAuthPoolToken>[] = process.env.NUXT_OAUTH_POOL ? JSON.parse(process.env.NUXT_OAUTH_POOL) : []
 const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN)
   || existsSync('.env.sentry-build-plugin')
 const sentryRelease = process.env.SENTRY_RELEASE || process.env.GITHUB_SHA || undefined
+const sentryTarget = resolveSentryTarget({
+  nodeEnv: process.env.NODE_ENV,
+  release: sentryRelease,
+  environment: process.env.SENTRY_ENVIRONMENT,
+})
 
 // read all the folders at the server/app path
 const recursiveServerAppFolders = globbySync('**/*', {
@@ -364,14 +369,16 @@ export default defineNuxtConfig({
       adsClientId: '',
       adsClientSecret: '',
     },
-    sentry: {
-      dsn: SENTRY_DSN,
-      enabled: process.env.NODE_ENV === 'production',
-      environment: 'production',
-      release: sentryRelease ?? '',
-      tracesSampleRate: 0.05,
-    },
     public: {
+      // Public so the browser SDK and the Nitro plugin read one decision. The
+      // DSN is not a secret; it already ships in the client bundle.
+      sentry: {
+        dsn: SENTRY_DSN,
+        enabled: sentryTarget._tag === 'Enabled',
+        environment: sentryTarget._tag === 'Enabled' ? sentryTarget.environment : '',
+        release: sentryTarget._tag === 'Enabled' ? sentryTarget.release : '',
+        tracesSampleRate: 0.05,
+      },
       baseUrl: 'https://requestindexing.com',
       indexing: {
         usageLimitPerUser: 15,
@@ -383,7 +390,8 @@ export default defineNuxtConfig({
   },
 
   sentry: {
-    enabled: process.env.NODE_ENV === 'production',
+    // A build with no release never deployed, so it never instruments.
+    enabled: sentryTarget._tag === 'Enabled',
     org: 'harlan-zw',
     project: 'request-indexing',
     authToken: process.env.SENTRY_AUTH_TOKEN,

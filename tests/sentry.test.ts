@@ -1,5 +1,31 @@
 import { describe, expect, it } from 'vitest'
-import { dropExpectedNotFound, errorStatusCode } from '../shared/sentry'
+import { dropExpectedNotFound, errorStatusCode, resolveSentryTarget } from '../shared/sentry'
+
+describe('resolveSentryTarget', () => {
+  it('reports a deployed build', () => {
+    expect(resolveSentryTarget({ nodeEnv: 'production', release: 'e75a05b0' }))
+      .toEqual({ _tag: 'Enabled', environment: 'production', release: 'e75a05b0' })
+  })
+
+  it('stays silent for a local production build with no release', () => {
+    expect(resolveSentryTarget({ nodeEnv: 'production', release: undefined }))
+      .toEqual({ _tag: 'Disabled', reason: 'unreleased-build' })
+    expect(resolveSentryTarget({ nodeEnv: 'production', release: '   ' }))
+      .toEqual({ _tag: 'Disabled', reason: 'unreleased-build' })
+  })
+
+  it('stays silent outside a production build', () => {
+    expect(resolveSentryTarget({ nodeEnv: 'development', release: 'e75a05b0' }))
+      .toEqual({ _tag: 'Disabled', reason: 'development' })
+    expect(resolveSentryTarget({}))
+      .toEqual({ _tag: 'Disabled', reason: 'development' })
+  })
+
+  it('takes the environment name from the deploy when one is given', () => {
+    expect(resolveSentryTarget({ nodeEnv: 'production', release: 'abc', environment: 'staging' }))
+      .toEqual({ _tag: 'Enabled', environment: 'staging', release: 'abc' })
+  })
+})
 
 describe('errorStatusCode', () => {
   it('reads an h3 error status', () => {

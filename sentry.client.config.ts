@@ -1,11 +1,19 @@
 import * as Sentry from '@sentry/nuxt'
-import { createSentryDataCollection, dropExpectedNotFound, SENTRY_DSN } from './shared/sentry'
+import { useRuntimeConfig } from '#imports'
+import { createSentryDataCollection, dropExpectedNotFound } from './shared/sentry'
 
-if (!import.meta.dev) {
+// The module wraps this file in a Nuxt plugin, so runtime config is available
+// here. Read the same decision the Nitro plugin reads: `import.meta.dev` alone
+// is false inside a local `wrangler dev` worker, which is how a laptop ended up
+// reporting as production.
+const { sentry } = useRuntimeConfig().public
+
+if (sentry.enabled && sentry.dsn) {
   Sentry.init({
-    dsn: SENTRY_DSN,
-    environment: 'production',
-    tracesSampleRate: 0.05,
+    dsn: sentry.dsn,
+    environment: sentry.environment,
+    release: sentry.release || undefined,
+    tracesSampleRate: sentry.tracesSampleRate,
     dataCollection: createSentryDataCollection(),
     beforeSend: dropExpectedNotFound,
     ignoreErrors: [
