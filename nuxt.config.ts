@@ -383,14 +383,16 @@ export default defineNuxtConfig({
       adsClientId: '',
       adsClientSecret: '',
     },
-    sentry: {
-      dsn: SENTRY_DSN,
-      enabled: process.env.NODE_ENV === 'production',
-      environment: 'production',
-      release: sentryRelease ?? '',
-      tracesSampleRate: 0.05,
-    },
     public: {
+      // Public so the Nitro plugin and the browser SDK read one decision. The
+      // DSN is not a secret; it already ships in the client bundle.
+      sentry: {
+        dsn: SENTRY_DSN,
+        enabled: process.env.NODE_ENV === 'production',
+        environment: process.env.SENTRY_ENVIRONMENT || 'production',
+        release: sentryRelease ?? '',
+        tracesSampleRate: 0.05,
+      },
       baseUrl: 'https://requestindexing.com',
       indexing: {
         usageLimitPerUser: 15,

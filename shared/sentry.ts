@@ -1,20 +1,26 @@
 export const SENTRY_DSN = 'https://285c1e24a3cb947359ebc30e95ad7746@o4510507748163584.ingest.us.sentry.io/4511887363080192'
 
-interface ServerSentryConfig {
+interface SentryConfig {
   enabled: boolean
   dsn?: string
   release?: string
+  environment?: string
 }
 
-export type ServerSentryInitialization
+export type SentryInitialization
   = | { _tag: 'Disabled', reason: 'disabled' | 'missing-dsn' | 'missing-release' }
-    | { _tag: 'Enabled', dsn: string, release: string }
+    | { _tag: 'Enabled', dsn: string, release: string, environment: string }
 
 /**
  * Local production-mode builds have no release ID. Keeping that state distinct
  * prevents Wrangler preview failures from entering the production project.
+ *
+ * The browser SDK reads this too. It used to gate on `import.meta.dev` alone,
+ * which is false inside a local `wrangler dev` worker, so a laptop could still
+ * report as production. Carrying `environment` through the same result keeps
+ * that name out of the init call sites, where it was hardcoded.
  */
-export function resolveServerSentryInitialization(config: ServerSentryConfig): ServerSentryInitialization {
+export function resolveSentryInitialization(config: SentryConfig): SentryInitialization {
   if (!config.enabled)
     return { _tag: 'Disabled', reason: 'disabled' }
   if (!config.dsn)
@@ -22,7 +28,12 @@ export function resolveServerSentryInitialization(config: ServerSentryConfig): S
   if (!config.release)
     return { _tag: 'Disabled', reason: 'missing-release' }
 
-  return { _tag: 'Enabled', dsn: config.dsn, release: config.release }
+  return {
+    _tag: 'Enabled',
+    dsn: config.dsn,
+    release: config.release,
+    environment: config.environment || 'production',
+  }
 }
 
 export function createSentryDataCollection() {
