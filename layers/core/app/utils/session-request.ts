@@ -1,4 +1,4 @@
-import { errorStatusCode } from '../../../../shared/sentry'
+import { errorStatusCode } from '#shared/sentry'
 
 /**
  * Outcome of a dashboard request that needs a signed-in session.
