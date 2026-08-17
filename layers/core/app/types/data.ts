@@ -110,7 +110,12 @@ export interface SiteExpanded extends SiteAnalytics {
 export interface SitePreview {
   sitemaps: SitemapSummary[]
   siteId: string
-  domain: string
+  // A site imported from KV has no domain, so this was never really a `string`.
+  // The lie is what let three cards on the Sites page render their title as "/"
+  // with a broken favicon: nothing forced a caller to handle the empty case.
+  // `siteLabel()` falls back to `property`, so both belong on the type.
+  domain: string | null
+  property: string | null
   pageCount30Day: number
   startOfData: string
   isLosingData: boolean

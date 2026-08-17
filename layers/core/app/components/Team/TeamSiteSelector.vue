@@ -131,14 +131,18 @@ onBeforeUnmount(() => {
 
     <div v-if="siteRows.length" class="mb-5">
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <UButton
+        <!-- A `<label>`, not a button. `UCheckbox` renders its own `<button>`,
+             and a button inside a button is invalid HTML: the parser closed the
+             outer one and hoisted the rest of the card out to `<body>`, which
+             broke hydration on this page. The wrapper also carried its own
+             `@click="select(site)"`, so a click that landed on the checkbox
+             fired `select` twice and cancelled itself out. A label toggles the
+             checkbox natively, once, and stays keyboard reachable. -->
+        <label
           v-for="(site, key) in paginatedSites"
           :key="key"
-          variant="ghost"
-          color="neutral"
-          class="flex items-center gap-2 text-left"
-          :class="selected.some(s => s === site.siteId) ? 'bg-primary/10' : 'opacity-80'"
-          @click="select(site)"
+          class="flex cursor-pointer items-center gap-2 rounded-md p-3 text-left transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
+          :class="selected.some(s => s === site.siteId) ? 'bg-primary/10' : 'bg-elevated/50 hover:bg-elevated'"
         >
           <UCheckbox color="primary" :model-value="selected.some(s => s === site.siteId)" @update:model-value="select(site)" />
           <div class="min-w-0">
@@ -163,7 +167,7 @@ onBeforeUnmount(() => {
               </div>
             </div>
           </div>
-        </UButton>
+        </label>
       </div>
       <div v-if="siteRows.length > pageCount" class="mt-7 flex items-center justify-between border-t border-default px-3 py-5">
         <UPagination v-model:page="sitePage" :items-per-page="pageCount" :total="siteRows.length" :show-edges="false" />

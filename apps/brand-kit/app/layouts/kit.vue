@@ -19,6 +19,7 @@ const sections = [
   { heading: 'Data', items: [
     { to: '/kit/data-cells', label: 'Table cells', icon: 'i-lucide-grid-3x3' },
     { to: '/kit/tables', label: 'Data tables', icon: 'i-lucide-table' },
+    { to: '/kit/async-states', label: 'Async states', icon: 'i-lucide-loader' },
   ] },
   { heading: 'Code', items: [
     { to: '/kit/format', label: 'Formatters', icon: 'i-lucide-hash' },
