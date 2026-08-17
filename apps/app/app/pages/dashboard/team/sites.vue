@@ -26,16 +26,21 @@ const isSetup = ref(false)
 const sitesSynced = ref(0)
 const totalSites = ref(0)
 
+const onSessionExpired = createSessionExpiredHandler()
+
 async function refresh() {
   // TODO avoid duplicate fetches
-  const response = await $fetch('/api/sites/preview', {
-    // query: {
-    //   force: 'true',
-    // },
-  })
+  const result = await readSessionScoped(() => $fetch('/api/sites/preview'))
     .finally(() => {
       pending.value = false
     })
+
+  if (result._tag === 'SessionExpired') {
+    await onSessionExpired()
+    return
+  }
+
+  const response = result.value
   data.value = response.sites.map((site): SitePreview => ({
     ...site,
     domain: site.domain ?? '',

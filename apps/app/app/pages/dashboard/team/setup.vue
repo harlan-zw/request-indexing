@@ -1,30 +1,10 @@
 <script lang="ts" setup>
 import type { SitePreview } from '~~/layers/core/app/types'
 import { useJobListener } from '~~/layers/core/app/composables/events'
-import { errorStatusCode } from '~~/shared/sentry'
 
 interface SitesPreview {
   sites: SitePreview[]
   jobStatus: string
-}
-
-/**
- * A 401 here means the cookie outlived the server session, which is an ordinary
- * end of a long-open tab rather than a fault. It is returned as a value so the
- * caller can send the user back to login instead of reporting an error.
- */
-type SitesPreviewResult
-  = | { _tag: 'Ready', preview: SitesPreview }
-    | { _tag: 'SessionExpired' }
-
-function loadSitesPreview(): Promise<SitesPreviewResult> {
-  return $fetch<SitesPreview>('/api/sites/preview')
-    .then(preview => ({ _tag: 'Ready', preview }) as const)
-    .catch((error: unknown) => {
-      if (errorStatusCode(error) === 401)
-        return { _tag: 'SessionExpired' } as const
-      throw error
-    })
 }
 
 const data = ref<SitesPreview>({ sites: [], jobStatus: 'pending' })
@@ -35,25 +15,24 @@ const isSetup = ref(false)
 const sitesSynced = ref(0)
 const totalSites = ref(0)
 
-const { fetch, clear } = useUserSession()
-const route = useRoute()
+const { fetch } = useUserSession()
+const onSessionExpired = createSessionExpiredHandler()
 
 async function refresh() {
   // TODO avoid duplicate fetches
-  const result = await loadSitesPreview().finally(() => {
+  const result = await readSessionScoped(() => $fetch<SitesPreview>('/api/sites/preview')).finally(() => {
     pending.value = false
   })
 
   if (result._tag === 'SessionExpired') {
-    await clear()
-    await navigateTo({ path: '/login', query: { redirect: route.fullPath } })
+    await onSessionExpired()
     return
   }
 
-  data.value = result.preview
-  sitesSynced.value = result.preview.sites.filter(s => !!s.pageCount30Day).length
-  isSetup.value = result.preview.jobStatus !== 'pending'
-  totalSites.value = result.preview.sites.length
+  data.value = result.value
+  sitesSynced.value = result.value.sites.filter(s => !!s.pageCount30Day).length
+  isSetup.value = result.value.jobStatus !== 'pending'
+  totalSites.value = result.value.sites.length
 
   key.value++
 }

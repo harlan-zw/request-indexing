@@ -8,7 +8,15 @@ definePageMeta({
   description: 'Manage your team settings.',
 })
 
-const { sites } = await $fetch<{ sites: SitesPreview }>('/api/sites/preview')
+const onSessionExpired = createSessionExpiredHandler()
+
+// Top-level await, so an unhandled 401 here failed the whole page and reported
+// as an error. An expired cookie ends at login instead.
+const preview = await readSessionScoped(() => $fetch<{ sites: SitesPreview }>('/api/sites/preview'))
+if (preview._tag === 'SessionExpired')
+  await onSessionExpired()
+
+const sites = computed<SitesPreview>(() => preview._tag === 'Ready' ? preview.value.sites : [])
 const selectedSites = ref<string[]>([])
 </script>
 

@@ -20,6 +20,7 @@
     "deploy": "node --experimental-strip-types scripts/deploy-cloudflare.ts",
     "postinstall": "nuxt prepare",
     "release": "bumpp",
+    "test": "vitest run",
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
