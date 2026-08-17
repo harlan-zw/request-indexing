@@ -290,7 +290,7 @@ This error means the `private_key` in your JSON file is malformed. This typicall
 
 **Fix:** Download a fresh JSON key from the Google Cloud Console. If using environment variables, make sure to preserve the newlines:
 
-```bash
+```dotenv
 # In .env files, wrap in quotes and keep the \n characters
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQ...\n-----END PRIVATE KEY-----\n"
 ```
