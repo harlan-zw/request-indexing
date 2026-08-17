@@ -9,9 +9,17 @@ export function useHumanFriendlyNumber(number: MaybeRef<string | number | null |
     // if not a number
     if (!['number', 'string'].includes(typeof number))
       return '-'
-    // apply decimals if defined
-    if (typeof decimals !== 'undefined')
-      number = Number.parseFloat(Number(number).toFixed(decimals))
+    // O3: this used to round via `parseFloat(toFixed(n))`, which drops a
+    // trailing zero. A Position column then printed `20` beside `6.2` and `5.8`,
+    // so one column carried two precisions. Let Intl hold the digit count
+    // instead, so every value in a column has the same shape.
+    if (typeof decimals !== 'undefined') {
+      return new Intl.NumberFormat('en', {
+        notation: 'compact',
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }).format(Number(number))
+    }
     return new Intl.NumberFormat('en', { notation: 'compact' }).format(Number(number))
   }
   if (isRef(number)) {

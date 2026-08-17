@@ -3,6 +3,11 @@ export interface GraphButton {
   key: string
   label: string
   color: string
+  /**
+   * Already scaled for display. Percentage metrics such as `ctr` must arrive
+   * on a 0-100 scale; the group adds the `%` suffix so stat cards and table
+   * cells agree on the unit.
+   */
   value: string | number
 }
 
@@ -16,14 +21,20 @@ const emit = defineEmits<{
 }>()
 
 const colorClasses = {
-  blue: { active: 'border-b-blue-500', icon: 'text-blue-500' },
-  purple: { active: 'border-b-purple-500', icon: 'text-purple-500' },
-  orange: { active: 'border-b-orange-500', icon: 'text-orange-500' },
-  green: { active: 'border-b-emerald-500', icon: 'text-emerald-500' },
+  blue: { active: 'border-b-blue-500', icon: 'text-blue-500', dot: 'bg-blue-500' },
+  purple: { active: 'border-b-purple-500', icon: 'text-purple-500', dot: 'bg-purple-500' },
+  orange: { active: 'border-b-orange-500', icon: 'text-orange-500', dot: 'bg-orange-500' },
+  green: { active: 'border-b-emerald-500', icon: 'text-emerald-500', dot: 'bg-emerald-500' },
 } as const
 
 function getColorClasses(color: string) {
   return colorClasses[color as keyof typeof colorClasses] ?? colorClasses.blue
+}
+
+function displayValue(tab: GraphButton) {
+  return isPercentMetric(tab.key)
+    ? formatPercentMetric(tab.value)
+    : useHumanFriendlyNumber(tab.value)
 }
 
 function selectButton(tab: GraphButton) {
@@ -48,16 +59,18 @@ function selectButton(tab: GraphButton) {
     >
       <div class="flex items-center gap-1 text-sm">
         <slot :name="`${tab.key}-icon`">
-          <span class="size-4" :class="getColorClasses(tab.color).icon" />
+          <!-- Fallback series swatch: without it an unslotted button gives no
+               clue which coloured line on the chart it names. -->
+          <span class="size-2 shrink-0 rounded-full" :class="getColorClasses(tab.color).dot" aria-hidden="true" />
         </slot>
         <div class="truncate text-muted">
           {{ tab.label }}
         </div>
       </div>
-      <div class="flex min-w-0 items-center gap-1">
+      <div class="flex min-w-0 items-baseline gap-1">
         <span class="shrink-0 font-mono text-lg text-highlighted tabular-nums">
           <slot :name="`${tab.key}-value`">
-            {{ useHumanFriendlyNumber(tab.value) }}
+            {{ displayValue(tab) }}
           </slot>
         </span>
         <slot :name="`${tab.key}-trend`" />

@@ -13,6 +13,8 @@ import { sites, users } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
 import { isNearRetentionLimit, lifecycleSiteFor, syncStatusFor } from '../../utils/site-lifecycle'
 
+import { MAX_TEAM_SITES } from '../../utils/team-site-limit'
+
 // Real per-site page count over the trailing 30 days (`limit(1)`: we only
 // need `totalCount` from the response, not the rows themselves).
 const pageCountState = gsc.select(page).where(between(date, daysAgo(30), today())).limit(1).getState()
@@ -45,6 +47,10 @@ export default defineProApiHandler({}, async ({ db, caller }) => {
         sitemaps: site.sitemaps ?? [],
         siteId: site.publicId,
         domain: site.domain,
+        // `sites.domain` is null on rows imported from the old KV store. The
+        // Search Console property is the only label those rows carry, so it
+        // ships with the preview and `siteLabel()` falls back to it.
+        property: site.property,
         pageCount30Day,
         startOfData: oldest,
         isLosingData: isNearRetentionLimit(oldest),
@@ -57,5 +63,6 @@ export default defineProApiHandler({}, async ({ db, caller }) => {
   return {
     sites: previews.map(p => p.preview),
     jobStatus: !lifecycle ? 'pending' : (stillSyncing ? 'pending' : 'ready'),
+    maxSites: MAX_TEAM_SITES,
   }
 })

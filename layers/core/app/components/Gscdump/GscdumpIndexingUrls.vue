@@ -15,10 +15,28 @@ const params = computed(() => ({
   search: search.value || undefined,
 }))
 
-const { data, status } = useGscdumpIndexingUrls(
+const { data, status, error, refresh } = useGscdumpIndexingUrls(
   () => props.siteId,
   params,
 )
+
+const urls = computed(() => data.value?.urls ?? [])
+
+const emptyMessage = computed(() => {
+  if (search.value)
+    return `No ${statusTab.value.replace('_', ' ')} URLs match "${search.value}".`
+  return `No ${statusTab.value.replace('_', ' ')} URLs for this site.`
+})
+
+const nextStep = computed(() => {
+  if (search.value)
+    return 'Clear the search to see every URL in this state.'
+  if (statusTab.value === 'indexed')
+    return 'Submit a sitemap in Search Console, then check back after the next sync.'
+  if (statusTab.value === 'pending')
+    return 'Every inspected URL has a verdict.'
+  return 'Nothing needs attention in this state.'
+})
 
 watch(statusTab, () => {
   page.value = 1
@@ -57,17 +75,24 @@ const verdictColor: Record<string, BadgeColor> = {
 
 <template>
   <div>
-    <div class="flex items-center gap-3 mb-4">
-      <UButton
-        v-for="t in tabs"
-        :key="t.key"
-        size="xs"
-        :color="statusTab === t.key ? t.color : 'neutral'"
-        :variant="statusTab === t.key ? 'soft' : 'ghost'"
-        @click="statusTab = t.key"
-      >
-        {{ t.label }}
-      </UButton>
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <!-- The three states were plain text with a pale pill on the active one,
+           so the row did not read as a control at all. -->
+      <div class="inline-flex rounded-lg border border-default p-0.5" role="tablist">
+        <UButton
+          v-for="t in tabs"
+          :key="t.key"
+          size="xs"
+          role="tab"
+          :aria-selected="statusTab === t.key"
+          :color="statusTab === t.key ? t.color : 'neutral'"
+          :variant="statusTab === t.key ? 'subtle' : 'ghost'"
+          class="min-h-8"
+          @click="statusTab = t.key"
+        >
+          {{ t.label }}
+        </UButton>
+      </div>
       <div class="flex w-[200px] ml-auto">
         <UInput
           v-model="search"
@@ -80,31 +105,54 @@ const verdictColor: Record<string, BadgeColor> = {
       </div>
     </div>
 
-    <UTable
-      :loading="status === 'pending'"
-      :data="data?.urls || []"
-      :columns="columns"
-      :ui="{
-        th: 'px-2 py-2 text-xs font-normal',
-        td: 'px-2 py-1',
-      }"
+    <AsyncCardState
+      :status="status"
+      :error="error"
+      :empty="!urls.length"
+      label="URL list"
+      :empty-message="emptyMessage"
+      min-height="min-h-40"
+      :rows="5"
+      @retry="refresh()"
     >
-      <template #url-cell="{ row: r }">
-        <span class="text-xs text-blue-600 truncate max-w-[400px] block" :title="r.original.url">{{ r.original.url }}</span>
+      <!-- "No data" with no next step left the reader stuck. -->
+      <template #empty>
+        <UIcon name="i-lucide-inbox" class="size-6 text-dimmed" />
+        <div>
+          <p class="font-medium text-highlighted">
+            Nothing to show
+          </p>
+          <p class="text-sm text-muted">
+            {{ emptyMessage }} {{ nextStep }}
+          </p>
+        </div>
+        <UButton v-if="search" label="Clear search" color="neutral" variant="outline" size="sm" class="min-h-10" @click="search = ''" />
       </template>
-      <template #verdict-cell="{ row: r }">
-        <UBadge :color="verdictColor[r.original.verdict ?? ''] ?? 'neutral'" variant="subtle" size="xs">
-          {{ r.original.verdict }}
-        </UBadge>
-      </template>
-      <template #coverageState-cell="{ row: r }">
-        <span class="text-xs text-gray-600">{{ r.original.coverageState }}</span>
-      </template>
-      <template #lastCrawlTime-cell="{ row: r }">
-        <span v-if="r.original.lastCrawlTime" class="text-xs text-gray-500">{{ formatIndexingTimeAgo(r.original.lastCrawlTime) }}</span>
-        <span v-else class="text-xs text-gray-400">-</span>
-      </template>
-    </UTable>
+      <UTable
+        :data="urls"
+        :columns="columns"
+        :ui="{
+          th: 'px-2 py-2 text-xs font-normal',
+          td: 'px-2 py-1',
+        }"
+      >
+        <template #url-cell="{ row: r }">
+          <span class="block max-w-[400px] truncate text-xs text-default" :title="r.original.url">{{ r.original.url }}</span>
+        </template>
+        <template #verdict-cell="{ row: r }">
+          <UBadge :color="verdictColor[r.original.verdict ?? ''] ?? 'neutral'" variant="subtle" size="xs">
+            {{ r.original.verdict }}
+          </UBadge>
+        </template>
+        <template #coverageState-cell="{ row: r }">
+          <span class="text-xs text-toned">{{ r.original.coverageState }}</span>
+        </template>
+        <template #lastCrawlTime-cell="{ row: r }">
+          <span v-if="r.original.lastCrawlTime" class="text-xs text-muted">{{ formatIndexingTimeAgo(r.original.lastCrawlTime) }}</span>
+          <span v-else class="text-xs text-dimmed">Never</span>
+        </template>
+      </UTable>
+    </AsyncCardState>
 
     <div v-if="data?.pagination && data.pagination.total > pageSize" class="flex items-center gap-3 pt-3">
       <UPagination

@@ -20,7 +20,7 @@ const periodItems: Array<{ label: string, value: Period }> = [
         color="neutral"
         icon="i-ph-calendar-dots-duotone"
         variant="outline"
-        class="min-h-10 border-dashed"
+        class="min-h-10"
         :class="open && 'bg-muted'"
         trailing-icon="i-heroicons-chevron-down-20-solid"
       >

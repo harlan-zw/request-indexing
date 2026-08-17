@@ -99,6 +99,17 @@ const themesData = {
   Light: lightTheme,
 } as const
 
+/**
+ * Band legend. The line recolours itself by score with nothing explaining the
+ * three colours, so the reader cannot tell a red dip from a green one.
+ * Thresholds mirror the `setData` colour rules below.
+ */
+const legend = [
+  { label: 'Poor, under 50', color: 'rgb(255, 78, 67)' },
+  { label: 'Needs improvement, 50 to 89', color: 'rgb(255, 164, 0)' },
+  { label: 'Good, 90 and above', color: 'rgb(12, 206, 106)' },
+] as const
+
 onMounted(() => {
   const _chart = createChart(chart.value!, {
     height: Number(props.height) || 100,
@@ -218,6 +229,12 @@ onMounted(() => {
 
 <template>
   <div ref="container" class="w-full h-full">
+    <ul class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
+      <li v-for="band in legend" :key="band.label" class="inline-flex items-center gap-1.5 whitespace-nowrap">
+        <span class="size-2 shrink-0 rounded-full" :style="{ backgroundColor: band.color }" aria-hidden="true" />
+        {{ band.label }}
+      </li>
+    </ul>
     <div ref="chart" />
     <div class="tooltip">
       <div v-if="tooltipData.time" class="dark:text-gray-200 text-gray-600 text-xs">

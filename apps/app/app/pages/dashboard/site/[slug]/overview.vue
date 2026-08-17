@@ -9,49 +9,22 @@ definePageMeta({
   icon: 'i-ph-chart-bar-duotone',
 })
 
-const tabItems = [
-  { label: 'Most Clicked', icon: 'i-ph-chart-bar-duotone', description: 'Show data by most clicks.' },
-  { label: 'Improving', icon: 'i-ph-chart-line-up-duotone', description: 'Clicks improving compared to the previous period.' },
-  { label: 'Declining', icon: 'i-ph-chart-line-down-duotone', description: 'Clicks diminishing compared to the previous period.' },
-]
-const tab = ref(0)
-const currentTab = computed(() => tabItems[tab.value] ?? tabItems[0]!)
+const { periodLabel } = useDashboardPeriod()
 </script>
 
 <template>
   <div class="space-y-7">
-    <div class="flex items-center gap-3">
-      <div class="border border-dashed rounded-lg">
-        <div class="max-w-sm">
-          <UPopover :content="{ side: 'bottom', align: 'end' }">
-            <template #default="{ open }">
-              <UButton size="xs" color="neutral" :icon="currentTab.icon" variant="ghost" :class="[open && 'bg-gray-50 dark:bg-gray-800']" trailing-icon="i-heroicons-chevron-down-20-solid">
-                <span class="truncate">{{ currentTab.label }}</span>
-              </UButton>
-            </template>
-            <template #content>
-              <div v-for="(item, i) in tabItems" :key="i">
-                <UButton size="lg" color="neutral" :icon="item.icon" variant="ghost" :class="[tab === i && 'bg-gray-50 dark:bg-gray-800']" @click="tab = i">
-                  <div class="flex flex-col items-start">
-                    <div class="truncate">
-                      {{ item.label }}
-                    </div>
-                    <div class="text-xs text-gray-500 max-w-[200px] text-left">
-                      {{ item.description }}
-                    </div>
-                  </div>
-                </UButton>
-              </div>
-            </template>
-          </UPopover>
-        </div>
-      </div>
-      <div class="border border-dashed rounded-lg">
-        <CalenderFilter />
-      </div>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <CalenderFilter />
+      <!-- O5: every metric on this page shows a delta. Say what it compares to. -->
+      <span class="text-xs text-muted">
+        Changes compare {{ periodLabel.toLowerCase() }} with the period before it.
+      </span>
     </div>
-    <div class="grid grid-cols-12 gap-7">
-      <div class="col-span-9 space-y-7">
+    <!-- R1: 12-column rail never collapsed, so the right rail was clipped off
+         screen below ~1024px. Stack first, split at `lg`. -->
+    <div class="grid grid-cols-1 gap-7 lg:grid-cols-12">
+      <div class="space-y-7 lg:col-span-9">
         <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
           <GscdumpChart :gscdump-site-id="site.gscdumpSiteId" />
         </UCard>
@@ -62,14 +35,20 @@ const currentTab = computed(() => tabItems[tab.value] ?? tabItems[0]!)
             </NuxtLink>
           </CardTitle>
           <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
-            <GscdumpPagesTable
-              :site-id="site.gscdumpSiteId"
-              :page-size="5"
-              :searchable="false"
-              :sortable="false"
-              :pagination="false"
-              :exclude-columns="['topKeyword']"
-            />
+            <!-- R3: keep the right-hand metric columns reachable on a phone
+                 instead of letting them fall off the viewport. -->
+            <div class="overflow-x-auto">
+              <GscdumpPagesTable
+                class="min-w-[34rem] md:min-w-0"
+                :gscdump-site-id="site.gscdumpSiteId"
+                :route-slug="String(site.siteId)"
+                :page-size="5"
+                :searchable="false"
+                :sortable="false"
+                :pagination="false"
+                :exclude-columns="['topKeyword']"
+              />
+            </div>
           </UCard>
         </div>
         <div>
@@ -79,18 +58,22 @@ const currentTab = computed(() => tabItems[tab.value] ?? tabItems[0]!)
             </NuxtLink>
           </CardTitle>
           <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
-            <GscdumpKeywordsTable
-              :site-id="site.gscdumpSiteId"
-              :page-size="5"
-              :searchable="false"
-              :sortable="false"
-              :pagination="false"
-              :exclude-columns="['topPage', 'searchVolume']"
-            />
+            <div class="overflow-x-auto">
+              <GscdumpKeywordsTable
+                class="min-w-[34rem] md:min-w-0"
+                :gscdump-site-id="site.gscdumpSiteId"
+                :route-slug="String(site.siteId)"
+                :page-size="5"
+                :searchable="false"
+                :sortable="false"
+                :pagination="false"
+                :exclude-columns="['topPage', 'searchVolume']"
+              />
+            </div>
           </UCard>
         </div>
       </div>
-      <div class="col-span-3 space-y-10">
+      <div class="space-y-10 lg:col-span-3">
         <div>
           <CardTitle>
             <NuxtLink class="hover:underline" :to="`/dashboard/site/${site.siteId}/countries`">
@@ -98,14 +81,16 @@ const currentTab = computed(() => tabItems[tab.value] ?? tabItems[0]!)
             </NuxtLink>
           </CardTitle>
           <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
-            <GscdumpCountriesTable
-              :site-id="site.gscdumpSiteId"
-              :page-size="5"
-              :searchable="false"
-              :sortable="false"
-              :pagination="false"
-              :exclude-columns="['impressions', 'ctr']"
-            />
+            <div class="overflow-x-auto">
+              <GscdumpCountriesTable
+                :site-id="site.gscdumpSiteId"
+                :page-size="5"
+                :searchable="false"
+                :sortable="false"
+                :pagination="false"
+                :exclude-columns="['impressions', 'ctr']"
+              />
+            </div>
           </UCard>
         </div>
         <div>
@@ -113,6 +98,9 @@ const currentTab = computed(() => tabItems[tab.value] ?? tabItems[0]!)
             Devices
           </CardTitle>
           <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
+            <div class="mb-3 text-xs text-muted">
+              Share of clicks
+            </div>
             <GscdumpDevicesCard :site-id="site.gscdumpSiteId" />
           </UCard>
         </div>

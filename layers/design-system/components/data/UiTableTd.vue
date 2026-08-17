@@ -21,7 +21,7 @@ const padClass = computed(() => noPadding ? '' : 'px-3')
 
 <template>
   <td
-    class="text-xs font-normal text-default relative"
+    class="text-xs font-normal text-default relative align-middle tabular-nums"
     :class="[sizes[size], padClass, textAlign]"
   >
     <slot />

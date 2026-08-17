@@ -51,7 +51,11 @@ const apiLinks = computed<NavigationMenuItem[]>(() => !site.value
   ? []
   : [
       { label: 'API Usages', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'usages') },
-      { label: 'Data & Exports', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'data') },
+      // Renamed with the page: it archives Search Console data, it does not export.
+      { label: 'Data Archive', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'data') },
+      // `settings` had no nav entry at all, so the only way to reach site
+      // removal was to type the URL.
+      { label: 'Site Settings', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'settings') },
     ])
 
 const teamLinks = computed<NavigationMenuItem[]>(() => [
@@ -128,7 +132,7 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
             Request Indexing
           </div>
         </div>
-        <DashboardHeader :toggle="false" />
+        <DashboardHeader :toggle="false" class="h-auto border-none px-0 sm:px-0" />
       </div>
     </template>
 
@@ -167,7 +171,7 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
           <UNavigationMenu orientation="vertical" :items="siteLinks" />
         </div>
 
-        <div class="mt-auto">
+        <div class="mt-auto border-t border-default pt-4">
           <div class="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted">
             Settings
           </div>
@@ -185,7 +189,7 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
           <UNavigationMenu orientation="vertical" :items="onlySiteLinks" />
         </div>
 
-        <div class="mt-auto">
+        <div class="mt-auto border-t border-default pt-4">
           <div class="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted">
             Team Settings
           </div>
@@ -225,7 +229,7 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
           </h1>
         </div>
         <div class="hidden lg:block">
-          <DashboardHeader :toggle="false" />
+          <DashboardHeader :toggle="false" class="h-auto border-none px-0 sm:px-0" />
         </div>
       </div>
     </header>

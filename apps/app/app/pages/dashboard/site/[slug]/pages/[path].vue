@@ -2,52 +2,76 @@
 import type { SiteSelect } from '#shared/types/database'
 import { contains, page } from 'gscdump/query'
 
-const props = defineProps<{ site: SiteSelect & { gscdumpSiteId: string, property: string } }>()
+const { site } = defineProps<{ site: SiteSelect & { gscdumpSiteId: string, property: string } }>()
 
 definePageMeta({
   title: 'Pages',
   subTitle: 'Inspect Page',
   icon: 'i-heroicons-folder',
+  // PD2: the shell reads its title from route meta, which is static. Fill in
+  // the page being inspected before the layout renders, so the header names it
+  // on the server and on every client navigation.
+  middleware: (to) => {
+    const raw = String(to.params.path ?? '')
+    to.meta.subTitle = raw.replace(/^https?:\/\/[^/]+/, '') || 'Inspect Page'
+  },
 })
 
-const path = useRoute().params.path as string
+const raw = useRoute().params.path as string
 
-const router = useRouter()
-function changePath(value: string) {
-  router.push(`/dashboard/site/${props.site.siteId}/pages/${encodeURIComponent(value)}`)
-}
+// Search Console reports pages as absolute URLs, the router carries them as a
+// path. Filter on the path so the same value matches either shape.
+const pathname = computed(() => raw.replace(/^https?:\/\/[^/]+/, '') || raw)
 
+// PD3: `extra-filters` narrows the site-wide keyword table to this page.
 const pageFilter = computed(() => [
-  contains(page, path),
+  contains(page, pathname.value),
 ])
 </script>
 
 <template>
-  <div>
-    <USelectMenu class="mb-6" searchable :model-value="path" variant="none" :items="[{ label: '/', value: '/' }, { label: path, value: path }]" value-key="value" @update:model-value="changePath">
-      <template #item="{ item }">
-        <div class="flex w-full items-center">
-          <div class="flex items-center gap-2">
-            <span class="truncate">{{ item.value }}</span>
-          </div>
-        </div>
-      </template>
-      <template #default="{ open }">
-        <UButton color="neutral" variant="ghost" size="xl" class="flex items-center gap-1 pl-0">
-          <UIcon name="i-heroicons-chevron-right-20-solid" class="w-5 h-5 transition-transform text-gray-400 dark:text-gray-500" :class="[open && 'transform rotate-90']" />
-          <h2 class="text-xl font-semibold">
-            {{ path }}
-          </h2>
-        </UButton>
-      </template>
-    </USelectMenu>
-    <div class="grid grid-cols-2 w-full gap-10 mb-10">
+  <div class="space-y-7">
+    <div>
+      <UButton
+        :to="`/dashboard/site/${site.siteId}/pages`"
+        icon="i-heroicons-arrow-left-20-solid"
+        color="neutral"
+        variant="link"
+        size="xs"
+        class="-ml-1 mb-1"
+      >
+        All pages
+      </UButton>
+      <!-- PD5/PD6: this used to be a two-item select menu. It rendered a stray
+           chevron before the heading and a second unlabelled chevron on the far
+           right edge, and it could only ever pick between "/" and the page you
+           were already on. -->
+      <h1 class="text-xl font-semibold break-all">
+        {{ pathname }}
+      </h1>
+      <div class="mt-2">
+        <CalenderFilter />
+      </div>
+    </div>
+    <!-- PD4: one card in a two-column grid left the stat card half as wide as
+         the table under it. -->
+    <UCard>
+      <GscdumpChart :gscdump-site-id="site.gscdumpSiteId" />
+    </UCard>
+    <div>
+      <CardTitle>Keywords for this page</CardTitle>
       <UCard>
-        <GscdumpChart :gscdump-site-id="site.gscdumpSiteId" />
+        <div class="overflow-x-auto">
+          <GscdumpKeywordsTable
+            class="min-w-[44rem] md:min-w-0"
+            :gscdump-site-id="site.gscdumpSiteId"
+            :route-slug="String(site.siteId)"
+            :extra-filters="pageFilter"
+            :page-size="10"
+            :exclude-columns="['topPage', 'searchVolume']"
+          />
+        </div>
       </UCard>
     </div>
-    <UCard>
-      <GscdumpKeywordsTable :site-id="site.gscdumpSiteId" :extra-filters="pageFilter" :page-size="10" />
-    </UCard>
   </div>
 </template>

@@ -2,10 +2,18 @@
 import type { SitePreview, SitesPreview } from '~~/layers/core/app/types'
 import { useHumanFriendlyNumber } from '~~/layers/design-system/composables/formatting'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   sites: SitesPreview
   modelValue: string[]
-}>()
+  /**
+   * Site limit for the team. The server owns this number and returns it from
+   * `/api/sites/preview`; the hard-coded 3 here disagreed with the page copy
+   * ("up to 6 sites") and with the counter.
+   */
+  max?: number
+}>(), {
+  max: 3,
+})
 
 const emits = defineEmits<{
   'update:modelValue': [value: string[]]
@@ -17,7 +25,7 @@ const data = ref<SitesPreview>(props.sites)
 // const isPending = computed(() => !props.sites.length)
 
 const selected = ref<string[]>([...props.modelValue])
-const maxSites = 3
+const maxSites = computed(() => props.max)
 
 watch(selected, () => {
   emits('update:modelValue', selected.value)
@@ -26,10 +34,10 @@ watch(selected, () => {
 const toast = useToast()
 function select(row: SitePreview) {
   if (!selected.value.includes(row.siteId)) {
-    if (selected.value.length < maxSites)
+    if (selected.value.length < maxSites.value)
       selected.value.push(row.siteId)
     else
-      toast.add({ title: `You can only select up to ${maxSites} sites.`, color: 'error' })
+      toast.add({ title: `You can only select up to ${maxSites.value} sites.`, color: 'error' })
   }
   else {
     selected.value = selected.value.filter(s => s !== row.siteId)
@@ -94,67 +102,73 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <div v-if="siteRows.length">
-      <slot />
-      <div class="mb-5">
-        <div class="grid grid-cols-2 max-w-xl mx-auto gap-3">
-          <UButton v-for="(site, key) in paginatedSites" :key="key" variant="ghost" color="neutral" class="flex items-center gap-2" :class="selected.some(s => s === site.siteId) ? 'bg-blue-50' : 'opacity-80'" @click="select(site)">
-            <UCheckbox color="info" :model-value="selected.some(s => s === site.siteId)" @update:model-value="select(site)" />
-            <div>
-              <div class="flex items-center gap-2 mb-1">
-                <SiteFavicon :site="site" />
-                <div class="font-bold text-gray-800 dark:text-gray-100">
-                  {{ siteLabel(site) }}
-                </div>
-              </div>
-              <div class="flex gap-2 text-xs">
-                <div>
-                  {{ (site.domain || '').startsWith('sc-domain:') ? 'Domain' : 'URL' }} Property
-                </div>
-                <div v-if="!site.pageCount30Day">
-                  <UIcon name="i-ph-arrows-clockwise-duotone" class="w-4 h-4 animate-spin" />
-                </div>
-                <div v-else>
-                  {{ useHumanFriendlyNumber(site.pageCount30Day) }} Pages
-                </div>
-              </div>
-            </div>
-          </UButton>
+    <slot />
+    <!-- The counter and the Resync action used to sit below the grid they
+         describe, at opposite edges of the page. They lead the grid now. -->
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
+      <div class="min-w-[200px]">
+        <div class="text-sm text-muted">
+          Selected Sites
         </div>
-        <div v-if="siteRows.length > pageCount" class="flex items-center justify-between mt-7 px-3 py-5 border-t  border-gray-200 dark:border-gray-700">
-          <UPagination v-model="sitePage" :page-count="pageCount" :total="siteRows.length" />
-          <div class="text-base dark:text-gray-300 text-gray-600 mb-2">
-            {{ siteRows.length }} total
-          </div>
+        <div class="text-lg font-bold tabular-nums text-highlighted">
+          {{ selected.length }}/{{ maxSites }}
+        </div>
+        <UProgress :value="Math.min(selected.length / maxSites * 100, 100)" :color="selected.length < maxSites ? 'primary' : 'warning'" class="mt-1" />
+        <p class="mt-1 text-xs text-muted">
+          <UIcon name="i-heroicons-information-circle" class="size-4 -mb-1" />
+          You can select up to {{ maxSites }} sites.
+        </p>
+      </div>
+      <div class="max-w-[240px]">
+        <UButton :loading="isSyncing" type="button" class="mb-1 min-h-10" icon="i-heroicons-arrow-path" @click="resync">
+          Resync
+        </UButton>
+        <div class="text-xs text-muted">
+          Made changes to Google Search Console? Resync your data.
         </div>
       </div>
     </div>
-    <div>
-      <div class="mb-5 flex flex-col md:flex-row md:justify-around md:items-center gap-7">
-        <div class="flex justify-around items-center gap-7">
-          <div class="w-2xl">
-            <div>
-              <div class="text-sm">
-                Selected Sites
+
+    <div v-if="siteRows.length" class="mb-5">
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <UButton
+          v-for="(site, key) in paginatedSites"
+          :key="key"
+          variant="ghost"
+          color="neutral"
+          class="flex items-center gap-2 text-left"
+          :class="selected.some(s => s === site.siteId) ? 'bg-primary/10' : 'opacity-80'"
+          @click="select(site)"
+        >
+          <UCheckbox color="primary" :model-value="selected.some(s => s === site.siteId)" @update:model-value="select(site)" />
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <SiteFavicon :site="site" />
+              <div class="truncate font-bold text-highlighted">
+                {{ siteLabel(site) }}
               </div>
-              <div class="text-lg font-bold">
-                {{ selected.length }}/{{ maxSites }}
+            </div>
+            <div class="flex items-center gap-2 text-xs text-muted">
+              <div>
+                {{ (site.domain || '').startsWith('sc-domain:') ? 'Domain' : 'URL' }} Property
               </div>
-              <UProgress :value="selected.length / maxSites * 100" :color="selected.length < maxSites ? 'secondary' : 'error'" class="mt-1" />
+              <UiTooltip v-if="!site.pageCount30Day" text="Page count is still syncing from Google Search Console">
+                <span class="flex items-center gap-1">
+                  <UIcon name="i-ph-arrows-clockwise-duotone" class="size-4 animate-spin" />
+                  <span>Syncing</span>
+                </span>
+              </UiTooltip>
+              <div v-else>
+                {{ useHumanFriendlyNumber(site.pageCount30Day) }} {{ site.pageCount30Day === 1 ? 'Page' : 'Pages' }}
+              </div>
             </div>
           </div>
-          <div class="max-w-[200px] text-gray-500 dark:text-gray-400 text-sm">
-            <UIcon name="i-heroicons-information-circle" class="w-4 h-4 -mb-1" />
-            You can select up to {{ maxSites }} sites.
-          </div>
-        </div>
-        <div class="max-w-[200px]">
-          <UButton :loading="isSyncing" type="button" class="mb-1" icon="i-heroicons-arrow-path" @click="resync">
-            Resync
-          </UButton>
-          <div class="text-xs text-gray-500 dark:text-gray-400">
-            Made changes to Google Search Console? Resync your data.
-          </div>
+        </UButton>
+      </div>
+      <div v-if="siteRows.length > pageCount" class="mt-7 flex items-center justify-between border-t border-default px-3 py-5">
+        <UPagination v-model:page="sitePage" :items-per-page="pageCount" :total="siteRows.length" :show-edges="false" />
+        <div class="text-base text-muted tabular-nums">
+          {{ siteRows.length }} total
         </div>
       </div>
     </div>

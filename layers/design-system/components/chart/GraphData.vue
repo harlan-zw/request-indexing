@@ -135,6 +135,20 @@ const themesData = {
 
 const palettes = [lightTheme.series, lightTheme.series2, lightTheme.series3]
 
+/**
+ * Series legend. The chart draws a blue and a purple line with nothing naming
+ * them, so the reader cannot tell which metric is which. Colours here mirror
+ * the order `addSeries` assigns palettes in.
+ */
+const legend = computed(() => (props.columns ?? []).map((col, index) => {
+  const key = typeof col === 'string' ? col : col.key
+  return {
+    key,
+    label: metricLabel(key),
+    color: props.colors?.[key] ?? palettes[index % palettes.length]!.lineColor,
+  }
+}))
+
 onMounted(() => {
   if (!chart.value)
     return
@@ -269,10 +283,18 @@ watch(containerHovered, (val) => {
 </script>
 
 <template>
-  <div ref="container" class="w-full relative bg-green-50/20" :style="{ height: `${height}px` }">
-    <div v-show="tooltipData?.time" class="absolute -bottom-4 left-1/2 -translate-x-1/2 transform text-center text-sm">
-      {{ fmtTooltipDate(tooltipData?.time) }}
+  <div class="w-full">
+    <ul v-if="legend.length" class="mb-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted">
+      <li v-for="series in legend" :key="series.key" class="inline-flex items-center gap-1.5 whitespace-nowrap">
+        <span class="size-2 shrink-0 rounded-full" :style="{ backgroundColor: series.color }" aria-hidden="true" />
+        {{ series.label }}
+      </li>
+    </ul>
+    <div ref="container" class="w-full relative bg-green-50/20" :style="{ height: `${height}px` }">
+      <div v-show="tooltipData?.time" class="absolute -bottom-4 left-1/2 -translate-x-1/2 transform text-center text-sm">
+        {{ fmtTooltipDate(tooltipData?.time) }}
+      </div>
+      <div ref="chart" />
     </div>
-    <div ref="chart" />
   </div>
 </template>
