@@ -34,7 +34,7 @@ const navigationLinks = computed(() => {
 defineOgImage('Guide', {
   title: page.value?.title,
   description: page.value?.description,
-  readTime: page.value?.readTime,
+  readTime: page.value?.readTime === undefined ? undefined : String(page.value.readTime),
   publishedAt: page.value?.publishedAt,
 })
 
@@ -51,7 +51,7 @@ useSeoMeta({
   articleModifiedTime,
   twitterData1: 'Harlan Wilton',
   twitterLabel1: 'Author',
-  twitterData2: page.value?.readTime,
+  twitterData2: page.value?.readTime === undefined ? undefined : String(page.value.readTime),
   twitterLabel2: 'Read Time',
 })
 

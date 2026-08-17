@@ -1,4 +1,4 @@
-// @ts-expect-error This local token pool is intentionally gitignored.
+// The token pool itself is gitignored; .tokens.d.ts provides its type.
 import _tokens from '../.tokens.js'
 
 console.log(`PUBLIC CAPACITY\n ${_tokens.length * 15}`)
