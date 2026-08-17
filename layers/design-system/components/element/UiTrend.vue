@@ -53,12 +53,7 @@ const sizeClass = computed(() => {
 
 const display = computed(() => formatTrendDelta(trend.value, format))
 
-const label = computed(() => {
-  if (trend.value.direction === 'flat')
-    return 'No change'
-  const movement = trend.value.direction === 'up' ? 'up' : 'down'
-  return `${movement} ${Math.abs(trend.value.delta)}${format === 'percent' ? '%' : ''}`
-})
+const label = computed(() => trendAriaLabel(trend.value, format, inverted))
 </script>
 
 <template>

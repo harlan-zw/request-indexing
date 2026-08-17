@@ -98,6 +98,26 @@ function template(d: I) {
     <div class="grid gap-1 text-sm text-default tabular-nums">${rows}</div>`
 }
 
+/**
+ * `role="img"` is kept: every descendant is an SVG path with no readable text,
+ * and the crosshair tooltip is mouse-only, so hiding the subtree costs nothing.
+ * What it did cost was the numbers, because the old label named the series and
+ * stopped. The label now carries the same start and end values a sighted reader
+ * takes from the chart.
+ */
+const chartLabel = computed(() => {
+  const intro = props.description ?? `Trend chart plotting ${plottedSeries.value.map(series => series.label).join(', ')} over time`
+  const first = value.value[0]
+  const last = value.value[value.value.length - 1]
+  if (!first || !last || !plottedSeries.value.length)
+    return `${intro}. No data.`
+  const range = `${format(new Date(first.date), 'MMM d')} to ${format(new Date(last.date), 'MMM d')}`
+  const series = plottedSeries.value
+    .map(s => `${s.label} ${seriesValue(first, s.key)} to ${seriesValue(last, s.key)}`)
+    .join('. ')
+  return `${intro}. ${range}. ${series}.`
+})
+
 function metricScale(key: MetricKey, inverted = false) {
   return computed(() => Scale.scaleLinear()
     .domain(resolveMetricDomain(value.value.map(row => key === 'ctr' ? (row.ctr ?? 0) * 100 : (row[key] ?? 0))))
@@ -127,7 +147,7 @@ const x = (_d: I, index: number) => index
     <div
       class="relative w-full min-w-0 overflow-clip"
       role="img"
-      :aria-label="description ?? `Trend chart plotting ${plottedSeries.map(series => series.label).join(', ')} over time`"
+      :aria-label="chartLabel"
       :style="{ height: `${chartHeight}px` }"
       @mouseleave="emits('tooltip', null)"
     >

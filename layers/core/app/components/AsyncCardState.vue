@@ -59,6 +59,16 @@ function watchLoading(status: FetchStatus) {
 onMounted(() => watchLoading(props.status))
 watch(() => props.status, watchLoading)
 
+/**
+ * A stalled card is already `pending`, so `refresh()` sets `pending` again and
+ * the status watcher never fires. Retry therefore restarts the watchdog itself,
+ * which clears `stalled` and returns the panel to the skeleton straight away.
+ */
+function retry() {
+  watchLoading(props.status)
+  emit('retry')
+}
+
 function errorMessage(error: unknown): string {
   const detail = error as { statusCode?: number, status?: number } | null
   const statusCode = detail?.statusCode ?? detail?.status
@@ -81,70 +91,75 @@ const skeletonRows = computed(() => Array.from({ length: props.rows }, (_, index
 </script>
 
 <template>
-  <div
-    v-if="state._tag === 'pending'"
-    class="flex w-full flex-col justify-center gap-2 py-2"
-    :class="minHeight"
-    aria-live="polite"
-    aria-busy="true"
-  >
-    <span class="sr-only">Loading {{ label }}</span>
-    <USkeleton v-for="row in skeletonRows" :key="row" class="h-4 w-full" :class="row % 3 === 2 ? 'max-w-[60%]' : ''" />
-  </div>
-
-  <div
-    v-else-if="state._tag === 'stalled'"
-    class="flex w-full flex-col items-center justify-center gap-3 py-4 text-center"
-    :class="minHeight"
-    role="status"
-  >
-    <UIcon name="i-lucide-clock-alert" class="size-6 text-warning" />
-    <div>
-      <p class="font-medium text-highlighted">
-        Still loading
-      </p>
-      <p class="text-sm text-muted">
-        The {{ label }} is taking longer than expected. Retry to load it again.
-      </p>
+  <!-- One root element for every state. A branch-per-state template changed the
+       root node shape when data arrived, so a class set by the parent applied to
+       the skeleton and then disappeared on the loaded card. -->
+  <div class="w-full">
+    <div
+      v-if="state._tag === 'pending'"
+      class="flex w-full flex-col justify-center gap-2 py-2"
+      :class="minHeight"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <span class="sr-only">Loading {{ label }}</span>
+      <USkeleton v-for="row in skeletonRows" :key="row" class="h-4 w-full" :class="row % 3 === 2 ? 'max-w-[60%]' : ''" />
     </div>
-    <UButton label="Retry" color="neutral" variant="outline" size="sm" class="min-h-10" @click="emit('retry')" />
-  </div>
 
-  <div
-    v-else-if="state._tag === 'error'"
-    class="flex w-full flex-col items-center justify-center gap-3 py-4 text-center"
-    :class="minHeight"
-    role="alert"
-  >
-    <UIcon name="i-lucide-cloud-off" class="size-6 text-error" />
-    <div>
-      <p class="font-medium text-highlighted">
-        Could not load
-      </p>
-      <p class="text-sm text-muted">
-        {{ state.message }}
-      </p>
-    </div>
-    <UButton label="Retry" color="neutral" variant="outline" size="sm" class="min-h-10" @click="emit('retry')" />
-  </div>
-
-  <div
-    v-else-if="state._tag === 'empty'"
-    class="flex w-full flex-col items-center justify-center gap-3 py-4 text-center"
-    :class="minHeight"
-  >
-    <slot name="empty">
-      <UIcon name="i-lucide-inbox" class="size-6 text-dimmed" />
+    <div
+      v-else-if="state._tag === 'stalled'"
+      class="flex w-full flex-col items-center justify-center gap-3 py-4 text-center"
+      :class="minHeight"
+      role="status"
+    >
+      <UIcon name="i-lucide-clock-alert" class="size-6 text-warning" />
       <div>
         <p class="font-medium text-highlighted">
-          Nothing to show
+          Still loading
         </p>
         <p class="text-sm text-muted">
-          {{ emptyMessage ?? `No ${label} for this period.` }}
+          The {{ label }} is taking longer than expected. Retry to load it again.
         </p>
       </div>
-    </slot>
-  </div>
+      <UButton label="Retry" color="neutral" variant="outline" size="sm" class="min-h-10" @click="retry()" />
+    </div>
 
-  <slot v-else />
+    <div
+      v-else-if="state._tag === 'error'"
+      class="flex w-full flex-col items-center justify-center gap-3 py-4 text-center"
+      :class="minHeight"
+      role="alert"
+    >
+      <UIcon name="i-lucide-cloud-off" class="size-6 text-error" />
+      <div>
+        <p class="font-medium text-highlighted">
+          Could not load
+        </p>
+        <p class="text-sm text-muted">
+          {{ state.message }}
+        </p>
+      </div>
+      <UButton label="Retry" color="neutral" variant="outline" size="sm" class="min-h-10" @click="retry()" />
+    </div>
+
+    <div
+      v-else-if="state._tag === 'empty'"
+      class="flex w-full flex-col items-center justify-center gap-3 py-4 text-center"
+      :class="minHeight"
+    >
+      <slot name="empty">
+        <UIcon name="i-lucide-inbox" class="size-6 text-dimmed" />
+        <div>
+          <p class="font-medium text-highlighted">
+            Nothing to show
+          </p>
+          <p class="text-sm text-muted">
+            {{ emptyMessage ?? `No ${label} for this period.` }}
+          </p>
+        </div>
+      </slot>
+    </div>
+
+    <slot v-else />
+  </div>
 </template>

@@ -66,3 +66,24 @@ export function formatTrendDelta(trend: Trend, format: 'percent' | 'number' = 'p
   const magnitude = Math.abs(trend.delta)
   return format === 'percent' ? `${trend.sign}${magnitude}%` : `${trend.sign}${magnitude}`
 }
+
+/**
+ * Accessible label for a Trend.
+ *
+ * On an inverted metric the arrow describes the metric, not the number beside
+ * it: search position 10 to 12 draws `↓ -20%` while the number rose. A label of
+ * "down 20%" there contradicts what a sighted reader sees, so an inverted metric
+ * names the movement instead of a direction.
+ *
+ * @param trend    the resolved trend to describe
+ * @param format   `percent` appends a `%` to the magnitude
+ * @param inverted `true` when a lower number is better (search position, LCP)
+ */
+export function trendAriaLabel(trend: Trend, format: 'percent' | 'number' = 'percent', inverted = false): string {
+  if (trend.direction === 'flat')
+    return 'No change'
+  const magnitude = `${Math.abs(trend.delta)}${format === 'percent' ? '%' : ''}`
+  if (inverted)
+    return trend.direction === 'up' ? `Improved by ${magnitude}` : `Declined by ${magnitude}`
+  return trend.direction === 'up' ? `Up ${magnitude}` : `Down ${magnitude}`
+}

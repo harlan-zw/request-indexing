@@ -44,6 +44,13 @@ function select(row: SitePreview) {
   }
 }
 
+// `property` is the Search Console identifier and the only field that carries
+// the `sc-domain:` prefix; `domain` is a bare host derived from it. Reading
+// `domain` labelled every domain property "URL Property".
+function isDomainProperty(site: { domain?: string | null, property?: string | null }): boolean {
+  return (site.property || site.domain || '').startsWith('sc-domain:')
+}
+
 const sitePage = ref(1)
 const pageCount = 6
 
@@ -113,7 +120,9 @@ onBeforeUnmount(() => {
         <div class="text-lg font-bold tabular-nums text-highlighted">
           {{ selected.length }}/{{ maxSites }}
         </div>
-        <UProgress :value="Math.min(selected.length / maxSites * 100, 100)" :color="selected.length < maxSites ? 'primary' : 'warning'" class="mt-1" />
+        <!-- Rounded: the raw ratio reached `aria-valuenow="66.66666666666666"`,
+             which a screen reader reads out in full. -->
+        <UProgress :model-value="Math.round(Math.min(selected.length / maxSites * 100, 100))" :color="selected.length < maxSites ? 'primary' : 'warning'" class="mt-1" />
         <p class="mt-1 text-xs text-muted">
           <UIcon name="i-heroicons-information-circle" class="size-4 -mb-1" />
           You can select up to {{ maxSites }} sites.
@@ -154,7 +163,7 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex items-center gap-2 text-xs text-muted">
               <div>
-                {{ (site.domain || '').startsWith('sc-domain:') ? 'Domain' : 'URL' }} Property
+                {{ isDomainProperty(site) ? 'Domain' : 'URL' }} Property
               </div>
               <UiTooltip v-if="!site.pageCount30Day" text="Page count is still syncing from Google Search Console">
                 <span class="flex items-center gap-1">

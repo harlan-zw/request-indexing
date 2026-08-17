@@ -64,9 +64,14 @@ const rows = computed(() => (data.value ?? []).map(row => ({
           <dt class="text-sm text-muted">
             {{ row.label }}
           </dt>
-          <dd class="text-3xl font-mono">
+          <!-- No denominator. The old UI showed `/100`, which matched nothing:
+               the endpoint sums the current calendar month, `usageLimitPerUser`
+               in runtime config is wired to nothing, and the only real guard is
+               a rate limit. Naming the period is honest; inventing a quota is
+               not. -->
+          <dd class="font-mono text-3xl">
             {{ useHumanFriendlyNumber(row.usage) }}
-            <span class="text-sm font-sans text-muted">calls</span>
+            <span class="font-sans text-sm text-muted">calls this month</span>
           </dd>
         </div>
       </dl>

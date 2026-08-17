@@ -195,13 +195,13 @@ function setSelectedSites(val: string[]) {
             <UIcon name="i-heroicons-arrow-path" class="size-5 animate-spin" />
             Syncing sites {{ sitesSynced }}/{{ totalSites }}
           </h2>
-          <UProgress :max="totalSites" :value="sitesSynced" />
+          <UProgress :max="totalSites" :model-value="sitesSynced" />
           <p class="mt-1 text-xs text-muted">
             You can pick your sites now. Data keeps loading in the background.
           </p>
         </div>
 
-        <TeamSiteSelector :key="key" :sites="sites" :model-value="selectedSites" @update:model-value="setSelectedSites" />
+        <TeamSiteSelector :key="key" :sites="sites" :max="maxSites" :model-value="selectedSites" @update:model-value="setSelectedSites" />
       </div>
 
       <template #footer>

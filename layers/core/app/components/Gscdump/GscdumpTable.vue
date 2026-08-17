@@ -90,12 +90,15 @@ defineExpose({ tableData })
             size="xs"
           >
             <template #trailing>
+              <!-- v4 dropped `padded`. Padding comes from the size variant, so
+                   `p-0` on the class is what tightens the button now. -->
               <UButton
                 v-show="tableData.q.value"
                 color="neutral"
                 variant="link"
                 icon="i-heroicons-x-mark"
-                :padded="false"
+                aria-label="Clear search"
+                class="p-0"
                 @click="tableData.q.value = ''"
               />
             </template>
@@ -104,21 +107,27 @@ defineExpose({ tableData })
       </div>
       <!-- At 390px the chips wrapped mid-label and deformed, and the row pushed
            the page wider than the viewport. They scroll as one row instead. -->
+      <!-- These were `UBadge`, which renders a `<span>`. The primary filter of
+           every data table was therefore mouse-only: no focus, no Enter, no
+           pressed state. Real buttons carry all three. -->
       <div v-if="allFilters.length > 1" class="mb-3 flex max-w-full items-center gap-3 overflow-x-auto">
-        <UBadge
+        <UTooltip
           v-for="f in allFilters"
           :key="f.key"
-          class="shrink-0 cursor-pointer whitespace-nowrap"
-          :ui="{ base: 'rounded-full' }"
-          :color="tableData.filter.value === f.key ? 'success' : 'neutral'"
-          :variant="tableData.filter.value === f.key ? 'subtle' : 'soft'"
-          @click="tableData.toggleFilter(f.key)"
+          :text="f.description || ''"
         >
-          <UTooltip :text="f.description || ''" class="flex gap-1 items-center">
-            <UIcon v-if="f.special" name="i-heroicons-sparkles" class="w-4 h-4" />
+          <UButton
+            class="shrink-0 whitespace-nowrap rounded-full"
+            size="xs"
+            :icon="f.special ? 'i-heroicons-sparkles' : undefined"
+            :color="tableData.filter.value === f.key ? 'success' : 'neutral'"
+            :variant="tableData.filter.value === f.key ? 'subtle' : 'soft'"
+            :aria-pressed="tableData.filter.value === f.key"
+            @click="tableData.toggleFilter(f.key)"
+          >
             {{ f.label }}
-          </UTooltip>
-        </UBadge>
+          </UButton>
+        </UTooltip>
       </div>
     </div>
     <USeparator v-if="searchable || filters" />

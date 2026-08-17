@@ -87,7 +87,9 @@ const openCoverage = computed(() => coverageRows.value.filter(row => row.count >
     @retry="refresh()"
   >
     <div v-if="summary">
-      <div class="grid grid-cols-4 gap-4 mb-6">
+      <!-- Four `text-2xl` numbers side by side overflowed a 390px viewport.
+           They stack two-up until there is room for the row. -->
+      <div class="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-4">
         <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
           <div class="text-xs text-muted">
             Total URLs
@@ -117,16 +119,16 @@ const openCoverage = computed(() => coverageRows.value.filter(row => row.count >
             Indexed %
           </div>
           <div class="text-2xl font-mono font-bold tabular-nums" :class="indexedToneText">
-            {{ summary.indexedPercent }}%
+            {{ formatPercentMetric(summary.indexedPercent) }}
           </div>
-          <UProgress :value="summary.indexedPercent" :color="indexedTone" size="xs" class="mt-1" />
+          <UProgress :model-value="summary.indexedPercent" :color="indexedTone" size="xs" class="mt-1" />
         </UCard>
       </div>
 
       <!-- Both windows always render. Dropping the row when a value is missing
            made the same block look different from site to site, and the number
            carried no unit. -->
-      <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2">
         <div>
           <span class="text-xs text-muted">Indexed URLs, last 7 days:</span>
           <span v-if="summary.change7d != null" class="text-sm font-mono ml-1 tabular-nums" :class="summary.change7d >= 0 ? 'text-success' : 'text-error'">
@@ -166,7 +168,7 @@ const openCoverage = computed(() => coverageRows.value.filter(row => row.count >
         </p>
       </div>
 
-      <div v-if="issueRows.length || coverageRows.length" class="grid grid-cols-2 gap-6">
+      <div v-if="issueRows.length || coverageRows.length" class="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div v-if="issueRows.length">
           <div class="text-xs text-muted mb-2 font-semibold">
             Issues

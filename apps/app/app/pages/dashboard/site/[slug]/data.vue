@@ -76,7 +76,7 @@ const syncStatusColor = computed(() => {
               {{ siteSync.syncProgress.percent }}%
             </div>
             <!-- DE5: blue was the one off-palette element on the page. -->
-            <UProgress :value="siteSync.syncProgress.percent" color="primary" class="mt-1" />
+            <UProgress :model-value="siteSync.syncProgress.percent" color="primary" class="mt-1" />
             <div class="text-xs text-muted">
               {{ siteSync.syncProgress.completed }} of {{ siteSync.syncProgress.total }} days fetched from Search Console
             </div>

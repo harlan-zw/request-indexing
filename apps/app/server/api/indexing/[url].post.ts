@@ -5,7 +5,7 @@ import { getIndexingMetadata, googleSearchConsole, parseGoogleError, requestInde
 import { createError, defineEventHandler, getQuery, getRouterParams } from 'h3'
 import { incrementUsage } from '~~/layers/core/server/app/services/usage'
 import { authenticateUser } from '~~/layers/core/server/app/utils/auth'
-import { googleAccounts, googleOAuthClients, indexingJobs, sites, userSites } from '~~/layers/core/server/db/schema'
+import { googleAccounts, googleOAuthClients, indexingJobs, sites, teamMemberships, teamSites, userSites } from '~~/layers/core/server/db/schema'
 import { checkProToolRateLimit } from '~~/layers/pro-saas/server/utils/rate-limit'
 import { logWarn } from '~~/shared/logging'
 
@@ -147,10 +147,22 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Site not found' })
   }
 
+  // Ownership, the legacy per-user link, and team membership. The team path was
+  // missing, so a team member who reaches a site through `team_sites` (which is
+  // how the dashboard lists it, and how `requireTeamSite` grants access
+  // everywhere else) was refused indexing on a site they can otherwise see.
   const hasAccess = site.ownerId === user.userId
     || !!(await db.query.userSites.findFirst({
       where: and(eq(userSites.userId, user.userId), eq(userSites.siteId, site.siteId)),
     }))
+    || !!(await db.select({ teamId: teamSites.teamId })
+      .from(teamSites)
+      .innerJoin(teamMemberships, and(
+        eq(teamMemberships.teamId, teamSites.teamId),
+        eq(teamMemberships.userId, user.userId),
+      ))
+      .where(eq(teamSites.siteId, site.siteId))
+      .get())
   if (!hasAccess) {
     throw createError({ statusCode: 403, statusMessage: 'You do not have access to this site' })
   }

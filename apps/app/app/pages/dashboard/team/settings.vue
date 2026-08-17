@@ -23,7 +23,6 @@ const sites = computed<(SitePreview & { property: string | null })[]>(() =>
     sitemaps: (site.sitemaps ?? []) as SitePreview['sitemaps'],
   })),
 )
-const selectedSites = ref<string[]>([])
 </script>
 
 <template>
@@ -57,7 +56,25 @@ const selectedSites = ref<string[]>([])
     </UAlert>
 
     <template v-else>
-      <TeamSiteSelector v-model="selectedSites" :sites="sites" />
+      <!-- A read-only summary, not a picker. This used to render the full
+           `TeamSiteSelector` bound to a ref that was never seeded and never
+           saved: the counter read 0/3 for a team with sites, ticking a box
+           moved it, raised a limit toast, and persisted nothing. The copy below
+           already sends the user to Sites to make the change. -->
+      <div>
+        <h2 class="mb-2 text-sm font-medium text-highlighted">
+          Tracked sites
+        </h2>
+        <ul v-if="sites.length" class="divide-y divide-default rounded-md ring ring-default">
+          <li v-for="site in sites" :key="site.siteId" class="flex items-center gap-2 px-3 py-2">
+            <SiteFavicon :site="site" />
+            <span class="truncate text-sm">{{ siteLabel(site) }}</span>
+          </li>
+        </ul>
+        <p v-else class="text-sm text-muted">
+          This team tracks no sites yet.
+        </p>
+      </div>
       <p class="text-sm text-muted">
         To change which sites this team tracks, go to
         <NuxtLink to="/dashboard/team/sites" class="text-primary underline">

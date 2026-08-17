@@ -18,6 +18,6 @@ const percentage = computed(() => {
 <template>
   <UTooltip :text="tooltip || `${useHumanFriendlyNumber(percentage)}% of clicks`" class="block w-full">
     <slot />
-    <UProgress :value="percentage" :color="color" class="opacity-90" size="xs" v-bind="$attrs" />
+    <UProgress :model-value="percentage" :color="color" class="opacity-90" size="xs" v-bind="$attrs" />
   </UTooltip>
 </template>

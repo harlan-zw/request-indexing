@@ -155,13 +155,17 @@ const verdictColor: Record<string, BadgeColor> = {
     </AsyncCardState>
 
     <div v-if="data?.pagination && data.pagination.total > pageSize" class="flex items-center gap-3 pt-3">
+      <!-- v4 pagination: `sibling-count` sizes the window. The v2 `max` prop no
+           longer exists, so it rendered every page number.
+           First/last jump arrows are off, matching the other tables. -->
       <UPagination
         v-model:page="page"
         :items-per-page="pageSize"
+        :total="data.pagination.total"
+        :sibling-count="2"
+        :show-edges="false"
         size="xs"
         variant="link"
-        :max="5"
-        :total="data.pagination.total"
       />
     </div>
   </div>

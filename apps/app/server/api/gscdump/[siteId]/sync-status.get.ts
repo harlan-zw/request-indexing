@@ -1,18 +1,13 @@
-import { eq } from 'drizzle-orm'
 import { authenticateUser } from '~~/layers/core/server/app/utils/auth'
-import { sites } from '~~/layers/core/server/db/schema'
 
-export default defineEventHandler(async (event) => {
+export default defineGscdumpSiteHandler(async ({ event, gscdumpSiteId }) => {
+  // The sync status is per user, not per site: gscdump keys it by the caller's
+  // own engine user id, which lives on the user row and not on the caller seam.
   const user = await authenticateUser(event)
-
-  const { siteId } = getRouterParams(event, { decode: true })
-  const site = await useDrizzle().query.sites.findFirst({
-    where: eq(sites.publicId, siteId!),
-  })
-  if (!site?.gscdumpSiteId || !user.gscdumpUserId) {
+  if (!user.gscdumpUserId) {
     throw createError({ statusCode: 404, message: 'Site not found or not registered with gscdump' })
   }
 
   const gscdump = useGscdumpClient()
-  return gscdump.getSiteSyncStatus(site.gscdumpSiteId, user.gscdumpUserId)
+  return gscdump.getSiteSyncStatus(gscdumpSiteId, user.gscdumpUserId)
 })

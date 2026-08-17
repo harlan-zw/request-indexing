@@ -152,7 +152,7 @@ onBeforeUnmount(() => ws?.close())
               Syncing your Search Console data
             </template>
           </h2>
-          <UProgress v-if="totalSites" :max="totalSites" :value="sitesSynced" />
+          <UProgress v-if="totalSites" :max="totalSites" :model-value="sitesSynced" />
           <p class="mt-1 text-xs text-muted">
             You can pick your sites now. Data keeps loading in the background.
           </p>

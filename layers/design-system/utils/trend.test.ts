@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatTrendDelta, resolveTrend, resolveTrendDelta } from './trend'
+import { formatTrendDelta, resolveTrend, resolveTrendDelta, trendAriaLabel } from './trend'
 
 describe('resolveTrend', () => {
   it('reads a rise in a normal metric as an improvement', () => {
@@ -61,5 +61,27 @@ describe('resolveTrendDelta', () => {
 
   it('formats a plain number delta without a percent sign', () => {
     expect(formatTrendDelta(resolveTrendDelta(-7), 'number')).toBe('-7')
+  })
+})
+
+describe('trendAriaLabel', () => {
+  it('names a direction for a normal metric', () => {
+    expect(trendAriaLabel(resolveTrend(120, 100))).toBe('Up 20%')
+    expect(trendAriaLabel(resolveTrend(80, 100))).toBe('Down 20%')
+  })
+
+  it('names the movement, not the arrow, for an inverted metric', () => {
+    // Search position 10 to 12: the number rose, the ranking got worse. The
+    // cell draws a down arrow, so "down 20%" would contradict the number.
+    expect(trendAriaLabel(resolveTrend(12, 10, true), 'percent', true)).toBe('Declined by 20%')
+    expect(trendAriaLabel(resolveTrend(2.1, 3.4, true), 'percent', true)).toBe('Improved by 38%')
+  })
+
+  it('reports no movement as no change', () => {
+    expect(trendAriaLabel(resolveTrend(100, 100, true), 'percent', true)).toBe('No change')
+  })
+
+  it('drops the percent sign for a plain number delta', () => {
+    expect(trendAriaLabel(resolveTrendDelta(-7), 'number')).toBe('Down 7')
   })
 })

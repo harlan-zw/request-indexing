@@ -72,7 +72,13 @@ export function useFriendlySiteUrl(url: MaybeRef<string>) {
  * blank label instead. Route every label through here so neither is possible.
  */
 export function siteLabel(site: { domain?: string | null, property?: string | null }): string {
-  return useFriendlySiteUrl(site.domain || site.property || '')
+  const source = site.domain || site.property || ''
+  // `withoutTrailingSlash('')` returns `/`, so a site with neither field used to
+  // produce a truthy `/` label. Callers read that as a real host: the favicon
+  // proxy was asked for `?domain=/` instead of falling back to the globe icon.
+  if (!source)
+    return ''
+  return useFriendlySiteUrl(source)
 }
 
 export function formatIndexingTimeAgo(date: string | number, absAgo?: boolean): string

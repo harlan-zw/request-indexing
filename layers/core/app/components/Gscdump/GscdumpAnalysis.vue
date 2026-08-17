@@ -179,12 +179,15 @@ function formatCell(row: GscdumpAnalysisResult, key: keyof GscdumpAnalysisResult
           size="xs"
         >
           <template #trailing>
+            <!-- v4 dropped `padded`. Padding comes from the size variant, so
+                 `p-0` on the class is what tightens the button now. -->
             <UButton
               v-show="search"
               color="neutral"
               variant="link"
               icon="i-heroicons-x-mark"
-              :padded="false"
+              aria-label="Clear search"
+              class="p-0"
               @click="search = ''"
             />
           </template>
