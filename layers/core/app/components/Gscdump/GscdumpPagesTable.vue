@@ -35,11 +35,15 @@ const columns = [
   { key: 'ctr', label: 'CTR', sortable: true, class: 'w-16 text-right' },
 ]
 
+// Keep the query string. Dropping it collapsed every row of a query-addressed
+// site into one label: `/new-post?id=1` and `/new-post?id=2` both rendered as
+// `/new-post`, so distinct pages looked like duplicates (issue #8).
 function pageToPath(url?: string) {
   if (!url)
     return ''
   try {
-    return new URL(url).pathname
+    const { pathname, search } = new URL(url)
+    return `${pathname}${search}`
   }
   catch {
     return url
