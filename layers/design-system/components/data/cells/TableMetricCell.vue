@@ -45,9 +45,11 @@ const ariaLabel = computed(() => {
 </script>
 
 <template>
+  <!-- Value and delta share one baseline and the delta keeps a fixed track, so a
+       column of metric cells scans as a column instead of drifting per row. -->
   <div
-    class="flex items-center gap-2"
-    :class="[$slots.trend ? 'flex-col items-stretch gap-1' : '', alignClass]"
+    class="flex items-baseline gap-2 whitespace-nowrap"
+    :class="alignClass"
   >
     <TableDash v-if="isNullish" />
     <span
@@ -59,7 +61,9 @@ const ariaLabel = computed(() => {
       ]"
       :aria-label="ariaLabel"
     >{{ display ?? String(value) }}</span>
-    <slot v-if="!isNullish" name="trend" />
+    <span v-if="!isNullish && $slots.trend" class="inline-flex shrink-0 justify-end min-w-14">
+      <slot name="trend" />
+    </span>
     <slot v-if="!isNullish" name="after" />
   </div>
 </template>

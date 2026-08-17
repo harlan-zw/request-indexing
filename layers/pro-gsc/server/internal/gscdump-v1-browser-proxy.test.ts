@@ -24,6 +24,21 @@ describe('resolveGscdumpV1ProxyOperation', () => {
     expect(resolved?.params).toEqual({ siteId: 's_site-1' })
   })
 
+  // Regression: both trend operations were missing from the allowlist, so the
+  // proxy answered 404 and four of five site cards on `/dashboard` rendered
+  // "Site data could not load". `useGscdumpSiteSummary` calls both per card.
+  it('resolves the query-trend operation the dashboard site cards call', () => {
+    const resolved = resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/query-trend')
+    expect(resolved?.operation.id).toBe('partner.sites.query.trend.get')
+    expect(resolved?.params).toEqual({ siteId: 's_site-1' })
+  })
+
+  it('resolves the page-trend operation the dashboard site cards call', () => {
+    const resolved = resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/page-trend')
+    expect(resolved?.operation.id).toBe('partner.sites.page.trend.get')
+    expect(resolved?.params).toEqual({ siteId: 's_site-1' })
+  })
+
   it('rejects a path with no matching operation', () => {
     expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'users/u_1')).toBeNull()
   })

@@ -76,7 +76,9 @@ defineExpose({ tableData })
 
 <template>
   <div>
-    <div v-if="searchable || filters" class="flex justify-between">
+    <!-- The search box and the filter chips used to sit at opposite ends of the
+         row, so they read as two unrelated controls. They are one group. -->
+    <div v-if="searchable || filters" class="flex flex-wrap items-center gap-3">
       <div v-if="searchable" class="flex items-center gap-5 mb-2">
         <div class="flex w-[200px]">
           <UInput
@@ -88,33 +90,44 @@ defineExpose({ tableData })
             size="xs"
           >
             <template #trailing>
+              <!-- v4 dropped `padded`. Padding comes from the size variant, so
+                   `p-0` on the class is what tightens the button now. -->
               <UButton
                 v-show="tableData.q.value"
                 color="neutral"
                 variant="link"
                 icon="i-heroicons-x-mark"
-                :padded="false"
+                aria-label="Clear search"
+                class="p-0"
                 @click="tableData.q.value = ''"
               />
             </template>
           </UInput>
         </div>
       </div>
-      <div v-if="allFilters.length > 1" class="flex items-center gap-3 mb-3">
-        <UBadge
+      <!-- At 390px the chips wrapped mid-label and deformed, and the row pushed
+           the page wider than the viewport. They scroll as one row instead. -->
+      <!-- These were `UBadge`, which renders a `<span>`. The primary filter of
+           every data table was therefore mouse-only: no focus, no Enter, no
+           pressed state. Real buttons carry all three. -->
+      <div v-if="allFilters.length > 1" class="mb-3 flex max-w-full items-center gap-3 overflow-x-auto">
+        <UTooltip
           v-for="f in allFilters"
           :key="f.key"
-          class="cursor-pointer"
-          :ui="{ base: 'rounded-full' }"
-          :color="tableData.filter.value === f.key ? 'success' : 'neutral'"
-          :variant="tableData.filter.value === f.key ? 'subtle' : 'soft'"
-          @click="tableData.toggleFilter(f.key)"
+          :text="f.description || ''"
         >
-          <UTooltip :text="f.description || ''" class="flex gap-1 items-center">
-            <UIcon v-if="f.special" name="i-heroicons-sparkles" class="w-4 h-4" />
+          <UButton
+            class="shrink-0 whitespace-nowrap rounded-full"
+            size="xs"
+            :icon="f.special ? 'i-heroicons-sparkles' : undefined"
+            :color="tableData.filter.value === f.key ? 'success' : 'neutral'"
+            :variant="tableData.filter.value === f.key ? 'subtle' : 'soft'"
+            :aria-pressed="tableData.filter.value === f.key"
+            @click="tableData.toggleFilter(f.key)"
+          >
             {{ f.label }}
-          </UTooltip>
-        </UBadge>
+          </UButton>
+        </UTooltip>
       </div>
     </div>
     <USeparator v-if="searchable || filters" />
@@ -149,17 +162,23 @@ defineExpose({ tableData })
         </slot>
       </template>
     </UTable>
-    <div v-if="pagination && tableData.total.value > pageSize" class="flex items-center gap-3 pt-3">
+    <div v-if="pagination && tableData.total.value > pageSize" class="flex flex-wrap items-center justify-between gap-3 pt-3">
       <!-- v4 pagination: `v-model:page` + `items-per-page`; the v2
-           `page-count`/`max`/`*-button` props no longer exist. -->
+           `page-count`/`max`/`*-button` props no longer exist.
+           First/last jump arrows are off: they added two controls to a two-page
+           list and the reader was never told how many rows there are. -->
       <UPagination
         v-model:page="tableData.page.value"
         :items-per-page="pageSize"
         :total="tableData.total.value"
         :sibling-count="2"
+        :show-edges="false"
         size="xs"
         variant="link"
       />
+      <p class="text-xs text-muted tabular-nums">
+        {{ useHumanFriendlyNumber(tableData.total.value) }} rows
+      </p>
     </div>
   </div>
 </template>

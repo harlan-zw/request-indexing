@@ -19,6 +19,12 @@ const browserOperationEntries = [
   { surface: protocol.surfaces.analytics, operation: protocol.surfaces.analytics.operations.queryReport },
   { surface: protocol.surfaces.analytics, operation: protocol.surfaces.analytics.operations.queryReportDetail },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getSiteAnalysis },
+  // `useGscdumpSiteSummary` (useGscdump.ts) calls both of these for every site
+  // card on `/dashboard`. They were missing from the allowlist, so the proxy
+  // resolved no operation and answered 404, and four of five site cards on the
+  // product's landing page rendered "Site data could not load".
+  { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getQueryTrend },
+  { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getPageTrend },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getSiteIndexing },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.listSiteIndexingUrls },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getSiteIndexingDiagnostics },

@@ -12,11 +12,16 @@ definePageMeta({
 <template>
   <div class="space-y-7">
     <div class="flex items-center gap-3">
-      <div class="border border-dashed rounded-lg">
-        <CalenderFilter />
-      </div>
+      <CalenderFilter />
     </div>
     <GscdumpChart :gscdump-site-id="site.gscdumpSiteId" />
-    <GscdumpKeywordsTable :site-id="site.gscdumpSiteId" :page-size="12" />
+    <div class="overflow-x-auto">
+      <GscdumpKeywordsTable
+        class="min-w-[44rem] md:min-w-0"
+        :gscdump-site-id="site.gscdumpSiteId"
+        :route-slug="String(site.siteId)"
+        :page-size="12"
+      />
+    </div>
   </div>
 </template>

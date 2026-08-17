@@ -89,12 +89,12 @@ function toggleRevealed() {
       />
     </div>
     <p v-else class="text-sm text-gray-500">
-      No API key yet — rotate to generate one.
+      No API key yet. Rotate to generate one.
     </p>
     <template #footer>
       <UButton
-        color="warning"
-        variant="soft"
+        color="neutral"
+        variant="outline"
         :loading="rotating"
         icon="i-ph-arrows-clockwise"
         @click="rotate"

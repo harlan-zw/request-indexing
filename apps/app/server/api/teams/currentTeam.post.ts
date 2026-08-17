@@ -14,6 +14,16 @@ export default defineProApiHandler({
 }, async ({ db, caller, team: ctx, body }) => {
   const { onboardedStep, backupsEnabled, selectedSites } = body
 
+  // Reject an over-limit selection at the boundary. This endpoint used to
+  // accept any number of sites, so the only thing enforcing the limit was the
+  // picker's own disabled state. That is how a team reached "5/3".
+  const limit = checkTeamSiteSelection(selectedSites.length)
+  if (limit._tag === 'OverLimit') {
+    throw new ProError('validation_failed', {
+      message: `Select up to ${limit.max} sites. You selected ${limit.selected}.`,
+    })
+  }
+
   const realSites = selectedSites.length
     ? await db.select({ siteId: sites.siteId })
         .from(sites)

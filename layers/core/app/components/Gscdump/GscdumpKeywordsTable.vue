@@ -1,8 +1,13 @@
 <script lang="ts" setup>
 import type { Filter } from 'gscdump/query'
 
+// Two different identities. `gscdumpSiteId` ("s_81pdNUNwhTdevC") addresses the
+// engine; `routeSlug` ("kv1109") addresses `/dashboard/site/[slug]`. They used
+// to arrive as one `siteId` prop, so every row link pointed at a slug the
+// router does not know and 404'd. Keep them apart so that cannot recur.
 const _props = withDefaults(defineProps<{
-  siteId: string
+  gscdumpSiteId: string
+  routeSlug: string
   period?: import('~~/layers/core/app/composables/useGscdump').Period
   pageSize?: number
   searchable?: boolean
@@ -17,20 +22,23 @@ const _props = withDefaults(defineProps<{
   pagination: true,
 })
 
+// `topPage` and `searchVolume` are declared on the row contract but the
+// analytics report this table reads never populates them: the top page comes
+// from a separate per-keyword association endpoint and search volume from
+// keyword enrichment. Both columns rendered "-" on every row of every page, so
+// they are not shown until a data source exists.
 const columns = [
   { key: 'query', label: 'Keyword', sortable: true },
   { key: 'clicks', label: 'Clicks', sortable: true, class: 'w-20 text-right' },
   { key: 'impressions', label: 'Views', sortable: true, class: 'w-20 text-right' },
   { key: 'position', label: 'Position', sortable: true, class: 'w-20 text-right' },
   { key: 'ctr', label: 'CTR', sortable: true, class: 'w-16 text-right' },
-  { key: 'topPage', label: 'Top Page', class: 'w-32' },
-  { key: 'searchVolume', label: 'Volume', sortable: true, class: 'w-16 text-right' },
 ]
 </script>
 
 <template>
   <GscdumpTable
-    :site-id="siteId"
+    :site-id="gscdumpSiteId"
     dimension="query"
     :period="period"
     :page-size="pageSize"
@@ -42,13 +50,15 @@ const columns = [
     :extra-filters="extraFilters"
   >
     <template #query-data="{ row }">
-      <NuxtLink
-        :to="`/dashboard/site/${siteId}/keywords/${encodeURIComponent(row.query ?? '')}`"
-        class="text-blue-600 hover:underline truncate max-w-[250px] block text-xs"
-        :title="row.query"
-      >
-        {{ row.query }}
-      </NuxtLink>
+      <UiTooltip :text="row.query" size="lg">
+        <NuxtLink
+          :to="`/dashboard/site/${routeSlug}/keywords/${encodeURIComponent(row.query ?? '')}`"
+          class="block max-w-[250px] truncate rounded text-xs text-default transition-colors hover:text-primary focus-visible:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          :title="row.query"
+        >
+          {{ row.query }}
+        </NuxtLink>
+      </UiTooltip>
     </template>
     <template #clicks-data="{ row }">
       <div class="text-right font-mono text-xs">
@@ -68,19 +78,8 @@ const columns = [
       </div>
     </template>
     <template #ctr-data="{ row }">
-      <div class="text-right font-mono text-xs">
-        {{ useHumanFriendlyNumber(row.ctr * 100, 1) }}%
-      </div>
-    </template>
-    <template #topPage-data="{ row }">
-      <span v-if="row.topPage" class="text-xs text-gray-500 truncate max-w-[120px] block" :title="row.topPage">
-        {{ row.topPage }}
-      </span>
-      <span v-else class="text-xs text-gray-400">-</span>
-    </template>
-    <template #searchVolume-data="{ row }">
-      <div class="text-right font-mono text-xs">
-        {{ row.searchVolume ? useHumanFriendlyNumber(row.searchVolume) : '-' }}
+      <div class="text-right font-mono text-xs tabular-nums">
+        {{ formatPercentMetric(row.ctr * 100) }}
       </div>
     </template>
   </GscdumpTable>

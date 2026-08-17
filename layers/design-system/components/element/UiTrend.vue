@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { TrendDirection, TrendTone } from '~~/layers/design-system/utils/trend'
+
 /**
  * UiTrend
  *
@@ -6,8 +8,13 @@
  * status tokens. Used by TableTrendCell but works standalone anywhere a
  * percentage / numeric delta needs visual weight.
  *
- * `inverted` flips success/error so a decrease can read as positive
- * (e.g. ranking position, time-to-first-byte).
+ * `value` is the raw change against the previous period, so `-38` means the
+ * number fell by 38%.
+ *
+ * `inverted` marks a metric where a lower number is better (search position,
+ * time-to-first-byte). Arrow, sign and colour are all derived from the same
+ * `resolveTrendDelta` result, so an inverted metric that improved reads as an
+ * improvement in all three channels.
  */
 
 const {
@@ -22,24 +29,19 @@ const {
   size?: '2xs' | 'xs' | 'sm'
 }>()
 
-const direction = computed<'up' | 'down' | 'flat'>(() => {
-  if (value === 0)
-    return 'flat'
-  return (inverted ? -value : value) > 0 ? 'up' : 'down'
-})
+const trend = computed(() => resolveTrendDelta(value, inverted))
 
-const tone = computed(() => {
-  if (direction.value === 'flat')
-    return 'text-dimmed'
-  // Direction already accounts for `inverted`; up = good.
-  return direction.value === 'up' ? 'text-success' : 'text-error'
-})
+const tones: Record<TrendTone, string> = {
+  positive: 'text-success',
+  negative: 'text-error',
+  neutral: 'text-dimmed',
+}
 
-const icon = computed(() => {
-  if (direction.value === 'flat')
-    return 'i-lucide-minus'
-  return direction.value === 'up' ? 'i-lucide-arrow-up-right' : 'i-lucide-arrow-down-right'
-})
+const icons: Record<TrendDirection, string> = {
+  up: 'i-lucide-arrow-up-right',
+  down: 'i-lucide-arrow-down-right',
+  flat: 'i-lucide-minus',
+}
 
 const sizeClass = computed(() => {
   switch (size) {
@@ -49,21 +51,18 @@ const sizeClass = computed(() => {
   }
 })
 
-const display = computed(() => {
-  const abs = Math.abs(value)
-  const sign = value > 0 ? '+' : value < 0 ? '-' : ''
-  if (format === 'percent')
-    return `${sign}${abs}%`
-  return `${sign}${abs}`
-})
+const display = computed(() => formatTrendDelta(trend.value, format))
+
+const label = computed(() => trendAriaLabel(trend.value, format, inverted))
 </script>
 
 <template>
   <span
-    class="inline-flex items-center gap-0.5 font-medium tabular-nums"
-    :class="[tone, sizeClass]"
+    class="inline-flex items-baseline gap-0.5 font-medium tabular-nums whitespace-nowrap"
+    :class="[tones[trend.tone], sizeClass]"
+    :aria-label="label"
   >
-    <UIcon :name="icon" class="size-3 shrink-0" />
+    <UIcon :name="icons[trend.direction]" class="size-3 shrink-0 self-center" aria-hidden="true" />
     {{ display }}
   </span>
 </template>

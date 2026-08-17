@@ -1,56 +1,80 @@
 <script lang="ts" setup>
 import type { SiteSelect } from '#shared/types/database'
 
-const props = defineProps<{ site: SiteSelect & { gscdumpSiteId: string, property: string } }>()
+const { site } = defineProps<{ site: SiteSelect & { gscdumpSiteId: string, property: string } }>()
 
 definePageMeta({
-  title: 'Settings',
-  subTitle: 'API Usages',
-  icon: 'i-heroicons-check-circle',
+  title: 'API Usages',
+  // U4: this page counts API calls, not stored rows.
+  icon: 'i-ph-gauge-duotone',
 })
 
-const { data } = await useAsyncData(`usages:${props.site.siteId}`, () =>
-  $fetch(`/api/sites/${props.site.siteId}/usages`), { server: false })
+// The endpoint returns a bare array of `{ key, usage }` summed for the current
+// calendar month. It is not period-scoped, so this page carries no date range.
+const { data, status, error, refresh } = await useAsyncData(
+  `usages:${site.siteId}`,
+  () => $fetch<Array<{ key: string, usage: number }>>(`/api/sites/${site.siteId}/usages`),
+  { server: false },
+)
 
-function keyToLabel(key: string) {
-  switch (key) {
-    case 'googleAds': return 'Google Ads'
-    case 'gsc': return 'Google Search Console'
-  }
+const labels: Record<string, string> = {
+  indexingApi: 'Google Indexing API',
+  gsc: 'Google Search Console',
+  googleAds: 'Google Ads',
 }
+
+const rows = computed(() => (data.value ?? []).map(row => ({
+  key: row.key,
+  label: labels[row.key] ?? row.key,
+  usage: row.usage,
+})))
 </script>
 
 <template>
   <div class="space-y-7">
-    <div class="flex items-center gap-3">
-      <div class="border border-dashed rounded-lg">
-        <CalenderFilter />
-      </div>
-    </div>
-    <div class="flex gap-3 mb-3">
-      <h2 class="mb-2 flex items-center text-sm font-semibold">
-        Property {{ site.property }}
+    <div>
+      <h2 class="text-sm font-semibold">
+        {{ siteLabel(site) }}
       </h2>
+      <p class="text-xs text-muted">
+        Search Console property {{ site.property }}
+      </p>
     </div>
-    <div class="grid grid-cols-12 gap-7">
-      <div class="col-span-9 space-y-10">
-        <CardTitle>
-          <UIcon name="i-ph-database-duotone" class="w-5 h-5 text-gray-500" />
-          API Usages
-        </CardTitle>
-        <UCard v-if="data" :ui="{ body: 'sm:px-3 sm:py-2' }">
-          <div class="text-sm mb-4 space-y-7">
-            <div v-for="row in data" :key="row.key">
-              <ProgressPercent :value="row.usage">
-                <div class="text-3xl">
-                  {{ row.usage }}<span class="text-lg">/ 100</span>
-                </div>
-                {{ keyToLabel(row.key) }}
-              </ProgressPercent>
-            </div>
-          </div>
-        </UCard>
+
+    <!-- U2: the shell already titles this page "API Usages". -->
+    <UCard>
+      <div class="mb-4 text-sm text-muted">
+        API calls this site has made so far this month.
       </div>
-    </div>
+
+      <div v-if="status === 'pending'" class="flex items-center justify-center py-8" aria-live="polite">
+        <UIcon name="i-heroicons-arrow-path" class="size-5 animate-spin text-muted" />
+        <span class="sr-only">Loading API usage</span>
+      </div>
+      <div v-else-if="error" class="flex min-h-24 flex-wrap items-center gap-3 text-sm text-muted" role="alert">
+        <span>API usage could not load.</span>
+        <UButton label="Retry" color="neutral" variant="outline" size="sm" @click="refresh()" />
+      </div>
+      <!-- U1: an empty array used to render an empty bordered box. -->
+      <div v-else-if="!rows.length" class="py-6 text-sm text-muted">
+        No API calls yet this month. Requesting indexing for a URL from Web Indexing will show up here.
+      </div>
+      <dl v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div v-for="row in rows" :key="row.key">
+          <dt class="text-sm text-muted">
+            {{ row.label }}
+          </dt>
+          <!-- No denominator. The old UI showed `/100`, which matched nothing:
+               the endpoint sums the current calendar month, `usageLimitPerUser`
+               in runtime config is wired to nothing, and the only real guard is
+               a rate limit. Naming the period is honest; inventing a quota is
+               not. -->
+          <dd class="font-mono text-3xl">
+            {{ useHumanFriendlyNumber(row.usage) }}
+            <span class="font-sans text-sm text-muted">calls this month</span>
+          </dd>
+        </div>
+      </dl>
+    </UCard>
   </div>
 </template>

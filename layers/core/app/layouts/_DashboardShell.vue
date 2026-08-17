@@ -40,7 +40,7 @@ if (import.meta.client) {
     >Skip to content</a>
 
     <aside
-      class="fixed inset-y-0 start-0 hidden shrink-0 flex-col border-e border-default bg-default lg:flex"
+      class="fixed inset-y-0 start-0 hidden shrink-0 flex-col border-e border-default bg-default lg:flex dark:border-accented dark:bg-muted"
       :class="sidebarWidth === 56 ? 'w-56' : 'w-64'"
     >
       <div v-if="slots.brand" class="shrink-0 px-4 pb-2 pt-4">
@@ -76,7 +76,7 @@ if (import.meta.client) {
 
     <UDrawer v-model:open="navOpen" direction="left">
       <template #content>
-        <div class="flex h-full min-w-0 flex-col overflow-x-hidden bg-default">
+        <div class="flex h-full min-w-0 flex-col overflow-x-hidden bg-default dark:bg-muted">
           <div v-if="slots.brand" class="shrink-0 px-5 pb-2 pt-5">
             <slot name="brand" />
           </div>

@@ -29,10 +29,16 @@ const params = computed<GscdumpAnalysisParams>(() => {
   }
 })
 
-const { data, status } = useGscdumpAnalysis(
+const { data, status, error, refresh } = useGscdumpAnalysis(
   () => props.siteId,
   params,
 )
+
+const keywords = computed(() => data.value?.keywords ?? [])
+
+const emptyMessage = computed(() => search.value
+  ? `No keywords match your search for "${search.value}".`
+  : 'No keywords match this view for the selected period.')
 
 watch(() => props.preset, () => {
   page.value = 1
@@ -173,12 +179,15 @@ function formatCell(row: GscdumpAnalysisResult, key: keyof GscdumpAnalysisResult
           size="xs"
         >
           <template #trailing>
+            <!-- v4 dropped `padded`. Padding comes from the size variant, so
+                 `p-0` on the class is what tightens the button now. -->
             <UButton
               v-show="search"
               color="neutral"
               variant="link"
               icon="i-heroicons-x-mark"
-              :padded="false"
+              aria-label="Clear search"
+              class="p-0"
               @click="search = ''"
             />
           </template>
@@ -189,37 +198,53 @@ function formatCell(row: GscdumpAnalysisResult, key: keyof GscdumpAnalysisResult
       </div>
     </div>
 
-    <UTable
-      :loading="status === 'pending'"
-      :data="data?.keywords || []"
-      :columns="tableColumns"
-      :ui="{
-        th: 'px-2 py-2 text-xs font-normal',
-        td: 'px-2 py-1',
-      }"
+    <AsyncCardState
+      :status="status"
+      :error="error"
+      :empty="!keywords.length"
+      label="keyword analysis"
+      :empty-message="emptyMessage"
+      min-height="min-h-40"
+      :rows="5"
+      @retry="refresh()"
     >
-      <template #keyword-cell="{ row }">
-        <span class="text-xs text-blue-600">{{ row.original.keyword }}</span>
-      </template>
-      <template v-for="col in columns?.filter(c => c.key !== 'keyword')" :key="col.key" #[`${String(col.key)}-cell`]="{ row }">
-        <div class="text-right font-mono text-xs">
-          {{ formatCell(row.original, col.key) }}
-        </div>
-      </template>
-    </UTable>
+      <UTable
+        :data="keywords"
+        :columns="tableColumns"
+        :ui="{
+          th: 'px-2 py-2 text-xs font-normal',
+          td: 'px-2 py-1',
+        }"
+      >
+        <template #keyword-cell="{ row }">
+          <UiTooltip :text="row.original.keyword" size="lg">
+            <span class="block max-w-[280px] truncate text-xs text-default">{{ row.original.keyword }}</span>
+          </UiTooltip>
+        </template>
+        <template v-for="col in columns?.filter(c => c.key !== 'keyword')" :key="col.key" #[`${String(col.key)}-cell`]="{ row }">
+          <div class="text-right font-mono text-xs tabular-nums">
+            {{ formatCell(row.original, col.key) }}
+          </div>
+        </template>
+      </UTable>
 
-    <div v-if="data && data.totalCount > pageSize" class="flex items-center gap-3 pt-3">
-      <UPagination
-        v-model="page"
-        :inactive-button="{ variant: 'link' }"
-        :active-button="{ color: 'info', variant: 'link', class: 'underline' }"
-        :prev-button="false"
-        :next-button="{ variant: 'link' }"
-        size="xs"
-        :page-count="pageSize"
-        :max="5"
-        :total="data.totalCount"
-      />
-    </div>
+      <!-- The pagination was still on the Nuxt UI v2 API (`v-model`,
+           `page-count`, `max`, `*-button`), so none of it bound and the table
+           was stuck on page one with no row count. -->
+      <div v-if="data && data.totalCount > pageSize" class="flex flex-wrap items-center justify-between gap-3 pt-3">
+        <UPagination
+          v-model:page="page"
+          :items-per-page="pageSize"
+          :total="data.totalCount"
+          :sibling-count="2"
+          :show-edges="false"
+          size="xs"
+          variant="link"
+        />
+        <p class="text-xs text-muted tabular-nums">
+          {{ useHumanFriendlyNumber(data.totalCount) }} keywords
+        </p>
+      </div>
+    </AsyncCardState>
   </div>
 </template>

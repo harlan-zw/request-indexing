@@ -3,7 +3,7 @@ const props = defineProps<{
   siteId: string
 }>()
 
-const { data, status } = useGscdumpIndexingDiagnostics(() => props.siteId)
+const { data, status, error, refresh } = useGscdumpIndexingDiagnostics(() => props.siteId)
 
 type SeverityColor = 'error' | 'warning' | 'info' | 'neutral'
 
@@ -13,38 +13,68 @@ const severityColor: Record<string, SeverityColor> = {
   info: 'info',
 }
 
+// `text-${color}-500` is not a real Tailwind class here and produced no colour
+// at all once the palette moved to semantic tokens.
+const severityIconClass: Record<SeverityColor, string> = {
+  error: 'text-error',
+  warning: 'text-warning',
+  info: 'text-info',
+  neutral: 'text-muted',
+}
+
 const severityIcon: Record<string, string> = {
   error: 'i-heroicons-x-circle',
   warning: 'i-heroicons-exclamation-triangle',
   info: 'i-heroicons-information-circle',
 }
+
+const issues = computed(() => data.value?.issues ?? [])
+
+function colorFor(severity: string): SeverityColor {
+  return severityColor[severity] ?? 'neutral'
+}
 </script>
 
 <template>
-  <div>
-    <div v-if="status === 'pending'" class="flex items-center justify-center py-4">
-      <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 animate-spin text-gray-400" />
-    </div>
-    <template v-else-if="data?.issues?.length">
-      <div class="space-y-2">
-        <div
-          v-for="issue in data.issues"
-          :key="issue.type"
-          class="flex items-center justify-between py-2 px-3 rounded-lg border border-gray-100 dark:border-gray-800"
-        >
-          <div class="flex items-center gap-2">
-            <UIcon :name="severityIcon[issue.severity] || severityIcon.info" class="w-4 h-4" :class="`text-${severityColor[issue.severity] || 'neutral'}-500`" />
-            <span class="text-sm">{{ issue.label }}</span>
-            <UBadge :color="severityColor[issue.severity] || 'neutral'" variant="subtle" size="xs">
-              {{ issue.severity }}
-            </UBadge>
-          </div>
-          <span class="text-sm font-mono">{{ issue.count }}</span>
-        </div>
+  <AsyncCardState
+    :status="status"
+    :error="error"
+    :empty="!issues.length"
+    label="diagnostics"
+    min-height="min-h-24"
+    :rows="3"
+    @retry="refresh()"
+  >
+    <template #empty>
+      <UIcon name="i-lucide-check-circle" class="size-6 text-success" />
+      <div>
+        <p class="font-medium text-highlighted">
+          No indexing issues
+        </p>
+        <p class="text-sm text-muted">
+          Google reported no issues for the inspected URLs.
+        </p>
       </div>
     </template>
-    <div v-else class="text-sm text-gray-500 py-4">
-      No indexing issues found.
+    <div class="space-y-2">
+      <div
+        v-for="issue in issues"
+        :key="issue.type"
+        class="flex items-center justify-between py-2 px-3 rounded-lg border border-default"
+      >
+        <div class="flex items-center gap-2">
+          <UIcon
+            :name="severityIcon[issue.severity] || severityIcon.info"
+            class="w-4 h-4"
+            :class="severityIconClass[colorFor(issue.severity)]"
+          />
+          <span class="text-sm">{{ issue.label }}</span>
+          <UBadge :color="colorFor(issue.severity)" variant="subtle" size="xs">
+            {{ issue.severity }}
+          </UBadge>
+        </div>
+        <span class="text-sm font-mono tabular-nums">{{ issue.count }}</span>
+      </div>
     </div>
-  </div>
+  </AsyncCardState>
 </template>

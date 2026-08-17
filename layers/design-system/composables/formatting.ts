@@ -9,9 +9,17 @@ export function useHumanFriendlyNumber(number: MaybeRef<string | number | null |
     // if not a number
     if (!['number', 'string'].includes(typeof number))
       return '-'
-    // apply decimals if defined
-    if (typeof decimals !== 'undefined')
-      number = Number.parseFloat(Number(number).toFixed(decimals))
+    // O3: this used to round via `parseFloat(toFixed(n))`, which drops a
+    // trailing zero. A Position column then printed `20` beside `6.2` and `5.8`,
+    // so one column carried two precisions. Let Intl hold the digit count
+    // instead, so every value in a column has the same shape.
+    if (typeof decimals !== 'undefined') {
+      return new Intl.NumberFormat('en', {
+        notation: 'compact',
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }).format(Number(number))
+    }
     return new Intl.NumberFormat('en', { notation: 'compact' }).format(Number(number))
   }
   if (isRef(number)) {
@@ -64,7 +72,13 @@ export function useFriendlySiteUrl(url: MaybeRef<string>) {
  * blank label instead. Route every label through here so neither is possible.
  */
 export function siteLabel(site: { domain?: string | null, property?: string | null }): string {
-  return useFriendlySiteUrl(site.domain || site.property || '')
+  const source = site.domain || site.property || ''
+  // `withoutTrailingSlash('')` returns `/`, so a site with neither field used to
+  // produce a truthy `/` label. Callers read that as a real host: the favicon
+  // proxy was asked for `?domain=/` instead of falling back to the globe icon.
+  if (!source)
+    return ''
+  return useFriendlySiteUrl(source)
 }
 
 export function formatIndexingTimeAgo(date: string | number, absAgo?: boolean): string

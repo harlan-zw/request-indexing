@@ -6,25 +6,25 @@ import { fetchSites } from '~~/layers/core/app/composables/fetch'
 definePageMeta({
   layout: 'dashboard',
   title: 'Sites',
-  icon: 'i-heroicons-users',
+  icon: 'i-heroicons-globe-alt',
 })
 
-const data = ref<SitePreview[]>([])
+// `property` is kept alongside `domain` because `siteLabel()` falls back to it
+// for sites imported from the old KV store, which carry a null `domain`.
+type SitePreviewRow = SitePreview & { property: string | null }
+
+const data = ref<SitePreviewRow[]>([])
 
 const { data: siteData } = await fetchSites()
-// watch(siteData, () => {
-//   data.value = siteData || []
-// }, {
-//   immediate: true,
-// })
 
-// const { data, pending, refresh, forceRefresh } = fetchSites('all')
 const key = ref(0)
 const pending = ref(true)
-
-const isSetup = ref(false)
+const isSynced = ref(false)
 const sitesSynced = ref(0)
 const totalSites = ref(0)
+// The picker limit is owned by the API so page copy, counter, and save guard
+// cannot drift apart. `0` means "not loaded yet" and hides the limit copy.
+const maxSites = ref(0)
 
 const onSessionExpired = createSessionExpiredHandler()
 
@@ -41,9 +41,10 @@ async function refresh() {
   }
 
   const response = result.value
-  data.value = response.sites.map((site): SitePreview => ({
+  data.value = response.sites.map((site): SitePreviewRow => ({
     ...site,
     domain: site.domain ?? '',
+    property: site.property ?? null,
     startOfData: site.startOfData ?? '',
     sitemaps: site.sitemaps.map(sitemap => ({
       path: typeof sitemap.path === 'string' ? sitemap.path : undefined,
@@ -51,50 +52,51 @@ async function refresh() {
       warnings: typeof sitemap.warnings === 'string' || typeof sitemap.warnings === 'number' ? sitemap.warnings : undefined,
     })),
   }))
-  isSetup.value = response.jobStatus === 'ready'
+  isSynced.value = response.jobStatus === 'ready'
+  maxSites.value = response.maxSites
 
   key.value++
 }
 
 const { user, fetch } = useUserSession()
 
-const isPending = computed(() => pending.value)
-const backups = ref(true)
 const selectedSites = ref<string[]>(siteData.value?.sites?.map(s => String(s.siteId)) || [])
-const maxSites = 6
 const toast = useToast()
-const submitError = ref('')
 const isSubmitting = ref(false)
 
-// watch(data, d => {
-//   console.log('got data', d)
-//   selectedSites.value = d || []
-// })
+const isSyncing = computed(() => !isSynced.value || sitesSynced.value < totalSites.value)
+const isOverLimit = computed(() => maxSites.value > 0 && selectedSites.value.length > maxSites.value)
+const canSave = computed(() => !pending.value && selectedSites.value.length > 0 && !isOverLimit.value)
+
+const saveHint = computed(() => {
+  if (pending.value)
+    return ''
+  if (!selectedSites.value.length)
+    return 'Select at least one site.'
+  if (isOverLimit.value)
+    return `Too many sites selected. Deselect ${selectedSites.value.length - maxSites.value} to save.`
+  return `${selectedSites.value.length} of ${maxSites.value} sites selected. Search Console data is archived for each.`
+})
 
 async function onSubmit() {
-  // Do something with data
-  if (selectedSites.value.length === 0) {
-    toast.add({ title: 'You must select at least one site.', color: 'error' })
-    submitError.value = 'You must select at least one site.'
+  if (!canSave.value)
     return
-  }
   isSubmitting.value = true
-  submitError.value = ''
   await $fetch('/api/teams/currentTeam', {
     method: 'POST',
     body: JSON.stringify({
       onboardedStep: 'sites-and-backup', // maybe we change onboarding in future and they need to repeat it
       selectedSites: selectedSites.value,
-      backupsEnabled: backups.value,
+      backupsEnabled: true,
     }),
   }).then(async () => {
     await fetch()
-    // session.value = res
     toast.add({ title: 'You\'re all ready to go!', color: 'success' })
     navigateTo('/dashboard')
   }).catch((err) => {
-    isSubmitting.value = false
     toast.add({ title: 'Failed to save your sites', description: err.message, color: 'error' })
+  }).finally(() => {
+    isSubmitting.value = false
   })
 }
 
@@ -113,15 +115,9 @@ async function connect() {
     if (job.name === 'sites/setup') {
       if (payload.sites.length > 1)
         totalSites.value += payload.sites.length
-      isSetup.value = true
       sitesSynced.value++
     }
-    // TODO handle payload event
-    // const event = payload.event
     refresh()
-    // if (event === 'ingest/sites') {
-    // }
-    // console.log('[ws]', payload)
   })
 
   await new Promise(resolve => ws!.addEventListener('open', resolve))
@@ -132,9 +128,7 @@ onMounted(() => {
   connect()
 })
 
-// function setSelectedSites(val) {
-//   selectedSites.value = val
-// }
+onBeforeUnmount(() => ws?.close())
 </script>
 
 <template>
@@ -149,37 +143,43 @@ onMounted(() => {
           <li class="flex items-center gap-1">
             <UIcon name="i-heroicons-check" class="w-5 h-5" /> Sites are shown with domain property splitting.
           </li>
-          <li class="flex items-center gap-1">
+          <li v-if="maxSites" class="flex items-center gap-1">
             <UIcon name="i-heroicons-check" class="w-5 h-5" /> Connect up to {{ maxSites }} sites, update them at any time.
           </li>
         </ul>
-        <div v-if="sitesSynced < totalSites">
-          <div class="text-sm mb-1 font-semibold text-center">
+        <div v-if="pending" class="mb-5 text-sm font-semibold flex items-center gap-1" role="status" aria-live="polite">
+          <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
+          Loading your Search Console properties
+        </div>
+        <div v-else-if="isSyncing" class="mb-5" role="status" aria-live="polite">
+          <h2 class="text-sm mb-1 font-semibold flex items-center gap-1">
             <UIcon name="i-heroicons-arrow-path" class="animate-spin w-5 h-5" />
-            Syncing sites {{ sitesSynced }}/{{ totalSites }}
-          </div>
-          <UProgress :max="totalSites" :value="sitesSynced" class="mb-5" />
+            <template v-if="totalSites">
+              Syncing sites {{ sitesSynced }}/{{ totalSites }}
+            </template>
+            <template v-else>
+              Syncing your Search Console data
+            </template>
+          </h2>
+          <UProgress v-if="totalSites" :max="totalSites" :model-value="sitesSynced" />
+          <p class="mt-1 text-xs text-muted">
+            You can pick your sites now. Data keeps loading in the background.
+          </p>
         </div>
-        <div v-else>
-          <div class="text-sm mb-1 font-semibold text-center">
-            All sites synced.
-          </div>
-        </div>
-        <TeamSiteSelector v-if="data?.length" :key="key" :sites="data" :model-value="selectedSites" @update:model-value="e => selectedSites = e" />
+        <h2 v-else class="text-sm mb-3 font-semibold flex items-center gap-1" role="status">
+          <UIcon name="i-heroicons-check-circle" class="w-5 h-5 text-primary" />
+          All sites synced.
+        </h2>
+        <TeamSiteSelector v-if="data?.length" :key="key" :sites="data" :max="maxSites" :model-value="selectedSites" @update:model-value="e => selectedSites = e" />
       </div>
     </div>
     <div>
       <div class="flex flex-col md:flex-row items-center gap-3">
-        <UButton :loading="isSubmitting" type="submit" size="lg" :disabled="isPending || !selectedSites.length">
+        <UButton :loading="isSubmitting" type="submit" size="lg" :disabled="!canSave">
           Save
         </UButton>
-        <div v-if="!isPending" class="text-gray-600 dark:text-gray-300 text-sm">
-          <template v-if="selectedSites.length">
-            You have selected {{ selectedSites.length }} sites with backups {{ backups ? 'enabled' : 'disabled' }}.
-          </template>
-          <template v-else>
-            Please select at least one site.
-          </template>
+        <div v-if="saveHint" class="text-sm" :class="isOverLimit ? 'text-error' : 'text-gray-600 dark:text-gray-300'">
+          {{ saveHint }}
         </div>
       </div>
     </div>
