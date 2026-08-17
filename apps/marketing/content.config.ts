@@ -1,5 +1,5 @@
 import { resolve } from 'node:path'
-import { defineCollection, defineContentConfig } from '@nuxt/content'
+import { defineCollection, defineContentConfig } from '@harlan-zw/comark-content'
 import { defineRobotsSchema } from '@nuxtjs/robots/content'
 import { defineSitemapSchema } from '@nuxtjs/sitemap/content'
 import { defineOgImageSchema } from 'nuxt-og-image/content'

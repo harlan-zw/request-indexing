@@ -26,12 +26,21 @@ const totalSites = ref(0)
 // cannot drift apart. `0` means "not loaded yet" and hides the limit copy.
 const maxSites = ref(0)
 
+const onSessionExpired = createSessionExpiredHandler()
+
 async function refresh() {
   // TODO avoid duplicate fetches
-  const response = await $fetch('/api/sites/preview')
+  const result = await readSessionScoped(() => $fetch('/api/sites/preview'))
     .finally(() => {
       pending.value = false
     })
+
+  if (result._tag === 'SessionExpired') {
+    await onSessionExpired()
+    return
+  }
+
+  const response = result.value
   data.value = response.sites.map((site): SitePreviewRow => ({
     ...site,
     domain: site.domain ?? '',

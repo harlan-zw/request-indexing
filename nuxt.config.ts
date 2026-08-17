@@ -54,7 +54,7 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxt/ui',
     '@vueuse/nuxt',
-    '@nuxt/content',
+    '@harlan-zw/comark-content',
     '@nuxtjs/seo',
     'nuxt-ai-ready',
     'nuxt-skew-protection',
@@ -82,6 +82,10 @@ export default defineNuxtConfig({
     },
   ],
 
+  content: {
+    highlight: true,
+  },
+
   nuxtCloudflare: {
     kvCache: { binding: 'CACHE' },
     requiredSecrets: CLOUDFLARE_REQUIRED_SECRETS,
@@ -92,7 +96,7 @@ export default defineNuxtConfig({
     request: true,
     fields: [],
     exclude: [
-      '/__nuxt_content/**',
+      '/__comark_content/**',
       '/_ipx/**',
       '/_nuxt/**',
       '/api/_nuxt_icon/**',
@@ -133,7 +137,6 @@ export default defineNuxtConfig({
   sitemap: {
     zeroRuntime: true,
     exclude: [
-      '/__nuxt_content/**',
       '/_alt/**',
       '/dashboard/**',
       '/pro/**',
@@ -163,17 +166,6 @@ export default defineNuxtConfig({
       type: 'Organization',
       name: 'Request Indexing',
       logo: '/favicon.svg',
-    },
-  },
-
-  content: {
-    build: {
-      markdown: {
-        highlight: {
-          theme: { default: 'github-light', dark: 'github-dark' },
-          langs: ['typescript', 'javascript', 'python', 'bash', 'json', 'yaml'],
-        },
-      },
     },
   },
 

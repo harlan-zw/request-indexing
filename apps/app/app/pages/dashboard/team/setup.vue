@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { SitePreview } from '~~/layers/core/app/types'
 import { useJobListener } from '~~/layers/core/app/composables/events'
-import { errorStatusCode } from '~~/shared/sentry'
 
 definePageMeta({
   layout: 'dashboard',
@@ -19,44 +18,6 @@ interface SitesPreview {
   maxSites: number
 }
 
-/**
- * A 401 here means the cookie outlived the server session, which is an ordinary
- * end of a long-open tab rather than a fault. It is returned as a value so the
- * caller can send the user back to login instead of reporting an error.
- */
-type SitesPreviewResult
-  = | { _tag: 'Ready', preview: SitesPreview }
-    | { _tag: 'SessionExpired' }
-
-async function loadSitesPreview(): Promise<SitesPreviewResult> {
-  try {
-    const res = await $fetch('/api/sites/preview')
-    return {
-      _tag: 'Ready',
-      preview: {
-        jobStatus: res.jobStatus,
-        maxSites: res.maxSites,
-        sites: res.sites.map((site): SitePreviewRow => ({
-          ...site,
-          domain: site.domain ?? '',
-          property: site.property ?? null,
-          startOfData: site.startOfData ?? '',
-          sitemaps: site.sitemaps.map(sitemap => ({
-            path: typeof sitemap.path === 'string' ? sitemap.path : undefined,
-            errors: typeof sitemap.errors === 'string' || typeof sitemap.errors === 'number' ? sitemap.errors : undefined,
-            warnings: typeof sitemap.warnings === 'string' || typeof sitemap.warnings === 'number' ? sitemap.warnings : undefined,
-          })),
-        })),
-      },
-    }
-  }
-  catch (error: unknown) {
-    if (errorStatusCode(error) === 401)
-      return { _tag: 'SessionExpired' }
-    throw error
-  }
-}
-
 const data = ref<SitesPreview>({ sites: [], jobStatus: 'pending', maxSites: 0 })
 const key = ref(0)
 const pending = ref(true)
@@ -64,24 +25,23 @@ const pending = ref(true)
 const sitesSynced = ref(0)
 const totalSites = ref(0)
 
-const { fetch, clear } = useUserSession()
-const route = useRoute()
+const { fetch } = useUserSession()
+const onSessionExpired = createSessionExpiredHandler()
 
 async function refresh() {
   // TODO avoid duplicate fetches
-  const result = await loadSitesPreview().finally(() => {
+  const result = await readSessionScoped(() => $fetch<SitesPreview>('/api/sites/preview')).finally(() => {
     pending.value = false
   })
 
   if (result._tag === 'SessionExpired') {
-    await clear()
-    await navigateTo({ path: '/login', query: { redirect: route.fullPath } })
+    await onSessionExpired()
     return
   }
 
-  data.value = result.preview
-  sitesSynced.value = result.preview.sites.filter(s => !!s.pageCount30Day).length
-  totalSites.value = result.preview.sites.length
+  data.value = result.value
+  sitesSynced.value = result.value.sites.filter(s => !!s.pageCount30Day).length
+  totalSites.value = result.value.sites.length
 
   key.value++
 }
