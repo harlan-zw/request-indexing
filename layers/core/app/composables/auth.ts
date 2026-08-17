@@ -12,6 +12,20 @@ export function useAuthenticatedUser() {
   return user as unknown as ComputedRef<UserSelect>
 }
 
+/**
+ * Sends the user back to login after `readSessionScoped` reports an expired
+ * session. Every page that loads session-scoped data ends that state the same
+ * way, so the redirect lives here instead of in each page.
+ */
+export function createSessionExpiredHandler() {
+  const { clear } = useUserSession()
+  const route = useRoute()
+  return async () => {
+    await clear()
+    await navigateTo({ path: '/login', query: { redirect: route.fullPath } })
+  }
+}
+
 export function createSessionReloader() {
   const { session } = useUserSession()
   return async () => {
