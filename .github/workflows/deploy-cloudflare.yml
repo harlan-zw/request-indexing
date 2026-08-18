@@ -74,6 +74,10 @@ jobs:
         timeout-minutes: 30
         env:
           NODE_OPTIONS: --max-old-space-size=16384
+          # `GITHUB_SHA` is the default branch tip on a `workflow_run` event, so
+          # the release named a commit this build does not contain. Sentry then
+          # blamed live errors on code that was never deployed.
+          SENTRY_RELEASE: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       # TODO: apply D1 migrations here, before the deploy. Blocked on token scope:
       # `secrets.CLOUDFLARE_API_TOKEN` is Workers-scoped, so `d1 migrations apply`

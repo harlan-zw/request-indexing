@@ -1,17 +1,12 @@
 import type { OAuthPoolToken } from './layers/core/app/types'
-import { existsSync } from 'node:fs'
 import process from 'node:process'
 import { resolve } from 'path'
 import { globbySync } from 'globby'
-import { withoutRollupPlugin } from './scripts/rollup-plugins'
 import { CLOUDFLARE_REQUIRED_SECRETS } from './shared/cloudflare'
 import { runtimeOnlyRouteRules } from './shared/routes'
 import { SENTRY_DSN } from './shared/sentry'
 
 const tokens: Partial<OAuthPoolToken>[] = process.env.NUXT_OAUTH_POOL ? JSON.parse(process.env.NUXT_OAUTH_POOL) : []
-const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN)
-  || existsSync('.env.sentry-build-plugin')
-const sentryRelease = process.env.SENTRY_RELEASE || process.env.GITHUB_SHA || undefined
 
 // read all the folders at the server/app path
 const recursiveServerAppFolders = globbySync('**/*', {
@@ -40,14 +35,13 @@ export default defineNuxtConfig({
   ],
   nuxtDx: {
     report: true,
-    sizeBudget: {
-      // nuxt-dx 0.1.0 grants @sentry/nuxt 400 kB on the `nitro` scope, but it
-      // matches on the module that registered the entry. This plugin is the
-      // app's own wrapper around `sentryCloudflareNitroPlugin`, so no module
-      // owns it and the allowance does not reach it. Measured at 325 kB.
-      overridesKb: { 'server/plugins/sentry.ts': 325 },
-    },
   },
+
+  nuxtSentry: {
+    dsn: SENTRY_DSN,
+    project: 'request-indexing',
+  },
+
   modules: [
     '@harlan-zw/nuxt-domain-events',
     '@harlan-zw/nuxt-use-query',
@@ -70,20 +64,7 @@ export default defineNuxtConfig({
     },
     '@nuxt/fonts',
     '@sentry/nuxt/module',
-    (_, nuxt) => {
-      nuxt.hook('vite:extendConfig', (config, { isServer }) => {
-        if (isServer && Array.isArray(config.plugins)) {
-          const plugins = withoutRollupPlugin(config.plugins, 'sentry-vite-plugin')
-          config.plugins.splice(0, config.plugins.length, ...plugins)
-        }
-      })
-      nuxt.hook('nitro:config', (config) => {
-        const plugins = config.rollupConfig?.plugins
-        if (Array.isArray(plugins)) {
-          config.rollupConfig!.plugins = withoutRollupPlugin(plugins, 'sentry-rollup-plugin')
-        }
-      })
-    },
+    '@harlan-zw/nuxt-sentry',
   ],
 
   nuxtCloudflare: {
@@ -366,15 +347,6 @@ export default defineNuxtConfig({
       adsClientSecret: '',
     },
     public: {
-      // Public so the Nitro plugin and the browser SDK read one decision. The
-      // DSN is not a secret; it already ships in the client bundle.
-      sentry: {
-        dsn: SENTRY_DSN,
-        enabled: process.env.NODE_ENV === 'production',
-        environment: process.env.SENTRY_ENVIRONMENT || 'production',
-        release: sentryRelease ?? '',
-        tracesSampleRate: 0.05,
-      },
       baseUrl: 'https://requestindexing.com',
       indexing: {
         usageLimitPerUser: 15,
@@ -383,28 +355,5 @@ export default defineNuxtConfig({
     indexing: {
       maxUsersPerOAuth: 100,
     },
-  },
-
-  sentry: {
-    enabled: process.env.NODE_ENV === 'production',
-    org: 'harlan-zw',
-    project: 'request-indexing',
-    authToken: process.env.SENTRY_AUTH_TOKEN,
-    release: { name: sentryRelease },
-    sourcemaps: {
-      disable: !hasSentryAuthToken,
-      filesToDeleteAfterUpload: ['**/*.map'],
-    },
-    bundleSizeOptimizations: {
-      excludeReplayShadowDom: true,
-      excludeReplayIframe: true,
-      excludeReplayWorker: true,
-    },
-    telemetry: false,
-  },
-
-  sourcemap: {
-    client: hasSentryAuthToken ? 'hidden' : false,
-    server: false,
   },
 })
