@@ -1,8 +1,8 @@
 minimumReleaseAgeExclude:
   - nuxt-ai-ready@1.7.9
-  - '@harlan-zw/comark-content@0.1.1'
+  - '@harlan-zw/comark-content@0.1.2'
   - '@harlan-zw/nuxt-cloudflare@0.1.0'
-  - '@harlan-zw/nuxt-domain-events@0.1.0'
+  - '@harlan-zw/nuxt-domain-events@0.1.1'
   - '@harlan-zw/nuxt-dx@0.1.1'
   - '@harlan-zw/nuxt-sentry@0.1.1'
   - '@harlan-zw/nuxt-use-query@0.1.0'
@@ -55,9 +55,9 @@ catalog:
   '@gscdump/contracts': ^2.2.0
   '@gscdump/engine': ^2.2.0
   '@gscdump/sdk': ^2.2.0
-  '@harlan-zw/comark-content': 0.1.1
+  '@harlan-zw/comark-content': 0.1.2
   '@harlan-zw/nuxt-cloudflare': 0.1.0
-  '@harlan-zw/nuxt-domain-events': 0.1.0
+  '@harlan-zw/nuxt-domain-events': 0.1.1
   '@harlan-zw/nuxt-dx': 0.1.1
   '@harlan-zw/nuxt-sentry': 0.1.1
   '@harlan-zw/nuxt-use-query': 0.1.0

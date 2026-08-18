@@ -22,14 +22,14 @@ catalogs:
       specifier: ^2.2.0
       version: 2.2.0
     '@harlan-zw/comark-content':
-      specifier: 0.1.1
-      version: 0.1.1
+      specifier: 0.1.2
+      version: 0.1.2
     '@harlan-zw/nuxt-cloudflare':
       specifier: 0.1.0
       version: 0.1.0
     '@harlan-zw/nuxt-domain-events':
-      specifier: 0.1.0
-      version: 0.1.0
+      specifier: 0.1.1
+      version: 0.1.1
     '@harlan-zw/nuxt-dx':
       specifier: 0.1.1
       version: 0.1.1
@@ -264,10 +264,10 @@ importers:
         version: 2.2.0(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))
       '@harlan-zw/comark-content':
         specifier: 'catalog:'
-        version: 0.1.1(79c80e09e4b254ed2fbf428a80b0bd06)
+        version: 0.1.2(79c80e09e4b254ed2fbf428a80b0bd06)
       '@harlan-zw/nuxt-domain-events':
         specifier: 'catalog:'
-        version: 0.1.0(def6032822a1eeb7b700a15ec986fc80)
+        version: 0.1.1(def6032822a1eeb7b700a15ec986fc80)
       '@harlan-zw/nuxt-use-query':
         specifier: 'catalog:'
         version: 0.1.0(ea6f9e3567b98995047dbe0529524ee5)
@@ -1631,8 +1631,8 @@ packages:
     resolution: {integrity: sha512-V94rkdiZSbAU5AcNybMuPorl0afUcCnfWM7t2E5W5Mr+zAcEHGivE2yoWbM5OVz/9JJDDzPvlN4DcmUuj0X2tw==}
     engines: {node: '>=22'}
 
-  '@harlan-zw/comark-content@0.1.1':
-    resolution: {integrity: sha512-JHEwKdS3FbhGRXIHb0AsZJXXqEufQGex+hSxaDcOcrsmktSo5fwBnfqOCwnhpj814nZxHKpslND73leMpsusoA==}
+  '@harlan-zw/comark-content@0.1.2':
+    resolution: {integrity: sha512-P99T0mExWam6fsl4LalQ7ihXlzoHYGNk4m3Sbvo6VPoTlKzx9XxNamdUtpXaRJyFO/GXBXYIv+20YTOHU9+ZqQ==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
       nuxt: '>=4.5.0 <5.0.0'
@@ -1646,8 +1646,8 @@ packages:
       nuxt: '>=4.5.0 <5.0.0'
       wrangler: '>=4.120.0 <5.0.0'
 
-  '@harlan-zw/nuxt-domain-events@0.1.0':
-    resolution: {integrity: sha512-n6DErBfJU1LSPDy1a/e3uJlXbSD6ElK7Qkrz972DzvTW+2zm6D2dpeStfgX/gZKN5c5fWE9ii7yFoQAZITQ+ng==}
+  '@harlan-zw/nuxt-domain-events@0.1.1':
+    resolution: {integrity: sha512-PV+YJNpOT6YxG2VII1thTnQeaHDHAvSI5IIeCXvjxyCGJAvur/wwPH9+pE3uiv7XVaWG2VSWsQXc03BDU2npBQ==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
       '@harlan-zw/nuxt-cf-jobs': ^0.1.0
@@ -10004,7 +10004,7 @@ snapshots:
       - typebox
       - valibot
 
-  '@harlan-zw/comark-content@0.1.1(79c80e09e4b254ed2fbf428a80b0bd06)':
+  '@harlan-zw/comark-content@0.1.2(79c80e09e4b254ed2fbf428a80b0bd06)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0)))
       comark: 0.6.2(rangi@2.2.0)
@@ -10078,7 +10078,7 @@ snapshots:
       - webpack
       - xml2js
 
-  '@harlan-zw/nuxt-domain-events@0.1.0(def6032822a1eeb7b700a15ec986fc80)':
+  '@harlan-zw/nuxt-domain-events@0.1.1(def6032822a1eeb7b700a15ec986fc80)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0)))
       nuxt: 4.5.2(patch_hash=139197491882e4310aa687fadad314f827b63f558122dada1565f2b7d42ca8da)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0(supports-color@10.2.2)))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.0(supports-color@10.2.2)))(@oxc-project/types@0.144.0)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.41)(db0@0.3.4(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)))(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1))(esbuild@0.28.1)(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(ioredis@5.11.1(supports-color@10.2.2))(lightningcss@1.33.0)(magicast@0.5.4)(optionator@0.9.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(rollup-plugin-visualizer@7.0.1(rolldown@1.2.3)(rollup@4.62.4))(rollup@4.62.4)(srvx@0.12.5)(supports-color@10.2.2)(terser@5.50.0)(tsx@4.23.11)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))(vue-tsc@3.3.10(typescript@6.0.3))(yaml@2.9.0)
