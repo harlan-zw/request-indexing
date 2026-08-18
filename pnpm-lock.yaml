@@ -31,8 +31,8 @@ catalogs:
       specifier: 0.0.4
       version: 0.0.4
     '@harlan-zw/nuxt-dx':
-      specifier: 0.0.8
-      version: 0.0.8
+      specifier: 0.0.9
+      version: 0.0.9
     '@harlan-zw/nuxt-use-query':
       specifier: 0.0.2
       version: 0.0.2
@@ -436,7 +436,7 @@ importers:
         version: 0.0.18(2aa6cfe176a73b44e80e01e0b3476b06)
       '@harlan-zw/nuxt-dx':
         specifier: 'catalog:'
-        version: 0.0.8(625a9e0fbef6d782332b357595a1bfda)
+        version: 0.0.9(625a9e0fbef6d782332b357595a1bfda)
       '@nuxt/test-utils':
         specifier: 'catalog:'
         version: 4.1.0(crossws@0.4.10(srvx@0.12.5))(esbuild@0.28.1)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.62.4)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))(vitest@4.1.10(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))
@@ -1650,8 +1650,8 @@ packages:
       '@harlan-zw/nuxt-cf-jobs':
         optional: true
 
-  '@harlan-zw/nuxt-dx@0.0.8':
-    resolution: {integrity: sha512-S7LXfZeUdWYffshyNTd0dLNdRmS15kYBAqF7MdY6GrHC66Rvb2sKsKHYBS306cffx0eVDpHxT+bNYRLQC8W3Ig==}
+  '@harlan-zw/nuxt-dx@0.0.9':
+    resolution: {integrity: sha512-g9wPRuf/kmBI+dwZV+L3gz+mlJzkE9J5Fls/M5GMmYRzR2ASOFEIHlNZ9Sy3pOYZw4yqPnztcChelEgO1fQW8w==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -10081,7 +10081,7 @@ snapshots:
       - unplugin
       - yaml
 
-  '@harlan-zw/nuxt-dx@0.0.8(625a9e0fbef6d782332b357595a1bfda)':
+  '@harlan-zw/nuxt-dx@0.0.9(625a9e0fbef6d782332b357595a1bfda)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0)))
       '@vueuse/core': 14.4.0(vue@3.5.41(typescript@6.0.3))
