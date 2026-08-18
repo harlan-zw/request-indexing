@@ -1,10 +1,32 @@
 name: Nuxt DX budget
 
 on:
+  # A full production build, run only to measure one bundle. A docs-only change
+  # moves nothing this workflow measures, so it skips itself.
+  #
+  # `*.md` is single-star on purpose: it matches root markdown only. Site
+  # content lives in `apps/marketing/content/`, which Nuxt Content reads at build time, so a
+  # blanket `**.md` ignore would stop budgeting the markdown that counts.
+  #
+  # The list repeats because GitHub's workflow parser has no YAML anchors.
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - .editorconfig
+      - .gitignore
+      - '.idea/**'
+      - '.vscode/**'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - .editorconfig
+      - .gitignore
+      - '.idea/**'
+      - '.vscode/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
