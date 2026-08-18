@@ -41,7 +41,11 @@ export default defineNuxtConfig({
   nuxtDx: {
     report: true,
     sizeBudget: {
-      overridesKb: { 'server/plugins/sentry.ts': 326 },
+      // nuxt-dx 0.1.0 grants @sentry/nuxt 400 kB on the `nitro` scope, but it
+      // matches on the module that registered the entry. This plugin is the
+      // app's own wrapper around `sentryCloudflareNitroPlugin`, so no module
+      // owns it and the allowance does not reach it. Measured at 325 kB.
+      overridesKb: { 'server/plugins/sentry.ts': 325 },
     },
   },
   modules: [
@@ -82,10 +86,6 @@ export default defineNuxtConfig({
     },
   ],
 
-  content: {
-    highlight: true,
-  },
-
   nuxtCloudflare: {
     kvCache: { binding: 'CACHE' },
     requiredSecrets: CLOUDFLARE_REQUIRED_SECRETS,
@@ -104,7 +104,6 @@ export default defineNuxtConfig({
   },
 
   domainEvents: {
-    queues: [],
     observer: 'layers/pro-saas/server/utils/domain-event-observer.ts',
     allowEmptyEvents: [
       'pro:gsc:webhook',
@@ -222,24 +221,15 @@ export default defineNuxtConfig({
     preset: 'cloudflare-durable',
     cloudflare: {
       deployConfig: true,
-      // Nitro adds `nodejs_compat` + `no_nodejs_compat_v2` here, pinning the
-      // worker to nodejs_compat v1. That is survivable now that nothing in the
-      // bundle needs v2's fuller `node:stream` (the googleapis/jws chain that
-      // did was removed). Declaring `nodejs_compat_v2` to get v2 is not an
-      // option while @harlan-zw/nuxt-cloudflare force-appends `nodejs_compat`,
-      // since Cloudflare rejects both flags together.
+      // Pins the worker to nodejs_compat v1. Nothing in the bundle needs v2's
+      // fuller `node:stream` since the googleapis/jws chain was removed. To
+      // move to v2, put `nodejs_compat_v2` in `wrangler.toml` instead; the
+      // module resolves the flag pair Cloudflare accepts.
       nodeCompat: true,
+      // Deploy values the authored `wrangler.toml` already carries are not
+      // repeated here. @harlan-zw/nuxt-cloudflare reads that file and writes
+      // them into the generated config, so a second copy only invites drift.
       wrangler: {
-        name: 'request-indexing',
-        compatibility_date: '2026-08-11',
-        workers_dev: false,
-        preview_urls: false,
-        placement: { mode: 'smart' },
-        version_metadata: { binding: 'CF_VERSION_METADATA' },
-        observability: {
-          enabled: true,
-          head_sampling_rate: 1,
-        },
         logpush: true,
         triggers: {
           crons: ['0 0 * * *'], // Daily at midnight UTC
