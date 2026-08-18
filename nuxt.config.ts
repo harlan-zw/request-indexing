@@ -1,17 +1,12 @@
 import type { OAuthPoolToken } from './layers/core/app/types'
-import { existsSync } from 'node:fs'
 import process from 'node:process'
 import { resolve } from 'path'
 import { globbySync } from 'globby'
-import { withoutRollupPlugin } from './scripts/rollup-plugins'
 import { CLOUDFLARE_REQUIRED_SECRETS } from './shared/cloudflare'
 import { runtimeOnlyRouteRules } from './shared/routes'
 import { SENTRY_DSN } from './shared/sentry'
 
 const tokens: Partial<OAuthPoolToken>[] = process.env.NUXT_OAUTH_POOL ? JSON.parse(process.env.NUXT_OAUTH_POOL) : []
-const hasSentryAuthToken = Boolean(process.env.SENTRY_AUTH_TOKEN)
-  || existsSync('.env.sentry-build-plugin')
-const sentryRelease = process.env.SENTRY_RELEASE || process.env.GITHUB_SHA || undefined
 
 // read all the folders at the server/app path
 const recursiveServerAppFolders = globbySync('**/*', {
@@ -40,10 +35,13 @@ export default defineNuxtConfig({
   ],
   nuxtDx: {
     report: true,
-    sizeBudget: {
-      overridesKb: { 'server/plugins/sentry.ts': 326 },
-    },
   },
+
+  nuxtSentry: {
+    dsn: SENTRY_DSN,
+    project: 'request-indexing',
+  },
+
   modules: [
     '@harlan-zw/nuxt-domain-events',
     '@harlan-zw/nuxt-use-query',
@@ -66,25 +64,8 @@ export default defineNuxtConfig({
     },
     '@nuxt/fonts',
     '@sentry/nuxt/module',
-    (_, nuxt) => {
-      nuxt.hook('vite:extendConfig', (config, { isServer }) => {
-        if (isServer && Array.isArray(config.plugins)) {
-          const plugins = withoutRollupPlugin(config.plugins, 'sentry-vite-plugin')
-          config.plugins.splice(0, config.plugins.length, ...plugins)
-        }
-      })
-      nuxt.hook('nitro:config', (config) => {
-        const plugins = config.rollupConfig?.plugins
-        if (Array.isArray(plugins)) {
-          config.rollupConfig!.plugins = withoutRollupPlugin(plugins, 'sentry-rollup-plugin')
-        }
-      })
-    },
+    '@harlan-zw/nuxt-sentry',
   ],
-
-  content: {
-    highlight: true,
-  },
 
   nuxtCloudflare: {
     kvCache: { binding: 'CACHE' },
@@ -104,7 +85,6 @@ export default defineNuxtConfig({
   },
 
   domainEvents: {
-    queues: [],
     observer: 'layers/pro-saas/server/utils/domain-event-observer.ts',
     allowEmptyEvents: [
       'pro:gsc:webhook',
@@ -178,6 +158,13 @@ export default defineNuxtConfig({
     redirectToCanonicalSiteUrl: false,
   },
 
+  // `@harlan-zw/nuxt-sentry` sets `sourcemap.client` when a Sentry auth token is
+  // present, and deliberately leaves the server alone, where Nuxt defaults to true.
+  // Without this the server bundle ships its own source maps.
+  sourcemap: {
+    server: false,
+  },
+
   devtools: { enabled: true },
 
   skewProtection: {
@@ -222,24 +209,15 @@ export default defineNuxtConfig({
     preset: 'cloudflare-durable',
     cloudflare: {
       deployConfig: true,
-      // Nitro adds `nodejs_compat` + `no_nodejs_compat_v2` here, pinning the
-      // worker to nodejs_compat v1. That is survivable now that nothing in the
-      // bundle needs v2's fuller `node:stream` (the googleapis/jws chain that
-      // did was removed). Declaring `nodejs_compat_v2` to get v2 is not an
-      // option while @harlan-zw/nuxt-cloudflare force-appends `nodejs_compat`,
-      // since Cloudflare rejects both flags together.
+      // Pins the worker to nodejs_compat v1. Nothing in the bundle needs v2's
+      // fuller `node:stream` since the googleapis/jws chain was removed. To
+      // move to v2, put `nodejs_compat_v2` in `wrangler.toml` instead; the
+      // module resolves the flag pair Cloudflare accepts.
       nodeCompat: true,
+      // Deploy values the authored `wrangler.toml` already carries are not
+      // repeated here. @harlan-zw/nuxt-cloudflare reads that file and writes
+      // them into the generated config, so a second copy only invites drift.
       wrangler: {
-        name: 'request-indexing',
-        compatibility_date: '2026-08-11',
-        workers_dev: false,
-        preview_urls: false,
-        placement: { mode: 'smart' },
-        version_metadata: { binding: 'CF_VERSION_METADATA' },
-        observability: {
-          enabled: true,
-          head_sampling_rate: 1,
-        },
         logpush: true,
         triggers: {
           crons: ['0 0 * * *'], // Daily at midnight UTC
@@ -376,15 +354,6 @@ export default defineNuxtConfig({
       adsClientSecret: '',
     },
     public: {
-      // Public so the Nitro plugin and the browser SDK read one decision. The
-      // DSN is not a secret; it already ships in the client bundle.
-      sentry: {
-        dsn: SENTRY_DSN,
-        enabled: process.env.NODE_ENV === 'production',
-        environment: process.env.SENTRY_ENVIRONMENT || 'production',
-        release: sentryRelease ?? '',
-        tracesSampleRate: 0.05,
-      },
       baseUrl: 'https://requestindexing.com',
       indexing: {
         usageLimitPerUser: 15,
@@ -393,28 +362,5 @@ export default defineNuxtConfig({
     indexing: {
       maxUsersPerOAuth: 100,
     },
-  },
-
-  sentry: {
-    enabled: process.env.NODE_ENV === 'production',
-    org: 'harlan-zw',
-    project: 'request-indexing',
-    authToken: process.env.SENTRY_AUTH_TOKEN,
-    release: { name: sentryRelease },
-    sourcemaps: {
-      disable: !hasSentryAuthToken,
-      filesToDeleteAfterUpload: ['**/*.map'],
-    },
-    bundleSizeOptimizations: {
-      excludeReplayShadowDom: true,
-      excludeReplayIframe: true,
-      excludeReplayWorker: true,
-    },
-    telemetry: false,
-  },
-
-  sourcemap: {
-    client: hasSentryAuthToken ? 'hidden' : false,
-    server: false,
   },
 })

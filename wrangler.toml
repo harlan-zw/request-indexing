@@ -1,19 +1,12 @@
 name = "request-indexing"
 account_id = "5904138d55ca25d5670dca6adf99894e"
 compatibility_date = "2026-08-11"
-# Do not add `nodejs_compat_v2` here or in nuxt.config. @harlan-zw/nuxt-cloudflare
-# appends `nodejs_compat` unconditionally (dist/wrangler.mjs, applyEnvironmentDefaults),
-# so declaring v2 anywhere produces both flags and Cloudflare rejects the deploy:
-# "The `nodejs_compat` and `nodejs_compat_v2` compatibility flags cannot be used
-# in together."
+# nodejs_compat v1. @harlan-zw/nuxt-cloudflare resolves the flag pair Cloudflare
+# accepts, so `nodejs_compat_v2` here produces v2 alone with no rejected deploy.
 compatibility_flags = [ "nodejs_compat" ]
 main = ".output/server/index.mjs"
 workers_dev = false
 preview_urls = false
-
-[cache]
-enabled = true
-cross_version_cache = false
 
 [placement]
 mode = "smart"
@@ -24,6 +17,8 @@ binding = "CF_VERSION_METADATA"
 [observability]
 enabled = true
 
+# 100% on purpose. Wide events are written to stdout, so Workers Logs is where
+# the per-request records are read. Sampling them below 1 loses the telemetry.
 [observability.logs]
 enabled = true
 head_sampling_rate = 1

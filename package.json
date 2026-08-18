@@ -88,6 +88,7 @@
     "@cloudflare/workers-types": "catalog:",
     "@harlan-zw/nuxt-cloudflare": "catalog:",
     "@harlan-zw/nuxt-dx": "catalog:",
+    "@harlan-zw/nuxt-sentry": "catalog:",
     "@nuxt/test-utils": "catalog:",
     "@sentry/nuxt": "catalog:",
     "@takumi-rs/wasm": "catalog:",
