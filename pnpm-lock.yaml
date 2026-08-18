@@ -34,8 +34,8 @@ catalogs:
       specifier: 0.1.1
       version: 0.1.1
     '@harlan-zw/nuxt-sentry':
-      specifier: 0.1.0
-      version: 0.1.0
+      specifier: 0.1.1
+      version: 0.1.1
     '@harlan-zw/nuxt-use-query':
       specifier: 0.1.0
       version: 0.1.0
@@ -442,7 +442,7 @@ importers:
         version: 0.1.1(dc333ada27a2991ed273748f7350e39a)
       '@harlan-zw/nuxt-sentry':
         specifier: 'catalog:'
-        version: 0.1.0(55aa7a39917190c6879dc2f605894ba6)
+        version: 0.1.1(55aa7a39917190c6879dc2f605894ba6)
       '@nuxt/test-utils':
         specifier: 'catalog:'
         version: 4.1.0(crossws@0.4.10(srvx@0.12.5))(esbuild@0.28.1)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.62.4)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))(vitest@4.1.10(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))
@@ -1665,8 +1665,8 @@ packages:
       nuxt: '>=4.5.0 <5.0.0'
       vite: ^8.0.0
 
-  '@harlan-zw/nuxt-sentry@0.1.0':
-    resolution: {integrity: sha512-BGpa71iGREPeTijIj8KrvNt+lNht8p9HGX2fLRfP9H5Hvg0l5+b3bVnsakzRxV8lMqxsvwxjPOlgX4dCQzKvmw==}
+  '@harlan-zw/nuxt-sentry@0.1.1':
+    resolution: {integrity: sha512-zuENOjiI+5UmNOHCqD9xJDq5g4gz767sl2OxC1PWI0YN6gmKNpixNP5UIeq+sEJhmHgYAUfZ8BFzYDS1+t388A==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
       '@sentry/cloudflare': ^10.70.0
@@ -10106,7 +10106,7 @@ snapshots:
       - unplugin
       - vue
 
-  '@harlan-zw/nuxt-sentry@0.1.0(55aa7a39917190c6879dc2f605894ba6)':
+  '@harlan-zw/nuxt-sentry@0.1.1(55aa7a39917190c6879dc2f605894ba6)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0)))
       '@sentry/nuxt': 10.70.0(5c7b53d002ce9505d799e05119d65a13)

@@ -158,6 +158,13 @@ export default defineNuxtConfig({
     redirectToCanonicalSiteUrl: false,
   },
 
+  // `@harlan-zw/nuxt-sentry` sets `sourcemap.client` when a Sentry auth token is
+  // present, and deliberately leaves the server alone, where Nuxt defaults to true.
+  // Without this the server bundle ships its own source maps.
+  sourcemap: {
+    server: false,
+  },
+
   devtools: { enabled: true },
 
   skewProtection: {
