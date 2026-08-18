@@ -13,6 +13,8 @@ concurrency:
 permissions:
   contents: read
   actions: read
+  # the budget action comments the diff on the pull request
+  pull-requests: write
 
 jobs:
   build:
