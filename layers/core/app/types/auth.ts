@@ -37,7 +37,6 @@ export interface OAuthPoolToken {
 // }
 
 export interface UserSession {
-  sessionId: number
   sub: string
   user: UserSelect
   // used when redirecting to Web Indexing API OAuth
