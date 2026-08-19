@@ -1,51 +1,44 @@
 import type { H3Event } from 'h3'
-import type { UserSession } from '~~/layers/core/app/types'
 import type { UserSelect } from '~~/layers/core/server/db/schema'
-import { defu } from 'defu'
 import { eq } from 'drizzle-orm'
 import {
   createError,
 } from 'h3'
-import { sessions } from '~~/layers/core/server/db/schema'
+import { users } from '~~/layers/core/server/db/schema'
+import { resolveSessionIdentity } from '~~/shared/server/session-identity'
 
+/**
+ * The `users` row behind the request, or a 401.
+ *
+ * The lookup keys on the session's own user id. It used to key on
+ * `session.sessionId` against the legacy `sessions` table, a column nothing has
+ * written since sign-in moved to `nuxt-auth-utils`: drizzle bound `undefined`
+ * and D1 rejected the statement, so every signed-in call to `/api/indexing/*`,
+ * `/api/gscdump/*` and `/auth/google-indexing` returned 500.
+ */
 export async function authenticateUser(event: H3Event): Promise<UserSelect> {
-  const session = (await getUserSession(event)) as unknown as UserSession
-  if (!session?.user) {
-    // unauthorized
+  const identity = resolveSessionIdentity(await getUserSession(event))
+  if (identity._tag === 'SignedOut') {
     throw createError({
       statusCode: 401,
       message: 'Unauthorized',
     })
   }
 
-  const db = useDrizzle()
-  // session can be deleted externally and user will need to re-auth
-  const dbSession = await db.query.sessions.findFirst({
-    where: eq(sessions.sessionId, session.sessionId),
-    with: {
-      user: {
-        with: {
-          team: true,
-          googleAccounts: true,
-        },
-      },
-    },
+  const user = await useDrizzle(event).query.users.findFirst({
+    where: eq(users.userId, identity.userId),
   })
 
-  if (!dbSession || !dbSession.user) {
-    // need to clear session
+  if (!user) {
+    // The row is gone, so the cookie names a user that no longer exists.
     await clearUserSession(event)
-    // unauthorized
     throw createError({
       statusCode: 401,
       message: 'User not found',
     })
   }
-  // resync session data
-  // await setUserSession(event, user.getAttributes())
-  return defu(dbSession.user, (await getUserSession(event)).user, {
-    analyticsPeriod: '30d',
-  }) as UserSelect
+
+  return user
 }
 
 export interface GoogleOAuthUser {
