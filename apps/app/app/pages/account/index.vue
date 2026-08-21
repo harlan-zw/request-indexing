@@ -10,6 +10,33 @@ const { session, fetch } = useUserSession()
 const indexingAuth = computed(() => session.value?.googleIndexingAuth)
 const logout = createLogoutHandler()
 const toast = useToast()
+const route = useRoute()
+
+// Identity linking bounces back here with `?notice=` / `?error=` from
+// `attachIdentityToCurrentSession`. Without feedback the round trip through
+// Google ends in silence, so users re-click "Connect" and hit the conflict path.
+const linkNotices: Record<string, { title: string, description: string, color: 'success' | 'warning' | 'error' }> = {
+  linked: {
+    title: 'Account connected',
+    description: 'Your Google account is now linked.',
+    color: 'success',
+  },
+  already_linked: {
+    title: 'Already connected',
+    description: 'That account was already linked to your profile.',
+    color: 'warning',
+  },
+  link_conflict: {
+    title: 'Account in use',
+    description: 'That Google account is linked to another user.',
+    color: 'error',
+  },
+}
+const linkNotice = computed(() => linkNotices[String(route.query.notice)] ?? linkNotices[String(route.query.error)])
+onMounted(() => {
+  if (linkNotice.value)
+    toast.add(linkNotice.value)
+})
 
 // Revoking and deleting are modelled as states rather than booleans so the
 // confirmation markup cannot render while the user is still in `idle`.

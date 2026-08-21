@@ -48,7 +48,9 @@ const errorTitle = computed(() => {
     return 'Account exists with another sign-in method'
   if (emailNotVerified.value)
     return 'Verify your email with Google first'
-  return error.value
+  if (error.value)
+    return 'Sign in failed'
+  return undefined
 })
 
 const errorDescription = computed(() => {
@@ -61,6 +63,9 @@ const errorDescription = computed(() => {
   }
   if (emailNotVerified.value)
     return 'Google says this account has an unverified email. Verify with Google, then try again.'
+  // Raw provider failures (config errors, network errors) arrive as free text.
+  if (error.value)
+    return error.value
   return undefined
 })
 
@@ -220,7 +225,7 @@ useSeoMeta({
 
     <p class="mt-7 text-xs text-muted">
       New to Request Indexing?
-      <span class="font-medium text-highlighted">Sign in with Google above to create a free account.</span>
+      <span class="font-medium text-highlighted">Continue with Google above to create your free account.</span>
     </p>
   </div>
 </template>

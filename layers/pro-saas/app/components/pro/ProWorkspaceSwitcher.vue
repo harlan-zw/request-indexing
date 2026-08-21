@@ -232,20 +232,12 @@ const triggerAria = computed(() => {
           <!-- Footer actions -->
           <div class="border-t border-default p-1">
             <NuxtLink
-              to="/pro/dashboard/teams/create"
-              class="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-[13px] text-default hover:bg-elevated transition-colors"
-              @click="open = false"
-            >
-              <UIcon name="i-lucide-plus" class="size-3.5 text-muted" aria-hidden="true" />
-              Create team
-            </NuxtLink>
-            <NuxtLink
-              to="/pro/dashboard/teams"
+              to="/dashboard/team/settings"
               class="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-[13px] text-default hover:bg-elevated transition-colors"
               @click="open = false"
             >
               <UIcon name="i-lucide-settings" class="size-3.5 text-muted" aria-hidden="true" />
-              Manage teams
+              Team settings
             </NuxtLink>
           </div>
         </div>

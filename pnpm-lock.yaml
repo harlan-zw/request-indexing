@@ -54,6 +54,12 @@ catalogs:
     '@iconify-json/logos':
       specifier: ^1.2.13
       version: 1.2.13
+    '@iconify-json/lucide':
+      specifier: ^1.2.68
+      version: 1.2.124
+    '@iconify-json/noto':
+      specifier: ^1.2.7
+      version: 1.2.7
     '@iconify-json/ph':
       specifier: ^1.2.2
       version: 1.2.2
@@ -286,6 +292,12 @@ importers:
       '@iconify-json/logos':
         specifier: 'catalog:'
         version: 1.2.13
+      '@iconify-json/lucide':
+        specifier: 'catalog:'
+        version: 1.2.124
+      '@iconify-json/noto':
+        specifier: 'catalog:'
+        version: 1.2.7
       '@iconify-json/ph':
         specifier: 'catalog:'
         version: 1.2.2
@@ -1718,6 +1730,12 @@ packages:
 
   '@iconify-json/logos@1.2.13':
     resolution: {integrity: sha512-Up54ZnIuiuBgGAsuzhR1nvKqwq8VE6YM3XLwVB6IgY+7NAasz6WKu9Ay5hGfAkfuOKowodfwDC8ozReEBYrWRg==}
+
+  '@iconify-json/lucide@1.2.124':
+    resolution: {integrity: sha512-mO6JyBVNER7uXEkW2bXiN9Rrm6w91IXxwnNmIMbu2KZX0ZPcVZH1xDUTw94pryxESUIpBhinkOUIZIav+TA9ng==}
+
+  '@iconify-json/noto@1.2.7':
+    resolution: {integrity: sha512-2pNHliXnMLpnepNTZwR9hPBSl6GmhIfXPnudFCHY5v9pJhmA7LoVb/pFY0qLDY/k+3ikET8RXRf7XFxc/pHObA==}
 
   '@iconify-json/ph@1.2.2':
     resolution: {integrity: sha512-PgkEZNtqa8hBGjHXQa4pMwZa93hmfu8FUSjs/nv4oUU6yLsgv+gh9nu28Kqi8Fz9CCVu4hj1MZs9/60J57IzFw==}
@@ -10210,6 +10228,14 @@ snapshots:
       '@iconify/types': 2.0.0
 
   '@iconify-json/logos@1.2.13':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify-json/lucide@1.2.124':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify-json/noto@1.2.7':
     dependencies:
       '@iconify/types': 2.0.0
 

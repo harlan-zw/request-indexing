@@ -35,6 +35,8 @@
     "@iconify-json/circle-flags": "catalog:",
     "@iconify-json/heroicons": "catalog:",
     "@iconify-json/logos": "catalog:",
+    "@iconify-json/lucide": "catalog:",
+    "@iconify-json/noto": "catalog:",
     "@iconify-json/ph": "catalog:",
     "@iconify-json/simple-icons": "catalog:",
     "@internationalized/date": "catalog:",

@@ -178,8 +178,8 @@ export async function attachIdentityToCurrentSession({ event, provider, identity
   const result = await attachIdentityToUser(db, session.user.id as unknown as number, provider, identity)
   if (!result.ok) {
     if (result.reason === 'already_linked_other_user')
-      return sendRedirect(event, `/pro/dashboard/account?error=link_conflict&provider=${provider}`)
-    return sendRedirect(event, `/pro/dashboard/account?notice=already_linked&provider=${provider}`)
+      return sendRedirect(event, `/account?error=link_conflict&provider=${provider}`)
+    return sendRedirect(event, `/account?notice=already_linked&provider=${provider}`)
   }
 
   try {
@@ -193,5 +193,5 @@ export async function attachIdentityToCurrentSession({ event, provider, identity
     logger.error('[auth] identity-linked hook failed:', err)
   }
 
-  return sendRedirect(event, `/pro/dashboard/account?notice=linked&provider=${provider}`)
+  return sendRedirect(event, `/account?notice=linked&provider=${provider}`)
 }

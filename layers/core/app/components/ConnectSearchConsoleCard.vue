@@ -6,6 +6,7 @@
 // every panel renders empty. `/auth/integrations/gsc/connect` is the grant flow
 // (offline access + refresh token, registered with gscdump in the callback).
 // Nothing in the dashboard linked to it, so there was no way to reach it.
+const { returnTo = '/dashboard' } = defineProps<{ returnTo?: string }>()
 const { session } = useUserSession()
 
 // `gscdumpUserId` alone is not enough: the browser's gscdump proxy also needs
@@ -13,7 +14,6 @@ const { session } = useUserSession()
 // persisted have one without the other. Keying on the id hid this prompt from
 // exactly the users who needed it.
 const isConnected = computed(() => Boolean(session.value?.gscdumpConnected))
-const returnTo = '/dashboard'
 </script>
 
 <template>
@@ -24,9 +24,8 @@ const returnTo = '/dashboard'
           Connect Google Search Console
         </h2>
         <p class="max-w-xl text-sm text-muted">
-          Your sites are listed, but there is no Search Console data behind them yet.
-          Connecting grants read access to your properties so indexing status,
-          coverage, and submissions can load.
+          Connecting grants read access to your Search Console properties so your sites,
+          indexing status, coverage, and submissions can load.
         </p>
       </div>
       <UButton

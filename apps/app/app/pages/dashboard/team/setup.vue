@@ -25,8 +25,14 @@ const pending = ref(true)
 const sitesSynced = ref(0)
 const totalSites = ref(0)
 
-const { fetch } = useUserSession()
+const { fetch, session } = useUserSession()
 const onSessionExpired = createSessionExpiredHandler()
+
+// Fresh signups hold identity only: no Search Console grant, so `gscdumpUserId`
+// is null and the picker has nothing to list. The dashboard layout pins every
+// route here until onboarding completes, so this page is the only place a new
+// user can be offered the connect flow from.
+const isConnected = computed(() => Boolean(session.value?.gscdumpConnected))
 
 async function refresh() {
   // TODO avoid duplicate fetches
@@ -128,6 +134,11 @@ function setSelectedSites(val: string[]) {
         </p>
       </div>
 
+      <ConnectSearchConsoleCard
+        v-else-if="!isConnected"
+        return-to="/dashboard/team/setup"
+      />
+
       <div v-else-if="!sites.length" class="py-10 text-center">
         <UIcon name="i-heroicons-exclamation-triangle" class="size-10 text-warning" />
         <p class="mt-3 text-xl">
@@ -189,12 +200,12 @@ function setSelectedSites(val: string[]) {
           </h3>
           <div class="space-y-2">
             <p class="text-sm text-muted">
-              1. Splits your property domains into easily trackable sites - <NuxtLink to="/" class="underline">
+              1. Splits your property domains into easily trackable sites - <NuxtLink to="/guides" class="underline">
                 what is domain property splitting
               </NuxtLink>.
             </p>
             <p class="text-sm text-muted">
-              2. Requests Google to index your missing pages - <NuxtLink to="/" class="underline">
+              2. Requests Google to index your missing pages - <NuxtLink to="/google-indexing-api" class="underline">
                 why you need to index your pages
               </NuxtLink>.
             </p>
@@ -202,7 +213,7 @@ function setSelectedSites(val: string[]) {
               3. Provides detailed GSC pages and keyword insights.
             </p>
             <p class="text-sm text-muted">
-              4. Archives your Google Search Console data for as long as you like - <NuxtLink to="/" class="underline">
+              4. Archives your Google Search Console data for as long as you like - <NuxtLink to="/guides" class="underline">
                 why you need to archive your data
               </NuxtLink>.
             </p>

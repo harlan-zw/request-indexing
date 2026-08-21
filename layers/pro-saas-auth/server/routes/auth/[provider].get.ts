@@ -19,7 +19,9 @@ function buildHandler(providerId: string) {
   const sharedOnError = (event: H3Event, error: unknown) => {
     logger.error(`[auth/${providerId}] OAuth error:`, error)
     const message = error instanceof Error ? error.message : 'auth_failed'
-    return sendRedirect(event, `/pro?error=${encodeURIComponent(message)}`)
+    // `/login` renders the error UI; `/pro` does not exist in this app and
+    // returned 404, hiding the failure behind a missing page.
+    return sendRedirect(event, `/login?error=${encodeURIComponent(message)}`)
   }
 
   const sharedOnSuccess = async (event: H3Event, context: unknown) => {
