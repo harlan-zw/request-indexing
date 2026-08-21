@@ -1,8 +1,10 @@
 // Comprehensive per-user data purge for the pro D1 database.
 //
-// D1 does NOT enforce foreign keys by default, so cascade declarations on the
-// schema are not load-bearing. Every per-user table is deleted explicitly,
-// children before parents.
+// D1 enforces foreign keys, so cascade declarations alone do not order the
+// deletes: every row that references the user, their sites, or their teams
+// must be removed before its parent, and the users <-> teams ownership cycle
+// (users.current_team_id -> teams, teams.owner_id -> users) must be broken
+// before either side can go.
 //
 // Cross-system side-effects (gscdump partner DELETE, admin audit log) live in
 // `pro:user:deleting` (pre, critical) and `pro:user:deleted` (post,
@@ -15,10 +17,27 @@ import type { H3Event } from 'h3'
 import { eq, inArray, or, sql } from 'drizzle-orm'
 import { dispatchEvent } from '#domain-events/server'
 import {
+  adminEvents,
+  apiUsageEvents,
+  failedJobs,
   feedback,
+  googleAccounts,
+  indexingInvestigations,
+  indexingJobs,
+  jobBatches,
+  jobs,
   mcpUsage,
   notifications,
+  proEvents,
+  relatedKeywords,
+  sessions,
+  siteDateAnalytics,
+  siteDateCountryAnalytics,
   siteGroups,
+  siteKeywordDateAnalytics,
+  siteKeywordDatePathAnalytics,
+  sitePathDateAnalytics,
+  sitePaths,
   sites,
   teamApiTokens,
   teamAuditEvents,
@@ -26,9 +45,13 @@ import {
   teamInvitations,
   teamMemberships,
   teams,
+  teamSites,
+  teamUser,
   telemetryEvents,
+  usages,
   userIdentities,
   users,
+  userSites,
 } from '../database'
 import { getProLogger } from './handler'
 
@@ -99,27 +122,44 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
   }
 
   // Resolve every site this user owns up-front so child purges can scope by siteId.
-  const userSites = await db.select({ id: sites.siteId }).from(sites).where(eq(sites.ownerId, userId))
-  const siteIds = userSites.map(s => s.id)
+  const ownedSiteRows = await db.select({ id: sites.siteId }).from(sites).where(eq(sites.ownerId, userId))
+  const siteIds = ownedSiteRows.map(s => s.id)
 
   // Pre-resolve teams the user owns so cascading children can be scoped explicitly.
-  // D1 doesn't enforce FK cascades, so we manually delete every team-scoped child row
+  // D1 enforces FKs, so we manually delete every team-scoped child row
   // for owned teams before deleting the team itself.
   const ownedTeamRows = await db.select({ id: teams.teamId }).from(teams).where(eq(teams.ownerId, userId))
   const ownedTeamIds = ownedTeamRows.map(t => t.id)
 
-  // Build the delete plan: ordered list of (label, predicate, runner).
-  // Children before parents; null-safe-skip when there are no parent ids.
+  const hasSites = () => siteIds.length > 0
+  const hasTeams = () => ownedTeamIds.length > 0
+  const siteList = () => idList(siteIds)
+  const teamList = () => idList(ownedTeamIds)
+
+  // Delete plan: ordered list of (label, predicate, runner).
+  // Children before parents; the users <-> teams cycle is broken before
+  // the users row goes, then the team follows.
   const plan: Array<{ table: string, count: () => Promise<number>, run?: () => Promise<unknown> }> = [
+    // ── Per-user rows with no other parents ──────────────────────────────
     {
-      table: 'sites',
-      count: () => scalar(db, sql`select count(*) as c from sites where owner_id = ${userId}`),
-      run: () => db.delete(sites).where(eq(sites.ownerId, userId)),
+      table: 'sessions',
+      count: () => scalar(db, sql`select count(*) as c from sessions where user_id = ${userId}`),
+      run: () => db.delete(sessions).where(eq(sessions.userId, userId)),
     },
     {
-      table: 'site_groups',
-      count: () => ownedTeamIds.length ? scalar(db, sql`select count(*) as c from site_groups where team_id in ${idList(ownedTeamIds)}`) : Promise.resolve(0),
-      run: () => ownedTeamIds.length ? db.delete(siteGroups).where(inArray(siteGroups.teamId, ownedTeamIds)) : Promise.resolve(),
+      table: 'user_sites',
+      count: () => scalar(db, sql`select count(*) as c from user_sites where user_id = ${userId}`),
+      run: () => db.delete(userSites).where(eq(userSites.userId, userId)),
+    },
+    {
+      table: 'team_user',
+      count: () => scalar(db, sql`select count(*) as c from team_user where user_id = ${userId}`),
+      run: () => db.delete(teamUser).where(eq(teamUser.userId, userId)),
+    },
+    {
+      table: 'pro_events',
+      count: () => scalar(db, sql`select count(*) as c from pro_events where user_id = ${userId}`),
+      run: () => db.delete(proEvents).where(eq(proEvents.userId, userId)),
     },
     {
       table: 'pro_mcp_usage',
@@ -143,40 +183,171 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
       run: () => db.update(telemetryEvents).set({ userId: null }).where(eq(telemetryEvents.userId, userId)),
     },
     {
+      table: 'admin_events_actor_nullified',
+      count: () => scalar(db, sql`select count(*) as c from admin_events where actor_user_id = ${userId}`),
+      // Audit trail is preserved; only the actor pointer is blanked.
+      run: () => db.update(adminEvents).set({ actorUserId: null }).where(eq(adminEvents.actorUserId, userId)),
+    },
+    // ── Queue rows carry user/site payloads without FKs; purge by pointer ─
+    {
+      table: 'jobs',
+      count: () => hasSites()
+        ? scalar(db, sql`select count(*) as c from jobs where user_id = ${userId} or site_id in ${siteList()}`)
+        : scalar(db, sql`select count(*) as c from jobs where user_id = ${userId}`),
+      run: () => hasSites()
+        ? db.delete(jobs).where(or(eq(jobs.userId, userId), inArray(jobs.siteId, siteIds)))
+        : db.delete(jobs).where(eq(jobs.userId, userId)),
+    },
+    {
+      table: 'failed_jobs',
+      count: () => hasSites()
+        ? scalar(db, sql`select count(*) as c from failed_jobs where user_id = ${userId} or site_id in ${siteList()}`)
+        : scalar(db, sql`select count(*) as c from failed_jobs where user_id = ${userId}`),
+      run: () => hasSites()
+        ? db.delete(failedJobs).where(or(eq(failedJobs.userId, userId), inArray(failedJobs.siteId, siteIds)))
+        : db.delete(failedJobs).where(eq(failedJobs.userId, userId)),
+    },
+    {
+      table: 'job_batches',
+      count: () => hasSites()
+        ? scalar(db, sql`select count(*) as c from job_batches where user_id = ${userId} or site_id in ${siteList()}`)
+        : scalar(db, sql`select count(*) as c from job_batches where user_id = ${userId}`),
+      run: () => hasSites()
+        ? db.delete(jobBatches).where(or(eq(jobBatches.userId, userId), inArray(jobBatches.siteId, siteIds)))
+        : db.delete(jobBatches).where(eq(jobBatches.userId, userId)),
+    },
+    // ── Owned-site analytics and inspection children ─────────────────────
+    {
+      table: 'site_paths',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_paths where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(sitePaths).where(inArray(sitePaths.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'site_date_analytics',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_date_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(siteDateAnalytics).where(inArray(siteDateAnalytics.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'site_date_country_analytics',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_date_country_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(siteDateCountryAnalytics).where(inArray(siteDateCountryAnalytics.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'site_path_date_analytics',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_path_date_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(sitePathDateAnalytics).where(inArray(sitePathDateAnalytics.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'site_keyword_date_analytics',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_keyword_date_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(siteKeywordDateAnalytics).where(inArray(siteKeywordDateAnalytics.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'site_keyword_date_path_analytics',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_keyword_date_path_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(siteKeywordDatePathAnalytics).where(inArray(siteKeywordDatePathAnalytics.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'usages',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from usages where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(usages).where(inArray(usages.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'related_keywords',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from related_keywords where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(relatedKeywords).where(inArray(relatedKeywords.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'indexing_jobs',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from indexing_jobs where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(indexingJobs).where(inArray(indexingJobs.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'indexing_investigations',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from indexing_investigations where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(indexingInvestigations).where(inArray(indexingInvestigations.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      // Other members' visibility rows pointing at the owned sites.
+      table: 'user_sites_by_site',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from user_sites where site_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(userSites).where(inArray(userSites.siteId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'team_sites',
+      count: () => hasSites()
+        ? scalar(db, sql`select count(*) as c from team_sites where site_id in ${siteList()}${hasTeams() ? sql` or team_id in ${teamList()}` : sql``}`)
+        : (hasTeams() ? scalar(db, sql`select count(*) as c from team_sites where team_id in ${teamList()}`) : Promise.resolve(0)),
+      run: () => hasSites() && hasTeams()
+        ? db.delete(teamSites).where(or(inArray(teamSites.siteId, siteIds), inArray(teamSites.teamId, ownedTeamIds)))
+        : (hasSites()
+            ? db.delete(teamSites).where(inArray(teamSites.siteId, siteIds))
+            : (hasTeams() ? db.delete(teamSites).where(inArray(teamSites.teamId, ownedTeamIds)) : Promise.resolve())),
+    },
+    {
+      // Referenced by team_sites, so it must go after that purge.
+      table: 'google_accounts',
+      count: () => scalar(db, sql`select count(*) as c from google_accounts where user_id = ${userId}`),
+      run: () => db.delete(googleAccounts).where(eq(googleAccounts.userId, userId)),
+    },
+    {
+      // Split-domain children first so parent sites can go in the next step.
+      table: 'sites_children',
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from sites where parent_id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(sites).where(inArray(sites.parentId, siteIds)) : Promise.resolve(),
+    },
+    {
+      table: 'sites',
+      count: () => scalar(db, sql`select count(*) as c from sites where owner_id = ${userId}`),
+      run: () => db.delete(sites).where(eq(sites.ownerId, userId)),
+    },
+    // ── Owned-team scoped rows ───────────────────────────────────────────
+    {
+      table: 'site_groups',
+      count: () => hasTeams() ? scalar(db, sql`select count(*) as c from site_groups where team_id in ${teamList()}`) : Promise.resolve(0),
+      run: () => hasTeams() ? db.delete(siteGroups).where(inArray(siteGroups.teamId, ownedTeamIds)) : Promise.resolve(),
+    },
+    {
       table: 'team_api_tokens',
-      count: () => scalar(db, sql`select count(*) as c from team_api_tokens where user_id = ${userId}${ownedTeamIds.length ? sql` or team_id in ${idList(ownedTeamIds)}` : sql``}`),
+      count: () => scalar(db, sql`select count(*) as c from team_api_tokens where user_id = ${userId}${hasTeams() ? sql` or team_id in ${teamList()}` : sql``}`),
       run: () => db.delete(teamApiTokens).where(
-        ownedTeamIds.length
+        hasTeams()
           ? or(eq(teamApiTokens.userId, userId), inArray(teamApiTokens.teamId, ownedTeamIds))
           : eq(teamApiTokens.userId, userId),
       ),
     },
     {
       table: 'team_gsc_credentials',
-      count: () => scalar(db, sql`select count(*) as c from team_gsc_credentials where user_id = ${userId}${ownedTeamIds.length ? sql` or team_id in ${idList(ownedTeamIds)}` : sql``}`),
+      count: () => scalar(db, sql`select count(*) as c from team_gsc_credentials where user_id = ${userId}${hasTeams() ? sql` or team_id in ${teamList()}` : sql``}`),
       run: () => db.delete(teamGscCredentials).where(
-        ownedTeamIds.length
+        hasTeams()
           ? or(eq(teamGscCredentials.userId, userId), inArray(teamGscCredentials.teamId, ownedTeamIds))
           : eq(teamGscCredentials.userId, userId),
       ),
     },
     {
       table: 'team_invitations',
-      count: () => scalar(db, sql`select count(*) as c from team_invitations where invited_by_id = ${userId}${ownedTeamIds.length ? sql` or team_id in ${idList(ownedTeamIds)}` : sql``}`),
+      count: () => scalar(db, sql`select count(*) as c from team_invitations where invited_by_id = ${userId}${hasTeams() ? sql` or team_id in ${teamList()}` : sql``}`),
       run: () => db.delete(teamInvitations).where(
-        ownedTeamIds.length
+        hasTeams()
           ? or(eq(teamInvitations.invitedById, userId), inArray(teamInvitations.teamId, ownedTeamIds))
           : eq(teamInvitations.invitedById, userId),
       ),
     },
     {
       table: 'team_memberships',
-      count: () => scalar(db, sql`select count(*) as c from team_memberships where user_id = ${userId}${ownedTeamIds.length ? sql` or team_id in ${idList(ownedTeamIds)}` : sql``}`),
+      count: () => scalar(db, sql`select count(*) as c from team_memberships where user_id = ${userId}${hasTeams() ? sql` or team_id in ${teamList()}` : sql``}`),
       run: () => db.delete(teamMemberships).where(
-        ownedTeamIds.length
+        hasTeams()
           ? or(eq(teamMemberships.userId, userId), inArray(teamMemberships.teamId, ownedTeamIds))
           : eq(teamMemberships.userId, userId),
       ),
+    },
+    {
+      // Legacy membership rows for owned teams (no cascade in the live DDL).
+      table: 'team_user_by_team',
+      count: () => hasTeams() ? scalar(db, sql`select count(*) as c from team_user where team_id in ${teamList()}`) : Promise.resolve(0),
+      run: () => hasTeams() ? db.delete(teamUser).where(inArray(teamUser.teamId, ownedTeamIds)) : Promise.resolve(),
     },
     {
       table: 'team_audit_events_actor_nullified',
@@ -186,13 +357,32 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
     },
     {
       table: 'team_audit_events',
-      count: () => ownedTeamIds.length ? scalar(db, sql`select count(*) as c from team_audit_events where team_id in ${idList(ownedTeamIds)}`) : Promise.resolve(0),
-      run: () => ownedTeamIds.length ? db.delete(teamAuditEvents).where(inArray(teamAuditEvents.teamId, ownedTeamIds)) : Promise.resolve(),
+      count: () => hasTeams() ? scalar(db, sql`select count(*) as c from team_audit_events where team_id in ${teamList()}`) : Promise.resolve(0),
+      run: () => hasTeams() ? db.delete(teamAuditEvents).where(inArray(teamAuditEvents.teamId, ownedTeamIds)) : Promise.resolve(),
     },
     {
-      table: 'teams',
+      table: 'pro_api_usage_events',
+      count: () => hasTeams() ? scalar(db, sql`select count(*) as c from pro_api_usage_events where team_id in ${teamList()}`) : Promise.resolve(0),
+      run: () => hasTeams() ? db.delete(apiUsageEvents).where(inArray(apiUsageEvents.teamId, ownedTeamIds)) : Promise.resolve(),
+    },
+    // ── Break the users <-> teams cycle, then delete both sides ──────────
+    {
+      // Other members may point at an owned team via current_team_id; move
+      // them back to their own personal team first or the team delete blocks.
+      table: 'members_reassigned',
+      count: () => hasTeams()
+        ? scalar(db, sql`select count(*) as c from users where current_team_id in ${teamList()} and user_id != ${userId} and exists (select 1 from teams t2 where t2.owner_id = users.user_id and t2.personal_team = 1)`)
+        : Promise.resolve(0),
+      run: () => hasTeams()
+        ? db.update(users).set({
+            currentTeamId: sql`(select t2.team_id from teams t2 where t2.owner_id = users.user_id and t2.personal_team = 1 limit 1)`,
+          }).where(sql`current_team_id in ${teamList()} and user_id != ${userId} and exists (select 1 from teams t2 where t2.owner_id = users.user_id and t2.personal_team = 1)`)
+        : Promise.resolve(),
+    },
+    {
+      table: 'teams_owner_detached',
       count: () => Promise.resolve(ownedTeamIds.length),
-      run: () => ownedTeamIds.length ? db.delete(teams).where(inArray(teams.teamId, ownedTeamIds)) : Promise.resolve(),
+      run: () => hasTeams() ? db.update(teams).set({ ownerId: null }).where(eq(teams.ownerId, userId)) : Promise.resolve(),
     },
     {
       table: 'user_identities',
@@ -204,10 +394,12 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
       count: () => Promise.resolve(1),
       run: () => db.delete(users).where(eq(users.userId, userId)),
     },
+    {
+      table: 'teams',
+      count: () => Promise.resolve(ownedTeamIds.length),
+      run: () => hasTeams() ? db.delete(teams).where(inArray(teams.teamId, ownedTeamIds)) : Promise.resolve(),
+    },
   ]
-
-  // Touch siteIds so unused-var lint doesn't trip; reserved for future child purges.
-  void siteIds
 
   const deleted: Record<string, number> = {}
   for (const step of plan) {
