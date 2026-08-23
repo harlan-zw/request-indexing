@@ -1,3 +1,7 @@
 {
-  "extends": ["./tsconfig.extra.json", "../.nuxt/tsconfig.server.json"]
+  // Nearest-tsconfig for files under layers/core/server (vite:oxc resolves
+  // this per file). The layer has no `.nuxt` of its own — nothing prepares it
+  // standalone — so extend the ROOT generated server tsconfig, which exists
+  // after `nuxt prepare` (postinstall) locally and in CI.
+  "extends": ["../../../.nuxt/tsconfig.server.json"]
 }
