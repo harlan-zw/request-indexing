@@ -78,6 +78,13 @@
       "when": 1786594043704,
       "tag": "0011_drop_team_gsc_credential_key",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1787460401958,
+      "tag": "0012_dataforseo_requests",
+      "breakpoints": true
     }
   ]
 }

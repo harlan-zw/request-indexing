@@ -348,6 +348,11 @@ export default defineNuxtConfig({
     dataforseo: {
       login: '',
       password: '',
+      // Daily ceiling (USD) for ALL DataForSEO tool spend combined, counted
+      // from the provider's measured per-response cost in the `cache` KV.
+      // Once spent, the public tools answer 429 for the rest of the UTC day.
+      // NUXT_DATAFORSEO_DAILY_BUDGET_USD.
+      dailyBudgetUsd: '5',
     },
     google: {
       adsClientId: '',

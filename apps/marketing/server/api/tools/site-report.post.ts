@@ -1,4 +1,10 @@
+import { dataForSeoCallContext, getDomainOverview } from '~~/layers/core/server/app/services/dataforseo'
+import { checkDataForSeoBudget } from '~~/layers/core/server/app/services/dataforseo-spend'
+import { checkFreeToolRateLimit } from '#layers/pro-saas/server/utils/rate-limit'
+
 export default defineEventHandler(async (event) => {
+  await checkFreeToolRateLimit(event)
+
   const body = await readBody<{ domain: string }>(event)
 
   if (!body?.domain?.trim())
@@ -13,7 +19,17 @@ export default defineEventHandler(async (event) => {
   if (!domain || domain.includes(' '))
     throw createError({ statusCode: 400, message: 'Invalid domain' })
 
-  const overview = await getDomainOverview(domain)
+  const ctx = dataForSeoCallContext('site-report', event)
+  // One SERP task (depth 100) + one Labs task.
+  const budget = await checkDataForSeoBudget({ tool: ctx.tool!, endpoint: '/serp/google/organic/live/advanced', taskCount: 2 }, ctx)
+  if (budget.blocked) {
+    throw createError({
+      statusCode: 429,
+      message: 'Site reports are at capacity for today. Please try again tomorrow.',
+    })
+  }
+
+  const overview = await getDomainOverview(domain, ctx)
 
   // Calculate health score based on available data
   let healthScore = 50 // Base score

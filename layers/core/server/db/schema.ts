@@ -663,6 +663,35 @@ export const siteGroups = sqliteTable('site_groups', {
 export type ApiUsageSource = 'mcp' | 'rest' | 'internal'
 export type ApiUsageStatus = 'success' | 'error'
 
+/**
+ * One DataForSEO task per row: what asked for it, what it cost, what the
+ * provider said. The account is shared with nuxtseo.com; until this table
+ * existed (2026-08-23) the public tools spent credit with no record, and the
+ * month's billing export could not be attributed to a caller. Cost is the
+ * provider's own measured `cost` from the response envelope, in micro-USD,
+ * so sums reconcile against the invoice rather than an estimate.
+ */
+export const dataforseoRequests = sqliteTable('dataforseo_requests', {
+  dataforseoRequestId: integer('dataforseo_request_id').primaryKey({ autoIncrement: true }),
+  /** Which public tool or internal path fired the call. */
+  tool: text('tool').notNull(),
+  /** Provider endpoint path, e.g. `/serp/google/organic/live/advanced`. */
+  endpoint: text('endpoint').notNull(),
+  /** Tasks in the batch (live endpoints batch up to 100 per request). */
+  taskCount: integer('task_count').notNull().default(1),
+  /** HTTP status of the provider response. */
+  status: text('status', { enum: ['ok', 'http_error'] }).notNull(),
+  httpStatus: integer('http_status'),
+  /** Measured cost from the envelope, micro-USD. Null when the call failed. */
+  costUsdMicros: integer('cost_usd_micros'),
+  /** Hashed caller IP for anonymous attribution (tools are unauthenticated). */
+  ipHash: text('ip_hash'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+}, t => ({
+  createdIdx: index('dataforseo_requests_created_idx').on(t.createdAt),
+  toolCreatedIdx: index('dataforseo_requests_tool_created_idx').on(t.tool, t.createdAt),
+}))
+
 export const apiUsageEvents = sqliteTable('pro_api_usage_events', {
   apiUsageEventId: integer('api_usage_event_id').primaryKey({ autoIncrement: true }),
   teamId: integer('team_id').notNull().references(() => teams.teamId, { onDelete: 'cascade' }),

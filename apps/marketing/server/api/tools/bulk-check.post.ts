@@ -1,4 +1,10 @@
+import { checkUrlsIndexed, dataForSeoCallContext } from '~~/layers/core/server/app/services/dataforseo'
+import { checkDataForSeoBudget } from '~~/layers/core/server/app/services/dataforseo-spend'
+import { checkFreeToolRateLimit } from '#layers/pro-saas/server/utils/rate-limit'
+
 export default defineEventHandler(async (event) => {
+  await checkFreeToolRateLimit(event)
+
   const body = await readBody<{ urls?: string[], sitemapUrl?: string }>(event)
 
   let urls: string[] = []
@@ -43,7 +49,17 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const results = await checkUrlsIndexed(urls)
+  const ctx = dataForSeoCallContext('bulk-check', event)
+  // Each URL is one SERP task, so the batch's cost scales with its size.
+  const budget = await checkDataForSeoBudget({ tool: ctx.tool!, endpoint: '/serp/google/organic/live/advanced', taskCount: urls.length }, ctx)
+  if (budget.blocked) {
+    throw createError({
+      statusCode: 429,
+      message: 'Bulk index checking is at capacity for today. Please try again tomorrow.',
+    })
+  }
+
+  const results = await checkUrlsIndexed(urls, ctx)
 
   const indexed = results.filter(r => r.indexed).length
   const notIndexed = results.filter(r => !r.indexed).length
