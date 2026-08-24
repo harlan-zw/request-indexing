@@ -8,6 +8,10 @@ export interface DataForSeoCallContext extends DataForSeoSpendEnv {
   tool?: string
   /** Request event, for the caller-IP hash on the ledger row. */
   event?: H3Event
+  /** API credentials resolved once at the route boundary. */
+  credentials?: DataForSEOCredentials
+  /** Provider transport resolved at the route boundary. */
+  providerFetch?: typeof $fetch
 }
 
 /**
@@ -16,7 +20,7 @@ export interface DataForSeoCallContext extends DataForSeoSpendEnv {
  * still metered through the shared budget (env only, no ledger attribution).
  */
 export function dataForSeoCallContext(tool: string, event?: H3Event): DataForSeoCallContext {
-  return { tool, event, ...dataForSeoSpendEnv() }
+  return { tool, event, credentials: getCredentials(), providerFetch: $fetch, ...dataForSeoSpendEnv() }
 }
 
 interface DataForSEOCredentials {
@@ -41,6 +45,67 @@ interface DataForSeoResponse<T> {
   status_code?: number
   cost?: number
   tasks?: Array<{ result?: T[], cost?: number }>
+}
+
+function tagHash(value: string): string {
+  let hash = 0x811C9DC5
+  for (let index = 0; index < value.length; index++)
+    hash = Math.imul(hash ^ value.charCodeAt(index), 0x01000193)
+  return (hash >>> 0).toString(16).padStart(8, '0')
+}
+
+function boundedTagValue(value: string, maxLength: number): string {
+  const encoded = encodeURIComponent(value)
+  if (encoded.length <= maxLength)
+    return encoded
+
+  const suffix = `~${tagHash(value)}`
+  let prefix = value
+  while (prefix && encodeURIComponent(prefix).length + suffix.length > maxLength)
+    prefix = prefix.slice(0, -1)
+  return `${encodeURIComponent(prefix)}${suffix}`
+}
+
+function taskSite(task: Record<string, unknown>): string | null {
+  const candidate = typeof task.target === 'string'
+    ? task.target
+    : typeof task.keyword === 'string' && task.keyword.startsWith('site:')
+      ? task.keyword.slice(5).split(/\s/, 1)[0] ?? ''
+      : ''
+  if (!candidate)
+    return null
+
+  const url = candidate.includes('://') ? candidate : `https://${candidate}`
+  return URL.canParse(url) ? new URL(url).hostname : null
+}
+
+/** Add provider-visible cost attribution to every task in a request. */
+export function tagDataForSeoTasks<T extends Record<string, unknown>>(
+  tasks: T[],
+  source: string,
+  requestId: string,
+): Array<T & { tag: string }> {
+  return tasks.map((task, index) => ({
+    ...task,
+    tag: [
+      'v=1',
+      'app=request-indexing.com',
+      `site=${boundedTagValue(taskSite(task) ?? 'unscoped', 80)}`,
+      `source=${boundedTagValue(source, 48)}`,
+      `request=${boundedTagValue(requestId, 48)}`,
+      `task=${index}`,
+    ].join('&'),
+  }))
+}
+
+function errorHttpStatus(error: unknown): number {
+  if (!error || typeof error !== 'object')
+    return 0
+  if ('statusCode' in error && typeof error.statusCode === 'number')
+    return error.statusCode
+  if ('response' in error && error.response && typeof error.response === 'object' && 'status' in error.response && typeof error.response.status === 'number')
+    return error.response.status
+  return 0
 }
 
 interface DomainRankResult {
@@ -73,8 +138,8 @@ function getCredentials(): DataForSEOCredentials {
   }
 }
 
-function getAuthHeader(): string {
-  const { login, password } = getCredentials()
+function getAuthHeader(credentials = getCredentials()): string {
+  const { login, password } = credentials
   return `Basic ${btoa(`${login}:${password}`)}`
 }
 
@@ -86,15 +151,17 @@ function getAuthHeader(): string {
  * before the provider is reached.
  */
 async function dataforseoFetch<T>(endpoint: string, body: Record<string, unknown>[], ctx?: DataForSeoCallContext): Promise<T> {
+  const providerBody = tagDataForSeoTasks(body, ctx?.tool ?? 'internal', crypto.randomUUID())
+  const providerFetch = ctx?.providerFetch ?? $fetch
   try {
-    const data = await $fetch<DataForSeoResponse<T>>(`https://api.dataforseo.com/v3${endpoint}`, {
+    const data = await providerFetch<DataForSeoResponse<T>>(`https://api.dataforseo.com/v3${endpoint}`, {
       ...DATAFORSEO_RETRY_OPTIONS,
       method: 'POST',
       headers: {
-        'Authorization': getAuthHeader(),
+        'Authorization': getAuthHeader(ctx?.credentials),
         'Content-Type': 'application/json',
       },
-      body,
+      body: providerBody,
     })
     if (ctx?.tool) {
       // `cost` is USD for the tasks this response actually served.
@@ -106,8 +173,8 @@ async function dataforseoFetch<T>(endpoint: string, body: Record<string, unknown
     }
     return data as T
   }
-  catch (err: any) {
-    const httpStatus = typeof err?.statusCode === 'number' ? err.statusCode : typeof err?.response?.status === 'number' ? err.response.status : 0
+  catch (err) {
+    const httpStatus = errorHttpStatus(err)
     if (ctx?.tool) {
       // Failed transport: no body, provider charges nothing, but the attempt
       // is still evidence — a 402 storm here is how the account running dry
@@ -153,12 +220,11 @@ export async function checkUrlIndexed(url: string, ctx?: DataForSeoCallContext):
 
 export async function checkUrlsIndexed(urls: string[], ctx?: DataForSeoCallContext): Promise<IndexCheckResult[]> {
   // DataForSEO allows batching — send multiple tasks in one request
-  const tasks = urls.map((url, i) => ({
+  const tasks = urls.map(url => ({
     keyword: `site:${url}`,
     location_code: 2840,
     language_code: 'en',
     depth: 10,
-    tag: `url-${i}`,
   }))
 
   // DataForSEO has a limit of 100 tasks per request
