@@ -1,7 +1,6 @@
 import { checkUrlIndexed, dataForSeoCallContext } from '~~/layers/core/server/app/services/dataforseo'
 import { checkDataForSeoBudget } from '~~/layers/core/server/app/services/dataforseo-spend'
 import { checkFreeToolRateLimit } from '#layers/pro-saas/server/utils/rate-limit'
-import { runDataForSEORequest } from '../../../../../shared/dataforseo'
 
 export default defineEventHandler(async (event) => {
   await checkFreeToolRateLimit(event)
@@ -30,17 +29,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const outcome = await runDataForSEORequest(() => checkUrlIndexed(normalizedUrl, ctx))
-
-  if (outcome._tag === 'Unavailable') {
-    throw createError({
-      statusCode: 503,
-      message: 'Index status is temporarily unavailable. Please try again shortly.',
-    })
-  }
+  const result = await checkUrlIndexed(normalizedUrl, ctx)
 
   return {
-    ...outcome.value,
+    ...result,
     checkedAt: new Date().toISOString(),
   }
 })

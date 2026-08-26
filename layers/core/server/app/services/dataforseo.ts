@@ -1,6 +1,12 @@
 import type { H3Event } from 'h3'
 import type { DataForSeoSpendEnv } from './dataforseo-spend'
-import { DATAFORSEO_RETRY_OPTIONS } from '../../../../../shared/dataforseo'
+import { createError } from 'h3'
+import {
+  DATAFORSEO_RETRY_OPTIONS,
+  DATAFORSEO_UNAVAILABLE_MESSAGE,
+  dataForSeoStatusCode,
+  isTransientDataForSeoFailure,
+} from '../../../../../shared/dataforseo'
 import { dataForSeoSpendEnv, recordDataForSeoSpend } from './dataforseo-spend'
 
 export interface DataForSeoCallContext extends DataForSeoSpendEnv {
@@ -98,16 +104,6 @@ export function tagDataForSeoTasks<T extends Record<string, unknown>>(
   }))
 }
 
-function errorHttpStatus(error: unknown): number {
-  if (!error || typeof error !== 'object')
-    return 0
-  if ('statusCode' in error && typeof error.statusCode === 'number')
-    return error.statusCode
-  if ('response' in error && error.response && typeof error.response === 'object' && 'status' in error.response && typeof error.response.status === 'number')
-    return error.response.status
-  return 0
-}
-
 interface DomainRankResult {
   items?: Array<{
     metrics?: { organic?: { etv?: number, count?: number } }
@@ -149,6 +145,10 @@ function getAuthHeader(credentials = getCredentials()): string {
  * `dataforseo_requests` ledger with the provider's measured cost. The meter is
  * best-effort and never fails the call: the budget GATE runs at the route seam
  * before the provider is reached.
+ *
+ * A provider outage is classified here rather than at each route, so no tool
+ * route can forget it: `/api/tools/bulk-check` and `/api/tools/site-report`
+ * both used to leak the raw `FetchError` as a 500 and file it in Sentry.
  */
 async function dataforseoFetch<T>(endpoint: string, body: Record<string, unknown>[], ctx?: DataForSeoCallContext): Promise<T> {
   const providerBody = tagDataForSeoTasks(body, ctx?.tool ?? 'internal', crypto.randomUUID())
@@ -174,7 +174,7 @@ async function dataforseoFetch<T>(endpoint: string, body: Record<string, unknown
     return data as T
   }
   catch (err) {
-    const httpStatus = errorHttpStatus(err)
+    const httpStatus = dataForSeoStatusCode(err) ?? 0
     if (ctx?.tool) {
       // Failed transport: no body, provider charges nothing, but the attempt
       // is still evidence — a 402 storm here is how the account running dry
@@ -185,6 +185,8 @@ async function dataforseoFetch<T>(endpoint: string, body: Record<string, unknown
         ctx,
       )
     }
+    if (isTransientDataForSeoFailure(err))
+      throw createError({ statusCode: 503, message: DATAFORSEO_UNAVAILABLE_MESSAGE, cause: err })
     throw err
   }
 }
