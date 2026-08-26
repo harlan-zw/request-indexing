@@ -1,6 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
-import { checkUrlIndexed, tagDataForSeoTasks } from '../layers/core/server/app/services/dataforseo'
-import { DATAFORSEO_RETRY_OPTIONS, runDataForSEORequest } from '../shared/dataforseo'
+import { checkUrlIndexed, checkUrlsIndexed, tagDataForSeoTasks } from '../layers/core/server/app/services/dataforseo'
+import { DATAFORSEO_RETRY_OPTIONS, DATAFORSEO_UNAVAILABLE_MESSAGE } from '../shared/dataforseo'
+
+function callContext() {
+  return {
+    budgetMicros: 0,
+    credentials: { login: 'login', password: 'password' },
+    storage: {
+      getItem: async () => null,
+      setItem: () => Promise.resolve(),
+    },
+  }
+}
 
 describe('dataForSEO requests', () => {
   it('attributes every provider task to its app and target Site', () => {
@@ -43,17 +54,28 @@ describe('dataForSEO requests', () => {
     }))
   })
 
-  it('returns transient upstream errors as expected failures', async () => {
-    const outcome = await runDataForSEORequest(() => Promise.reject(
-      Object.assign(new Error('upstream unavailable'), { statusCode: 520 }),
-    ))
+  it('answers a transient provider outage with a 503', async () => {
+    const outcome = checkUrlIndexed('https://docs.example.com/guide', {
+      ...callContext(),
+      providerFetch: (() => Promise.reject(
+        Object.assign(new Error('upstream unavailable'), { statusCode: 520 }),
+      )) as unknown as typeof $fetch,
+    })
 
-    expect(outcome).toEqual({ _tag: 'Unavailable', statusCode: 520 })
+    await expect(outcome).rejects.toMatchObject({
+      statusCode: 503,
+      message: DATAFORSEO_UNAVAILABLE_MESSAGE,
+    })
   })
 
-  it('does not hide non-transient failures', async () => {
-    const error = Object.assign(new Error('unauthorized'), { statusCode: 401 })
+  it('keeps a credential failure at its own status', async () => {
+    const outcome = checkUrlsIndexed(['https://docs.example.com/guide'], {
+      ...callContext(),
+      providerFetch: (() => Promise.reject(
+        Object.assign(new Error('unauthorized'), { statusCode: 401 }),
+      )) as unknown as typeof $fetch,
+    })
 
-    await expect(runDataForSEORequest(() => Promise.reject(error))).rejects.toBe(error)
+    await expect(outcome).rejects.toMatchObject({ statusCode: 401 })
   })
 })
