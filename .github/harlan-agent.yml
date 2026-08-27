@@ -11,7 +11,7 @@ routines:
   - name: sentry-checkin
     on:
       schedule:
-        - cron: "0 6 * * *"
+        - cron: '0 6 * * *'
     timezone: Australia/Sydney
     mode: report
     enabled: true
