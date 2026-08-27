@@ -1,0 +1,17 @@
+# Scheduled agent work for this repository.
+#
+# harlan-github-agent reads this file from the default branch only, and never
+# from a pull request head. It may set the schedule, the mode, and enabled. It
+# cannot name a command, a model, or any new authority.
+#
+# mode: report writes the run log and opens nothing. Switch to propose once the
+# run log reads well, and each finding becomes its own issue and pull request.
+version: 1
+routines:
+  - name: sentry-checkin
+    on:
+      schedule:
+        - cron: '0 6 * * *'
+    timezone: Australia/Sydney
+    mode: report
+    enabled: true
