@@ -4,8 +4,8 @@
 # from a pull request head. It may set the schedule, the mode, and enabled. It
 # cannot name a command, a model, or any new authority.
 #
-# mode: propose writes the run log and opens nothing. Switch to propose once the
-# run log reads well, and each finding becomes its own issue and pull request.
+# mode: propose opens one issue and pull request per finding. mode: report
+# writes the run log and opens nothing.
 version: 1
 routines:
   - name: sentry-checkin
