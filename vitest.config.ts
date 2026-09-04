@@ -8,6 +8,7 @@ export default defineVitestConfig({
     // `shared/` with a relative path, which the Nitro build cannot bundle.
     alias: {
       '#shared': fileURLToPath(new URL('./shared', import.meta.url)),
+      '~~': fileURLToPath(new URL('.', import.meta.url)),
     },
   },
 })

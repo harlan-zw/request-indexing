@@ -1,6 +1,7 @@
 import type { AppEventName, EventContextMap, TaskName } from '../utils/event-service'
 import type { JobMessage } from '../utils/jobs'
 import { eq } from 'drizzle-orm'
+import { logError } from '~~/shared/logging'
 import { jobs } from '../db/schema'
 import { onJobComplete, onJobFailed } from '../utils/event-service'
 import { dispatchJob } from '../utils/job-dispatcher'
@@ -101,6 +102,7 @@ async function processJobBatch(batch: QueueBatch<JobMessage>, env: Record<string
               permanent: true,
             })
           }
+          logError('task.batch_item_failed', new Error(result.control.error || 'Handler called fail()'), { jobId, taskName, attempt: job.attempts })
         }
         msg.ack()
         continue
@@ -182,6 +184,9 @@ async function processJobBatch(batch: QueueBatch<JobMessage>, env: Record<string
             permanent: true,
           }).catch(() => {})
         }
+
+        logError('task.batch_item_failed', error, { jobId, taskName, attempt: job.attempts })
+
         msg.ack()
       }
       else {
@@ -224,7 +229,9 @@ async function processDLQBatch(batch: QueueBatch<JobMessage>, env: Record<string
     const backoffHours = 4 ** (effectiveAttempt - 1)
 
     if (effectiveAttempt > 3 || job.attempts >= job.maxAttempts) {
-      await failJob(db, jobId, `[DLQ exhausted] ${job.lastError || 'Unknown error'}`)
+      const error = new Error(`[DLQ exhausted] ${job.lastError || 'Unknown error'}`)
+      await failJob(db, jobId, error.message)
+      logError('task.batch_item_failed', error, { jobId, attempt: job.attempts, dlqCycles: effectiveAttempt })
       console.error(`[DLQ] Job ${jobId} permanently failed after ${effectiveAttempt} DLQ cycles`)
       msg.ack()
       continue
