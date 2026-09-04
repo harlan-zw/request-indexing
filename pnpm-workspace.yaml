@@ -79,6 +79,7 @@ catalog:
   '@nuxtjs/robots': ^6.1.4
   '@nuxtjs/seo': ^5.3.12
   '@nuxtjs/sitemap': ^8.3.4
+  '@sentry/cloudflare': ^10.70.0
   '@sentry/nuxt': ^10.70.0
   '@takumi-rs/core': ^2.9.2
   '@takumi-rs/wasm': ^2.9.2

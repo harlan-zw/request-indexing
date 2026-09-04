@@ -92,6 +92,7 @@
     "@harlan-zw/nuxt-dx": "catalog:",
     "@harlan-zw/nuxt-sentry": "catalog:",
     "@nuxt/test-utils": "catalog:",
+    "@sentry/cloudflare": "catalog:",
     "@sentry/nuxt": "catalog:",
     "@takumi-rs/wasm": "catalog:",
     "bumpp": "catalog:",

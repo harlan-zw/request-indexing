@@ -21,7 +21,7 @@
 // Best-effort: insert errors are caught to stderr so a D1 outage cannot
 // poison the request lifecycle that triggered the original log.
 
-import { setLogSink } from '~~/shared/logging'
+import { addLogSink } from '~~/shared/logging'
 import { runtimeErrors } from '#layers/pro-saas/server/database'
 
 function toJsonString(value: unknown): string | null {
@@ -39,7 +39,7 @@ export default defineNitroPlugin(() => {
   if (import.meta.prerender)
     return
 
-  setLogSink((entry) => {
+  addLogSink((entry) => {
     // Capture the current event synchronously — `useEvent()` reads from
     // async-context that the catch handler's parent still owns, but only
     // before we hop to a microtask.
