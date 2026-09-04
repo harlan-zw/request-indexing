@@ -93,6 +93,9 @@ catalogs:
     '@nuxtjs/sitemap':
       specifier: ^8.3.4
       version: 8.3.4
+    '@sentry/cloudflare':
+      specifier: ^10.70.0
+      version: 10.70.0
     '@sentry/nuxt':
       specifier: ^10.70.0
       version: 10.70.0
@@ -458,6 +461,9 @@ importers:
       '@nuxt/test-utils':
         specifier: 'catalog:'
         version: 4.1.0(crossws@0.4.10(srvx@0.12.5))(esbuild@0.28.1)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.62.4)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))(vitest@4.1.10(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))
+      '@sentry/cloudflare':
+        specifier: 'catalog:'
+        version: 10.70.0(@cloudflare/workers-types@5.20260816.1)(supports-color@10.2.2)(wrangler@4.123.0(@cloudflare/workers-types@5.20260816.1)(@types/node@25.6.0))
       '@sentry/nuxt':
         specifier: 'catalog:'
         version: 10.70.0(5c7b53d002ce9505d799e05119d65a13)

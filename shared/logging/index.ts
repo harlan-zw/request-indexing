@@ -7,13 +7,16 @@
 //
 // Pipeline:
 //   1. `log.warn` from evlog → dev pretty-print + Sentry/Axiom adapters.
-//   2. A `LogSink` (registered server-side by `layers/pro-saas/server/plugins/evlog-d1-drain.ts`)
-//      receives the structured record and persists it to the `runtime_errors`
-//      D1 table. Client-side the sink is unregistered, so logs only land in
-//      the browser console + any client transport configured on evlog.
+//   2. Every `LogSink` registered via `addLogSink` receives the structured
+//      record. Server-side, `layers/pro-saas/server/plugins/evlog-d1-drain.ts`
+//      persists each entry to the `runtime_errors` D1 table and
+//      `layers/pro-saas/server/plugins/evlog-sentry-drain.ts` reports
+//      warn/error entries to Sentry. Client-side no sink is registered, so
+//      logs only land in the browser console + any client transport
+//      configured on evlog.
 //
 // The sink seam is what lets the same call site work in both runtime graphs
-// without `shared/` knowing about D1, Drizzle, or H3.
+// without `shared/` knowing about D1, Drizzle, Sentry, or H3.
 
 import type { LogName } from './catalog'
 import { LOG_CATALOG } from './catalog'
@@ -43,10 +46,14 @@ export interface LogSinkEntry {
 
 export type LogSink = (entry: LogSinkEntry) => void
 
-let installedSink: LogSink | null = null
+const sinks = new Set<LogSink>()
 
-export function setLogSink(sink: LogSink | null): void {
-  installedSink = sink
+export function addLogSink(sink: LogSink): void {
+  sinks.add(sink)
+}
+
+export function removeLogSink(sink: LogSink): void {
+  sinks.delete(sink)
 }
 
 function emit(level: 'warn' | 'error', name: LogName, error: unknown, ctx?: Record<string, unknown>): void {
@@ -61,11 +68,13 @@ function emit(level: 'warn' | 'error', name: LogName, error: unknown, ctx?: Reco
     ...(ctx ? { ctx } : {}),
   })
 
-  // Server-installed sink (D1). Wrapped so a misbehaving sink can never
-  // re-enter the catch path that called us.
-  if (installedSink) {
+  // Server-installed sinks (D1, Sentry, ...). Wrapped per sink so a
+  // misbehaving sink can never re-enter the catch path that called us,
+  // and can never block the remaining sinks.
+  const entry: LogSinkEntry = { level, name, description, error: parsed, ctx: ctx ?? null }
+  for (const sink of sinks) {
     try {
-      installedSink({ level, name, description, error: parsed, ctx: ctx ?? null })
+      sink(entry)
     }
     catch (sinkErr) {
       console.error('[logging] sink threw', sinkErr)
