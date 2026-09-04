@@ -146,7 +146,7 @@ describe('queue-consumer permanent-failure logging', () => {
   })
 
   it('routes a DLQ-exhausted job through the catalogued error log', async () => {
-    jobRow = makeJob({ id: 'job-9', payload: JSON.stringify({ _task: 'users/send-welcome-email' }), lastError: '[DLQ 1] boom' })
+    jobRow = makeJob({ id: 'job-9', lastError: '[DLQ 1] boom' })
     const msg = makeMsg('job-9')
 
     await consume('ri-dlq', msg)

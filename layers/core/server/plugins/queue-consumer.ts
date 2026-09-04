@@ -1,4 +1,5 @@
-import type { AppEventName, EventContextMap, TaskName } from '../utils/event-service'
+import type { TaskName } from '#shared/types/tasks'
+import type { AppEventName, EventContextMap } from '../utils/event-service'
 import type { JobMessage } from '../utils/jobs'
 import { eq } from 'drizzle-orm'
 import { logError } from '~~/shared/logging'
@@ -8,7 +9,7 @@ import { dispatchJob } from '../utils/job-dispatcher'
 import { claimJob, completeJob, failJob, getCFQueue } from '../utils/jobs'
 
 function emitEvent<E extends AppEventName>(event: E, ctx: EventContextMap[E]): Promise<void> {
-  return useNitroApp().hooks.callHook(event, ctx)
+  return (useNitroApp().hooks.callHook as (event: string, ctx: unknown) => Promise<void>)(event, ctx)
 }
 
 interface QueueMessage<T> {
@@ -20,7 +21,7 @@ interface QueueMessage<T> {
 
 interface QueueBatch<T> {
   queue: string
-  messages: QueueMessage<T>[]
+  messages: readonly QueueMessage<T>[]
 }
 
 interface QueuePayload {
@@ -28,17 +29,11 @@ interface QueuePayload {
   env: Record<string, unknown>
 }
 
-declare module 'nitropack' {
-  interface NitroRuntimeHooks {
-    'cloudflare:queue': (payload: QueuePayload) => void | Promise<void>
-  }
-}
-
 const JOB_QUEUES = ['ri-default']
 
 export default defineNitroPlugin((nitroApp) => {
   nitroApp.hooks.hook('cloudflare:queue', async (payload) => {
-    const { batch, env } = payload
+    const { batch, env } = payload as unknown as QueuePayload
 
     if (JOB_QUEUES.includes(batch.queue)) {
       await processJobBatch(batch, env)
