@@ -81,6 +81,19 @@ export function siteLabel(site: { domain?: string | null, property?: string | nu
   return useFriendlySiteUrl(source)
 }
 
+/**
+ * Strips the Search Console `sc-domain:` prefix, leaving a bare hostname for
+ * the favicon proxy. `sites.domain` is a nullable column, so a null hostname
+ * reaches components; callers passed it to `domain.replace` and threw
+ * "Cannot read properties of null (reading 'replace')". A missing domain
+ * returns `''` so the component can fall back to a globe icon instead.
+ */
+export function cleanDomain(domain: string | null | undefined): string {
+  if (!domain)
+    return ''
+  return domain.replace(/^sc-domain:/, '')
+}
+
 export function formatIndexingTimeAgo(date: string | number, absAgo?: boolean): string
 export function formatIndexingTimeAgo(date: MaybeRef<string | number>, absAgo?: boolean): string | ComputedRef<string> {
   const format = (_d: string | number) => {
