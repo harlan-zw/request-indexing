@@ -1,10 +1,10 @@
 import type { Job } from '../layers/core/server/utils/jobs'
-import type { LogSinkEntry } from '../shared/logging'
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { LogSink, LogSinkEntry } from '../shared/logging'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { onJobComplete, onJobFailed } from '../layers/core/server/utils/event-service'
 import { dispatchJob } from '../layers/core/server/utils/job-dispatcher'
 import { claimJob, completeJob, failJob, getCFQueue } from '../layers/core/server/utils/jobs'
-import { setLogSink } from '../shared/logging'
+import { addLogSink, removeLogSink } from '../shared/logging'
 
 vi.mock('../layers/core/server/utils/jobs', () => ({
   claimJob: vi.fn(),
@@ -83,6 +83,7 @@ async function consume(queue: string, msg: ReturnType<typeof makeMsg>) {
 }
 
 let sinkEntries: LogSinkEntry[]
+let sink: LogSink
 
 beforeAll(async () => {
   globals.defineNitroPlugin = (setup: (app: FakeNitroApp) => void) => setup
@@ -109,7 +110,12 @@ beforeEach(() => {
   vi.mocked(getCFQueue).mockReturnValue(undefined)
 
   sinkEntries = []
-  setLogSink(entry => sinkEntries.push(entry))
+  sink = entry => sinkEntries.push(entry)
+  addLogSink(sink)
+})
+
+afterEach(() => {
+  removeLogSink(sink)
 })
 
 describe('queue-consumer permanent-failure logging', () => {
