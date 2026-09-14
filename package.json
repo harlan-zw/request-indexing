@@ -21,13 +21,15 @@
     "postinstall": "nuxt prepare",
     "release": "bumpp",
     "test": "vitest run",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "checkin": "nuxt-checkin prepare && nuxt-checkin"
   },
   "dependencies": {
     "@gscdump/contracts": "catalog:",
     "@gscdump/engine": "catalog:",
     "@gscdump/sdk": "catalog:",
     "@harlan-zw/comark-content": "catalog:",
+    "@harlan-zw/nuxt-checkin": "catalog:",
     "@harlan-zw/nuxt-domain-events": "catalog:",
     "@harlan-zw/nuxt-use-query": "catalog:",
     "@harlan-zw/nuxt-wide-events": "catalog:",

@@ -2,6 +2,7 @@ import type { OAuthPoolToken } from './layers/core/app/types'
 import process from 'node:process'
 import { resolve } from 'path'
 import { globbySync } from 'globby'
+import { externalCheckin } from './shared/checkin-external'
 import { CLOUDFLARE_REQUIRED_SECRETS } from './shared/cloudflare'
 import { runtimeOnlyRouteRules } from './shared/routes'
 import { SENTRY_DSN } from './shared/sentry'
@@ -17,6 +18,7 @@ const recursiveServerAppFolders = globbySync('**/*', {
 })
 
 export default defineNuxtConfig({
+  checkin: { external: externalCheckin },
   alias: {
     h3: resolve('./node_modules/h3/dist/index.mjs'),
   },
@@ -46,6 +48,7 @@ export default defineNuxtConfig({
     '@harlan-zw/nuxt-domain-events',
     '@harlan-zw/nuxt-use-query',
     '@harlan-zw/nuxt-cloudflare',
+    '@harlan-zw/nuxt-checkin',
     '@harlan-zw/nuxt-wide-events',
     '@harlan-zw/nuxt-dx',
     'nuxt-auth-utils',
@@ -325,6 +328,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    checkinToken: '',
     // Gates every outbound user-facing send and the daily sync fan-out.
     // Override with NUXT_NOTIFICATIONS_ENABLED.
     notificationsEnabled: true,
