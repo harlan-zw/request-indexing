@@ -20,8 +20,9 @@ The token authorizes only the read-only report. Keep existing admin authenticati
 Match `CHECKIN_DEPLOYMENT` to active Worker version metadata, not the latest CI commit.
 The script combines the authenticated report and complete unresolved Sentry pagination.
 Missing credentials, wrong deployment, missing checks, and stale reports remain unavailable.
-Read severity and coverage together. Incomplete coverage never proves health.
-Exit codes are 0 for complete passing evidence, 1 for warning or incomplete, and 2 for failure.
+Read severity separately from coverage. Incomplete coverage never proves health.
+Exit 0 means complete passing evidence. Exit 1 means warnings or failures. Exit 2 means incomplete coverage.
+Read every result. Keep Fail and Warn visible when coverage is incomplete.
 
 Check the existing admin jobs and OAuth endpoints when a result needs details.
 Review gscdump connectivity and webhook evidence before attributing indexing failures to this site.
@@ -32,7 +33,11 @@ No system-health email exists. Do not create one or send test messages.
 Use the installed Sentry check-in triage skill for issue details and verified repairs.
 Inspect release, URL, browser, affected users, and recurrence before classifying issues.
 Do not resolve issues until the deployed repair is verified.
-Open draft findings or repair PRs according to repository permissions.
+Record findings in the agent tracking report using the site, check ID, and stable cause.
+Link known issues instead of proposing duplicate fixes. Return actionable repository fixes as Candidates for issue triage.
+Keep credential and operational failures in the tracking report, with the next actor and required action.
+Report recovery only after a fresh complete Pass from the expected deployment.
+Keep checks and the CLI free of email or GitHub writes. The agent controller publishes the tracking report and Candidates.
 Never deploy, mutate production data, or send messages without existing authorization.
 
 The daily schedule keeps 06:00 Australia/Sydney after this draft merges.
