@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
   // authoritative lifecycle re-read. Recovered from the hand-rolled receiver
   // this route replaced, whose own event names never matched a real delivery.
   if (localSite) {
-    const patch = syncStatusPatch(envelope.event, Date.now())
+    const patch = syncStatusPatch(envelope, Date.now())
     if (patch) {
       await db.update(sites)
         .set(patch)
