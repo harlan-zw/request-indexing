@@ -7,7 +7,7 @@ import { externalCheckin } from '../shared/checkin-external'
 const now = new Date('2026-09-14T10:00:00Z')
 const identity = { site: 'requestindexing.com', environment: 'production', deployment: 'release-1' }
 const checks = [reportCheck, sentryCheck]
-const env = { CHECKIN_ADMIN_COOKIE: 'private-token', CHECKIN_DEPLOYMENT: 'release-1', SENTRY_AUTH_TOKEN: 'sentry-token', SENTRY_ORG: 'harlan-zw' }
+const env = { CHECKIN_TOKEN: 'private-token', CHECKIN_DEPLOYMENT: 'release-1', SENTRY_AUTH_TOKEN: 'sentry-token', SENTRY_ORG: 'harlan-zw' }
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -21,7 +21,7 @@ it('combines the authenticated report with Sentry findings', async () => {
     const url = String(input)
     if (url.includes('/api/internal/') || url.includes('/api/admin/')) {
       expect(options?.redirect).toBe('error')
-      expect(new Headers(options?.headers).get('cookie')).toBe('private-token')
+      expect(new Headers(options?.headers).get('authorization')).toBe('Bearer private-token')
       return Response.json(report)
     }
     expect(new Headers(options?.headers).get('cookie')).toBeNull()

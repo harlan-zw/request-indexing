@@ -5,9 +5,18 @@ description: Read requestindexing.com health and Sentry evidence in one daily ch
 
 # Daily Check-in
 
-Run `pnpm checkin` from the repository root.
-Configure `CHECKIN_ADMIN_COOKIE`, `CHECKIN_DEPLOYMENT`, `SENTRY_ORG=harlan-zw`, and `SENTRY_AUTH_TOKEN` externally.
-Use an existing admin session. Never log or commit its cookie.
+Load the private token before running the shared CLI:
+
+```sh
+set -a
+. "$HOME/.config/harlan-checkin/requestindexing.com.env"
+set +a
+pnpm checkin
+```
+
+Run from the repository root. Never print or commit the token.
+Configure `CHECKIN_DEPLOYMENT`, `SENTRY_ORG=harlan-zw`, and `SENTRY_AUTH_TOKEN` externally.
+The token authorizes only the read-only report. Keep existing admin authentication for admin operations.
 Match `CHECKIN_DEPLOYMENT` to active Worker version metadata, not the latest CI commit.
 The script combines the authenticated report and complete unresolved Sentry pagination.
 Missing credentials, wrong deployment, missing checks, and stale reports remain unavailable.

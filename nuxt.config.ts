@@ -328,6 +328,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    checkinToken: '',
     // Gates every outbound user-facing send and the daily sync fan-out.
     // Override with NUXT_NOTIFICATIONS_ENABLED.
     notificationsEnabled: true,

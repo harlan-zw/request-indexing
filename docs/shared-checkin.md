@@ -14,7 +14,10 @@ Use Nuxt Check-in 0.2.0, Cloudflare 0.4.2, and Sentry 0.1.6 from the npm registr
 The lockfile pins the published shared CLI release.
 Deploy the report route before activating the updated routine.
 Configure external credentials as described in the daily skill.
-Never store admin cookies or Sentry tokens in the Worker or report evidence.
+The agent reads `CHECKIN_TOKEN` from `~/.config/harlan-checkin/requestindexing.com.env`.
+The production Worker or Pages project stores the same value as `NUXT_CHECKIN_TOKEN`.
+Only `GET /api/internal/checkin` accepts this token. Existing admin sessions keep their existing authorization.
+Never include either token or Sentry credentials in report evidence.
 
 ## Limits
 
