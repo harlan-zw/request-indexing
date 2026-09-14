@@ -46,6 +46,7 @@ export default defineNuxtConfig({
     '@harlan-zw/nuxt-domain-events',
     '@harlan-zw/nuxt-use-query',
     '@harlan-zw/nuxt-cloudflare',
+    '@harlan-zw/nuxt-checkin',
     '@harlan-zw/nuxt-wide-events',
     '@harlan-zw/nuxt-dx',
     'nuxt-auth-utils',
