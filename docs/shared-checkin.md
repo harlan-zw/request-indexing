@@ -10,10 +10,8 @@ Missing credentials and missing evidence never prove health.
 
 ## Release
 
-Keep this PR in draft until nuxt-checkin and the updated integration packages are published.
-The intended versions are nuxt-checkin 0.1.0, nuxt-cloudflare 0.4.0, and nuxt-sentry 0.1.4.
-Resolve released versions and regenerate pnpm-lock.yaml before making this draft ready.
-Local verification uses built public package exports, without committed local package paths.
+Use Nuxt Check-in 0.1.0, Cloudflare 0.4.1, and Sentry 0.1.5 from the npm registry.
+The lockfile records the released packages.
 Deploy the report route before activating the updated routine.
 Configure external credentials as described in the daily skill.
 Never store admin cookies or Sentry tokens in the Worker or report evidence.
