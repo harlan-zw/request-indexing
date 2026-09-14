@@ -1,5 +1,6 @@
 minimumReleaseAgeExclude:
   - '@harlan-zw/nuxt-checkin@0.1.0'
+  - '@harlan-zw/nuxt-checkin@0.2.0-alpha.0'
   - '@harlan-zw/nuxt-cloudflare@0.4.1'
   - '@harlan-zw/nuxt-sentry@0.1.5'
   - nuxt-ai-ready@1.7.9
@@ -59,7 +60,7 @@ catalog:
   '@gscdump/engine': ^2.2.0
   '@gscdump/sdk': ^2.2.0
   '@harlan-zw/comark-content': 0.1.2
-  '@harlan-zw/nuxt-checkin': 0.1.0
+  '@harlan-zw/nuxt-checkin': 0.2.0-alpha.0
   '@harlan-zw/nuxt-cloudflare': 0.4.1
   '@harlan-zw/nuxt-domain-events': 0.1.1
   '@harlan-zw/nuxt-dx': 0.1.1
@@ -137,3 +138,7 @@ catalog:
   vue-tsc: ^3.3.10
   wrangler: ^4.123.0
   zod: ^4.4.3
+
+peerDependencyRules:
+  allowedVersions:
+    '@harlan-zw/nuxt-checkin': 0.2.0-alpha.0

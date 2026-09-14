@@ -10,8 +10,8 @@ Missing credentials and missing evidence never prove health.
 
 ## Release
 
-Use Nuxt Check-in 0.1.0, Cloudflare 0.4.1, and Sentry 0.1.5 from the npm registry.
-The lockfile retains the previous release until the shared CLI prerelease is published.
+Use Nuxt Check-in 0.2.0-alpha.0, Cloudflare 0.4.1, and Sentry 0.1.5 from the npm registry.
+The lockfile pins the published shared CLI prerelease.
 Deploy the report route before activating the updated routine.
 Configure external credentials as described in the daily skill.
 Never store admin cookies or Sentry tokens in the Worker or report evidence.
@@ -33,4 +33,4 @@ Add external checks in `checks/external/*.ts`.
 Keep required external IDs in `shared/checkin-external.ts`.
 The module owns report validation, response limits, deadlines, JSON output, and exit codes.
 Server checks stay behind the authenticated route.
-This draft requires Nuxt Check-in 0.2.0-alpha.0. Publication and dependency refresh remain pending.
+This draft uses Nuxt Check-in 0.2.0-alpha.0 while the stable release is pending.
