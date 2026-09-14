@@ -5,7 +5,7 @@ description: Read requestindexing.com health and Sentry evidence in one daily ch
 
 # Daily Check-in
 
-Run `node --env-file-if-exists=.env scripts/checkin/daily.ts` from the repository root.
+Run `pnpm checkin` from the repository root.
 Configure `CHECKIN_ADMIN_COOKIE`, `CHECKIN_DEPLOYMENT`, `SENTRY_ORG=harlan-zw`, and `SENTRY_AUTH_TOKEN` externally.
 Use an existing admin session. Never log or commit its cookie.
 Match `CHECKIN_DEPLOYMENT` to active Worker version metadata, not the latest CI commit.
@@ -28,3 +28,6 @@ Never deploy, mutate production data, or send messages without existing authoriz
 
 The daily schedule keeps 06:00 Australia/Sydney after this draft merges.
 No separate Sentry schedule is created.
+
+The module discovers external checks in `checks/external` during preparation.
+Keep required external IDs in `shared/checkin-external.ts`.

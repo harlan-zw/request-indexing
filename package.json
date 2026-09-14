@@ -21,7 +21,8 @@
     "postinstall": "nuxt prepare",
     "release": "bumpp",
     "test": "vitest run",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "checkin": "nuxt-checkin prepare && nuxt-checkin"
   },
   "dependencies": {
     "@gscdump/contracts": "catalog:",
