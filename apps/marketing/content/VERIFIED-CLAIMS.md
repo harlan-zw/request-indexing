@@ -86,3 +86,7 @@ All four cases passed. This is a new run with the recorded versions, not a repla
 - GSC-UI-01, Observed: Settings → Users and permissions → Add user opens an email field and Permission selector with Owner. Captured with blank email and Owner selected, then cancelled. No access was granted; credential authorization remains untested.
 
 Capture geometry, redaction and publication status belong in SCREENSHOTS.md. Private source files remain outside Git.
+
+- GSC-UI-02, Observed on 15 September 2026: URL Inspection showed URL is on Google and a Request indexing control for an existing documentation page. No indexing request or live test was submitted. The capture does not establish indexing speed or an API notification outcome.
+
+- CLOUD-UI-03, Observed on 15 September 2026: Keys → Add key → Create new key opens a dialog with JSON selected and Create. A user-authorized temporary service account enabled this capture. The dialog was cancelled, no key was created, and the account was deleted.

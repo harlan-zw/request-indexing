@@ -3,7 +3,7 @@
 Use real captures only when a visual helps the reader find or interpret a control.
 The setup tutorial includes real Cloud and Search Console screenshots. Text-only articles remain valid when no visual is needed.
 Required captures stay outstanding if browser access fails; record the next action.
-No authenticated submission is authorized by this capture procedure.
+No authenticated submission is authorized by this capture procedure. A later user instruction may authorize a specific temporary resource.
 
 ## Capture
 
@@ -37,7 +37,7 @@ Close named task pages. Never run `dev-browser stop`.
 
 ## Verified examples
 
-Three setup control captures are integrated in the setup tutorial. Do not infer live API success from these views.
+Five setup and inspection control captures are integrated in the setup tutorial. Do not infer live API success from these views.
 The pilot explains supported use and ordinary-page alternatives; it needs no screenshot to establish that boundary.
 A setup-guide control detail is the first candidate. Browser connection availability is checked before declaring that capture unavailable.
 
@@ -61,3 +61,16 @@ The crop excludes the account header, property details, and user table. All thre
 Final checks: all three exports preserve sampled source text pixels and contain no EXIF. Build, typecheck, and ESLint pass.
 The tutorial renders at 390px without overflow. Full-size links work by keyboard. Captions are 14px and readable in both themes.
 The unsigned local preview reports missing production credentials. Live API authorization and notification tests remain outside this capture check.
+
+## Additional captures, 15 September 2026
+
+URL Inspection status and Request indexing are captured for the ordinary-page guide.
+The inspected documentation page was already indexed. No request or live test was submitted.
+Source3360×1874; crop780×174CSS at4×density; export3120×696. Account and URL details are excluded.
+The user authorized a temporary service account after five inspected projects showed no accounts.
+A temporary account was created in Nuxt SEO without roles. The JSON key dialog was captured and cancelled.
+No key was created. The temporary account was deleted; a reloaded service-account list confirmed no rows.
+Key source3360×1874; crop560×359CSS at2×density; export1120×718. Only the dialog is published.
+Both additional captures are complete.
+
+Both additional figures passed independent factual, privacy, and rendered review at 95/100, accepted by root.

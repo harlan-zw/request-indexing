@@ -85,3 +85,16 @@ Meaning check: retained already-enabled state, optional Cloud roles, final key C
 Final screenshot revision: `de440eb2ddf88dff2c04fc9df92df51007addfa4`.
 Article SHA256: `fc510d47300e0a4899dc31d5a9482a33b3d96d1ea2bdaa9a33d0adf26c67f4fb`.
 All 184 tests, build, typecheck, ESLint, native pixel checks, and keyboard full-size navigation pass.
+
+## Additional key-dialog capture
+
+The user authorized a temporary account on 15 September 2026. No key or role was created.
+Captured Keys → Add key → Create new key with JSON selected, cancelled, then deleted the account.
+A reloaded account list confirmed deletion. The screenshot keeps the real temporary display name; project identifiers are cropped out.
+Humanize surface pass: split the long menu chain into opening the dialog, then selecting JSON and Create.
+Humanize structural pass: put the figure immediately after its numbered controls; keep file-storage guidance afterward.
+Meaning check: all menu actions, final Create step, download behavior, and credential-storage guidance remain intact.
+
+Final additional-capture review: sources_reviewer accepted factual meaning, privacy, and desktop/mobile renders at 95/100. Root accepted the review.
+Article SHA256: `6120e380c26472f32073ca4b5716b91eaf921018ea00a28a9e18418c60aa78c8`.
+Build and focused ESLint pass. Both new exports preserve source pixels. Keyboard full-size links and 390px overflow checks pass.

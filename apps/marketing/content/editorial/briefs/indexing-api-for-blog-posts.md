@@ -17,7 +17,7 @@ Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../..
 - Related articles, only at a natural decision: google-indexing-api, google-indexing-api-quota.
 - Navigation: Google Indexing Guides; retain current route. Do not add Markdown H1 beneath the rendered title.
 - Dates: preserve publishedAt. Set updatedAt only after actual rewrite and review.
-- Visual plan: No screenshot required for this decision-focused article. Add only if a real control/result materially clarifies the task.
+- Visual plan: URL Inspection status and Request indexing control detail, requested by the user. Explain the observed state and capture limitations in visible prose.
 - Execution boundary: examples must pass syntax/type or mocked protocol checks as appropriate. No authenticated API submission is claimed. A sequential loop is not multipart batching; a per-run limit is not durable project-wide quota.
 - Checks: factual review before humanization; both humanize passes with changes recorded; post-humanize meaning review; one H1, metadata/canonical, internal links/fragments, desktop/mobile render, code/table overflow, FAQ/schema consistency.
 
@@ -31,7 +31,7 @@ Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../..
 
 Use the ledger's additional exact URLs where claim IDs require them. Open full sources during review.
 
-## Current review status
+## Previous accepted revision, before screenshot followup
 
 Article reviewed on 15 September 2026. Accepted Git revision: `89dd568eda983e68e7132dd2265ef8a6e54fc7f4`.
 Article SHA256 file digest at that revision: `adda0e6dacf093a742fa9ede0329ec5e82ebebaf7ee164493a8824615923a213`.
@@ -73,3 +73,16 @@ Authorized repair moves Head inside the guide page's existing root element and a
 Targeted ESLint and full pnpm typecheck passed. An initial useHead alternative failed strict link typing; final patch preserves the existing Head/Link interface.
 Final browser checks: guide1440/390 document widths match viewport; client link to overview and browser-back both render expected H1. Comparison-to-pilot sidebar click and browser-back also render expected headings. Comparison fits390; its duplicate Markdown H1 remains assigned to the comparison rewrite.
 Screenshots ri-pilot-fixed-1440.png and ri-pilot-fixed-390.png inspected. Browser pages closed. Comparison-hub card test could not establish navigation because the hub became empty during navigation; this historical failed check was later resolved by clicking the observed card overlay; the lead verified navigation.
+
+## URL Inspection screenshot followup
+
+User requested the URL Inspection control example on 15 September 2026.
+Factual review accepted the observed already indexed state, numbered controls, privacy crop, and supporting Google recrawl guidance.
+Humanize surface pass: replaced the vague "request-indexing action" with the exact Request indexing label.
+Humanize structural pass: removed "The example shows an already indexed page", which repeated the caption.
+Meaning check: kept owner/full-user prerequisite, new-page status caveat, no-guarantee guidance, capture date, and no submitted request.
+Native source3360×1874. Crop780×174CSS at4×density; export3120×696. No source pixels resized.
+
+Final additional-capture review: sources_reviewer accepted factual meaning, privacy, and desktop/mobile renders at 95/100. Root accepted the review.
+Article SHA256: `19c2c273a08ec8b16cb577671f0f37f56f572c2ab55c513c3552befd0ccd034f`.
+Build and focused ESLint pass. Both new exports preserve source pixels. Keyboard full-size links and 390px overflow checks pass.

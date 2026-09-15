@@ -28,7 +28,14 @@ Suppose you publish `https://example.com/blog/pruning-apple-trees`. It is an ord
 
 1. Open the matching property in Search Console. You must be an owner or full user to request indexing.
 2. Inspect the post's complete URL with the URL Inspection tool.
-3. Review the result and use its request-indexing action for the new or updated page.
+3. Review the status (1). For a new or updated page, choose **Request indexing** (2).
+
+<figure>
+  <img :zoom="false" src="/images/guides/url-inspection-request-2026-09-15.png" alt="URL Inspection showing URL is on Google and the Request indexing control." width="780" height="174" loading="lazy">
+  <figcaption>Captured on 15 September 2026 for an already indexed documentation page. Account and URL details are cropped out. No indexing request was submitted.<br><a href="/images/guides/url-inspection-request-2026-09-15.png">Open the inspection result at full size</a>.</figcaption>
+</figure>
+
+A new post may show a different status.
 
 This follows [Google's recrawl guidance](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl). A request does not guarantee inclusion in search results. Repeating it for the same URL will not speed crawling.
 

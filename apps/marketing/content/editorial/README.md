@@ -73,3 +73,8 @@ Merge, deployment, and live verification remain delivery gates; local checks do 
 
 The [durable example harness](examples-check/README.md) extracts the current article code into scratch storage.
 Writer and independent reviewer ran its recipe on 15 September 2026; all four cases passed.
+
+## Additional screenshots, 15 September 2026
+
+The setup tutorial now includes the JSON key dialog. The ordinary-page guide includes URL Inspection status and Request indexing.
+Both additions passed independent review and root acceptance. No key or indexing request was created. The explicitly authorized temporary service account was deleted.

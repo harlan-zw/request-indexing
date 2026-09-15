@@ -41,7 +41,14 @@ Open **IAM & Admin → Service Accounts → Create service account**. Give the a
   <figcaption>Captured on 15 September 2026. The project email preview is redacted. The form was cancelled without creating an account.<br><a href="/images/guides/service-account-form-2026-09-15.png">Open the service account form at full size</a>.</figcaption>
 </figure>
 
-After creating the account, open its **Keys** tab and choose **Add key → Create new key → JSON → Create**. Google's [key creation guide](https://docs.cloud.google.com/iam/docs/keys-create-delete) covers that separate step. Keep the downloaded JSON file outside Git, browser code, and public directories.
+After creating the account, open its **Keys** tab and choose **Add key → Create new key**. Select **JSON** (1), then **Create** (2) to download the key file.
+
+<figure>
+  <img :zoom="false" src="/images/guides/service-account-json-key-2026-09-15.png" alt="Create private key dialog with JSON selected and the Create button visible." width="560" height="359" loading="lazy">
+  <figcaption>Captured on 15 September 2026 using a temporary service account. The dialog was cancelled without creating a key, and the account was deleted afterward.<br><a href="/images/guides/service-account-json-key-2026-09-15.png">Open the key dialog at full size</a>.</figcaption>
+</figure>
+
+Google's [key creation guide](https://docs.cloud.google.com/iam/docs/keys-create-delete) covers this step. Keep the downloaded JSON file outside Git, browser code, and public directories.
 
 ### Grant Search Console ownership
 
