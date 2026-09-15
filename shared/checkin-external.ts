@@ -29,19 +29,7 @@ Never enable notifications or bulk sync during check-in. Preserve the current ru
 An intentional pause is reported as evidence, not an outage.
 No system-health email exists. Do not create one or send test messages.
 
-Use the installed Sentry check-in triage skill for issue details and verified repairs.
-Inspect release, URL, browser, affected users, and recurrence before classifying issues.
-Do not resolve issues until the deployed repair is verified.
-Record findings in the agent tracking report using the site, check ID, and stable cause.
-Link known issues instead of proposing duplicate fixes. Return actionable repository fixes as Candidates for issue triage.
-Keep credential and operational failures in the tracking report, with the next actor and required action.
-Report recovery only after a fresh complete Pass from the expected deployment.
-Keep checks and the CLI free of email or GitHub writes. The agent controller publishes the tracking report and Candidates.
-Never deploy, mutate production data, or send messages without existing authorization.
-
-Keep the daily schedule at 06:00 Australia/Sydney. Do not create a separate Sentry schedule.
-The module discovers external checks in checks/external during preparation.
-Keep required external IDs in shared/checkin-external.ts.`,
+Keep the daily schedule at 06:00 Australia/Sydney. Do not create a separate Sentry schedule.`,
     },
   ],
   timeoutMs: 65000,
