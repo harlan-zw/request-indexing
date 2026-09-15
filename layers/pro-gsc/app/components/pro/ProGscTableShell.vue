@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends object">
-import type { UiTableColumn } from '~~/layers/design-system/app/components/data/table-features'
+import type { UiTableColumn } from '~~/layers/design-system/app/shared/table'
 import ProGscdumpError from './ProGscdumpError.vue'
 
 interface FilterDef {
@@ -205,6 +205,7 @@ function clearSearch() {
         :data="tableData"
         :columns="columns"
         :page-size="pageSize"
+        :label="itemLabel"
         row-hover
       />
     </div>

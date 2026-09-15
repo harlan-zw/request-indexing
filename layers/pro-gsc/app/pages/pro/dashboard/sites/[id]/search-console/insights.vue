@@ -285,7 +285,7 @@ function velTemplate(d: VelocityWeek) {
               >
                 <span class="text-sm font-medium w-10 tabular-nums">#{{ b.bucket }}</span>
                 <div class="flex-1 h-2 rounded-full bg-[var(--ui-bg-muted)]/50 overflow-hidden">
-                  <div class="h-full rounded-full" :class="vizDotColor.blue" :style="{ width: `${Math.min(b.avgCtr * 100 * 3, 100)}%` }" />
+                  <div class="h-full rounded-full" :style="{ backgroundColor: vizDotColor.blue, width: `${Math.min(b.avgCtr * 100 * 3, 100)}%` }" />
                 </div>
                 <span class="text-sm tabular-nums w-16 text-right">{{ fmtPct(b.avgCtr) }}</span>
                 <span class="text-[13px] text-dimmed tabular-nums w-20 text-right">{{ formatNumber(b.keywordCount) }} kw</span>

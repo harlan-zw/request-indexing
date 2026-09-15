@@ -146,27 +146,27 @@ function resolveGridTooltip({ row, col, value }: { row: number, col: number, val
     </KitSection>
 
     <KitSection
-      title="ProgressPercent"
-      code="<ProgressPercent>"
+      title="UiProgressPercent"
+      code="<UiProgressPercent>"
       description="Slot + UProgress wrapped in a tooltip. Designed for inline share-of-total bars in tables."
     >
       <UCard variant="outline">
         <div class="space-y-4 max-w-md">
-          <ProgressPercent :value="42" :total="100" color="primary">
+          <UiProgressPercent :value="42" :total="100" color="primary">
             <div class="text-xs text-default mb-1 flex justify-between">
               <span>/blog</span><span class="tabular-nums">42</span>
             </div>
-          </ProgressPercent>
-          <ProgressPercent :value="18" :total="100" color="primary">
+          </UiProgressPercent>
+          <UiProgressPercent :value="18" :total="100" color="primary">
             <div class="text-xs text-default mb-1 flex justify-between">
               <span>/docs</span><span class="tabular-nums">18</span>
             </div>
-          </ProgressPercent>
-          <ProgressPercent :value="7" :total="100" color="primary">
+          </UiProgressPercent>
+          <UiProgressPercent :value="7" :total="100" color="primary">
             <div class="text-xs text-default mb-1 flex justify-between">
               <span>/pricing</span><span class="tabular-nums">7</span>
             </div>
-          </ProgressPercent>
+          </UiProgressPercent>
         </div>
       </UCard>
     </KitSection>

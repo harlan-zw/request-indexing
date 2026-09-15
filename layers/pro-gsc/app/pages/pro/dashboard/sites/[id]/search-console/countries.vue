@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import type { UiTableColumn, UiTableRow } from '~~/layers/design-system/app/components/data/table-features'
+import type { Row } from '@tanstack/table-core'
+import type { UiTableColumn, UiTableFeatures } from '~~/layers/design-system/app/shared/table'
 import type { GscdumpDataRow } from '#layers/pro-gsc/app/composables/useProGscdump'
 import { h } from 'vue'
 import { UIcon } from '#components'
@@ -52,7 +53,7 @@ const columns: UiTableColumn<GscdumpDataRow>[] = [
   {
     accessorKey: 'country',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Country'),
-    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => {
+    cell: ({ row }: { row: Row<UiTableFeatures, GscdumpDataRow> }) => {
       const details = countryDetails(row.original.country)
       return h('div', { class: 'flex items-center gap-2' }, [
         h(UIcon, { name: details.flag, class: 'size-4 shrink-0' }),
@@ -63,26 +64,26 @@ const columns: UiTableColumn<GscdumpDataRow>[] = [
   {
     accessorKey: 'clicks',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Clicks'),
-    meta: { align: 'right' as const },
-    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.clicks)),
+    align: 'right',
+    cell: ({ row }: { row: Row<UiTableFeatures, GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.clicks)),
   },
   {
     accessorKey: 'impressions',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Impressions'),
-    meta: { align: 'right' as const },
-    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.impressions)),
+    align: 'right',
+    cell: ({ row }: { row: Row<UiTableFeatures, GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.impressions)),
   },
   {
     accessorKey: 'ctr',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'CTR'),
-    meta: { align: 'right' as const },
-    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, `${formatMetric((row.original.ctr ?? 0) * 100, 1)}%`),
+    align: 'right',
+    cell: ({ row }: { row: Row<UiTableFeatures, GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, `${formatMetric((row.original.ctr ?? 0) * 100, 1)}%`),
   },
   {
     accessorKey: 'position',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Position'),
-    meta: { align: 'right' as const },
-    cell: ({ row }: { row: UiTableRow<GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.position, 1)),
+    align: 'right',
+    cell: ({ row }: { row: Row<UiTableFeatures, GscdumpDataRow> }) => h('span', { class: 'text-sm tabular-nums' }, formatMetric(row.original.position, 1)),
   },
 ]
 

@@ -45,14 +45,14 @@ const paths = [
     />
 
     <KitSection
-      title="TableScoreTile"
-      code="<TableScoreTile>"
+      title="UiTableScoreTile"
+      code="<UiTableScoreTile>"
       description="Lighthouse-style score chip. Threshold colors are caller-driven (good ≥90, NI ≥50, poor <50)."
     >
       <UCard variant="outline">
         <div class="flex flex-wrap items-end gap-5">
           <div v-for="s in scores" :key="s.label" class="flex flex-col items-center gap-2 min-w-[64px]">
-            <TableScoreTile :score="s.score" :label="s.label" :bg-class="s.bgClass" />
+            <UiTableScoreTile :score="s.score" :label="s.label" :bg-class="s.bgClass" />
             <span class="text-[10px] text-dimmed text-center">{{ s.label }}</span>
           </div>
         </div>
@@ -60,8 +60,8 @@ const paths = [
     </KitSection>
 
     <KitSection
-      title="TableMetricCell + TableDash"
-      code="<TableMetricCell> · <TableDash>"
+      title="UiTableMetricCell + UiTableDash"
+      code="<UiTableMetricCell> · <UiTableDash>"
       description="Pre-formatted numeric cell with optional status tint and muted secondary tone."
     >
       <UCard variant="outline">
@@ -82,14 +82,14 @@ const paths = [
                 {{ m.label }}
               </td>
               <td class="py-2.5">
-                <TableMetricCell
+                <UiTableMetricCell
                   v-if="m.value !== null"
                   :value="m.value"
                   :display="m.display"
                   :status="m.status"
                   :muted="m.muted"
                 />
-                <TableDash v-else />
+                <UiTableDash v-else />
               </td>
             </tr>
           </tbody>
@@ -98,8 +98,8 @@ const paths = [
     </KitSection>
 
     <KitSection
-      title="TableTrendCell + UiTrend"
-      code="<TableTrendCell> · <UiTrend>"
+      title="UiTableTrendCell + UiTrend"
+      code="<UiTableTrendCell> · <UiTrend>"
       description="Period-over-period delta. Inverted flips success/error for metrics where lower is better."
     >
       <UCard variant="outline">
@@ -132,7 +132,7 @@ const paths = [
                 {{ t.previous }}
               </td>
               <td class="py-2.5">
-                <TableTrendCell :current="t.current" :previous="t.previous" :inverted="t.inverted" />
+                <UiTableTrendCell :current="t.current" :previous="t.previous" :inverted="t.inverted" />
               </td>
             </tr>
           </tbody>
@@ -141,14 +141,14 @@ const paths = [
     </KitSection>
 
     <KitSection
-      title="TablePathCell"
-      code="<TablePathCell>"
+      title="UiTablePathCell"
+      code="<UiTablePathCell>"
       description="URL or path with hover-revealed external-link icon and truncation. Tooltip shows the full URL."
     >
       <UCard variant="outline">
         <div class="space-y-2">
           <div v-for="p in paths" :key="p.url">
-            <TablePathCell :url="p.url" :label="p.label" :to="p.to" />
+            <UiTablePathCell :url="p.url" :label="p.label" :to="p.to" />
           </div>
         </div>
       </UCard>
