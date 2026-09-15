@@ -97,7 +97,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
         timeout-minutes: 2
-        uses: harlan-zw/harlan-nuxt/.github/actions/nuxt-dx-budget@3754a3e332d758ef6f34af0a2f1c854dc334b3e2
+        uses: harlan-zw/harlan-nuxt/.github/actions/nuxt-dx-budget@36d8fbf0dec7a829f63683abbf1fdc6efa2e6697
         with:
           artifact-name: nuxt-dx-size-budget-v3-prod
           report-path: .nuxt/dx/size-budget.json
