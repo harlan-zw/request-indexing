@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SemanticStatus } from '#layers/design-system/composables/proSemanticColors'
+import type { SemanticStatus } from '#layers/design-system/app/composables/proSemanticColors'
 
 const { status = 'neutral', icon, label, size = 'sm' } = defineProps<{
   status?: SemanticStatus

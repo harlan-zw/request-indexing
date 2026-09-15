@@ -5,7 +5,7 @@ import { differenceInDays, differenceInHours, formatDistanceToNow } from 'date-f
 import { defu } from 'defu'
 import { joinURL, withBase, withHttps } from 'ufo'
 import { createLogoutHandler, createSessionReloader } from '~~/layers/core/app/composables/auth'
-import { formatIndexingTimeAgo } from '~~/layers/design-system/composables/formatting'
+import { formatIndexingTimeAgo } from '~~/layers/design-system/app/composables/formatting'
 
 const props = defineProps<{ mock?: boolean, value: SitePage[], site: GoogleSearchConsoleSite }>()
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { GraphButton } from '~~/layers/design-system/components/chart/GraphButtonGroup.vue'
+import type { GraphButton } from '~~/layers/design-system/app/components/chart/GraphButtonGroup.vue'
 import type { SiteDateAnalyticsSelect, SiteSelect } from '#shared/types/database'
 
 const props = defineProps<{

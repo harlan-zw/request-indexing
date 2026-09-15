@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TrendDirection, TrendTone } from '~~/layers/design-system/utils/trend'
+import type { TrendDirection, TrendTone } from '~~/layers/design-system/app/utils/trend'
 
 /**
  * UiTrend

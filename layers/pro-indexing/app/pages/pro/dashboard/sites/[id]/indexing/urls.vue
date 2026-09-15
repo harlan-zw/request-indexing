@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UiTableColumn } from '#layers/design-system/components/data/table-features'
+import type { UiTableColumn } from '#layers/design-system/app/components/data/table-features'
 import type { GscdumpIndexingUrl } from '#layers/pro-gsc/shared/gscdump-api'
 import { h } from 'vue'
 import { ProStatusBadge } from '#components'
