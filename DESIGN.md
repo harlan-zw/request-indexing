@@ -118,7 +118,7 @@ components:
 
 ## Icons
 
-- **Collection**: mixed by role, single rule. The existing pages use this convention — keep it.
+- **Collection**: one active set, chosen in `shared/icons/index.ts`. Today that is `hugeicons`, with lucide, carbon and solar as per-role fallbacks. The registry below replaced the earlier mixed convention.
   - **Navigation & menus**: `i-ph-*-duotone` (Phosphor duotone). Warm, two-tone, friendly enough for a sidebar.
   - **Actions & controls**: `i-heroicons-*` (Heroicons outline by default, solid when active or selected).
   - **Brand marks**: `i-simple-icons-*` (only for third-party logos: GitHub, Google, Node.js, etc.).
@@ -195,7 +195,7 @@ components:
 > Append-only log of intentional choices the team has confirmed. Updated through `/nuxt-frontend-design` polish runs.
 
 - **Emerald + olive palette is locked.** Confirmed at Phase 1 setup (2026-04-23). Changing primary or neutral is a brand-level decision, not a polish call.
-- **Mixed icon collections are intentional** (Phosphor duotone for nav, Heroicons for actions, Simple Icons for brand). Each earns its slot — do not unify into a single collection without revisiting.
+- **Superseded by the semantic icon registry** (2026-09-15). `layers/design-system/shared/icons/registry.ts` maps every role (`next`, `delete`, `search`) to a real icon in four candidate sets, and `ACTIVE_ICON_SET` picks the one that renders. Roles resolve to `@nuxt/icon` aliases at build time, so `<UButton icon="next">` follows the active set. Write a role name, not a raw `i-*` id; a raw id still passes through for a brand mark the registry has no role for. Changing the active set is a brand-level decision.
 - **The hero mock product card is part of the marketing identity.** Do not replace with an illustration or remove on small screens — drop it instead via `xl:` visibility.
 - **Light mode is primary.** Dark mode must work but the marketing hero is designed for the light wash; the dark fallback is a deliberate de-emphasis (no animated gradient).
 - **Emerald-500 + white button text is a documented contrast exception.** Raw ratio is 2.54:1 (below WCAG AA 4.5:1). Accepted because buttons are large bold targets, the brand identity depends on the brighter emerald, and Nuxt UI's button focus ring + hover state push the perceived contrast higher. Do not propagate `text-white on bg-primary-500` to body copy or non-button surfaces — that combination is forbidden.

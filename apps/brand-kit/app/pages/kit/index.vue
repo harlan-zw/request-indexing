@@ -3,9 +3,9 @@ definePageMeta({ layout: 'kit' })
 useHead({ title: 'Brand Kit · Verdant Console' })
 
 const stats = [
-  { label: 'Components', value: '28', hint: 'layers/design-system/app/components' },
-  { label: 'Composables', value: '6', hint: 'layers/design-system/app/composables' },
-  { label: 'Utils', value: '5', hint: 'layers/design-system/app/utils' },
+  { label: 'Components', value: '122', hint: 'layers/design-system/app/components' },
+  { label: 'Composables', value: '15', hint: 'layers/design-system/app/composables' },
+  { label: 'Utils', value: '12', hint: 'layers/design-system/app/utils' },
   { label: 'Brand colors', value: '2', hint: 'emerald + olive' },
 ]
 
