@@ -22,12 +22,12 @@ const pageTitle = computed(() => String(route.meta.subTitle || route.meta.title 
 const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta.icon : undefined)
 
 const accountLinks: NavigationMenuItem[] = [
-  { label: 'Profile', to: '/account', icon: 'i-heroicons-user-circle' },
+  { label: 'Profile', to: '/pro/dashboard/account', icon: 'i-heroicons-user-circle' },
 ]
 
 const teamLinks: NavigationMenuItem[] = [
-  { label: 'Members', to: '/dashboard/team/members', icon: 'i-heroicons-users' },
-  { label: 'Settings', to: '/dashboard/team/settings', icon: 'i-heroicons-cog' },
+  { label: 'Members', to: '/pro/dashboard/team/members', icon: 'i-heroicons-users' },
+  { label: 'Settings', to: '/pro/dashboard/team/settings', icon: 'i-heroicons-cog' },
 ]
 
 const supportLinks: NavigationMenuItem[] = [
@@ -42,7 +42,7 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
 <template>
   <DashboardShell content-class="p-0">
     <template #brand>
-      <NuxtLink to="/dashboard" class="inline-flex min-h-11 items-center rounded-md text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+      <NuxtLink to="/pro/dashboard" class="inline-flex min-h-11 items-center rounded-md text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
         <OgBrand :size="26" wordmark semantic />
       </NuxtLink>
     </template>
@@ -57,7 +57,7 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
     </template>
 
     <template #sidebar>
-      <UButton icon="i-ph-arrow-u-down-left" color="neutral" variant="ghost" size="sm" to="/dashboard" class="min-h-10 justify-start">
+      <UButton icon="i-ph-arrow-u-down-left" color="neutral" variant="ghost" size="sm" to="/pro/dashboard" class="min-h-10 justify-start">
         Back to dashboard
       </UButton>
 

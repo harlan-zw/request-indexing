@@ -13,7 +13,7 @@ function isProLoginPath(path: string): boolean {
 }
 
 function isProSessionRoute(path: string): boolean {
-  return path.startsWith('/dashboard') || path.startsWith('/account')
+  return path.startsWith('/pro/dashboard')
 }
 
 function loginRedirectFor(fullPath: string): string {

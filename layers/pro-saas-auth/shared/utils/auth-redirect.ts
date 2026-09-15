@@ -1,4 +1,4 @@
-const AUTHENTICATED_PATHS = ['/dashboard', '/account'] as const
+const AUTHENTICATED_PATHS = ['/pro/dashboard'] as const
 const AUTH_ORIGIN = 'https://auth.local'
 
 export function safeAuthRedirect(value: unknown): string | null {

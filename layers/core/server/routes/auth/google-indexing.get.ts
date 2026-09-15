@@ -89,7 +89,7 @@ export default defineEventHandler(async (event) => {
 
   if (error) {
     const session = await getUserSession(event) as unknown as UserSession
-    return sendRedirect(event, session.googleIndexingAuth?.referrer || '/dashboard')
+    return sendRedirect(event, session.googleIndexingAuth?.referrer || '/pro/dashboard')
   }
 
   if (!code) {
@@ -101,7 +101,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const referrer = getHeader(event, 'referer') || '/dashboard'
+    const referrer = getHeader(event, 'referer') || '/pro/dashboard'
     const oauthState = randomUUID()
     await setUserSession(event, {
       googleIndexingAuth: {
@@ -224,5 +224,5 @@ export default defineEventHandler(async (event) => {
     .set({ lastIndexingOAuthId: String(client.googleOAuthClientId) })
     .where(eq(users.userId, user.userId))
 
-  return sendRedirect(event, authPayload.referrer || '/dashboard')
+  return sendRedirect(event, authPayload.referrer || '/pro/dashboard')
 })

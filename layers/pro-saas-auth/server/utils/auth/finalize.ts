@@ -130,7 +130,7 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
       deleteCookie(event, 'auth-source')
     // There is no onboarding page in this app; new users land on the dashboard,
     // which walks them through connecting Search Console.
-    return sendRedirect(event, '/dashboard')
+    return sendRedirect(event, '/pro/dashboard')
   }
 
   // Honour stashed deep-link for returning users only.
@@ -138,7 +138,7 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
   if (stashed)
     deleteCookie(event, 'auth-redirect')
   const safe = safeAuthRedirect(stashed)
-  return sendRedirect(event, safe ?? '/dashboard')
+  return sendRedirect(event, safe ?? '/pro/dashboard')
 }
 
 export interface AttachIdentityOpts {

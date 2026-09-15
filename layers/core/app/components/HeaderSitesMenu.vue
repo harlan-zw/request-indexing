@@ -7,7 +7,7 @@ const items = computed(() =>
   sites.map(site => ({
     label: siteLabel(site),
     icon: 'i-ph-browser-duotone',
-    to: `/dashboard/site/${encodeURIComponent(site.publicId)}/overview`,
+    to: `/pro/dashboard/sites/${encodeURIComponent(site.publicId)}/search-console`,
   })),
 )
 </script>

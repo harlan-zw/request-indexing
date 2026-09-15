@@ -3,7 +3,7 @@ const AnonymousAllowlistPrefixes = ['/tools', '/login', '/auth', '/get-started']
 export default defineNuxtRouteMiddleware((to) => {
   const { loggedIn } = useUserSession()
   if (loggedIn.value && (to.path === '/get-started' || to.path === '/login'))
-    return navigateTo('/dashboard')
+    return navigateTo('/pro/dashboard')
   if (AnonymousAllowlistPrefixes.some(p => to.path === p || to.path.startsWith(`${p}/`)))
     return
   if (!requiresAuthentication(to.path) || loggedIn.value)

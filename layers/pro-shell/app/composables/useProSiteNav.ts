@@ -43,7 +43,7 @@ export function useProSiteNav(
     const id = toValue(siteId)
     if (!id)
       return []
-    const base = `/dashboard/site/${id}`
+    const base = `/pro/dashboard/sites/${id}`
     const out: ProSiteNavLink[] = [
       { id: 'overview', label: 'Overview', icon: 'i-lucide-app-window', to: base, active: p => p === base },
     ]
@@ -51,7 +51,7 @@ export function useProSiteNav(
       .map(fid => features[fid])
       .filter((f): f is NonNullable<typeof f> => !!f)
     for (const feature of ordered) {
-      const featurePath = expandTo(`/dashboard/site/[slug]/${feature.id}`, id)
+      const featurePath = expandTo(`/pro/dashboard/sites/[id]/${feature.id}`, id)
       const lockSrc = feature.integration ? options.lockStateByIntegration?.[feature.integration] : undefined
       const lockState = lockSrc ? toValue(lockSrc) : undefined
       out.push({

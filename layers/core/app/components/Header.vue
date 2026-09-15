@@ -8,7 +8,7 @@ const { loggedIn, user } = useUserSession()
 const logout = createLogoutHandler()
 const router = useRouter()
 
-const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
+const isOnWelcome = computed(() => router.currentRoute.value.path === '/pro/dashboard/team/setup')
 
 const sites = ref((loggedIn.value && !isOnWelcome.value) ? await fetchSites().then(res => res.data.value?.sites) : [])
 
@@ -17,10 +17,10 @@ const hasSites = computed(() => loggedIn.value && !isOnWelcome.value && (sites.v
 const megaMenuItems = computed(() => {
   const items: Array<{ value: string, label: string, icon: string, to: string, hasDropdown: boolean }> = []
   if (loggedIn.value && !isOnWelcome.value) {
-    items.push({ value: 'dashboard', label: 'Dashboard', icon: 'i-ph-chart-bar-duotone', to: '/dashboard', hasDropdown: false })
+    items.push({ value: 'dashboard', label: 'Dashboard', icon: 'i-ph-chart-bar-duotone', to: '/pro/dashboard', hasDropdown: false })
   }
   if (hasSites.value) {
-    items.push({ value: 'sites', label: 'Sites', icon: 'i-ph-globe-duotone', to: '/dashboard', hasDropdown: true })
+    items.push({ value: 'sites', label: 'Sites', icon: 'i-ph-globe-duotone', to: '/pro/dashboard', hasDropdown: true })
   }
   items.push(
     { value: 'guides', label: 'Guides', icon: 'i-ph-books-duotone', to: '/guides', hasDropdown: true },
@@ -49,7 +49,7 @@ const mobileSites = computed(() =>
   (sites.value ?? []).map(site => ({
     label: siteLabel(site),
     icon: 'i-ph-browser-duotone',
-    to: `/dashboard/site/${encodeURIComponent(site.publicId)}/overview`,
+    to: `/pro/dashboard/sites/${encodeURIComponent(site.publicId)}/search-console`,
   })),
 )
 
@@ -69,7 +69,7 @@ const authDropdownItems = computed(() => {
   }
   return [
     [
-      { label: 'Account', to: '/account', icon: 'i-heroicons-user-circle' },
+      { label: 'Account', to: '/pro/dashboard/account', icon: 'i-heroicons-user-circle' },
     ],
     [
       {

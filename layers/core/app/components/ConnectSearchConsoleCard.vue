@@ -6,7 +6,7 @@
 // every panel renders empty. `/auth/integrations/gsc/connect` is the grant flow
 // (offline access + refresh token, registered with gscdump in the callback).
 // Nothing in the dashboard linked to it, so there was no way to reach it.
-const { returnTo = '/dashboard' } = defineProps<{ returnTo?: string }>()
+const { returnTo = '/pro/dashboard' } = defineProps<{ returnTo?: string }>()
 const { session } = useUserSession()
 
 // `gscdumpUserId` alone is not enough: the browser's gscdump proxy also needs
