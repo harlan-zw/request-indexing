@@ -8,8 +8,26 @@ name: CI
 
 on:
   pull_request:
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!docs/**'
+      - '!.editorconfig'
+      - '!.gitignore'
+      - '!.idea/**'
+      - '!.vscode/**'
+      - 'apps/marketing/content/**/*.md'
   push:
     branches: [main]
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!docs/**'
+      - '!.editorconfig'
+      - '!.gitignore'
+      - '!.idea/**'
+      - '!.vscode/**'
+      - 'apps/marketing/content/**/*.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
