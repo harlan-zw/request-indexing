@@ -2,13 +2,14 @@
 import { NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuRoot, NavigationMenuTrigger, NavigationMenuViewport } from 'reka-ui'
 import { createLogoutHandler } from '~~/layers/core/app/composables/auth'
 import { fetchSites } from '~~/layers/core/app/composables/fetch'
+import { ONBOARDING_ROUTE } from '#layers/pro-saas/shared/onboarding'
 
 const { loggedIn, user } = useUserSession()
 
 const logout = createLogoutHandler()
 const router = useRouter()
 
-const isOnWelcome = computed(() => router.currentRoute.value.path === '/pro/dashboard/team/setup')
+const isOnWelcome = computed(() => router.currentRoute.value.path === ONBOARDING_ROUTE)
 
 const sites = ref((loggedIn.value && !isOnWelcome.value) ? await fetchSites().then(res => res.data.value?.sites) : [])
 

@@ -14,9 +14,10 @@ export const defaultProSaasFeatures = {
   accountDeletion: true,
   api: true,
   feedback: false,
-  // Off: every account must connect Google for Search Console, so a
-  // GitHub-only sign-in creates an account that can never use the product.
-  githubSignIn: false,
+  // On, like nuxtseo.com. A GitHub-only account cannot read Search Console, so
+  // the wizard's first step tells it to add Google before it can go further;
+  // that is a better answer than hiding an identity people already have.
+  githubSignIn: true,
   googleSignIn: true,
   invitations: true,
   onboarding: true,

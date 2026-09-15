@@ -85,14 +85,13 @@ async function onSubmit() {
   await $fetch('/api/teams/currentTeam', {
     method: 'POST',
     body: JSON.stringify({
-      completeOnboarding: true,
       selectedSites: selectedSites.value,
       backupsEnabled: true,
     }),
   }).then(async () => {
     await fetch()
-    toast.add({ title: 'You\'re all ready to go!', color: 'success' })
-    navigateTo('/dashboard')
+    toast.add({ title: 'Sites saved', color: 'success' })
+    navigateTo('/pro/dashboard')
   }).catch((err) => {
     toast.add({ title: 'Failed to save your sites', description: err.message, color: 'error' })
   }).finally(() => {

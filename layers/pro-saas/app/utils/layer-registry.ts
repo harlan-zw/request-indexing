@@ -14,7 +14,7 @@ import type { RuntimeNuxtHooks } from '#app'
 // setup (which runs after every plugin's setup), late registration is
 // impossible by construction. See ADR-0010.
 //
-// Used by `useOnboardingFlow` and `useSiteSurfaceRegistry`.
+// Used by `useSiteSurfaceRegistry` and `useOverviewGroupRegistry`.
 
 import { computed, shallowRef } from 'vue'
 

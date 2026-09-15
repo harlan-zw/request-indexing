@@ -104,9 +104,11 @@ interface ProviderButton {
 }
 
 const providerButtons = computed<ProviderButton[]>(() => {
+  // Google leads. It is the identity that also reaches Search Console, so a
+  // GitHub-only account has more setup ahead of it than a Google one.
   const all: ProviderButton[] = [
-    { id: 'github', label: 'Sign in with GitHub', icon: 'i-simple-icons-github', enabled: githubEnabled.value },
     { id: 'google', label: 'Sign in with Google', icon: 'i-simple-icons-google', enabled: googleEnabled.value },
+    { id: 'github', label: 'Sign in with GitHub', icon: 'i-simple-icons-github', enabled: githubEnabled.value },
   ]
   const enabled = all.filter(p => p.enabled)
   if (!lastProvider.value)
@@ -225,7 +227,9 @@ useSeoMeta({
 
     <p class="mt-7 text-xs text-muted">
       New to Request Indexing?
-      <span class="font-medium text-highlighted">Continue with Google above to create your free account.</span>
+      <ULink to="/pro/onboarding" class="font-medium text-highlighted transition-colors hover:text-primary">
+        Create your free account
+      </ULink>
     </p>
   </div>
 </template>

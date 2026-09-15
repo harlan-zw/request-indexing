@@ -68,11 +68,11 @@ async function refreshAll() {
           @click="refreshAll"
         />
         <UButton
-          to="/dashboard/team/sites"
+          to="/pro/dashboard/team/sites"
           icon="i-heroicons-plus"
           size="sm"
           class="min-h-10"
-          label="Add site"
+          label="Connect site"
         />
       </div>
     </div>
@@ -87,9 +87,9 @@ async function refreshAll() {
         No sites connected yet
       </p>
       <p class="mt-1 text-sm text-muted">
-        Connect a Search Console property to see its performance here.
+        Connect a site to see its search performance here.
       </p>
-      <UButton to="/dashboard/team/sites" class="mt-4 min-h-11" label="Add a site" />
+      <UButton to="/pro/dashboard/team/sites" class="mt-4 min-h-11" label="Connect a site" />
     </div>
   </div>
 </template>
