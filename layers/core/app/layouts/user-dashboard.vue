@@ -7,7 +7,6 @@
 // like a row in the Site sidebar.
 import type { UiNavLink } from '#layers/design-system/app/shared/nav'
 
-const router = useRouter()
 const route = useRoute()
 const { session } = useUserSession()
 

@@ -5,7 +5,7 @@ const props = defineProps<{
   ability: Ability
   /**
    * - `tooltip` (default): render slot disabled with a tooltip explaining the limitation.
-   *   Use for primary mutations (Add site, Invite member) — preserves discoverability.
+   *   Use for primary mutations (Connect site, Invite member) — preserves discoverability.
    * - `hide`: render nothing. Use for destructive actions (delete team, transfer) and
    *   anywhere the slot would read as "broken UI" if disabled.
    */

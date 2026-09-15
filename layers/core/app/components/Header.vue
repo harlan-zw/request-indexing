@@ -2,6 +2,7 @@
 import { NavigationMenuContent, NavigationMenuItem, NavigationMenuList, NavigationMenuRoot, NavigationMenuTrigger, NavigationMenuViewport } from 'reka-ui'
 import { createLogoutHandler } from '~~/layers/core/app/composables/auth'
 import { fetchSites } from '~~/layers/core/app/composables/fetch'
+import { ONBOARDING_ROUTE } from '#layers/pro-saas/shared/onboarding'
 
 const { loggedIn, user } = useUserSession()
 
