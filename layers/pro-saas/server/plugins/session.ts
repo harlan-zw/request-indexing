@@ -1,5 +1,5 @@
 import type { AuthProviderId } from '#layers/pro-saas-auth/shared/types/auth'
-import { and, desc, eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { googleAccounts, teamSites } from '~~/layers/core/server/db/schema'
 import { logger } from '~~/shared/server/logger'
 import * as schema from '#layers/pro-saas/server/database'
@@ -86,7 +86,6 @@ export default defineNitroPlugin(() => {
         }
       : null
 
-    session.apiKey = user.apiKey
     session.deliveryEmail = primaryIdentityEmail || user.email || null
 
     // GSC connection state lives on `google_accounts`, not on a `users` column.
@@ -128,33 +127,20 @@ export default defineNitroPlugin(() => {
     }
     session.onboardingCompletedAt = toIso(user.onboardingCompletedAt)
 
-    const [hasMcpConnection, hasSites] = await Promise.all([
-      user.currentTeamId
-        ? db.query.mcpUsage.findFirst({
-            where: and(
-              eq(schema.mcpUsage.teamId, user.currentTeamId),
-              eq(schema.mcpUsage.endpoint, 'mcp/pro'),
-            ),
-          }).then(r => !!r).catch(() => false)
-        : Promise.resolve(false),
-      // Sites are attached to a team through `team_sites`, not a `team_id`
-      // column on `sites`. The previous read used `schema.sites.teamId`, which
-      // does not exist: drizzle threw on every request and the catch below
-      // turned that into a silent `hasSites: false` for every user.
-      user.currentTeamId
-        ? db.select({ siteId: teamSites.siteId })
-            .from(teamSites)
-            .where(eq(teamSites.teamId, user.currentTeamId))
-            .limit(1)
-            .then(rows => rows.length > 0)
-            .catch((error: unknown) => {
-              logger.error('[session] hasSites lookup failed:', error)
-              return false
-            })
-        : Promise.resolve(false),
-    ])
-
-    session.hasMcpConnection = hasMcpConnection
-    session.hasSites = hasSites
+    // Sites are attached to a team through `team_sites`, not a `team_id`
+    // column on `sites`. The previous read used `schema.sites.teamId`, which
+    // does not exist: drizzle threw on every request and the catch below
+    // turned that into a silent `hasSites: false` for every user.
+    session.hasSites = user.currentTeamId
+      ? await db.select({ siteId: teamSites.siteId })
+          .from(teamSites)
+          .where(eq(teamSites.teamId, user.currentTeamId))
+          .limit(1)
+          .then(rows => rows.length > 0)
+          .catch((error: unknown) => {
+            logger.error('[session] hasSites lookup failed:', error)
+            return false
+          })
+      : false
   })
 })

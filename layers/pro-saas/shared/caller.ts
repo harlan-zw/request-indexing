@@ -4,15 +4,12 @@
 import type { AuthProviderId } from '#layers/pro-saas-auth/shared/types/auth'
 import type { TeamRole } from '#layers/pro-saas/shared/types/domain'
 
-export type CallerAuthMethod = 'session' | 'apiKey'
-
 export interface CallerUser {
   id: number
   email: string | null
   name: string | null
   avatarUrl: string | null
   providers: AuthProviderId[]
-  apiKey: string | null
   createdAt: string | null
 }
 
@@ -40,5 +37,4 @@ export interface Caller {
    */
   currentTeamId: number | null
   isAdmin: boolean
-  authMethod: CallerAuthMethod
 }

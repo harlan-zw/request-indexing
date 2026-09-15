@@ -75,7 +75,6 @@ export const users = sqliteTable('users', {
 
   // Agent-native auth: per-user API key for MCP/CLI/webhook hosts.
   // Nullable for additive migration; backfilled via nanoid in 0004 then enforced.
-  apiKey: text('api_key').unique(),
 
   // Sign-up source for funnel attribution
   source: text('source'),
@@ -590,9 +589,6 @@ export type TeamAuditEventKind
     | 'member.role_changed'
     | 'member.removed'
     | 'member.left'
-    | 'api_token.created'
-    | 'api_token.rerolled'
-    | 'api_token.revoked'
 
 export const teamAuditEvents = sqliteTable('team_audit_events', {
   teamAuditEventId: integer('team_audit_event_id').primaryKey({ autoIncrement: true }),
@@ -605,25 +601,6 @@ export const teamAuditEvents = sqliteTable('team_audit_events', {
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 }, t => ({
   teamCreatedIdx: index('team_audit_events_team_created_idx').on(t.teamId, t.createdAt),
-}))
-
-// Team-scoped API tokens (Sanctum-style). Hashed at rest.
-export const teamApiTokens = sqliteTable('team_api_tokens', {
-  teamApiTokenId: integer('team_api_token_id').primaryKey({ autoIncrement: true }),
-  publicId: text('public_id').notNull().$defaultFn(nanoid),
-  teamId: integer('team_id').notNull().references(() => teams.teamId, { onDelete: 'cascade' }),
-  userId: integer('user_id').notNull().references(() => users.userId, { onDelete: 'cascade' }),
-  tokenHash: text('token_hash').notNull(),
-  last4: text('last4').notNull(),
-  label: text('label'),
-  role: text('role', { enum: ['admin', 'editor', 'viewer'] }).$type<TeamRole>().notNull(),
-  usageCount: integer('usage_count').notNull().default(0),
-  lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
-  expiresAt: integer('expires_at', { mode: 'timestamp' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, t => ({
-  tokenHashUnq: unique('team_api_tokens_token_hash_unique').on(t.tokenHash),
-  teamIdx: index('team_api_tokens_team_idx').on(t.teamId),
 }))
 
 export type TeamGscCredentialStatus = 'active' | 'revoked' | 'failed'
@@ -660,9 +637,6 @@ export const siteGroups = sqliteTable('site_groups', {
 
 // ─── Usage / Events / Errors ─────────────────────────────────────────────────
 
-export type ApiUsageSource = 'mcp' | 'rest' | 'internal'
-export type ApiUsageStatus = 'success' | 'error'
-
 /**
  * One DataForSEO task per row: what asked for it, what it cost, what the
  * provider said. The account is shared with nuxtseo.com; until this table
@@ -690,47 +664,6 @@ export const dataforseoRequests = sqliteTable('dataforseo_requests', {
 }, t => ({
   createdIdx: index('dataforseo_requests_created_idx').on(t.createdAt),
   toolCreatedIdx: index('dataforseo_requests_tool_created_idx').on(t.tool, t.createdAt),
-}))
-
-export const apiUsageEvents = sqliteTable('pro_api_usage_events', {
-  apiUsageEventId: integer('api_usage_event_id').primaryKey({ autoIncrement: true }),
-  teamId: integer('team_id').notNull().references(() => teams.teamId, { onDelete: 'cascade' }),
-  teamApiTokenId: integer('team_api_token_id').references(() => teamApiTokens.teamApiTokenId, { onDelete: 'set null' }),
-  userId: integer('user_id').references(() => users.userId, { onDelete: 'set null' }),
-  source: text('source', { enum: ['mcp', 'rest', 'internal'] }).$type<ApiUsageSource>().notNull(),
-  method: text('method'),
-  path: text('path'),
-  action: text('action'),
-  target: text('target'),
-  status: text('status', { enum: ['success', 'error'] }).$type<ApiUsageStatus>().notNull().default('success'),
-  statusCode: integer('status_code'),
-  responseTime: integer('response_time'),
-  client: text('client'),
-  ipHash: text('ip_hash'),
-  userAgent: text('user_agent'),
-  errorCode: text('error_code'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, t => ({
-  teamCreatedIdx: index('pro_api_usage_events_team_created_idx').on(t.teamId, t.createdAt),
-  tokenCreatedIdx: index('pro_api_usage_events_token_created_idx').on(t.teamApiTokenId, t.createdAt),
-  teamSourceCreatedIdx: index('pro_api_usage_events_team_source_created_idx').on(t.teamId, t.source, t.createdAt),
-}))
-
-export const mcpUsage = sqliteTable('pro_mcp_usage', {
-  mcpUsageId: integer('mcp_usage_id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').references(() => users.userId, { onDelete: 'set null' }),
-  teamId: integer('team_id').references(() => teams.teamId, { onDelete: 'cascade' }),
-  teamApiTokenId: integer('team_api_token_id').references(() => teamApiTokens.teamApiTokenId, { onDelete: 'set null' }),
-  sessionId: text('session_id').notNull(),
-  endpoint: text('endpoint', { enum: ['mcp', 'mcp/pro'] }).notNull(),
-  action: text('action', { enum: ['connect', 'tool_call', 'prompt_call', 'resource_read', 'disconnect'] }).notNull(),
-  target: text('target'),
-  client: text('client'),
-  status: text('status', { enum: ['success', 'error'] }).notNull().default('success'),
-  responseTime: integer('response_time'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-}, t => ({
-  tokenIdx: index('pro_mcp_usage_team_api_token_idx').on(t.teamApiTokenId),
 }))
 
 export const proEvents = sqliteTable('pro_events', {
@@ -873,11 +806,6 @@ export const teamAuditEventsRelations = relations(teamAuditEvents, ({ one }) => 
   actor: one(users, { fields: [teamAuditEvents.actorUserId], references: [users.userId] }),
 }))
 
-export const teamApiTokensRelations = relations(teamApiTokens, ({ one }) => ({
-  team: one(teams, { fields: [teamApiTokens.teamId], references: [teams.teamId] }),
-  user: one(users, { fields: [teamApiTokens.userId], references: [users.userId] }),
-}))
-
 export const teamGscCredentialsRelations = relations(teamGscCredentials, ({ one }) => ({
   team: one(teams, { fields: [teamGscCredentials.teamId], references: [teams.teamId] }),
   user: one(users, { fields: [teamGscCredentials.userId], references: [users.userId] }),
@@ -885,18 +813,6 @@ export const teamGscCredentialsRelations = relations(teamGscCredentials, ({ one 
 
 export const siteGroupsRelations = relations(siteGroups, ({ one }) => ({
   team: one(teams, { fields: [siteGroups.teamId], references: [teams.teamId] }),
-}))
-
-export const apiUsageEventsRelations = relations(apiUsageEvents, ({ one }) => ({
-  team: one(teams, { fields: [apiUsageEvents.teamId], references: [teams.teamId] }),
-  teamApiToken: one(teamApiTokens, { fields: [apiUsageEvents.teamApiTokenId], references: [teamApiTokens.teamApiTokenId] }),
-  user: one(users, { fields: [apiUsageEvents.userId], references: [users.userId] }),
-}))
-
-export const mcpUsageRelations = relations(mcpUsage, ({ one }) => ({
-  user: one(users, { fields: [mcpUsage.userId], references: [users.userId] }),
-  team: one(teams, { fields: [mcpUsage.teamId], references: [teams.teamId] }),
-  teamApiToken: one(teamApiTokens, { fields: [mcpUsage.teamApiTokenId], references: [teamApiTokens.teamApiTokenId] }),
 }))
 
 export const proEventsRelations = relations(proEvents, ({ one }) => ({
@@ -933,16 +849,10 @@ export type TeamMembership = typeof teamMemberships.$inferSelect
 export type TeamInvitation = typeof teamInvitations.$inferSelect
 export type TeamAuditEvent = typeof teamAuditEvents.$inferSelect
 export type NewTeamAuditEvent = typeof teamAuditEvents.$inferInsert
-export type TeamApiToken = typeof teamApiTokens.$inferSelect
-export type NewTeamApiToken = typeof teamApiTokens.$inferInsert
 export type TeamGscCredential = typeof teamGscCredentials.$inferSelect
 export type NewTeamGscCredential = typeof teamGscCredentials.$inferInsert
 export type SiteGroup = typeof siteGroups.$inferSelect
 export type NewSiteGroup = typeof siteGroups.$inferInsert
-export type ApiUsageEvent = typeof apiUsageEvents.$inferSelect
-export type NewApiUsageEvent = typeof apiUsageEvents.$inferInsert
-export type McpUsage = typeof mcpUsage.$inferSelect
-export type NewMcpUsage = typeof mcpUsage.$inferInsert
 export type ProEvent = typeof proEvents.$inferSelect
 export type NewProEvent = typeof proEvents.$inferInsert
 export type AdminEvent = typeof adminEvents.$inferSelect

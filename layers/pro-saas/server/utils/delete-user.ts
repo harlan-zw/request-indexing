@@ -18,7 +18,6 @@ import { eq, inArray, or, sql } from 'drizzle-orm'
 import { dispatchEvent } from '#domain-events/server'
 import {
   adminEvents,
-  apiUsageEvents,
   failedJobs,
   feedback,
   googleAccounts,
@@ -26,7 +25,6 @@ import {
   indexingJobs,
   jobBatches,
   jobs,
-  mcpUsage,
   notifications,
   proEvents,
   relatedKeywords,
@@ -39,7 +37,6 @@ import {
   sitePathDateAnalytics,
   sitePaths,
   sites,
-  teamApiTokens,
   teamAuditEvents,
   teamGscCredentials,
   teamInvitations,
@@ -160,11 +157,6 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
       table: 'pro_events',
       count: () => scalar(db, sql`select count(*) as c from pro_events where user_id = ${userId}`),
       run: () => db.delete(proEvents).where(eq(proEvents.userId, userId)),
-    },
-    {
-      table: 'pro_mcp_usage',
-      count: () => scalar(db, sql`select count(*) as c from pro_mcp_usage where user_id = ${userId}`),
-      run: () => db.delete(mcpUsage).where(eq(mcpUsage.userId, userId)),
     },
     {
       table: 'notifications',
@@ -308,15 +300,6 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
       run: () => hasTeams() ? db.delete(siteGroups).where(inArray(siteGroups.teamId, ownedTeamIds)) : Promise.resolve(),
     },
     {
-      table: 'team_api_tokens',
-      count: () => scalar(db, sql`select count(*) as c from team_api_tokens where user_id = ${userId}${hasTeams() ? sql` or team_id in ${teamList()}` : sql``}`),
-      run: () => db.delete(teamApiTokens).where(
-        hasTeams()
-          ? or(eq(teamApiTokens.userId, userId), inArray(teamApiTokens.teamId, ownedTeamIds))
-          : eq(teamApiTokens.userId, userId),
-      ),
-    },
-    {
       table: 'team_gsc_credentials',
       count: () => scalar(db, sql`select count(*) as c from team_gsc_credentials where user_id = ${userId}${hasTeams() ? sql` or team_id in ${teamList()}` : sql``}`),
       run: () => db.delete(teamGscCredentials).where(
@@ -359,11 +342,6 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
       table: 'team_audit_events',
       count: () => hasTeams() ? scalar(db, sql`select count(*) as c from team_audit_events where team_id in ${teamList()}`) : Promise.resolve(0),
       run: () => hasTeams() ? db.delete(teamAuditEvents).where(inArray(teamAuditEvents.teamId, ownedTeamIds)) : Promise.resolve(),
-    },
-    {
-      table: 'pro_api_usage_events',
-      count: () => hasTeams() ? scalar(db, sql`select count(*) as c from pro_api_usage_events where team_id in ${teamList()}`) : Promise.resolve(0),
-      run: () => hasTeams() ? db.delete(apiUsageEvents).where(inArray(apiUsageEvents.teamId, ownedTeamIds)) : Promise.resolve(),
     },
     // ── Break the users <-> teams cycle, then delete both sides ──────────
     {
