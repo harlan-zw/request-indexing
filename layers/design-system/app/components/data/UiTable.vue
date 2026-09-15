@@ -13,7 +13,7 @@ import { FlexRender, functionalUpdate, useTable } from '@tanstack/vue-table'
 import { useIntersectionObserver } from '@vueuse/core'
 import { computed, ref, toRef, useId, useSlots, useTemplateRef, watch } from 'vue'
 import { UiButton, UiSkeleton, UiTableFrame, UiTableHeaderCell, UPagination } from '#components'
-import { uiTableCellSizeClass, uiTableFeatures, uiTableSkeletonSizeClass, uiTableVisibleFromClass } from '../../shared/table'
+import { resolveUiTableRowId, uiTableCellSizeClass, uiTableFeatures, uiTableSkeletonSizeClass, uiTableVisibleFromClass } from '../../shared/table'
 
 const {
   data,
@@ -114,18 +114,6 @@ function getTextAlignClass(align?: 'left' | 'center' | 'right', numeric = false)
   return 'text-left'
 }
 
-function resolveRowId(row: T): string {
-  const rowRecord = row as Record<string, unknown>
-  if (!rowId) {
-    const id = rowRecord.id
-    return typeof id === 'string' ? id : String(id ?? '')
-  }
-  if (typeof rowId === 'function')
-    return rowId(row)
-  const id = rowRecord[rowId]
-  return typeof id === 'string' ? id : String(id ?? '')
-}
-
 function rowExpansionStateId(row: Row<UiTableFeatures, T>): string {
   return `${tableInstanceId}-row-${row.index}-expansion-state`
 }
@@ -189,7 +177,7 @@ const table = useTable<UiTableFeatures, T>({
   onSortingChange: u => sortingModel.value = functionalUpdate(u, sortingModel.value),
   onColumnFiltersChange: u => columnFilters.value = functionalUpdate(u, columnFilters.value),
   onColumnVisibilityChange: u => columnVisibility.value = functionalUpdate(u, columnVisibility.value),
-  getRowId: resolveRowId,
+  getRowId: (row, index) => resolveUiTableRowId(row, index, rowId),
   onRowSelectionChange(u) {
     const target = controlledSelection ? selectedModel : rowSelection
     target.value = functionalUpdate(u, target.value ?? {})
@@ -346,12 +334,12 @@ export interface UiTableProps<T extends object> {
             <tr class="spacer" />
             <template v-for="row in table.getRowModel().rows" :key="row.id">
               <tr
-                :data-state="(row.getIsSelected() || resolveRowId(row.original) === activeRowId) && 'selected'"
+                :data-state="(row.getIsSelected() || row.id === activeRowId) && 'selected'"
                 :data-expanded="row.getIsExpanded()"
                 :data-row-id="row.id"
                 :tabindex="rowClickable ? 0 : undefined"
                 :aria-describedby="rowClickable && slots['expanded-component'] ? rowExpansionStateId(row) : undefined"
-                :aria-selected="row.getIsSelected() || resolveRowId(row.original) === activeRowId ? true : undefined"
+                :aria-selected="row.getIsSelected() || row.id === activeRowId ? true : undefined"
                 :class="[
                   rowClickable && 'cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary',
                   rowClass?.(row.original),
