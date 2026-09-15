@@ -1,6 +1,10 @@
-<script setup lang="ts" generic="T extends object">
+<script setup lang="ts" generic="T extends Record<string, unknown>">
 import type { RowSelectionState, SortingState } from '@tanstack/vue-table'
-import type { UiTableProps } from './table-features'
+import type { UiTableColumn, UiTableRowId } from '../../shared/table'
+import type { UiIcon as UiIconName } from '../../shared/ui-icons'
+import { refDebounced } from '@vueuse/core'
+import { computed, ref, watch } from 'vue'
+import { UiButton, UiIcon, UInput, UiTable, UPagination } from '#components'
 
 const {
   pending = false,
@@ -11,13 +15,14 @@ const {
   pageSize = 12,
   searchable = true,
   searchPlaceholder = 'Search…',
-  emptyIcon = 'i-lucide-search',
+  emptyIcon = 'search',
   emptyTitle = 'No results found',
   emptyDescription = '',
   itemLabel = 'items',
   manualPagination = true,
   manualSorting = false,
   rowHover = true,
+  rowClickable = false,
   rowId,
   label,
   filtersActive = false,
@@ -26,19 +31,20 @@ const {
   pending?: boolean
   rows: T[]
   total: number
-  columns: UiTableProps<T>['columns']
+  columns: UiTableColumn<T>[]
   error?: unknown
   pageSize?: number
   searchable?: boolean
   searchPlaceholder?: string
-  emptyIcon?: string
+  emptyIcon?: UiIconName
   emptyTitle?: string
   emptyDescription?: string
   itemLabel?: string
   manualPagination?: boolean
   manualSorting?: boolean
   rowHover?: boolean
-  rowId?: UiTableProps<T>['rowId']
+  rowClickable?: boolean
+  rowId?: UiTableRowId<T>
   /** Accessible name for the table (passed through to <caption>). */
   label?: string
   /** Whether any non-search filter is currently active. Drives empty-state copy. */
@@ -53,10 +59,6 @@ const emit = defineEmits<{
   rowClick: [row: T]
 }>()
 
-function getErrorMessage(value: unknown) {
-  return value instanceof Error ? value.message : 'Failed to load'
-}
-
 const totalDisplay = computed(() => formatTotal ? formatTotal(total) : total.toLocaleString())
 
 const search = defineModel<string>('search', { default: '' })
@@ -64,10 +66,44 @@ const page = defineModel<number>('page', { default: 1 })
 const sorting = defineModel<SortingState>('sorting', { default: () => [] })
 const rowSelection = defineModel<RowSelectionState>('rowSelection')
 const rowSelectionEnabled = computed(() => rowSelection.value !== undefined)
+const searchDraft = ref(search.value)
+const debouncedSearch = refDebounced(searchDraft, 300)
 
 const showEmpty = computed(() => !pending && !error && rows.length === 0)
 const showTable = computed(() => !error && (pending || rows.length > 0))
 const showPagination = computed(() => !pending && rows.length > 0 && total > pageSize)
+
+const paginationUi = {
+  first: 'min-h-11 min-w-11 sm:min-h-8 sm:min-w-8',
+  prev: 'min-h-11 min-w-11 sm:min-h-8 sm:min-w-8',
+  item: 'min-h-11 min-w-11 sm:min-h-8 sm:min-w-8',
+  next: 'min-h-11 min-w-11 sm:min-h-8 sm:min-w-8',
+  last: 'min-h-11 min-w-11 sm:min-h-8 sm:min-w-8',
+} as const
+
+watch(search, (value) => {
+  if (value !== searchDraft.value)
+    searchDraft.value = value
+})
+
+watch(debouncedSearch, (value) => {
+  if (value !== search.value)
+    search.value = value
+})
+
+function commitSearch(value = searchDraft.value) {
+  searchDraft.value = value
+  if (search.value !== value)
+    search.value = value
+}
+
+function errorText(value: unknown): string {
+  if (typeof value === 'string')
+    return value
+  if (value && typeof value === 'object' && 'message' in value && typeof value.message === 'string')
+    return value.message
+  return 'Failed to load'
+}
 </script>
 
 <template>
@@ -79,29 +115,31 @@ const showPagination = computed(() => !pending && rows.length > 0 && total > pag
       <div class="flex items-center gap-1.5 flex-wrap">
         <slot name="filters-leading" />
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex w-full items-center gap-3 sm:w-auto">
         <slot name="filters-trailing" />
         <UInput
           v-if="searchable"
-          v-model="search"
+          v-model="searchDraft"
+          type="search"
           class="w-full sm:w-56"
           :placeholder="searchPlaceholder"
-          icon="i-lucide-search"
+          icon="search"
           autocomplete="off"
           size="sm"
-          :ui="{ base: 'transition-[width] duration-200 focus-within:w-72' }"
+          :ui="{ base: 'min-h-11 transition-[width] duration-200 focus-within:w-72 sm:min-h-0' }"
           aria-label="Filter rows"
+          data-inp-target="data-table-search"
+          @keydown.enter="commitSearch()"
         >
           <template #trailing>
-            <UiMotionButton
-              v-if="search !== ''"
-              color="neutral"
-              variant="ghost"
-              icon="i-lucide-x"
+            <UiButton
+              v-if="searchDraft !== ''"
+              purpose="quiet"
+              icon="close"
               size="xs"
-              class="rounded-lg"
+              class="min-h-11 min-w-11 rounded-lg sm:min-h-0 sm:min-w-0"
               aria-label="Clear search"
-              @click="search = ''"
+              @click="commitSearch('')"
             />
           </template>
         </UInput>
@@ -115,11 +153,11 @@ const showPagination = computed(() => !pending && rows.length > 0 && total > pag
       <slot name="error" :error="error">
         <div class="py-10 text-center">
           <p class="text-sm text-error mb-3">
-            {{ typeof error === 'string' ? error : getErrorMessage(error) }}
+            {{ errorText(error) }}
           </p>
-          <UiMotionButton size="sm" variant="soft" @click="emit('retry')">
+          <UiButton size="sm" purpose="secondary" @click="emit('retry')">
             Retry
-          </UiMotionButton>
+          </UiButton>
         </div>
       </slot>
     </div>
@@ -128,15 +166,13 @@ const showPagination = computed(() => !pending && rows.length > 0 && total > pag
     <div v-else-if="showEmpty" role="status" data-testid="table-empty-state" class="rounded-xl border border-dashed border-default bg-[var(--ui-bg-elevated)]/5 py-16">
       <slot name="empty">
         <div class="text-center max-w-sm mx-auto">
-          <div class="inline-flex items-center justify-center size-14 rounded-2xl bg-accented mb-4">
-            <UIcon :name="emptyIcon" class="size-7 text-dimmed" aria-hidden="true" />
-          </div>
+          <UiIcon :name="emptyIcon" class="size-7 text-dimmed mb-3 inline-block" aria-hidden="true" />
           <h3 class="text-sm font-semibold text-default mb-1">
             {{ emptyTitle }}
           </h3>
-          <p v-if="search || filtersActive || emptyDescription" class="text-sm text-muted mb-4">
-            <template v-if="search">
-              No {{ itemLabel }} match "<span class="font-medium text-default">{{ search }}</span>"
+          <p v-if="searchDraft || filtersActive || emptyDescription" class="text-sm text-muted mb-4">
+            <template v-if="searchDraft">
+              No {{ itemLabel }} match “<span class="font-medium text-default">{{ searchDraft }}</span>”
             </template>
             <template v-else-if="filtersActive">
               No {{ itemLabel }} match the selected filter
@@ -146,56 +182,62 @@ const showPagination = computed(() => !pending && rows.length > 0 && total > pag
             </template>
           </p>
           <slot name="empty-actions">
-            <UiMotionButton
-              v-if="search"
+            <UiButton
+              v-if="searchDraft"
               size="sm"
-              color="neutral"
-              variant="soft"
-              @click="search = ''"
+              purpose="secondary"
+              @click="commitSearch('')"
             >
               Clear search
-            </UiMotionButton>
+            </UiButton>
           </slot>
         </div>
       </slot>
     </div>
 
-    <!-- Table -->
-    <div v-else-if="showTable" class="rounded-xl border border-default overflow-hidden bg-default">
-      <UiTable
-        v-model:sorting="sorting"
-        v-model:selected="rowSelection"
-        :data="rows"
-        :columns="columns"
-        :page-size="pageSize"
-        :row-hover="rowHover"
-        :manual-pagination="manualPagination"
-        :manual-sorting="manualSorting"
-        :enable-sorting="manualSorting"
-        :total="total"
-        :row-id="rowId"
-        :label="label"
-        :loading="pending"
-        :controlled-selection="rowSelectionEnabled"
-        disable-pagination
-        @sort-column="(c: string) => emit('sortColumn', c)"
-        @row-click="(r: T) => emit('rowClick', r)"
-      />
-    </div>
+    <!-- Body: defaults to the table; pass #body to render an alternate view
+         (e.g. a card grid) while keeping the search / empty / pagination chrome. -->
+    <template v-else-if="showTable">
+      <slot name="body" :rows="rows" :pending="pending">
+        <UiTable
+          v-model:sorting="sorting"
+          v-model:selected="rowSelection"
+          :data="rows"
+          :columns="columns"
+          :page-size="pageSize"
+          :row-hover="rowHover"
+          :row-clickable="rowClickable"
+          :manual-pagination="manualPagination"
+          :manual-sorting="manualSorting"
+          :enable-sorting="manualSorting"
+          :total="total"
+          :row-id="rowId"
+          :label="label ?? itemLabel"
+          :loading="pending"
+          :controlled-selection="rowSelectionEnabled"
+          bordered
+          disable-pagination
+          @sort-column="(c: string) => emit('sortColumn', c)"
+          @row-click="(r: T) => emit('rowClick', r)"
+        />
+      </slot>
+    </template>
 
-    <!-- Pagination -->
-    <div v-if="showPagination" class="flex items-center justify-between gap-4 pt-2">
-      <p class="text-sm text-muted">
+    <!-- Pagination (sibling: applies to the table and any #body view) -->
+    <div v-if="showPagination" class="flex flex-col items-stretch gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <p class="text-center text-sm text-muted sm:text-left">
         <slot name="pagination-leading">
           <span class="font-medium text-default">{{ totalDisplay }}</span> {{ itemLabel }} total
         </slot>
       </p>
       <UPagination
         v-model:page="page"
+        class="self-center sm:self-auto"
         size="sm"
         :items-per-page="pageSize"
         :total="total"
         :sibling-count="1"
+        :ui="paginationUi"
       />
     </div>
 

@@ -1,29 +1,39 @@
 <script setup lang="ts">
+import type { UiTableCellProps, UiTableSize } from '../../shared/table'
+import { computed } from 'vue'
+import { uiTableCellSizeClass, uiTableVisibleFromClass } from '../../shared/table'
+
 const {
   align = 'left',
   size = 'md',
   noPadding = false,
-} = defineProps<{
-  align?: 'left' | 'center' | 'right'
-  size?: 'xs' | 'sm' | 'md'
+  numeric = false,
+  rowHeader = false,
+  visibleFrom,
+} = defineProps<UiTableCellProps & {
+  size?: UiTableSize
   noPadding?: boolean
+  rowHeader?: boolean
 }>()
 
-const sizes = {
-  xs: 'py-1 h-8',
-  sm: 'py-1 h-10',
-  md: 'py-2 h-10',
-} as const
-
-const textAlign = computed(() => align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left')
+const resolvedAlign = computed(() => numeric ? 'right' : align)
+const textAlign = computed(() => resolvedAlign.value === 'right' ? 'text-right' : resolvedAlign.value === 'center' ? 'text-center' : 'text-left')
 const padClass = computed(() => noPadding ? '' : 'px-3')
 </script>
 
 <template>
-  <td
-    class="text-xs font-normal text-default relative align-middle tabular-nums"
-    :class="[sizes[size], padClass, textAlign]"
+  <component
+    :is="rowHeader ? 'th' : 'td'"
+    :scope="rowHeader ? 'row' : undefined"
+    class="text-xs font-normal text-default relative"
+    :class="[
+      uiTableCellSizeClass[size],
+      padClass,
+      textAlign,
+      numeric ? 'tabular-nums' : '',
+      visibleFrom ? uiTableVisibleFromClass[visibleFrom] : '',
+    ]"
   >
     <slot />
-  </td>
+  </component>
 </template>

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
+import { clamp } from '../../utils/number'
 
 /**
  * UiProgressCircle
@@ -11,9 +12,11 @@ interface Props {
   size?: number | string
   strokeSize?: number | string
   lighter?: boolean
+  /** Accessible name for the progressbar (e.g. "Indexing progress"). */
+  label?: string
 }
 
-const { percent = 0, size = 36, strokeSize = 4, lighter } = defineProps<Props>()
+const { percent = 0, size = 36, strokeSize = 4, lighter, label } = defineProps<Props>()
 
 const style = computed(() => ({
   width: `${size}px`,
@@ -21,7 +24,7 @@ const style = computed(() => ({
 }))
 
 const svg = computed(() => ({
-  'view-box': `0 0 ${size} ${size}`,
+  'viewBox': `0 0 ${size} ${size}`,
   'stroke-width': strokeSize,
   'fill': 'none',
 }))
@@ -45,7 +48,17 @@ const bg = computed(() => {
 </script>
 
 <template>
-  <div data-ui="UiProgressCircle" :style="style" class="relative shrink-0" role="progressbar" :aria-valuenow="Number(percent)" :aria-valuemin="0" :aria-valuemax="100">
+  <div
+    data-ui="UiProgressCircle"
+    :style="style"
+    class="relative shrink-0"
+    role="progressbar"
+    :aria-label="label || `${Number(percent)}% complete`"
+    :aria-valuenow="Number(percent)"
+    :aria-valuemin="0"
+    :aria-valuemax="100"
+    :aria-valuetext="`${Number(percent)}%`"
+  >
     <svg
       v-bind="svg"
       :class="bg"

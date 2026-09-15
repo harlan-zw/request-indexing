@@ -1,98 +1,99 @@
 <script setup lang="ts">
-import type { PopoverProps } from '@nuxt/ui/components/Popover.vue'
-/**
- * Thin wrapper around Nuxt UI v4's UPopover.
- *
- * Migrated from a HeadlessUI-based custom popover (v2 era).
- * The custom component originally existed to teleport the panel to <body>;
- * Nuxt UI v4's UPopover portals by default, so we just pass through.
- */
+import type { PopoverProps } from '@nuxt/ui'
+import type { VNode } from 'vue'
+import { computed, useSlots, watch } from 'vue'
+import { UPopover } from '#components'
 
-interface Props {
-  mode?: 'click' | 'hover'
-  open?: boolean
+type UiPopoverProps = Omit<PopoverProps, 'open' | 'defaultOpen' | 'portal' | 'ui'> & {
+  /** Prevent opening while retaining the trigger in the page flow. */
   disabled?: boolean
-  openDelay?: number
-  closeDelay?: number
-  arrow?: boolean
-  /** Positioning options forwarded to UPopover's `content` prop */
-  content?: PopoverProps['content']
-  /** @deprecated Use `content` with `side`/`align` instead */
-  popper?: { placement?: string }
-  /** Custom role attribute applied to the content wrapper */
+  /** The content remains portalled; callers may target a specific portal host. */
+  portal?: true | string | HTMLElement
+  /** Optional semantic role applied to the owned panel wrapper. */
   role?: string
+  /** Stable id for associating the panel with its trigger. */
+  panelId?: string
   ui?: PopoverProps['ui']
 }
 
-const { mode = 'click', openDelay = 0, closeDelay = 0, content, popper, arrow, disabled, role, ui } = defineProps<Props>()
-
+const props = withDefaults(defineProps<UiPopoverProps>(), {
+  dismissible: true,
+  portal: true,
+})
 const emit = defineEmits<{
-  'update:open': [value: boolean]
+  'close:prevent': []
+}>()
+defineSlots<{
+  default?: (props: { disabled: boolean, open: boolean }) => VNode[]
+  panel?: (props: { close?: () => void }) => VNode[]
+  anchor?: (props: { close?: () => void }) => VNode[]
 }>()
 
-// Merge our chrome class onto the popover content slot so every UiPopover
-// inherits the tooltip-grade 5-layer shadow + inset edges without consumers
-// having to opt in. Consumer-passed `ui.content` is preserved.
-const mergedUi = computed(() => {
-  const userContent = ui?.content
-  const cls = 'ui-popover-content'
+const slots = useSlots()
+const open = defineModel<boolean>('open', { default: false })
+const guardedOpen = computed({
+  get: () => props.disabled ? false : open.value,
+  set: (nextOpen: boolean) => {
+    if (props.disabled && nextOpen)
+      return
+    open.value = nextOpen
+  },
+})
+
+watch(() => props.disabled, (disabled) => {
+  if (disabled)
+    open.value = false
+})
+
+// Keep the application popover contract resilient by default. UPopover remains
+// the accessible implementation detail; callers cannot disable its portal and
+// every panel gets collision padding plus the shared overlay chrome.
+const forwardedProps = computed(() => {
+  const { disabled: _disabled, panelId: _panelId, role: _role, ui: _ui, ...forwarded } = props
   return {
-    ...(ui || {}),
-    content: typeof userContent === 'string'
-      ? `${cls} ${userContent}`
-      : Array.isArray(userContent)
-        ? [cls, ...userContent]
-        : cls,
+    ...forwarded,
+    mode: props.mode ?? 'click',
+    openDelay: props.openDelay ?? 0,
+    closeDelay: props.closeDelay ?? 0,
+    dismissible: props.dismissible ?? true,
+    portal: props.portal ?? true,
+    content: {
+      side: 'bottom' as const,
+      sideOffset: 8,
+      collisionPadding: 8,
+      ...props.content,
+    },
   }
 })
 
-const openModel = defineModel<boolean>('open')
-
-function isSide(value: string): value is 'top' | 'right' | 'bottom' | 'left' {
-  return value === 'top' || value === 'right' || value === 'bottom' || value === 'left'
-}
-
-function isAlign(value: string): value is 'start' | 'center' | 'end' {
-  return value === 'start' || value === 'center' || value === 'end'
-}
-
-// Map legacy `popper.placement` → Nuxt UI v4 `content.side` / `content.align`
-const contentProps = computed(() => {
-  if (content)
-    return content
-  if (!popper)
-    return undefined
-
-  const placement: string | undefined = popper.placement
-  if (!placement)
-    return undefined
-
-  const [side, align] = placement.split('-')
-  if (!side || !isSide(side))
-    return undefined
+const mergedUi = computed<PopoverProps['ui']>(() => {
+  const userContent = props.ui?.content
   return {
-    side,
-    ...(align && isAlign(align) ? { align } : {}),
+    ...props.ui,
+    content: typeof userContent === 'function'
+      ? (defaults: string) => ['ui-popover-content', userContent(defaults)]
+      : ['ui-popover-content', userContent],
   }
 })
 </script>
 
 <template>
   <UPopover
-    v-model:open="openModel"
-    :mode="mode"
-    :open-delay="openDelay"
-    :close-delay="closeDelay"
-    :arrow="arrow"
-    :content="contentProps"
-    :disabled="disabled"
+    v-bind="forwardedProps"
+    v-model:open="guardedOpen"
     :ui="mergedUi"
-    @update:open="emit('update:open', $event)"
+    @close:prevent="emit('close:prevent')"
   >
-    <slot />
+    <template v-if="slots.default" #default="slotProps">
+      <slot v-bind="slotProps" :disabled="props.disabled ?? false" />
+    </template>
+
+    <template v-if="slots.anchor" #anchor="slotProps">
+      <slot name="anchor" v-bind="slotProps" />
+    </template>
 
     <template #content="slotProps">
-      <div v-if="role" data-ui="UiPopover" :role="role">
+      <div v-if="props.role || props.panelId" :id="props.panelId" data-ui="UiPopover" :role="props.role">
         <slot name="panel" v-bind="slotProps" />
       </div>
       <slot v-else name="panel" v-bind="slotProps" />

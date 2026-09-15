@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { NuxtLink, UiIcon, UiTooltip } from '#components'
+
 const {
   url,
   label,
@@ -35,7 +38,8 @@ const display = computed(() => {
       <NuxtLink
         v-if="to"
         :to="to"
-        class="font-sans text-[13px] text-default hover:text-primary focus-visible:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition-colors truncate"
+        :title="url"
+        class="font-sans text-xs text-default hover:text-primary focus-visible:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition-colors truncate"
         :style="{ maxWidth }"
       >
         {{ display }}
@@ -43,14 +47,15 @@ const display = computed(() => {
       <a
         v-else
         :href="url"
+        :title="url"
         target="_blank"
         rel="noopener noreferrer"
-        class="font-sans text-[13px] text-default hover:text-primary focus-visible:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition-colors truncate"
+        class="font-sans text-xs text-default hover:text-primary focus-visible:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded transition-colors truncate"
         :style="{ maxWidth }"
       >{{ display }}</a>
-      <UIcon
+      <UiIcon
         v-if="external && !to"
-        name="i-lucide-arrow-up-right"
+        name="arrow-up-right"
         class="size-3 text-dimmed opacity-0 group-hover/path:opacity-100 group-focus-within/path:opacity-100 transition-opacity shrink-0"
         aria-hidden="true"
       />

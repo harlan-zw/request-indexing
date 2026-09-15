@@ -27,7 +27,10 @@ export const semanticColors: Record<SemanticStatus, SemanticColorSet> = {
   error: { text: 'text-error', bg: 'bg-error/10', dot: 'bg-error', border: 'border-error/20', hex: '#ef4444' },
   warning: { text: 'text-warning', bg: 'bg-warning/10', dot: 'bg-warning', border: 'border-warning/20', hex: '#eab308' },
   info: { text: 'text-info', bg: 'bg-info/10', dot: 'bg-info', border: 'border-info/20', hex: '#3b82f6' },
-  neutral: { text: 'text-muted', bg: 'bg-accented', dot: 'bg-[var(--ui-border)]', border: 'border-default', hex: '#94a3b8' },
+  // hex is a violet-tinted grey (hue ~292) matching the de-chromatized neutral
+  // ramp, not stock cold blue-slate — so chart neutrals sit with the surface
+  // greys instead of reading cool against them.
+  neutral: { text: 'text-muted', bg: 'bg-accented', dot: 'bg-[var(--ui-border)]', border: 'border-default', hex: '#9e9aa6' },
 }
 
 /** Map dashboard health status to semantic status */

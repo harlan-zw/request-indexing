@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 const {
   score,
   label,
@@ -37,7 +39,7 @@ const ariaLabel = computed(() => {
 
 <template>
   <div
-    class="inline-flex items-center justify-center size-8 rounded-md text-[11px] font-bold font-mono tabular-nums"
+    class="inline-flex items-center justify-center size-8 rounded-md text-mini font-bold numerals-display"
     :class="bgClass"
     role="img"
     :aria-label="ariaLabel"

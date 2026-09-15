@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { UiTableDash } from '#components'
+
 type Status = 'good' | 'ni' | 'poor' | 'neutral'
 
 const {
@@ -18,10 +21,14 @@ const {
   align?: 'left' | 'center' | 'right'
 }>()
 
-const isNullish = computed(() => value == null || value === 0 || display === null)
+const isNullish = computed(() => value == null || display === null)
 
+// Color rides the failure, never the pass. A table of green "good" values spends
+// the page's color budget on non-events, so the one failing row can't stand out
+// (DESIGN — Color budget). `good` reads as a plain numeral; the aria-label still
+// carries the word for anyone who can't see the hue at all.
 const statusClass: Record<Status, string> = {
-  good: 'text-success',
+  good: '',
   ni: 'text-warning',
   poor: 'text-error',
   neutral: '',
@@ -45,25 +52,21 @@ const ariaLabel = computed(() => {
 </script>
 
 <template>
-  <!-- Value and delta share one baseline and the delta keeps a fixed track, so a
-       column of metric cells scans as a column instead of drifting per row. -->
   <div
-    class="flex items-baseline gap-2 whitespace-nowrap"
-    :class="alignClass"
+    class="flex items-center gap-2"
+    :class="[$slots.trend ? 'flex-col items-stretch gap-1' : '', alignClass]"
   >
-    <TableDash v-if="isNullish" />
+    <UiTableDash v-if="isNullish" />
     <span
       v-else
-      class="font-mono text-sm tabular-nums"
+      class="numerals-display text-sm"
       :class="[
         statusClass[status],
         muted && status === 'neutral' ? 'text-muted' : 'font-medium',
       ]"
       :aria-label="ariaLabel"
     >{{ display ?? String(value) }}</span>
-    <span v-if="!isNullish && $slots.trend" class="inline-flex shrink-0 justify-end min-w-14">
-      <slot name="trend" />
-    </span>
+    <slot v-if="!isNullish" name="trend" />
     <slot v-if="!isNullish" name="after" />
   </div>
 </template>
