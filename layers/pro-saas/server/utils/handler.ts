@@ -80,16 +80,16 @@ function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null ? value as Record<string, unknown> : {}
 }
 
-// Marks an error the way Sentry marks captured exceptions (non-enumerable
-// `__sentry_captured__`, read with `in` by @sentry/nuxt captureErrorHook.js).
-// The `handler.unhandled_error` sink has already reported the failure to
-// Sentry, so the Nitro `error` hook must skip its own auto-capture of the
-// thrown 500.
-function markCapturedBySentry(error: unknown): void {
-  if (typeof error !== 'object' || error === null)
-    return
+// Returns the cause for the thrown unhandled 500, marked the way Sentry marks
+// captured exceptions (non-enumerable `__sentry_captured__`, read with `in` by
+// @sentry/nuxt captureErrorHook.js). The `handler.unhandled_error` sink has
+// already reported the failure to Sentry, so the Nitro `error` hook must skip
+// its own auto-capture of the thrown 500. The hook only inspects an object
+// cause, so primitive throws are wrapped in an `Error` before marking.
+function markCapturedBySentry(error: unknown): unknown {
+  const cause = typeof error === 'object' && error !== null ? error : new Error(String(error))
   try {
-    Object.defineProperty(error, '__sentry_captured__', {
+    Object.defineProperty(cause, '__sentry_captured__', {
       value: true,
       enumerable: false,
       configurable: true,
@@ -100,6 +100,7 @@ function markCapturedBySentry(error: unknown): void {
     // Genuinely ignorable: a frozen/sealed cause cannot carry the mark, so
     // the hook adds a second capture instead of losing the 500 entirely.
   }
+  return cause
 }
 
 // Options-bag form of defineProApiHandler. Absorbs the per-route prelude
@@ -230,7 +231,7 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
         requestId,
         ...(caller ? { userId: caller.user.id, teamId: caller.currentTeamId } : {}),
       })
-      markCapturedBySentry(e)
+      const cause = markCapturedBySentry(e)
       throw createError({
         statusCode: 500,
         statusMessage: 'internal_error',
@@ -239,7 +240,7 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
           message: 'Internal error',
           requestId,
         } satisfies ProErrorEnvelope,
-        cause: e,
+        cause,
       })
     }
   })
