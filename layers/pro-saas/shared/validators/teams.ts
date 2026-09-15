@@ -16,9 +16,7 @@ export const teamTransferOwnershipSchema = z.object({ newOwnerUserId: z.string()
 // (`apps/app/server/utils/team-site-limit.ts`), and the message the user reads
 // comes from there.
 export const teamSelectedSitesSchema = z.array(z.string().min(1)).max(100, 'Too many sites in one request')
-export const teamOnboardingUpdateSchema = z.object({
-  /** Marks the signed-in user as onboarded. The flag is user scoped. */
-  completeOnboarding: z.boolean().optional(),
+export const teamSitesUpdateSchema = z.object({
   backupsEnabled: z.boolean().optional(),
   selectedSites: teamSelectedSitesSchema.default([]),
 })

@@ -10,17 +10,8 @@ import type { UiNavLink } from '#layers/design-system/app/shared/nav'
 const route = useRoute()
 const { session } = useUserSession()
 
-const isOnWelcome = computed(() => router.currentRoute.value.path === ONBOARDING_ROUTE)
-
-// A session with no team is an expected state, not a fault, so it is resolved
-// into `TeamOnboarding` rather than read through. Both absent states end up in
-// the same place: onboarding.
-const onboarding = computed(() => resolveUserOnboarding(session.value))
-
-watch([isOnWelcome, onboarding], ([val, state]) => {
-  if (!val && needsOnboarding(state))
-    router.push(ONBOARDING_ROUTE)
-}, { immediate: true })
+// Onboarding is gated by `middleware/onboarding.global.ts`, which decides
+// before the page mounts. This layout no longer redirects.
 
 const pageTitle = computed(() => String(route.meta.subTitle || route.meta.title || 'Account'))
 const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta.icon : undefined)

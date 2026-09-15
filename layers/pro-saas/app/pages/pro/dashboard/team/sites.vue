@@ -85,7 +85,6 @@ async function onSubmit() {
   await $fetch('/api/teams/currentTeam', {
     method: 'POST',
     body: JSON.stringify({
-      completeOnboarding: true,
       selectedSites: selectedSites.value,
       backupsEnabled: true,
     }),
