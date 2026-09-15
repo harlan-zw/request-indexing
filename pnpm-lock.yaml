@@ -34,8 +34,8 @@ catalogs:
       specifier: 0.1.1
       version: 0.1.1
     '@harlan-zw/nuxt-dx':
-      specifier: 0.1.1
-      version: 0.1.1
+      specifier: 0.1.3
+      version: 0.1.3
     '@harlan-zw/nuxt-sentry':
       specifier: 0.1.6
       version: 0.1.6
@@ -460,7 +460,7 @@ importers:
         version: 0.4.2(ee1d4d8762eb77c710bb8193e71bd5b6)
       '@harlan-zw/nuxt-dx':
         specifier: 'catalog:'
-        version: 0.1.1(dc333ada27a2991ed273748f7350e39a)
+        version: 0.1.3(dc333ada27a2991ed273748f7350e39a)
       '@harlan-zw/nuxt-sentry':
         specifier: 'catalog:'
         version: 0.1.6(af740d244d05d0eac084adbc4d54cc53)
@@ -1692,12 +1692,12 @@ packages:
       '@harlan-zw/nuxt-cf-jobs':
         optional: true
 
-  '@harlan-zw/nuxt-dx@0.1.1':
-    resolution: {integrity: sha512-M0h1VGdE2A/jGA17pO4YSZmPuOt4iOoqQgc8kevxEfgYOX2t1zKPj7j/oYohCnzTeWVOTpmSk06WfUtvjme6Nw==}
+  '@harlan-zw/nuxt-dx@0.1.3':
+    resolution: {integrity: sha512-Blzy0RqG0oYFLHIVoIoBQR6GRw2s2MZ9eBh3eJ9GJTRZaPtwq5m+oicUrJ/dU2hrjq8HSKm6ERb34KGu9KBJ3A==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
-      nuxt: '>=4.5.0 <5.0.0'
+      nuxt: '>=4.5.0 <6.0.0'
       vite: ^8.0.0
 
   '@harlan-zw/nuxt-sentry@0.1.6':
@@ -10155,7 +10155,7 @@ snapshots:
       - rolldown
       - unplugin
 
-  '@harlan-zw/nuxt-dx@0.1.1(dc333ada27a2991ed273748f7350e39a)':
+  '@harlan-zw/nuxt-dx@0.1.3(dc333ada27a2991ed273748f7350e39a)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0)))
       '@vueuse/core': 14.4.0(vue@3.5.41(typescript@6.0.3))

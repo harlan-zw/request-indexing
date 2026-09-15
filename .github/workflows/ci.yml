@@ -8,8 +8,26 @@ name: CI
 
 on:
   pull_request:
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!docs/**'
+      - '!.editorconfig'
+      - '!.gitignore'
+      - '!.idea/**'
+      - '!.vscode/**'
+      - 'apps/marketing/content/**/*.md'
   push:
     branches: [main]
+    paths:
+      - '**'
+      - '!**/*.md'
+      - '!docs/**'
+      - '!.editorconfig'
+      - '!.gitignore'
+      - '!.idea/**'
+      - '!.vscode/**'
+      - 'apps/marketing/content/**/*.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -35,3 +53,20 @@ jobs:
       test-command: pnpm test
       typecheck-node-options: --max-old-space-size=16384
       timeout-minutes: 30
+
+  build:
+    # Main builds in the deploy workflow. Keep the build check on pull requests.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          NODE_OPTIONS: --max-old-space-size=16384
