@@ -1,6 +1,6 @@
 # Brief: vs-tagparrot
 
-State: article reviewed. Parent revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
+State: article reviewed. Original brief base Git revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
 Owner: product_writer. Brief reviewer: sources_reviewer. Coordinator: request_content_lead.
 
 Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../../VERIFIED-CLAIMS.md), [SCREENSHOTS](../../SCREENSHOTS.md), and the root glossary.
@@ -29,18 +29,22 @@ Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../..
 
 Use the ledger's additional exact URLs where claim IDs require them. Open full sources during review.
 
-## Review record
+## Current review status
 
-Brief review: approved by sources_reviewer on 2026-09-15 against foundation files at cf640ac5; evidence in private brief-review.md. Writer response: pending.
-Factual draft review: approved by sources_reviewer, 15 September 2026. Humanize changes recorded below.
-Final article review: approved by sources_reviewer against humanized-hashes.json, 15 September 2026. Coordinator delivery review pending.
+Article reviewed on 15 September 2026. Accepted Git revision: `89dd568eda983e68e7132dd2265ef8a6e54fc7f4`.
+Article SHA256 file digest at that revision: `1295d66b314cd8ca0775c7edabbd7b27fe8be9a6a1038380cddf8df38cd598f5`.
+sources_reviewer approved factual and humanized prose, then reviewed the final formatting-only revision.
+Shared coordinator acceptance and rendered checks are recorded in the [collection ledger](../README.md).
+Article PR: [#77](https://github.com/harlan-zw/request-indexing/pull/77), stacked on foundation [#75](https://github.com/harlan-zw/request-indexing/pull/75).
+Later revisions require review of their changes. This record does not approve an unreviewed future head.
+Merge and live publication are not recorded as complete. Authenticated Google actions remain untested.
 
-## Factual draft handoff
+## History, 15 September 2026: Factual draft handoff
 
-Writer: product_writer, 15September2026. Draft based on reviewed brief and claims. Preserved route/publication date where present; updated review date. Removed unsupported assertions and duplicate comparison H1s.
-Factual review requested before humanization. No authenticated actions or manufactured screenshots.
+Writer: product_writer, 15 September 2026. Draft based on reviewed brief and claims. Preserved route/publication date where present; updated review date. Removed unsupported assertions and duplicate comparison H1s.
+At this handoff, factual review was requested before humanization; it was subsequently approved. No authenticated actions or manufactured screenshots.
 
-## Humanize and meaning review
+## History, 15 September 2026: Humanize and meaning review
 
 All eight factual drafts approved by sources_reviewer on 15 September 2026, including conditional vendor API scope and per-user quota fixes.
 Surface pass: corrected number/version spacing, replaced formal or padded wording, retained protocol names.
@@ -48,4 +52,4 @@ Structural pass: kept the common task first; removed repeated conclusions and ed
 - 'If you came here to compare active plans, start with the task you need to replace.' → 'Start with the task you need to replace.'
 - 'A notification queue, an indexing-status report, and a manual Search Console request are different workflows.' → 'Do you need to send notifications or find out which pages are indexed?'
 - 'Rebuild from information you control' → 'Plan the replacement'
-Meaning recheck: claim scopes, URLs, dates, examples and execution limitations preserved. Vendor mechanism uncertainty and per-user tool denominator retained. Executable code unchanged. Independent humanized review requested.
+Meaning recheck: claim scopes, URLs, dates, examples and execution limitations preserved. Vendor mechanism uncertainty and per-user tool denominator retained. Executable code unchanged. Independent humanized review was requested at this stage and subsequently approved.

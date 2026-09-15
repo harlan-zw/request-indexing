@@ -1,7 +1,7 @@
 # Content refresh ledger
 
 Scope: six guides and three comparisons. Preserve all nine URLs.
-Base: cf640ac56542cca8850b2ce3ab773f35c8910e21. Review date: 15 September 2026.
+Original base Git revision: cf640ac56542cca8850b2ce3ab773f35c8910e21. Review date: 15 September 2026.
 Authority: prepare improved content and owned PRs for review. No automatic merge or production publication.
 
 ## Publication boundary
@@ -44,7 +44,7 @@ The separate article approvals are recorded below.
 
 Rendered exclusion checks: /COPY, /SOURCES, /VERIFIED-CLAIMS, /SCREENSHOTS, and /editorial return404.
 Marketing public asset /card.png returns200. Generated collection cache contains exactly the nine article paths.
-Production build passed with these editorial records present. Sitemap and final article payload checks follow in the collection phase.
+Production build passed with these editorial records present. Final generated sitemap and collection payload checks found no private editorial records; the collection contains nine articles.
 
 ## Article acceptance and delivery
 
@@ -53,10 +53,23 @@ product_writer drafted and applied both humanize passes. sources_reviewer indepe
 Root accepted the pilot. request_content_lead verified 11 routes across 22 desktop/mobile renders and 11 HTTP route checks.
 The five editorial exclusion routes return404. Screenshots for Node, bulk and comparisons were inspected.
 Existing tests passed: 32 files, 184 tests. Targeted ESLint and full typecheck passed.
-Production build passed after the final inline-code wrapping repair. PR preparation and live publication remain pending.
+Production build passed after the final inline-code wrapping repair. Article PR #77 and foundation PR #75 are open for review; live publication is not recorded as verified.
 No authenticated setup screenshots or live Google authorization, notification, or indexing tests were performed.
 
 Final CI found five executable-fence formatting errors that the earlier targeted renderer lint did not cover.
 After formatting those fences, `pnpm exec eslint .` passed across the repository.
 The coordinator extracted the final fences and reran the same actual-client intercepted-response checks; success, failure, and mixed bulk handling passed.
 This is a new check, not a rewrite of the earlier targeted-lint evidence.
+
+## Reviewed revision and open delivery
+
+The latest accepted Git revision recorded here is `89dd568eda983e68e7132dd2265ef8a6e54fc7f4`.
+Independent review covered the formatting-only change from `aae59aa3769fe298fc9b06bbf0cd66514d847f53` and found no material defects.
+The brief headers record SHA256 file digests for that accepted revision. Pilot history separately identifies Git blob object IDs.
+[Article PR #77](https://github.com/harlan-zw/request-indexing/pull/77) depends on [foundation PR #75](https://github.com/harlan-zw/request-indexing/pull/75).
+Any later record or content revision requires its own review. This reconciliation does not approve its future commit.
+CI passed for accepted Git revision `89dd568eda983e68e7132dd2265ef8a6e54fc7f4`. Later revisions require fresh checks.
+Merge, deployment, and live verification remain delivery gates; local checks do not replace them.
+
+The [durable example harness](examples-check/README.md) extracts the current article code into scratch storage.
+Writer and independent reviewer ran its recipe on 15 September 2026; all four cases passed.

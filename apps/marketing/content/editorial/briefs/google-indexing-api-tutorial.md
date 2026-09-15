@@ -1,6 +1,6 @@
 # Brief: google-indexing-api-tutorial
 
-State: article reviewed. Parent revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
+State: article reviewed. Original brief base Git revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
 Owner: product_writer. Brief reviewer: sources_reviewer. Coordinator: request_content_lead.
 
 Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../../VERIFIED-CLAIMS.md), [SCREENSHOTS](../../SCREENSHOTS.md), and the root glossary.
@@ -31,11 +31,15 @@ Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../..
 
 Use the ledger's additional exact URLs where claim IDs require them. Open full sources during review.
 
-## Review record
+## Current review status
 
-Brief review: sources_reviewer approved R1–R3 at f248596 on 2026-09-15; private brief-review.md records the decision. Writer response: pending.
-Factual draft review: approved by sources_reviewer, 15 September 2026. Humanize changes recorded below.
-Final article review: approved by sources_reviewer against humanized-hashes.json, 15 September 2026. Coordinator delivery review pending.
+Article reviewed on 15 September 2026. Accepted Git revision: `89dd568eda983e68e7132dd2265ef8a6e54fc7f4`.
+Article SHA256 file digest at that revision: `f63beba239e00edf6ab6130654db1dd4758cf9bf730152b8b9a0577330c88372`.
+sources_reviewer approved factual and humanized prose, then reviewed the final formatting-only revision.
+Shared coordinator acceptance and rendered checks are recorded in the [collection ledger](../README.md).
+Article PR: [#77](https://github.com/harlan-zw/request-indexing/pull/77), stacked on foundation [#75](https://github.com/harlan-zw/request-indexing/pull/75).
+Later revisions require review of their changes. This record does not approve an unreviewed future head.
+Merge and live publication are not recorded as complete. Authenticated Google actions remain untested.
 
 ## Reviewed example contract
 
@@ -50,13 +54,13 @@ Use the same service-account Node path as the Node guide, without gcloud imperso
 Cloud Console UI capture unavailable after dev-browser --connect could not discover a remote-debugging session on15September.
 Documentation steps are not claimed as an observed authenticated walkthrough. No project/key/owner mutation is needed for editorial verification.
 
-## Factual draft handoff
+## History, 15 September 2026: Factual draft handoff
 
-Writer: product_writer, 15September2026. Draft based on reviewed brief and claims. Preserved route/publication date where present; updated review date. Removed unsupported assertions and duplicate comparison H1s.
-Factual review requested before humanization. No authenticated actions or manufactured screenshots.
+Writer: product_writer, 15 September 2026. Draft based on reviewed brief and claims. Preserved route/publication date where present; updated review date. Removed unsupported assertions and duplicate comparison H1s.
+At this handoff, factual review was requested before humanization; it was subsequently approved. No authenticated actions or manufactured screenshots.
 Executable JS extracted from article matches the tested scratch artifact. Node24.18.0/googleapis181.0.0 instantiated actual client; mocked GoogleAuth credential provider and nock transport, network disabled. Success, structured429, and mixed sequential outcomes passed, including duplicate input suppression. No live auth/Google behavior established. Evidence: private code-checks/results.log.
 
-## Humanize and meaning review
+## History, 15 September 2026: Humanize and meaning review
 
 All eight factual drafts approved by sources_reviewer on 15 September 2026, including conditional vendor API scope and per-user quota fixes.
 Surface pass: corrected number/version spacing, replaced formal or padded wording, retained protocol names.
@@ -64,4 +68,4 @@ Structural pass: kept the common task first; removed repeated conclusions and ed
 - 'Create the credentials and property access' → 'Set up credentials and property access'
 - "The following example uses Node.js24 and Google's official `googleapis` client." → "Use Node.js 24 and Google's official `googleapis` client."
 - 'The example was checked with the real client and intercepted HTTP responses. Credential exchange and a live Google notification were not tested.' → 'Verification used the real client with intercepted HTTP responses. Credential exchange and live Google notifications remain untested.'
-Meaning recheck: claim scopes, URLs, dates, examples and execution limitations preserved. Vendor mechanism uncertainty and per-user tool denominator retained. Executable code unchanged. Independent humanized review requested.
+Meaning recheck: claim scopes, URLs, dates, examples and execution limitations preserved. Vendor mechanism uncertainty and per-user tool denominator retained. Executable code unchanged. Independent humanized review was requested at this stage and subsequently approved.

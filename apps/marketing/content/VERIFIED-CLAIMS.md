@@ -73,3 +73,7 @@ Final review must compare code fences again if humanization changes them.
 Primary library sources: https://github.com/googleapis/google-api-nodejs-client and https://github.com/googleapis/google-auth-library-nodejs.
 Reproduce later by extracting the complete `.mjs` fences and installing the recorded client version in private scratch storage.
 Do not treat the old check count as a new run when changing dependencies.
+
+On 15 September 2026, the writer and independent reviewer reran the [durable example harness](editorial/examples-check/README.md).
+It extracts current article fences into scratch storage and checks publish success, failure, mixed bulk results, and metadata.
+All four cases passed. This is a new run with the recorded versions, not a replacement for the earlier evidence.

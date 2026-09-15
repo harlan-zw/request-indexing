@@ -63,4 +63,4 @@ These restrictions apply to prose meanings, not stored enum values or existing r
 
 No naming redesign is proposed. This is a bounded article glossary, not an exhaustive app audit.
 The existing UI uses submission labels; keep exact labels in procedures and distinguish them from Google's index state in explanations.
-Root coordinator must review this recovered vocabulary before article drafting.
+Root coordinator accepted this bounded article vocabulary on 15 September 2026 before drafting. No app-wide audit is claimed.
