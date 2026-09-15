@@ -1,21 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { mapLegacyDashboardPath } from './legacy-dashboard-routes'
+import { legacySiteSlugCandidates, mapLegacyDashboardRoute, siteRedirectPath } from './legacy-dashboard-routes'
 
-describe('mapLegacyDashboardPath', () => {
+describe('mapLegacyDashboardRoute', () => {
   it('ignores a path that was never on the old tree', () => {
-    expect(mapLegacyDashboardPath('/')).toBeNull()
-    expect(mapLegacyDashboardPath('/pro/dashboard')).toBeNull()
-    expect(mapLegacyDashboardPath('/dashboards-explained')).toBeNull()
+    expect(mapLegacyDashboardRoute('/')).toEqual({ _tag: 'NoMatch' })
+    expect(mapLegacyDashboardRoute('/pro/dashboard')).toEqual({ _tag: 'NoMatch' })
+    expect(mapLegacyDashboardRoute('/dashboards-explained')).toEqual({ _tag: 'NoMatch' })
   })
 
   it('moves the roster and the team pages across unchanged', () => {
-    expect(mapLegacyDashboardPath('/dashboard')).toBe('/pro/dashboard')
-    expect(mapLegacyDashboardPath('/dashboard/team/members')).toBe('/pro/dashboard/team/members')
-    expect(mapLegacyDashboardPath('/dashboard/web-indexing')).toBe('/pro/dashboard/web-indexing')
+    expect(mapLegacyDashboardRoute('/dashboard')).toEqual({ _tag: 'Redirect', path: '/pro/dashboard' })
+    expect(mapLegacyDashboardRoute('/dashboard/team/members')).toEqual({ _tag: 'Redirect', path: '/pro/dashboard/team/members' })
+    expect(mapLegacyDashboardRoute('/dashboard/web-indexing')).toEqual({ _tag: 'Redirect', path: '/pro/dashboard/web-indexing' })
   })
 
-  it('renames the site segment and keeps the site', () => {
-    expect(mapLegacyDashboardPath('/dashboard/site/kv1109')).toBe('/pro/dashboard/sites/kv1109/search-console')
+  it('hands a per-site page back as a slug to resolve, never as a finished path', () => {
+    expect(mapLegacyDashboardRoute('/dashboard/site/harlanzw.com/overview'))
+      .toEqual({ _tag: 'SiteRedirect', slug: 'harlanzw.com', page: 'search-console' })
+    expect(mapLegacyDashboardRoute('/dashboard/site/kv1109'))
+      .toEqual({ _tag: 'SiteRedirect', slug: 'kv1109', page: 'search-console' })
   })
 
   it.each([
@@ -27,23 +30,46 @@ describe('mapLegacyDashboardPath', () => {
     'analysis',
     'data',
   ])('folds the %s page into Search Console', (page) => {
-    expect(mapLegacyDashboardPath(`/dashboard/site/kv1109/${page}`)).toBe('/pro/dashboard/sites/kv1109/search-console')
+    expect(mapLegacyDashboardRoute(`/dashboard/site/kv1109/${page}`))
+      .toEqual({ _tag: 'SiteRedirect', slug: 'kv1109', page: 'search-console' })
   })
 
   it('folds an entity detail page into the list it came from', () => {
-    expect(mapLegacyDashboardPath('/dashboard/site/kv1109/keywords/nuxt%20seo'))
-      .toBe('/pro/dashboard/sites/kv1109/search-console')
+    expect(mapLegacyDashboardRoute('/dashboard/site/kv1109/keywords/nuxt%20seo'))
+      .toEqual({ _tag: 'SiteRedirect', slug: 'kv1109', page: 'search-console' })
   })
 
   it('sends the pages that kept a page of their own to their new parent', () => {
-    expect(mapLegacyDashboardPath('/dashboard/site/kv1109/sitemaps')).toBe('/pro/dashboard/sites/kv1109/indexing/sitemaps')
-    expect(mapLegacyDashboardPath('/dashboard/site/kv1109/web-indexing')).toBe('/pro/dashboard/sites/kv1109/indexing/submit')
-    expect(mapLegacyDashboardPath('/dashboard/site/kv1109/settings')).toBe('/pro/dashboard/sites/kv1109/settings')
-    expect(mapLegacyDashboardPath('/dashboard/site/kv1109/usages')).toBe('/pro/dashboard/sites/kv1109/usages')
+    expect(mapLegacyDashboardRoute('/dashboard/site/kv1109/sitemaps')).toEqual({ _tag: 'SiteRedirect', slug: 'kv1109', page: 'indexing/sitemaps' })
+    expect(mapLegacyDashboardRoute('/dashboard/site/kv1109/web-indexing')).toEqual({ _tag: 'SiteRedirect', slug: 'kv1109', page: 'indexing/submit' })
+    expect(mapLegacyDashboardRoute('/dashboard/site/kv1109/settings')).toEqual({ _tag: 'SiteRedirect', slug: 'kv1109', page: 'settings' })
+    expect(mapLegacyDashboardRoute('/dashboard/site/kv1109/usages')).toEqual({ _tag: 'SiteRedirect', slug: 'kv1109', page: 'usages' })
   })
 
   it('sends the account page to its place in the one tree', () => {
-    expect(mapLegacyDashboardPath('/account')).toBe('/pro/dashboard/account')
-    expect(mapLegacyDashboardPath('/account/identities')).toBe('/pro/dashboard/account')
+    expect(mapLegacyDashboardRoute('/account')).toEqual({ _tag: 'Redirect', path: '/pro/dashboard/account' })
+    expect(mapLegacyDashboardRoute('/account/identities')).toEqual({ _tag: 'Redirect', path: '/pro/dashboard/account' })
+  })
+})
+
+describe('siteRedirectPath', () => {
+  it('puts the resolved Site id in the id slot', () => {
+    expect(siteRedirectPath('s_kv1109', 'search-console')).toBe('/pro/dashboard/sites/s_kv1109/search-console')
+    expect(siteRedirectPath('s_kv1109', 'indexing/sitemaps')).toBe('/pro/dashboard/sites/s_kv1109/indexing/sitemaps')
+  })
+})
+
+describe('legacySiteSlugCandidates', () => {
+  it('covers both Search Console property spellings of a host', () => {
+    expect(legacySiteSlugCandidates('harlanzw.com')).toEqual([
+      'harlanzw.com',
+      'sc-domain:harlanzw.com',
+      'https://harlanzw.com/',
+      'http://harlanzw.com/',
+    ])
+  })
+
+  it('does not double the trailing slash of a slug that carries one', () => {
+    expect(legacySiteSlugCandidates('harlanzw.com/')).toContain('https://harlanzw.com/')
   })
 })

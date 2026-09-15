@@ -7,7 +7,7 @@ import { useProGscdumpDates, useProGscdumpTableData } from '#layers/pro-gsc/app/
 
 definePageMeta({ proTab: { feature: 'search-console', label: 'Overview', icon: 'i-lucide-layout-dashboard', order: 0 } })
 
-const { siteId, siteStatus, gscdumpSiteId, isProcessing, isReady, isNotConnected } = useSite('Search Console')
+const { siteId, site, siteStatus, gscdumpSiteId, isProcessing, isReady, isNotConnected } = useSite('Search Console')
 
 const { period, columns, stableData, compareMode, zoomTo, resetZoom } = useProGscFilters()
 
@@ -18,9 +18,11 @@ function onZoom(range: { start: string, end: string } | null) {
     resetZoom()
 }
 
-// Demo data for preview (not connected or syncing without enough data)
-const showDemoPreview = computed(() => isNotConnected.value || (isProcessing.value && !isReady.value))
-const demoMessage = computed(() => isNotConnected.value ? 'Live data from nuxtseo.com' : 'Syncing your search data...')
+// Sample data preview, for a resolved Site that is not connected or is still
+// syncing. `site` must be resolved first: an unknown id used to fall through to
+// this shell, which showed another customer's domain as this Site's data (D5).
+const showDemoPreview = computed(() => !!site.value && (isNotConnected.value || (isProcessing.value && !isReady.value)))
+const demoMessage = computed(() => isNotConnected.value ? 'Sample search data' : 'Syncing your search data...')
 const demoDescription = computed(() => isNotConnected.value
   ? 'Connect Google Search Console to see your real data.'
   : 'Showing sample data while we backfill your Search Console history. This usually takes a few minutes.',
