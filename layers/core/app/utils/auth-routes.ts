@@ -1,4 +1,4 @@
-const authenticatedRoutePrefixes = ['/dashboard', '/account', '/pro/dashboard']
+const authenticatedRoutePrefixes = ['/pro/dashboard']
 
 export function requiresAuthentication(path: string): boolean {
   return authenticatedRoutePrefixes.some(prefix =>

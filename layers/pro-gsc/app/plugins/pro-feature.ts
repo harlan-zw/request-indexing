@@ -18,7 +18,7 @@ export default defineNuxtPlugin({
       stateResolver: siteId => useGscFeatureDataState(siteId, { includeStale: true }),
       lockedDescription: 'View your Google search performance data: keywords, pages, and trends.',
       lockedUnlockLabel: 'Connect GSC',
-      lockedUnlockTo: '/dashboard/search-console',
+      lockedUnlockTo: '/pro/dashboard/sites',
     }],
   }),
 })

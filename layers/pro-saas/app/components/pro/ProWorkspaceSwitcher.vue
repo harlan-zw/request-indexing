@@ -232,7 +232,7 @@ const triggerAria = computed(() => {
           <!-- Footer actions -->
           <div class="border-t border-default p-1">
             <NuxtLink
-              to="/dashboard/team/settings"
+              to="/pro/dashboard/team/settings"
               class="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-[13px] text-default hover:bg-elevated transition-colors"
               @click="open = false"
             >

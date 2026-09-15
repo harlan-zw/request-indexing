@@ -1,14 +1,71 @@
 import { fileURLToPath } from 'node:url'
-import { defineVitestConfig } from '@nuxt/test-utils/config'
+import vue from '@vitejs/plugin-vue'
+import { defineConfig, defineProject } from 'vitest/config'
 
-export default defineVitestConfig({
+const ROOT = fileURLToPath(new URL('.', import.meta.url))
+
+// nuxtseo.com discovers its committed workflows by suffix rather than by
+// directory, so a test sits next to what it covers. Same three suffixes here:
+//
+//   *.client.feature.test.ts  a component or composable rendered in a DOM
+//   *.feature.test.ts         a seam crossed without a browser
+//   *.test.ts                 everything else: pure functions, parsers
+const CLIENT_FEATURE = '**/*.client.feature.test.ts'
+const FEATURE = '**/*.feature.test.ts'
+const UNIT = '**/*.test.ts'
+
+const EXCLUDE = ['**/node_modules/**', '**/.nuxt/**', '**/.output/**', '**/dist/**']
+
+// `#shared` and `#schema/pro` are Nuxt build aliases. A node-environment test
+// gets no Nuxt resolver, so they are mapped here; `#schema/pro` points at the
+// barrel `modules/drizzle-layers` emits, which means a test importing it needs
+// `nuxt prepare` to have run at least once. That is what `postinstall` does.
+function alias() {
+  return [
+    { find: '#schema/pro', replacement: fileURLToPath(new URL('./.nuxt/drizzle-layers/pro/schema.ts', import.meta.url)) },
+    { find: '#db/pro', replacement: fileURLToPath(new URL('./.nuxt/drizzle-layers/pro/db.ts', import.meta.url)) },
+    { find: '#shared', replacement: fileURLToPath(new URL('./shared', import.meta.url)) },
+    { find: /^#layers\/(.*)$/, replacement: `${ROOT}layers/$1` },
+    { find: '~~', replacement: ROOT },
+  ]
+}
+
+export default defineConfig({
   test: {
-    // Nuxt resolves `#shared` in the app build. A node-environment unit test
-    // gets no Nuxt resolver, so map it here rather than reaching into
-    // `shared/` with a relative path, which the Nitro build cannot bundle.
-    alias: {
-      '#shared': fileURLToPath(new URL('./shared', import.meta.url)),
-      '~~': fileURLToPath(new URL('.', import.meta.url)),
-    },
+    projects: [
+      defineProject({
+        test: {
+          name: 'unit',
+          environment: 'node',
+          include: [UNIT],
+          exclude: [...EXCLUDE, FEATURE, CLIENT_FEATURE],
+          globals: true,
+        },
+        resolve: { alias: alias() },
+      }),
+      defineProject({
+        plugins: [vue()],
+        test: {
+          name: 'feature',
+          environment: 'node',
+          include: [FEATURE],
+          exclude: [...EXCLUDE, CLIENT_FEATURE],
+          globals: true,
+        },
+        resolve: { alias: alias() },
+      }),
+      defineProject({
+        plugins: [vue()],
+        test: {
+          name: 'client',
+          environment: 'happy-dom',
+          include: [CLIENT_FEATURE],
+          exclude: EXCLUDE,
+          setupFiles: ['tests/setup/client.ts'],
+          globals: true,
+        },
+        resolve: { alias: alias() },
+      }),
+    ],
   },
 })

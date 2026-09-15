@@ -42,7 +42,7 @@ export function useProUserMenu(options: ProUserMenuOptions) {
     const teamsItem: ProUserMenuItem = {
       label: 'Teams',
       icon: 'i-lucide-users',
-      to: '/pro/dashboard/teams',
+      to: '/pro/dashboard/team/settings',
     }
     if (pendingInviteCount.value > 0) {
       teamsItem.badge = String(pendingInviteCount.value)

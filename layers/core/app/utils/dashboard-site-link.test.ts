@@ -3,10 +3,10 @@ import { dashboardSiteHref } from './dashboard-site-link'
 
 describe('dashboardSiteHref', () => {
   it('builds a link from a site id and a sub-path', () => {
-    expect(dashboardSiteHref('s_kv1109', 'overview')).toBe('/dashboard/site/s_kv1109/overview')
+    expect(dashboardSiteHref('s_kv1109', 'search-console')).toBe('/pro/dashboard/sites/s_kv1109/search-console')
   })
 
   it('percent-encodes a public id rather than splitting the path', () => {
-    expect(dashboardSiteHref('s_a/b', 'overview')).toBe('/dashboard/site/s_a%2Fb/overview')
+    expect(dashboardSiteHref('s_a/b', 'search-console')).toBe('/pro/dashboard/sites/s_a%2Fb/search-console')
   })
 })

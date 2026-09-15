@@ -19,7 +19,7 @@ const route = useRoute()
 const redirectTarget = computed(() => safeAuthRedirect(route.query.redirect))
 
 if (loggedIn.value)
-  await navigateTo(redirectTarget.value ?? '/dashboard', { replace: true })
+  await navigateTo(redirectTarget.value ?? '/pro/dashboard', { replace: true })
 
 const error = computed(() => route.query.error as string | undefined)
 const conflictProvider = computed(() => route.query.provider as AuthProviderId | undefined)

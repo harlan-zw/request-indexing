@@ -24,7 +24,6 @@ export default defineNuxtConfig({
   },
   extends: [
     './apps/marketing',
-    './apps/app',
     './apps/admin',
     './apps/brand-kit',
     './layers/design-system',
@@ -44,7 +43,16 @@ export default defineNuxtConfig({
     project: 'request-indexing',
   },
 
+  drizzleLayers: {
+    databases: {
+      // One D1, named `pro` to match nuxtseo.com, so its server code imports
+      // `#schema/pro` here too.
+      pro: { dbFrom: './layers/core/server/utils/drizzle.ts' },
+    },
+  },
+
   modules: [
+    './modules/drizzle-layers',
     '@harlan-zw/nuxt-domain-events',
     '@harlan-zw/nuxt-use-query',
     '@harlan-zw/nuxt-cloudflare',
@@ -197,15 +205,17 @@ export default defineNuxtConfig({
   routeRules: {
     ...runtimeOnlyRouteRules(),
     '/_alt/**': { robots: false, prerender: false },
+    // `/dashboard/**` and `/account/**` are 301'd to the one tree by
+    // `layers/pro-saas/server/middleware/00-legacy-dashboard.ts`. A route rule
+    // can only swap the prefix, and several of those pages moved further.
   },
 
   nitro: {
     alias: {
       'h3': resolve('./node_modules/h3/dist/index.mjs'),
       '~/server': resolve('./layers/core/server'),
-      // `#schema` aggregates pro-saas's typed drizzle surface. Activated once
-      // the layer is added to `extends` (plug phase). Until then, no consumer
-      // resolves the alias because the layer is not in the build graph.
+      // `#schema` aggregates pro-saas's typed drizzle surface. `#schema/pro`
+      // and `#db/pro` come from `modules/drizzle-layers` instead.
       '#schema': resolve('./layers/pro-saas/server/database/_surface.ts'),
     },
     prerender: {

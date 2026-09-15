@@ -50,7 +50,7 @@ async function retry() {
 <template>
   <div>
     <CardTitle>
-      <NuxtLink :to="dashboardSiteHref(site.siteId, 'overview')" class="flex min-h-11 items-center gap-2 rounded-md text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+      <NuxtLink :to="dashboardSiteHref(site.siteId, 'search-console')" class="flex min-h-11 items-center gap-2 rounded-md text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
         <SiteFavicon :site="site" />
         <h2 class="font-semibold text-highlighted">
           {{ siteLabel(site) }}
@@ -95,7 +95,7 @@ async function retry() {
                 </div>
               </div>
               <NuxtLink
-                :to="dashboardSiteHref(site.siteId, 'keywords')"
+                :to="dashboardSiteHref(site.siteId, 'search-console')"
                 :aria-label="`View ${siteLabel(site)} keywords`"
                 class="flex min-h-16 flex-col justify-center rounded-lg px-3 py-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
@@ -107,7 +107,7 @@ async function retry() {
                 </div>
               </NuxtLink>
               <NuxtLink
-                :to="dashboardSiteHref(site.siteId, 'pages')"
+                :to="dashboardSiteHref(site.siteId, 'indexing')"
                 :aria-label="`View ${siteLabel(site)} pages`"
                 class="flex min-h-16 flex-col justify-center rounded-lg px-3 py-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >

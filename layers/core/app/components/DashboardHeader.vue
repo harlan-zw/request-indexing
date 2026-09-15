@@ -10,7 +10,7 @@ const { user } = useUserSession()
 const logout = createLogoutHandler()
 const router = useRouter()
 
-const isOnWelcome = computed(() => router.currentRoute.value.path === '/dashboard/team/setup')
+const isOnWelcome = computed(() => router.currentRoute.value.path === '/pro/dashboard/team/setup')
 
 const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
   if (isOnWelcome.value) {
@@ -27,7 +27,7 @@ const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
       { type: 'label', label: user.value?.email ?? '' },
     ],
     [
-      { label: 'Account', to: '/account', icon: 'i-heroicons-user-circle' },
+      { label: 'Account', to: '/pro/dashboard/account', icon: 'i-heroicons-user-circle' },
     ],
   ]
   groups.push([

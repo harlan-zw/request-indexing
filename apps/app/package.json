@@ -1,7 +1,0 @@
-{
-  "name": "@requestindexing/app",
-  "type": "module",
-  "version": "0.0.0",
-  "private": true,
-  "main": "./nuxt.config.ts"
-}

@@ -48,7 +48,7 @@ const { loggedIn } = useUserSession()
 
 const primaryAction = computed(() => {
   if (loggedIn.value)
-    return { label: 'Back to dashboard', to: '/dashboard' }
+    return { label: 'Back to dashboard', to: '/pro/dashboard' }
   if (status.value === 401 || status.value === 403)
     return { label: 'Sign in', to: '/get-started' }
   return { label: 'Back to home', to: '/' }
@@ -80,7 +80,7 @@ useHead({
       <Header v-if="!loggedIn" />
       <div v-else class="border-b border-default">
         <div class="dashboard-container flex min-h-16 items-center">
-          <NuxtLink to="/dashboard" class="inline-flex items-center rounded-md text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+          <NuxtLink to="/pro/dashboard" class="inline-flex items-center rounded-md text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
             <OgBrand :size="26" wordmark semantic />
           </NuxtLink>
         </div>
