@@ -9,7 +9,7 @@ import { semanticColors } from './semanticColors'
  *
  * Three concerns:
  *  1. Metric identity — each GSC / CWV metric has a fixed colour so multi-series
- *     charts are readable at a glance (clicks = blue, impressions = purple, …).
+ *     charts are readable at a glance (clicks = emerald, impressions = blue, …).
  *  2. Category palettes — ordered swatches for series with no inherent identity
  *     (top pages, country donut, device split).
  *  3. Threshold / brand splits — colours that carry meaning (brand vs non-brand
@@ -49,31 +49,36 @@ function viz(dot: string, hex: string, text: string): VizColor {
  */
 export const vizFillSafelist = [
   'bg-blue-500/15',
-  'bg-purple-500/15',
   'bg-emerald-500/15',
   'bg-orange-500/15',
   'bg-cyan-500/15',
   'bg-amber-500/15',
   'bg-red-500/15',
-  'bg-violet-500/15',
+  'bg-lime-500/15',
+  'bg-olive-500/15',
   'bg-blue-400/15',
   'bg-green-400/15',
   'bg-amber-400/15',
   'bg-emerald-400/15',
   'bg-pink-500/15',
-  'bg-indigo-400/15',
+  'bg-sky-400/15',
   'bg-teal-400/15',
   'bg-rose-400/15',
 ] as const
 
 /**
- * GSC metric identity — pinned so every clicks chart reads blue, every
- *  impressions chart reads purple, regardless of consumer.
+ * GSC metric identity — pinned so every clicks chart reads emerald, every
+ *  impressions chart reads blue, regardless of consumer.
+ *
+ * Verdant assignment: clicks take the emerald primary because a click is the
+ * outcome the product sells. Impressions take the sanctioned blue info accent
+ * (exposure, not a win). CTR takes the amber warning accent, position the
+ * orange shoulder. No violet: DESIGN.md's palette has no purple in it.
  */
 export const gscMetricColors = {
-  clicks: viz('bg-blue-500', '#3b82f6', 'text-blue-500'),
-  impressions: viz('bg-purple-500', '#a855f7', 'text-purple-500'),
-  ctr: viz('bg-emerald-500', '#10b981', 'text-emerald-500'),
+  clicks: viz('bg-emerald-500', '#10b981', 'text-emerald-500'),
+  impressions: viz('bg-blue-500', '#3b82f6', 'text-blue-500'),
+  ctr: viz('bg-amber-500', '#f59e0b', 'text-amber-500'),
   position: viz('bg-orange-500', '#f97316', 'text-orange-500'),
 } as const satisfies Record<string, VizColor>
 
@@ -86,7 +91,7 @@ export const gscMetricColors = {
 export const analyticsMetricColors = {
   sessions: viz('bg-blue-500', '#3b82f6', 'text-blue-500'),
   users: viz('bg-cyan-500', '#06b6d4', 'text-cyan-500'),
-  pageviews: viz('bg-purple-500', '#a855f7', 'text-purple-500'),
+  pageviews: viz('bg-amber-500', '#f59e0b', 'text-amber-500'),
 } as const satisfies Record<string, VizColor>
 
 /**
@@ -97,7 +102,7 @@ export const cwvMetricColors = {
   lcp: viz('bg-blue-500', '#3b82f6', 'text-blue-500'),
   inp: viz('bg-amber-500', '#f59e0b', 'text-amber-500'),
   tbt: viz('bg-amber-500', '#f59e0b', 'text-amber-500'),
-  cls: viz('bg-purple-500', '#a855f7', 'text-purple-500'),
+  cls: viz('bg-emerald-500', '#10b981', 'text-emerald-500'),
 } as const satisfies Record<string, VizColor>
 
 /**
@@ -106,8 +111,12 @@ export const cwvMetricColors = {
  * surfaces share one hue.
  */
 export const periodVizColors = {
-  current: viz('bg-blue-500/15', '#3b82f6', 'text-blue-400'),
-  comparison: viz('bg-purple-500/15', '#a855f7', 'text-purple-400'),
+  current: viz('bg-blue-500/15', '#3b82f6', 'text-blue-600 dark:text-blue-400'),
+  // Olive, not a hue of its own: the comparison trail is context behind the
+  // current series, so it reads as the neutral earth of the Verdant palette.
+  // `#898a54` sits between olive-400 and olive-500 and clears 3:1 against both
+  // the light (3.3:1) and the dark (5.0:1) page ground.
+  comparison: viz('bg-olive-500/15', '#898a54', 'text-olive-700 dark:text-olive-300'),
 } as const satisfies Record<string, VizColor>
 
 /** Indexing status — bridges semantic status into the chart palette. */
@@ -146,11 +155,11 @@ export const gscDeviceColors = {
 } as const satisfies Record<string, VizColor>
 
 /**
- * Brand vs non-brand traffic split. Violet pulls toward brand identity, emerald
- *  reads as "earned" non-brand traffic.
+ * Brand vs non-brand traffic split. Amber marks the traffic your name already
+ *  owns, emerald reads as "earned" non-brand traffic.
  */
 export const gscBrandSplitColors = {
-  brand: viz('bg-violet-500', '#8b5cf6', 'text-violet-500'),
+  brand: viz('bg-amber-500', '#f59e0b', 'text-amber-500'),
   nonBrand: viz('bg-emerald-500', '#10b981', 'text-emerald-500'),
 } as const satisfies Record<'brand' | 'nonBrand', VizColor>
 
@@ -163,27 +172,27 @@ export const gscBrandSplitColors = {
  */
 export const gscTopEntityColors: VizColor[] = [
   viz('bg-blue-500', '#3b82f6', 'text-blue-500'),
-  viz('bg-purple-500', '#a855f7', 'text-purple-500'),
+  viz('bg-lime-500', '#84cc16', 'text-lime-500'),
   viz('bg-emerald-400', '#34d399', 'text-emerald-400'),
   viz('bg-orange-500', '#f97316', 'text-orange-500'),
   viz('bg-cyan-500', '#06b6d4', 'text-cyan-500'),
   viz('bg-pink-500', '#ec4899', 'text-pink-500'),
   viz('bg-amber-400', '#fbbf24', 'text-amber-400'),
-  viz('bg-indigo-400', '#818cf8', 'text-indigo-400'),
+  viz('bg-sky-400', '#38bdf8', 'text-sky-400'),
   viz('bg-teal-400', '#2dd4bf', 'text-teal-400'),
   viz('bg-rose-400', '#fb7185', 'text-rose-400'),
   viz('bg-accented', `${semanticColors.neutral.hex}80`, 'text-muted'),
 ]
 
 /** Generic five-slot categorical palette for compact composition charts. */
-export const categoricalVizColors: string[] = ['#60a5fa', '#4ade80', '#fbbf24', '#f87171', '#a78bfa']
+export const categoricalVizColors: string[] = ['#60a5fa', '#4ade80', '#fbbf24', '#f87171', '#22d3ee']
 /** Country donut uses the shared categorical palette. */
 export const gscCountryDonutColors = categoricalVizColors
 
 /** Top-pages stacked area (6 slots: 5 pages + "other"). */
 export const gscTopPagesColors: VizColor[] = [
   viz('bg-blue-500', '#3b82f6', 'text-blue-500'),
-  viz('bg-purple-500', '#a855f7', 'text-purple-500'),
+  viz('bg-lime-500', '#84cc16', 'text-lime-500'),
   viz('bg-emerald-400', '#34d399', 'text-emerald-400'),
   viz('bg-orange-500', '#f97316', 'text-orange-500'),
   viz('bg-cyan-500', '#06b6d4', 'text-cyan-500'),
@@ -201,7 +210,7 @@ export const gscTopPagesColors: VizColor[] = [
 export const presetVizColors = {
   'blue': viz('bg-blue-500', '#3b82f6', 'text-blue-500'),
   'green': viz('bg-emerald-500', '#10b981', 'text-emerald-500'),
-  'purple': viz('bg-purple-500', '#a855f7', 'text-purple-500'),
+  'lime': viz('bg-lime-500', '#84cc16', 'text-lime-500'),
   'orange': viz('bg-orange-500', '#f97316', 'text-orange-500'),
   'red': viz('bg-red-500', '#ef4444', 'text-red-500'),
   'cyan': viz('bg-cyan-500', '#06b6d4', 'text-cyan-500'),
@@ -251,7 +260,7 @@ export const vizTextColor = makeLookup('text')
    file stays a clean resync. */
 
 /** Query breadth (how many distinct queries a page wins). */
-export const breadthVizColor = { dot: 'bg-purple-500', bg: 'bg-purple-500/60', text: 'text-purple-400', hex: '#a855f7' } as const satisfies VizColor
+export const breadthVizColor = { dot: 'bg-lime-500', bg: 'bg-lime-500/60', text: 'text-lime-600 dark:text-lime-400', hex: '#84cc16' } as const satisfies VizColor
 
 /** Brand-term marker on a query label. */
-export const brandVizColor = { dot: 'bg-purple-500', bg: 'bg-purple-500/10', text: 'text-purple-400', hex: '#a855f7' } as const satisfies VizColor
+export const brandVizColor = { dot: 'bg-amber-500', bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', hex: '#f59e0b' } as const satisfies VizColor

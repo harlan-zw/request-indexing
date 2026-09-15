@@ -49,9 +49,9 @@ const darkTheme = {
     bottomFillColor2: 'rgba(32, 226, 47, 0.04)',
   },
   series2: {
-    topColor: 'rgba(156, 39, 176, 0.4)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.5)',
+    topColor: 'rgba(59, 130, 246, 0.4)',
+    bottomColor: 'rgba(59, 130, 246, 0.04)',
+    lineColor: 'rgba(59, 130, 246, 0.5)',
   },
 } as const
 
@@ -78,19 +78,19 @@ const lightTheme = {
     },
   },
   series: {
-    baseLineColor: 'rgba(33, 150, 243, 0.5)',
-    topLineColor: 'rgba(33, 150, 243, 0.5)',
-    topFillColor1: 'rgba(33, 150, 243, 0.9)',
-    topFillColor2: 'rgba(33, 150, 243, 0.04)',
-    bottomLineColor: 'rgba(33, 150, 243, 0.5)',
-    bottomFillColor1: 'rgba(33, 150, 243, 0.9)',
-    bottomFillColor2: 'rgba(33, 150, 243, 0.04)',
+    baseLineColor: 'rgba(16, 185, 129, 0.5)',
+    topLineColor: 'rgba(16, 185, 129, 0.5)',
+    topFillColor1: 'rgba(16, 185, 129, 0.9)',
+    topFillColor2: 'rgba(16, 185, 129, 0.04)',
+    bottomLineColor: 'rgba(16, 185, 129, 0.5)',
+    bottomFillColor1: 'rgba(16, 185, 129, 0.9)',
+    bottomFillColor2: 'rgba(16, 185, 129, 0.04)',
   },
-  // this is the impressions from google search console, we want to use a similar purple
+  // this is the impressions from google search console, we want to use a similar blue
   series2: {
-    topColor: 'rgba(156, 39, 176, 0.3)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.4)',
+    topColor: 'rgba(59, 130, 246, 0.3)',
+    bottomColor: 'rgba(59, 130, 246, 0.04)',
+    lineColor: 'rgba(59, 130, 246, 0.4)',
   },
 } as const
 

@@ -54,10 +54,10 @@ onMounted(() => {
 const hasEverHadData = ref(false)
 
 const metricMeta: Record<string, { label: string, shortLabel: string, icon: string, description: string, color: string }> = {
-  clicks: { label: 'Clicks', shortLabel: 'Clicks', icon: 'i-lucide-mouse-pointer-click', description: 'Total clicks from Google Search results to your site.', color: 'blue' },
-  impressions: { label: 'Views', shortLabel: 'Views', icon: 'i-lucide-eye', description: 'Times your site appeared in Google Search results.', color: 'purple' },
+  clicks: { label: 'Clicks', shortLabel: 'Clicks', icon: 'i-lucide-mouse-pointer-click', description: 'Total clicks from Google Search results to your site.', color: 'green' },
+  impressions: { label: 'Views', shortLabel: 'Views', icon: 'i-lucide-eye', description: 'Times your site appeared in Google Search results.', color: 'blue' },
   position: { label: 'Average Position', shortLabel: 'Pos', icon: 'i-lucide-hash', description: 'Average ranking position. Lower is better, position 1 is the top result.', color: 'orange' },
-  ctr: { label: 'Click-Through Rate', shortLabel: 'CTR', icon: 'i-lucide-percent', description: 'Percentage of impressions that resulted in a click.', color: 'green' },
+  ctr: { label: 'Click-Through Rate', shortLabel: 'CTR', icon: 'i-lucide-percent', description: 'Percentage of impressions that resulted in a click.', color: 'amber' },
 }
 
 const periodLabels: Record<string, string> = {

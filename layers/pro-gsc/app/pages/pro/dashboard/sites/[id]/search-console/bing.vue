@@ -11,7 +11,11 @@ import ProBingSearchPerformance from '#layers/pro-gsc/app/internal/components/bi
 import { bingConnectionSetupState, bingRequestErrorState, toBingConnectionView } from '#layers/pro-gsc/app/utils/bing-view'
 import { BING_REPORTING_WINDOW_DAYS, bingReportingWindow } from '#layers/pro-gsc/shared/bing-reporting-window'
 
-definePageMeta({ proTab: { feature: 'search-console', label: 'Bing', icon: 'i-lucide-search-check', order: 40 } })
+definePageMeta({
+  proTab: { feature: 'search-console', label: 'Bing', icon: 'i-lucide-search-check', order: 40 },
+  title: 'Bing Search Performance',
+  icon: 'i-lucide-search-check',
+})
 
 const { siteId, gscdumpSiteId } = useSite('Bing')
 
@@ -44,15 +48,6 @@ const linked = computed(() => !!gscdumpSiteId.value)
 
 <template>
   <div data-testid="search-console-bing-page" class="flex flex-col gap-5">
-    <div class="flex flex-col gap-1">
-      <h1 class="text-xl font-semibold text-highlighted">
-        Bing Search Performance
-      </h1>
-      <p class="text-sm text-muted">
-        Clicks, impressions and CTR that Bing reports for this Site.
-      </p>
-    </div>
-
     <UiEmptyState
       v-if="!linked"
       icon="search"

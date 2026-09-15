@@ -16,11 +16,13 @@ const lcpSeries = Array.from({ length: 28 }, (_, i) => ({
   value: Math.round(45 + Math.sin(i / 3) * 30 + (i > 18 ? 35 : 0)),
 }))
 
+// Mirrors `gscMetricColors`: clicks emerald, impressions blue, CTR amber,
+// position orange.
 const buttons = [
-  { key: 'clicks', label: 'Clicks', color: 'blue', value: 4820 },
-  { key: 'impressions', label: 'Impressions', color: 'purple', value: 92400 },
-  { key: 'position', label: 'Position', color: 'green', value: 12.4 },
-  { key: 'ctr', label: 'CTR', color: 'orange', value: 5.2 },
+  { key: 'clicks', label: 'Clicks', color: 'green', value: 4820 },
+  { key: 'impressions', label: 'Impressions', color: 'blue', value: 92400 },
+  { key: 'position', label: 'Position', color: 'orange', value: 12.4 },
+  { key: 'ctr', label: 'CTR', color: 'amber', value: 5.2 },
 ]
 const selected = ref(['clicks', 'impressions'])
 </script>
@@ -43,7 +45,7 @@ const selected = ref(['clicks', 'impressions'])
           <GraphData
             :value="series"
             :columns="[{ key: 'clicks', type: 'area' }, { key: 'impressions', type: 'line' }]"
-            :colors="{ clicks: 'rgba(33, 150, 243, 1)', impressions: 'rgba(156, 39, 176, 1)' }"
+            :colors="{ clicks: 'rgba(16, 185, 129, 1)', impressions: 'rgba(59, 130, 246, 1)' }"
             labels
           />
         </div>

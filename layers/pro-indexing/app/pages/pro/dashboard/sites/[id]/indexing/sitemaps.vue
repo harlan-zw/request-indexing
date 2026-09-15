@@ -20,7 +20,11 @@ import { resolveSitemapPublicationNotice } from '#layers/pro-indexing/app/utils/
 import { sitemapLivenessSchema } from '#layers/pro-indexing/shared/contracts/sitemap-liveness'
 import { classifyCurrentSitemapDrop } from '#layers/pro-indexing/shared/trust-gate'
 
-definePageMeta({ proTab: { feature: 'indexing', label: 'Sitemaps', icon: 'i-lucide-map', order: 20 } })
+definePageMeta({
+  proTab: { feature: 'indexing', label: 'Sitemaps', icon: 'i-lucide-map', order: 20 },
+  title: 'Sitemaps',
+  icon: 'i-lucide-map',
+})
 
 const { siteId, gscdumpSiteId } = useSite('Sitemaps')
 const route = useRoute()

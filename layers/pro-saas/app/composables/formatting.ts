@@ -87,10 +87,10 @@ export const gscDeviceColors: Record<string, { bg: string, hex: string }> = {
   tablet: { bg: 'bg-amber-400', hex: '#fbbf24' },
 }
 
-export const gscCountryDonutColors = ['#60a5fa', '#4ade80', '#fbbf24', '#f87171', '#a78bfa']
+export const gscCountryDonutColors = ['#60a5fa', '#4ade80', '#fbbf24', '#f87171', '#22d3ee']
 
 export const gscBrandSplitColors = {
-  brand: { bg: 'bg-violet-500', hex: '#8b5cf6' },
+  brand: { bg: 'bg-amber-500', hex: '#f59e0b' },
   nonBrand: { bg: 'bg-emerald-500', hex: '#10b981' },
 }
 
@@ -98,7 +98,7 @@ export const gscBrandSplitColors = {
 // Uses canonical data viz palette from proDataVizColors.ts
 export const gscTopPagesColors = [
   { bg: 'bg-blue-500', hex: '#3b82f6' },
-  { bg: 'bg-purple-500', hex: '#a855f7' },
+  { bg: 'bg-lime-500', hex: '#84cc16' },
   { bg: 'bg-emerald-400', hex: '#34d399' },
   { bg: 'bg-orange-500', hex: '#f97316' },
   { bg: 'bg-cyan-500', hex: '#06b6d4' },

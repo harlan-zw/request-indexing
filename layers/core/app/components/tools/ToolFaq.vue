@@ -6,7 +6,7 @@ interface FAQ {
 
 withDefaults(defineProps<{
   faqs: FAQ[]
-  color?: 'emerald' | 'blue' | 'amber' | 'cyan' | 'violet'
+  color?: 'emerald' | 'blue' | 'amber' | 'cyan'
 }>(), {
   color: 'emerald',
 })
@@ -36,7 +36,6 @@ withDefaults(defineProps<{
               'bg-blue-500/10 text-blue-500': color === 'blue',
               'bg-amber-500/10 text-amber-500': color === 'amber',
               'bg-cyan-500/10 text-cyan-500': color === 'cyan',
-              'bg-violet-500/10 text-violet-500': color === 'violet',
             }"
           >
             {{ String(index + 1).padStart(2, '0') }}
@@ -66,7 +65,6 @@ withDefaults(defineProps<{
               'bg-blue-500': color === 'blue',
               'bg-amber-500': color === 'amber',
               'bg-cyan-500': color === 'cyan',
-              'bg-violet-500': color === 'violet',
             }"
           />
           <div class="pl-16 pr-6 pb-5 pt-1">

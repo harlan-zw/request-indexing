@@ -28,6 +28,10 @@ import { isBrandTerm } from '#layers/pro-gsc/shared/query-display'
 // Dropped against upstream: search volume, CPC and difficulty (those come from
 // DataForSEO, which this app does not carry) and the chat eject.
 
+// The heading lives inside the entity summary below, beside the variant count
+// and the SERP link, so the shell does not add a second one.
+definePageMeta({ proHideHeader: true })
+
 const { siteId, site, siteStatus, isReady, isNotConnected, gscdumpSiteId } = useSite()
 
 const route = useRoute()

@@ -49,7 +49,7 @@ const supportLinks: UiNavLink[] = [
         <div class="min-w-0 truncate font-title text-base font-semibold tracking-tight text-highlighted">
           {{ pageTitle }}
         </div>
-        <DashboardHeader :toggle="false" class="h-auto border-none px-0 sm:px-0" />
+        <DashboardHeader />
       </div>
     </template>
 
@@ -96,7 +96,7 @@ const supportLinks: UiNavLink[] = [
           <span class="truncate">{{ pageTitle }}</span>
         </h1>
         <div class="hidden lg:block">
-          <DashboardHeader :toggle="false" class="h-auto border-none px-0 sm:px-0" />
+          <DashboardHeader />
         </div>
       </div>
     </header>

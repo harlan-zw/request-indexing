@@ -17,7 +17,7 @@ import { semanticColors } from '../../composables/semanticColors'
  *   - `tag`     low-emphasis label / removable filter — muted fill.
  *   - `accent`  standout marker (e.g. NEW) — inverted neutral.
  *   - `brand`   deliberate brand marker (e.g. "Pro", "Most popular") — subtle
- *               violet. Reserved for genuine brand markers; do not spray (it
+ *               emerald. Reserved for genuine brand markers; do not spray (it
  *               spends the 60/30/10 accent budget).
  *
  * Maps onto UiButton's purposes: accent↔cta, count↔secondary, tag↔quiet,

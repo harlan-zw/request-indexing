@@ -72,6 +72,29 @@ watch(siteLookup, (value) => {
 provide('site', site)
 provide('siteStatus', siteStatus)
 
+/**
+ * The dashboard's one `h1`, drawn through the design system's `UiPageHeader`.
+ *
+ * nuxtseo.com puts the same component behind `ProPage` / `ProSiteFeaturePage`,
+ * which every one of its dashboard routes renders, so a route there always
+ * names itself. This app's pages are flat (no parent feature route wrapping a
+ * `<NuxtPage>`), so the shell is the shared place to mount the same header.
+ * Titles come from `definePageMeta({ title })`, which the account shell layout
+ * already read before this.
+ *
+ * `proHideHeader` is the page-meta twin of upstream's `hide-header` prop: the
+ * query and page drill-ins fold their heading into a richer identity block, so
+ * the shell steps aside and no route ships two `h1`s.
+ */
+const ownsHeading = computed(() => (route.meta as { proHideHeader?: boolean }).proHideHeader === true)
+const pageTitle = computed(() => {
+  if (ownsHeading.value)
+    return null
+  const title = route.meta.subTitle ?? route.meta.title
+  return typeof title === 'string' && title ? title : null
+})
+const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta.icon : undefined)
+
 const userMenuItems = computed(() => [
   [{ label: 'Account', icon: 'i-lucide-user', to: '/pro/dashboard/account' }],
   [{ label: 'Sign out', icon: 'i-lucide-log-out', color: 'error' as const, to: '/auth/logout', external: true }],
@@ -133,6 +156,18 @@ const userMenuItems = computed(() => [
         <UColorModeButton size="xs" variant="ghost" color="neutral" class="shrink-0" />
       </div>
     </template>
+
+    <UiPageHeader
+      v-if="pageTitle"
+      flush
+      :border="false"
+      :title="pageTitle"
+      class="mb-6"
+    >
+      <template v-if="pageIcon" #icon>
+        <UIcon :name="pageIcon" class="size-5 shrink-0 text-primary" aria-hidden="true" />
+      </template>
+    </UiPageHeader>
 
     <UiEmptyState
       v-if="siteStatus === 'error'"

@@ -59,7 +59,7 @@ export interface GscEntityCountOption {
  */
 export const GSC_ENTITY_COUNT_OPTIONS: GscEntityCountOption[] = [
   { key: 'queries', label: 'Queries', icon: 'search', color: 'blue', tooltip: 'Distinct search queries this site ranked for. Google withholds rare queries, so read it as a floor.' },
-  { key: 'pages', label: 'Pages', icon: 'file', color: 'purple', tooltip: 'Distinct pages of this site that appeared in results in the period.' },
+  { key: 'pages', label: 'Pages', icon: 'file', color: 'lime', tooltip: 'Distinct pages of this site that appeared in results in the period.' },
 ]
 
 export interface SearchTypeOption {

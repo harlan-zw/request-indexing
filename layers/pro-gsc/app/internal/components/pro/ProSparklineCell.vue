@@ -26,7 +26,7 @@ const props = defineProps<{
   metricLabel?: string
   width?: number
   height?: number
-  color?: 'blue' | 'green' | 'purple' | 'orange' | 'neutral'
+  color?: 'blue' | 'green' | 'lime' | 'orange' | 'neutral'
   /**
    * Lower-is-better metric (position, CLS, bounce rate). Forwarded to
    * `UiSparkline` and applied to this cell's own spoken direction — without it a

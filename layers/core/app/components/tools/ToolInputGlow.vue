@@ -2,7 +2,7 @@
 const props = withDefaults(defineProps<{
   loading?: boolean
   focused?: boolean
-  colorScheme?: 'emerald' | 'blue' | 'amber' | 'cyan' | 'violet'
+  colorScheme?: 'emerald' | 'blue' | 'amber' | 'cyan'
 }>(), {
   colorScheme: 'emerald',
 })
@@ -26,7 +26,6 @@ provide('toolInputGlow', {
           'from-blue-500/50 via-cyan-500/50 to-blue-500/50': colorScheme === 'blue',
           'from-amber-500/50 via-orange-500/50 to-yellow-500/50': colorScheme === 'amber',
           'from-cyan-500/50 via-teal-500/50 to-cyan-500/50': colorScheme === 'cyan',
-          'from-violet-500/50 via-purple-500/50 to-violet-500/50': colorScheme === 'violet',
         },
         { 'opacity-100': isFocused, 'opacity-30': loading },
       ]"

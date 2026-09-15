@@ -44,13 +44,13 @@ const buttons = computed<GraphButton[]>(() => {
       key: 'clicks',
       label: 'Clicks',
       value: tooltipData.value?.clicks ?? period?.clicks ?? 0,
-      color: 'blue',
+      color: 'green',
     },
     {
       key: 'impressions',
       label: 'Views',
       value: tooltipData.value?.impressions ?? period?.impressions ?? 0,
-      color: 'purple',
+      color: 'blue',
     },
     {
       key: 'position',

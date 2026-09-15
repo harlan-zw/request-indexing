@@ -4,7 +4,11 @@ import ProGscSurfaceBar from '#layers/pro-gsc/app/components/pro/ProGscSurfaceBa
 import ProGscTopEntityTrendPanel from '#layers/pro-gsc/app/components/pro/ProGscTopEntityTrendPanel.vue'
 import ProTablePages from '#layers/pro-gsc/app/internal/components/pro/ProTablePages.vue'
 
-definePageMeta({ proTab: { feature: 'search-console', label: 'Pages', icon: 'i-lucide-file-text', order: 20 } })
+definePageMeta({
+  proTab: { feature: 'search-console', label: 'Pages', icon: 'i-lucide-file-text', order: 20 },
+  title: 'Pages',
+  icon: 'i-lucide-file-text',
+})
 
 const { siteId, siteStatus, gscdumpSiteId } = useSite('Pages')
 const { period } = useSitePeriod()

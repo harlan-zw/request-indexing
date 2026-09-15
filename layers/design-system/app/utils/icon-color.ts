@@ -16,9 +16,7 @@ export type IconColor
     | 'blue'
     | 'cyan'
     | 'sky'
-    | 'indigo'
-    | 'violet'
-    | 'purple'
+    | 'lime'
     | 'pink'
     | 'rose'
     | 'gray'
@@ -42,9 +40,10 @@ const ICON_COLOR_MAP: Record<IconColor, { bg: string, text: string }> = {
   blue: { bg: 'bg-blue-500/10', text: 'text-blue-500' },
   cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-500' },
   sky: { bg: 'bg-sky-500/10', text: 'text-sky-500' },
-  indigo: { bg: 'bg-indigo-500/10', text: 'text-indigo-500' },
-  violet: { bg: 'bg-violet-500/10', text: 'text-violet-500' },
-  purple: { bg: 'bg-purple-500/10', text: 'text-purple-500' },
+  // No indigo / violet / purple: DESIGN.md's Verdant palette has no purple in
+  // it, so a caller asking for one used to paint a chip off-brand. `lime` is
+  // the warm green that replaced it in the data-viz ramp.
+  lime: { bg: 'bg-lime-500/10', text: 'text-lime-500' },
   pink: { bg: 'bg-pink-500/10', text: 'text-pink-500' },
   rose: { bg: 'bg-rose-500/10', text: 'text-rose-500' },
   // 'gray' is a semantic alias for 'neutral': raw `gray-*` Tailwind utilities

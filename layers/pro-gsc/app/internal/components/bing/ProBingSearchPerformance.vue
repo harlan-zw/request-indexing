@@ -41,7 +41,7 @@ const { data, siteId, window } = defineProps<{
 const metrics = ref(['clicks', 'impressions'])
 const metricOptions = [
   { key: 'clicks', label: 'Clicks', color: 'blue' },
-  { key: 'impressions', label: 'Impressions', color: 'purple' },
+  { key: 'impressions', label: 'Impressions', color: 'blue' },
 ]
 const chartSeries = computed(() => metricOptions
   .filter(option => metrics.value.includes(option.key))

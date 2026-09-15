@@ -7,7 +7,11 @@ import { useProGscdumpTableData } from '#layers/pro-gsc/app/composables/useProGs
 import { useProGscFilters } from '#layers/pro-gsc/app/composables/useProGscFilters'
 import ProTableCountries from '#layers/pro-gsc/app/internal/components/pro/ProTableCountries.vue'
 
-definePageMeta({ proTab: { feature: 'search-console', label: 'Countries', icon: 'i-lucide-globe', order: 30 } })
+definePageMeta({
+  proTab: { feature: 'search-console', label: 'Countries', icon: 'i-lucide-globe', order: 30 },
+  title: 'Countries',
+  icon: 'i-lucide-globe',
+})
 
 const { siteStatus, gscdumpSiteId, siteId } = useSite('Countries')
 const { period } = useSitePeriod()

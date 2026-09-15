@@ -6,7 +6,11 @@ import { buildBrandFacet, buildQuestionFacet, useProGscFilters } from '#layers/p
 import ProTableKeywords from '#layers/pro-gsc/app/internal/components/pro/ProTableKeywords.vue'
 import { deriveUrlBrandKeywords } from '#layers/pro-gsc/shared/brand-queries'
 
-definePageMeta({ proTab: { feature: 'search-console', label: 'Queries', icon: 'i-lucide-search', order: 10 } })
+definePageMeta({
+  proTab: { feature: 'search-console', label: 'Queries', icon: 'i-lucide-search', order: 10 },
+  title: 'Queries',
+  icon: 'i-lucide-search',
+})
 
 const { siteId, site, siteStatus, gscdumpSiteId } = useSite('Queries')
 const { period } = useSitePeriod()

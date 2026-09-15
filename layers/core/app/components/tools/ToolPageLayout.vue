@@ -1,6 +1,6 @@
 <script setup lang="ts">
 withDefaults(defineProps<{
-  colorScheme?: 'emerald' | 'blue' | 'amber' | 'cyan' | 'violet'
+  colorScheme?: 'emerald' | 'blue' | 'amber' | 'cyan'
 }>(), {
   colorScheme: 'emerald',
 })
@@ -16,7 +16,6 @@ withDefaults(defineProps<{
           'bg-gradient-to-br from-blue-500/8 via-cyan-500/5 to-transparent': colorScheme === 'blue',
           'bg-gradient-to-br from-amber-500/8 via-orange-500/5 to-transparent': colorScheme === 'amber',
           'bg-gradient-to-br from-cyan-500/8 via-blue-500/5 to-transparent': colorScheme === 'cyan',
-          'bg-gradient-to-br from-violet-500/8 via-purple-500/5 to-transparent': colorScheme === 'violet',
         }"
       />
       <div
@@ -26,7 +25,6 @@ withDefaults(defineProps<{
           'bg-gradient-to-tr from-cyan-500/6 via-blue-500/4 to-transparent': colorScheme === 'blue',
           'bg-gradient-to-tr from-yellow-500/6 via-amber-500/4 to-transparent': colorScheme === 'amber',
           'bg-gradient-to-tr from-teal-500/6 via-cyan-500/4 to-transparent': colorScheme === 'cyan',
-          'bg-gradient-to-tr from-blue-500/6 via-violet-500/4 to-transparent': colorScheme === 'violet',
         }"
       />
     </div>
