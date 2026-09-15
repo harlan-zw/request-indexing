@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UiTableColumn, UiTableRow } from '~~/layers/design-system/components/data/table-features'
+import type { UiTableColumn, UiTableRow } from '~~/layers/design-system/app/components/data/table-features'
 import { CurveType } from '@unovis/ts'
 import { VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue'
 import { h } from 'vue'

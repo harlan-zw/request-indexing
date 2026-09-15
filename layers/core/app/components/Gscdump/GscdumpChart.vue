@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { GraphButton } from '~~/layers/design-system/components/chart/GraphButtonGroup.vue'
+import type { GraphButton } from '~~/layers/design-system/app/components/chart/GraphButtonGroup.vue'
 import { googleSearchConsoleColumns } from '~~/layers/core/app/composables/state'
 
 const props = withDefaults(defineProps<{

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { indexingVizColors } from '~~/layers/design-system/composables/proDataVizColors'
+import { indexingVizColors } from '~~/layers/design-system/app/composables/proDataVizColors'
 
 const props = defineProps<{
   siteId: string

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { UiTableColumn } from '~~/layers/design-system/components/data/table-features'
+import type { UiTableColumn } from '~~/layers/design-system/app/components/data/table-features'
 
 definePageMeta({ layout: 'kit' })
 useHead({ title: 'Data tables · Brand Kit' })

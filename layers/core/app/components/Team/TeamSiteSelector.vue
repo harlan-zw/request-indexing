@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SitePreview, SitesPreview } from '~~/layers/core/app/types'
-import { useHumanFriendlyNumber } from '~~/layers/design-system/composables/formatting'
+import { useHumanFriendlyNumber } from '~~/layers/design-system/app/composables/formatting'
 
 const props = withDefaults(defineProps<{
   sites: SitesPreview

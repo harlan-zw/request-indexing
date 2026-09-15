@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends object">
-import type { UiTableColumn } from '~~/layers/design-system/components/data/table-features'
+import type { UiTableColumn } from '~~/layers/design-system/app/components/data/table-features'
 import ProGscdumpError from './ProGscdumpError.vue'
 
 interface FilterDef {

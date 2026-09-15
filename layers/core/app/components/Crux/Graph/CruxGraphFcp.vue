@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { format } from 'date-fns'
 import { BaselineSeries, ColorType, createChart } from 'lightweight-charts'
-import { useHumanMs } from '~~/layers/design-system/composables/formatting'
+import { useHumanMs } from '~~/layers/design-system/app/composables/formatting'
 
 const props = defineProps<{
   value?: { time: string, value: number }[]

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UiTableColumn, UiTableRow } from '~~/layers/design-system/components/data/table-features'
+import type { UiTableColumn, UiTableRow } from '~~/layers/design-system/app/components/data/table-features'
 import type { GscdumpDataRow } from '#layers/pro-gsc/app/composables/useProGscdump'
 import { h } from 'vue'
 import { UIcon } from '#components'

@@ -98,7 +98,7 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2026-08-11',
 
-  css: ['~~/layers/design-system/assets/css/main.css'],
+  css: ['~~/layers/design-system/css/global.css'],
 
   hooks: {
     'nitro:config': function (config) {
