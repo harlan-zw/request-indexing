@@ -1,4 +1,10 @@
 <script lang="ts" setup>
+import type { UiTableColumn } from '#layers/design-system/app/shared/table'
+import type { GscdumpIndexingUrl } from '#layers/pro-gsc/shared/gscdump-api'
+import { h } from 'vue'
+import { UiStatusBadge, UiUrlLabel } from '#components'
+import { useProGscdumpIndexingUrls } from '#layers/pro-gsc/app/composables/useProGscdump'
+
 definePageMeta({
   proTab: { feature: 'indexing', label: 'Submit', icon: 'i-ph-check-circle-duotone', order: 40 },
   title: 'Submit for indexing',
@@ -6,14 +12,15 @@ definePageMeta({
 })
 
 // The product's namesake action: hand a URL to Google's Indexing API through
-// this account's pooled OAuth client. gscdump has no equivalent, so this stays
-// here.
+// this account's pooled OAuth client. gscdump has no equivalent, so the server
+// contract stays exactly as it was; only the page around it follows the
+// indexing page conventions.
 const { siteId, siteName, gscdumpSiteId } = useSite('Submit for indexing')
 
 const toast = useToast()
 
-// `sites.gscdumpSiteId` is nullable. Rendering the data cards without it leaves
-// three boxes that can never fill, so say so once instead.
+// `sites.gscdumpSiteId` is nullable. Rendering the history table without it
+// leaves a box that can never fill, so say so once instead.
 const hasSyncedSite = computed(() => Boolean(gscdumpSiteId.value))
 
 // Start the input on this site, so the common case is one path away.
@@ -46,6 +53,14 @@ function errorMessage(error: unknown): string {
   return e?.data?.statusMessage || e?.statusMessage || e?.data?.message || e?.message || 'The request could not be sent.'
 }
 
+// Submission history: the URLs Google has inspected most recently, so a reader
+// can see whether a request has landed yet.
+const { data: historyData, status: historyStatus, error: historyError, refresh: refreshHistory } = useProGscdumpIndexingUrls(
+  computed(() => gscdumpSiteId.value ?? ''),
+  { limit: 10 },
+)
+const historyRows = computed(() => historyData.value?.urls ?? [])
+
 async function submitForIndexing() {
   const target = parseAbsoluteUrl(url.value)
   if (!target) {
@@ -74,81 +89,158 @@ async function submitForIndexing() {
     : 'Google was told this URL changed. Indexing can still take a few days.'
   lastSubmit.value = { _tag: 'Ok', url: target.toString(), status }
   toast.add({ title: 'Indexing requested', description: status, color: 'success' })
+  void refreshHistory()
 }
+
+const dateFormatter = new Intl.DateTimeFormat('en', { dateStyle: 'medium' })
+
+function formatDate(value: string | null | undefined): string {
+  if (!value)
+    return 'Never'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? 'Unknown' : dateFormatter.format(date)
+}
+
+function verdictStatus(verdict: string | null) {
+  if (verdict === 'PASS')
+    return 'success' as const
+  if (verdict === 'FAIL')
+    return 'error' as const
+  if (verdict === 'PARTIAL')
+    return 'warning' as const
+  return 'neutral' as const
+}
+
+function headerCell(label: string) {
+  return () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, label)
+}
+
+type HistoryRow = GscdumpIndexingUrl & { id: string }
+
+const columns: UiTableColumn<HistoryRow>[] = [
+  {
+    accessorKey: 'url',
+    header: headerCell('URL'),
+    cell: ({ row }) => h(UiUrlLabel, { url: row.original.url, class: 'max-w-md' }),
+  },
+  {
+    accessorKey: 'verdict',
+    header: headerCell('Verdict'),
+    cell: ({ row }) => h(UiStatusBadge, {
+      status: verdictStatus(row.original.verdict),
+      label: row.original.verdict ?? 'Unknown',
+      size: 'sm',
+    }),
+  },
+  {
+    accessorKey: 'lastCrawlTime',
+    header: headerCell('Last crawl'),
+    align: 'right',
+    cell: ({ row }) => h('span', { class: 'text-sm tabular-nums text-muted' }, formatDate(row.original.lastCrawlTime)),
+  },
+]
+
+const tableData = computed(() => historyRows.value.map((row, index) => ({
+  ...row,
+  id: row.url || String(index),
+})))
+
+const urlsRoute = computed(() => `/pro/dashboard/sites/${siteId.value}/indexing/urls`)
 </script>
 
 <template>
-  <div class="space-y-7">
-    <div class="grid grid-cols-1 gap-7 lg:grid-cols-12">
-      <div class="space-y-7 lg:col-span-9">
-        <!-- WI2: the product's namesake action. `/api/indexing/[url]` already
-             exists; nothing on this page called it. -->
-        <div>
-          <CardTitle>Request indexing</CardTitle>
-          <UCard>
-            <form class="flex flex-wrap items-end gap-3" @submit.prevent="submitForIndexing">
-              <UFormField label="Page URL" class="min-w-0 grow" help="Tell Google this page is new or has changed.">
-                <UInput
-                  v-model="url"
-                  class="w-full"
-                  type="url"
-                  autocomplete="off"
-                  placeholder="https://example.com/blog/my-post"
-                />
-              </UFormField>
-              <UButton type="submit" :loading="submitting" :disabled="!url.trim()">
-                Request indexing
-              </UButton>
-            </form>
-            <p v-if="lastSubmit._tag === 'Err'" class="mt-3 text-sm text-error">
-              {{ lastSubmit.message }}
-            </p>
-            <p v-else-if="lastSubmit._tag === 'Ok'" class="mt-3 text-sm text-muted">
-              {{ lastSubmit.status }}
-            </p>
-          </UCard>
+  <ProPageStates>
+    <ProPageZone tier="primary" first>
+      <UiCard emphasis size="lg">
+        <div class="min-w-0">
+          <h2 class="text-2xl font-strong text-default">
+            Tell Google a page changed
+          </h2>
+          <p class="mt-2 max-w-2xl text-sm text-muted">
+            This sends one URL to Google's Indexing API. Google decides when to
+            crawl it, so expect a wait of hours to days.
+          </p>
         </div>
 
-        <UCard v-if="!hasSyncedSite" :ui="{ body: 'sm:px-3 sm:py-2' }">
-          <div class="py-4 text-sm text-muted">
-            This site is not synced with Search Console yet, so there is no indexing history to show.
+        <form class="mt-5 flex flex-wrap items-end gap-3 border-t border-default pt-5" @submit.prevent="submitForIndexing">
+          <UFormField label="Page URL" class="min-w-0 grow">
+            <UiInput
+              v-model="url"
+              class="w-full"
+              type="url"
+              autocomplete="off"
+              placeholder="https://example.com/blog/my-post"
+            />
+          </UFormField>
+          <UiButton
+            type="submit"
+            purpose="cta"
+            :loading="submitting"
+            :disabled="!url.trim()"
+            class="min-h-11"
+          >
+            Request indexing
+          </UiButton>
+        </form>
+
+        <p v-if="lastSubmit._tag === 'Err'" class="mt-3 text-sm text-error">
+          {{ lastSubmit.message }}
+        </p>
+        <p v-else-if="lastSubmit._tag === 'Ok'" class="mt-3 text-sm text-muted">
+          {{ lastSubmit.status }}
+        </p>
+      </UiCard>
+    </ProPageZone>
+
+    <ProPageZone tier="secondary">
+      <ProSecondaryGrid layout="wide-narrow">
+        <UiCard title="Recently inspected URLs" size="sm">
+          <UiEmptyState
+            v-if="!hasSyncedSite"
+            compact
+            icon="link"
+            title="No indexing history yet"
+            description="Connect this site to Search Console to see whether a requested URL has been crawled."
+          />
+          <UiEmptyState
+            v-else-if="historyError"
+            compact
+            icon="caution"
+            title="Indexing history unavailable"
+            description="Retry to load the latest inspection results."
+          >
+            <UiButton purpose="secondary" class="!min-h-11" @click="refreshHistory()">
+              Retry
+            </UiButton>
+          </UiEmptyState>
+          <UiSkeleton v-else-if="historyStatus === 'pending' && !historyRows.length" :lines="4" :base="240" :range="80" />
+          <UiEmptyState
+            v-else-if="!historyRows.length"
+            compact
+            icon="link"
+            title="No inspected URLs yet"
+            description="Inspection results appear after the first indexing sync finishes."
+          />
+          <template v-else>
+            <UiTable
+              :data="tableData"
+              :columns="columns"
+              label="Recently inspected URLs"
+            />
+            <UiButton :to="urlsRoute" purpose="link" trailing-icon="next" class="mt-3 min-h-11">
+              View every inspected URL
+            </UiButton>
+          </template>
+        </UiCard>
+
+        <UiCard title="How this works" variant="subtle" size="sm">
+          <div class="space-y-2 text-sm text-muted">
+            <p>A request tells Google the page is new or has changed. It is not a guarantee of indexing.</p>
+            <p>Indexing status comes from the Search Console URL Inspection API, re-checked on a schedule.</p>
+            <p>Requesting the same URL twice inside 48 hours does nothing, so one request is enough.</p>
           </div>
-        </UCard>
-        <template v-else>
-          <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
-            <GscdumpIndexingSummary :site-id="gscdumpSiteId ?? ''" />
-          </UCard>
-          <div>
-            <CardTitle>URLs</CardTitle>
-            <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
-              <div class="overflow-x-auto">
-                <GscdumpIndexingUrls class="min-w-[44rem] md:min-w-0" :site-id="gscdumpSiteId ?? ''" />
-              </div>
-            </UCard>
-          </div>
-        </template>
-      </div>
-      <div class="space-y-7 lg:col-span-3">
-        <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
-          <h2 class="mb-2 flex items-center text-sm font-semibold">
-            <UIcon name="i-ph-info-duotone" class="w-5 h-5 mr-1 text-gray-500" />
-            How it works
-          </h2>
-          <!-- WI3: `gscdump` is an internal name. Users know Search Console. -->
-          <div class="text-sm text-gray-500 mb-1">
-            Indexing status comes from the Search Console URL Inspection API.
-          </div>
-          <div class="text-sm text-gray-500">
-            URLs are re-checked regularly, so their status is tracked over time.
-          </div>
-        </UCard>
-        <div v-if="hasSyncedSite">
-          <CardTitle>Diagnostics</CardTitle>
-          <UCard :ui="{ body: 'sm:px-3 sm:py-2' }">
-            <GscdumpIndexingDiagnostics :site-id="gscdumpSiteId ?? ''" />
-          </UCard>
-        </div>
-      </div>
-    </div>
-  </div>
+        </UiCard>
+      </ProSecondaryGrid>
+    </ProPageZone>
+  </ProPageStates>
 </template>

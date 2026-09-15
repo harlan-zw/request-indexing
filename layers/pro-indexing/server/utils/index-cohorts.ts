@@ -1,0 +1,119 @@
+import type { GscdumpIndexingUrl } from '#layers/pro-gsc/shared/gscdump-api'
+import type { IndexCohortsResponse } from '../../shared/contracts/index-cohorts'
+import type { IndexCohortPage } from '../../shared/index-cohorts'
+import { buildIndexCohortDiagnosis } from '../../shared/index-cohorts'
+
+// Which part of this site does Google treat worse than the rest?
+//
+// nuxtseo.com answers this by joining its own crawl read-model against the
+// inspection set. request-indexing runs no crawler, so the partition is built
+// from the URL Inspection rows alone: every inspected URL carries a path and a
+// verdict, which is all `buildIndexCohortDiagnosis` needs. `notCrawled` is
+// therefore always 0 here, and the wire contract stays identical so the shared
+// cohort list and lead selector render unchanged.
+//
+// Pure data in, data out. The endpoint owns the fetch; this owns the decision.
+
+export interface IndexCohortSource {
+  urls: ReadonlyArray<Pick<GscdumpIndexingUrl, 'url' | 'verdict' | 'sitemaps'>>
+  /** The site URL the inspection set belongs to, used to resolve relative rows. */
+  siteUrl?: string | null
+}
+
+/**
+ * A URL Inspection row becomes a cohort page when it parses to an http(s) URL
+ * with no fragment. A `#anchor` URL can never be indexed on its own, so it is
+ * counted as excluded rather than folded into a section rate it would distort.
+ */
+type ParsedRow
+  = | { _tag: 'page', page: IndexCohortPage }
+    | { _tag: 'fragment' }
+    | { _tag: 'unparsable' }
+
+function parseRow(row: IndexCohortSource['urls'][number], base?: string | null): ParsedRow {
+  const candidate = row.url?.trim()
+  if (!candidate)
+    return { _tag: 'unparsable' }
+
+  const origin = base && base.startsWith('sc-domain:')
+    ? `https://${base.slice('sc-domain:'.length)}`
+    : base ?? undefined
+
+  let parsed: URL
+  try {
+    parsed = new URL(candidate, origin)
+  }
+  catch {
+    return { _tag: 'unparsable' }
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:')
+    return { _tag: 'unparsable' }
+  if (parsed.hash)
+    return { _tag: 'fragment' }
+
+  return {
+    _tag: 'page',
+    page: {
+      path: parsed.pathname,
+      indexed: row.verdict === 'PASS',
+      inSitemap: Array.isArray(row.sitemaps) ? row.sitemaps.length > 0 : false,
+    },
+  }
+}
+
+/**
+ * Build the wire response from a complete inspection snapshot.
+ *
+ * `asOf` is the caller's snapshot timestamp, not a crawl date, and
+ * `crawlSettingsId` is always null: request-indexing has no crawl settings to
+ * point at. Both fields stay on the wire because the shared contract is the
+ * same one nuxtseo.com publishes.
+ */
+export function buildIndexCohortsFromIndexingUrls(
+  source: IndexCohortSource,
+  asOf: string | null = null,
+): IndexCohortsResponse {
+  const pages: IndexCohortPage[] = []
+  let excludedFragments = 0
+
+  for (const row of source.urls) {
+    const parsed = parseRow(row, source.siteUrl)
+    if (parsed._tag === 'page')
+      pages.push(parsed.page)
+    else if (parsed._tag === 'fragment')
+      excludedFragments += 1
+  }
+
+  const diagnosis = buildIndexCohortDiagnosis({
+    pages,
+    excludedFragments,
+    // No crawler, so every inspected URL that parsed was analysed.
+    notCrawled: 0,
+  })
+
+  if (diagnosis._tag === 'no-evidence')
+    return { _tag: 'no-evidence', crawlSettingsId: null, asOf, reason: diagnosis.reason }
+
+  if (diagnosis._tag === 'uniform') {
+    return {
+      _tag: 'uniform',
+      crawlSettingsId: null,
+      asOf,
+      baseline: diagnosis.baseline,
+      coverage: diagnosis.coverage,
+      z: diagnosis.z,
+      tested: diagnosis.tested,
+    }
+  }
+
+  return {
+    _tag: 'outliers',
+    crawlSettingsId: null,
+    asOf,
+    baseline: diagnosis.baseline,
+    coverage: diagnosis.coverage,
+    z: diagnosis.z,
+    tested: diagnosis.tested,
+    cells: diagnosis.cells,
+  }
+}
