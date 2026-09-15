@@ -1,11 +1,11 @@
 # Recheck article examples
 
 This unpublished harness extracts the actual JavaScript fences. It does not keep duplicate example files.
-Run from the repository root with Node.js 24.18.0:
+Run from the repository root with Node.js 24.18.0 and pnpm (verified with 12.3.4):
 
 ```bash
 article_check_dir=$(mktemp -d "$HOME/scratch/request-indexing-examples.XXXXXX")
-npm install --prefix "$article_check_dir" --ignore-scripts --no-audit --no-fund googleapis@181.0.0 nock@14.0.17
+pnpm --dir "$article_check_dir" add --ignore-scripts googleapis@181.0.0 nock@14.0.17
 node apps/marketing/content/editorial/examples-check/check.mjs "$article_check_dir"
 printf 'Evidence directory: %s\n' "$article_check_dir"
 ```
