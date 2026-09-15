@@ -23,7 +23,7 @@ function getNavigationOrder(item: unknown): number {
 
 useSeoMeta({
   title: 'Google Indexing API Guides',
-  description: 'Learn how to use the Google Indexing API with step-by-step tutorials, code examples, and best practices for Node.js, Python, bulk submission, and more.',
+  description: 'Choose the supported Google indexing method, configure service-account access, and send eligible notifications with Node.js.',
 })
 
 defineOgImage('Page', {
@@ -58,7 +58,7 @@ const iconMap: Record<string, string> = {
     <UPageSection
       headline="Guides"
       title="Google Indexing API Guides"
-      description="Everything you need to set up, integrate, and optimize the Google Indexing API. From first API call to production-ready bulk submission."
+      description="Check supported content, set up your first eligible notification, and learn how to interpret responses and quotas."
       :ui="{ container: 'max-w-7xl', title: 'font-title' }"
     >
       <UPageGrid>
