@@ -132,18 +132,10 @@ function rowCtr(row: EntityRow): string {
       description="The last successful collection stays visible while the next daily sync retries."
     />
 
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <UiSectionHeader
-        title="Bing Search Performance"
-        tooltip="Bing reports total traffic across its search surfaces."
-      />
-      <div v-if="lastCollection" class="text-xs text-muted">
-        Collected <UiRelativeTime :date="lastCollection" />
-      </div>
-    </div>
-
     <p class="text-xs text-muted">
-      {{ window.startDate }} to {{ window.endDate }}
+      {{ window.startDate }} to {{ window.endDate }}<template v-if="lastCollection">
+        . Collected <UiRelativeTime :date="lastCollection" />
+      </template>
     </p>
 
     <UiEmptyState

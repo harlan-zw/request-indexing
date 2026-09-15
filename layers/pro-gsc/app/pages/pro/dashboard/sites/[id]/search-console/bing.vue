@@ -36,57 +36,82 @@ const trafficQuery = useProGscdumpBingData(gscdumpSiteId, {
 const traffic = computed(() => trafficQuery.data.value?.dataset === 'traffic' ? trafficQuery.data.value : null)
 
 const indexingBingPath = computed(() => `/pro/dashboard/sites/${encodeURIComponent(siteId.value)}/indexing/bing`)
+
+// Search Console links the Site to gscdump, and Bing reads through the same
+// link. Say so rather than render an empty page while it is still pending.
+const linked = computed(() => !!gscdumpSiteId.value)
 </script>
 
 <template>
-  <ProPageStates
-    :status="connectionQuery.status.value"
-    :error="connectionQuery.error.value"
-    @retry="connectionQuery.refresh"
-  >
-    <template #error>
-      <UiAlert
-        status="error"
-        :title="connectionError.title"
-        :description="connectionError.description"
-      >
-        <template #action>
-          <UiButton purpose="secondary" size="xs" @click="() => connectionQuery.refresh()">
-            Retry
-          </UiButton>
-        </template>
-      </UiAlert>
-    </template>
+  <div data-testid="search-console-bing-page" class="flex flex-col gap-5">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-xl font-semibold text-highlighted">
+        Bing Search Performance
+      </h1>
+      <p class="text-sm text-muted">
+        Clicks, impressions and CTR that Bing reports for this Site.
+      </p>
+    </div>
 
     <UiEmptyState
-      v-if="setupState"
-      :icon="setupState.icon"
-      :title="setupState.title"
-      :description="setupState.description"
+      v-if="!linked"
+      icon="search"
+      title="Bing is waiting on Search Console"
+      description="Search Console must finish linking this Site before Bing can report on it."
       heading-tag="h2"
       :animated="false"
-    >
-      <UiButton :to="indexingBingPath" purpose="cta">
-        Open Bing indexing
-      </UiButton>
-    </UiEmptyState>
+    />
 
     <ProPageStates
-      v-else-if="canRead"
-      :status="trafficQuery.status.value"
-      :error="trafficQuery.error.value"
-      :empty="trafficQuery.status.value === 'success' && !traffic"
-      empty-icon="search"
-      empty-title="No Bing Search Performance yet"
-      empty-message="The first collection runs with the next daily sync."
-      @retry="trafficQuery.refresh"
+      v-else
+      :status="connectionQuery.status.value"
+      :error="connectionQuery.error.value"
+      @retry="connectionQuery.refresh"
     >
-      <ProBingSearchPerformance
-        v-if="traffic && gscdumpSiteId"
-        :data="traffic"
-        :site-id="gscdumpSiteId"
-        :window="window"
-      />
+      <template #error>
+        <UiAlert
+          status="error"
+          :title="connectionError.title"
+          :description="connectionError.description"
+        >
+          <template #action>
+            <UiButton purpose="secondary" size="xs" @click="() => connectionQuery.refresh()">
+              Retry
+            </UiButton>
+          </template>
+        </UiAlert>
+      </template>
+
+      <UiEmptyState
+        v-if="setupState"
+        :icon="setupState.icon"
+        :title="setupState.title"
+        :description="setupState.description"
+        heading-tag="h2"
+        :animated="false"
+      >
+        <UiButton :to="indexingBingPath" purpose="cta">
+          Open Bing indexing
+        </UiButton>
+      </UiEmptyState>
+
+      <ProPageStates
+        v-else-if="canRead"
+        :status="trafficQuery.status.value"
+        :error="trafficQuery.error.value"
+        :empty="trafficQuery.status.value === 'success' && !traffic"
+        empty-icon="search"
+        empty-title="No Bing Search Performance yet"
+        empty-message="The first collection runs with the next daily sync."
+        @retry="trafficQuery.refresh"
+      >
+        <ProBingSearchPerformance
+          v-if="traffic && gscdumpSiteId"
+          :data="traffic"
+          :site-id="gscdumpSiteId"
+          :window="window"
+        />
+      </ProPageStates>
     </ProPageStates>
-  </ProPageStates>
+  </div>
 </template>

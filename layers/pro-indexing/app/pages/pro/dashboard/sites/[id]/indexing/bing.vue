@@ -41,6 +41,10 @@ const crawlQuery = useProGscdumpBingData(gscdumpSiteId, {
 })
 const crawl = computed(() => crawlQuery.data.value?.dataset === 'crawl' ? crawlQuery.data.value : null)
 
+// Search Console links the Site to gscdump, and Bing reads through the same
+// link. Say so rather than render an empty page while it is still pending.
+const linked = computed(() => !!gscdumpSiteId.value)
+
 function handleVerificationChecked(next: BingConnectionV1) {
   connectionOverride.value = next
   if (next._tag === 'connected')
@@ -49,52 +53,73 @@ function handleVerificationChecked(next: BingConnectionV1) {
 </script>
 
 <template>
-  <ProPageStates
-    :status="connectionQuery.status.value"
-    :error="connectionQuery.error.value"
-    @retry="connectionQuery.refresh"
-  >
-    <template #error>
-      <UiAlert
-        status="error"
-        :title="connectionError.title"
-        :description="connectionError.description"
-      >
-        <template #action>
-          <UiButton purpose="secondary" size="xs" @click="() => connectionQuery.refresh()">
-            Retry
-          </UiButton>
-        </template>
-      </UiAlert>
-    </template>
-
-    <ProBingVerification
-      v-if="verificationConnection && gscdumpSiteId"
-      :site-id="gscdumpSiteId"
-      :connection="connectionState as Extract<BingConnectionV1, { _tag: 'verification-required' }>"
-      @checked="handleVerificationChecked"
-    />
+  <div data-testid="indexing-bing-page" class="flex flex-col gap-5">
+    <div class="flex flex-col gap-1">
+      <h1 class="text-xl font-semibold text-highlighted">
+        Bing indexing
+      </h1>
+      <p class="text-sm text-muted">
+        What Bing Webmaster Tools reports about crawling this Site.
+      </p>
+    </div>
 
     <UiEmptyState
-      v-else-if="setupState"
-      :icon="setupState.icon"
-      :title="setupState.title"
-      :description="setupState.description"
+      v-if="!linked"
+      icon="search"
+      title="Bing is waiting on Search Console"
+      description="Search Console must finish linking this Site before Bing can report on it."
       heading-tag="h2"
       :animated="false"
     />
 
     <ProPageStates
-      v-else-if="canRead"
-      :status="crawlQuery.status.value"
-      :error="crawlQuery.error.value"
-      :empty="crawlQuery.status.value === 'success' && !crawl?.rows.length"
-      empty-icon="search"
-      empty-title="No Bing crawl activity yet"
-      empty-message="The first collection runs with the next daily sync."
-      @retry="crawlQuery.refresh"
+      v-else
+      :status="connectionQuery.status.value"
+      :error="connectionQuery.error.value"
+      @retry="connectionQuery.refresh"
     >
-      <ProBingCrawlStats v-if="crawl?.rows.length" :data="crawl" />
+      <template #error>
+        <UiAlert
+          status="error"
+          :title="connectionError.title"
+          :description="connectionError.description"
+        >
+          <template #action>
+            <UiButton purpose="secondary" size="xs" @click="() => connectionQuery.refresh()">
+              Retry
+            </UiButton>
+          </template>
+        </UiAlert>
+      </template>
+
+      <ProBingVerification
+        v-if="verificationConnection && gscdumpSiteId"
+        :site-id="gscdumpSiteId"
+        :connection="connectionState as Extract<BingConnectionV1, { _tag: 'verification-required' }>"
+        @checked="handleVerificationChecked"
+      />
+
+      <UiEmptyState
+        v-else-if="setupState"
+        :icon="setupState.icon"
+        :title="setupState.title"
+        :description="setupState.description"
+        heading-tag="h2"
+        :animated="false"
+      />
+
+      <ProPageStates
+        v-else-if="canRead"
+        :status="crawlQuery.status.value"
+        :error="crawlQuery.error.value"
+        :empty="crawlQuery.status.value === 'success' && !crawl?.rows.length"
+        empty-icon="search"
+        empty-title="No Bing crawl activity yet"
+        empty-message="The first collection runs with the next daily sync."
+        @retry="crawlQuery.refresh"
+      >
+        <ProBingCrawlStats v-if="crawl?.rows.length" :data="crawl" />
+      </ProPageStates>
     </ProPageStates>
-  </ProPageStates>
+  </div>
 </template>
