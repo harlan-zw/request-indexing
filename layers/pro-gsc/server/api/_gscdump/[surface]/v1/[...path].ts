@@ -21,6 +21,7 @@ import { assertGscdumpBrowserUnsafeMethodOrigin } from '#layers/pro-gsc/server/u
 import { getGscdumpApiUrl } from '#layers/pro-gsc/server/utils/gscdump-origin'
 import { sites, users } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
+import { readProFeatureFlags } from '#layers/pro-shell/shared/manifest'
 
 function requestIdForUpstream(requestId: string): string {
   return `req_${requestId.replace(/[^\w-]/g, '_')}`
@@ -118,7 +119,10 @@ export default defineProApiHandler({}, async ({ event, db, caller }) => {
   if (!surface || !path)
     throw createError({ statusCode: 404, statusMessage: 'not_found' })
 
-  const operation = resolveGscdumpV1ProxyOperation(event.method.toUpperCase(), surface, path)
+  // Same flag the sidebar reads for the two Bing rows. A surface that is not
+  // shipped does not get a relay.
+  const flags = readProFeatureFlags(useRuntimeConfig(event).public)
+  const operation = resolveGscdumpV1ProxyOperation(event.method.toUpperCase(), surface, path, flags)
   if (!operation)
     throw createError({ statusCode: 404, statusMessage: 'not_found' })
   const descriptor = operation.operation

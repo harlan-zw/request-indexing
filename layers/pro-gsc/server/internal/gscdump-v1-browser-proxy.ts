@@ -1,4 +1,5 @@
 import type { ResolvedHttpV1Operation } from '@gscdump/contracts/v1/http'
+import type { Caller } from '#layers/pro-saas/shared/caller'
 // Pure decision logic for the same-origin gscdump v1 browser proxy
 // (`server/api/_gscdump/[surface]/v1/[...path].ts`). No DB, no fetch: this
 // module only decides *which* v1 operations the browser may reach and
@@ -10,16 +11,17 @@ import type { ResolvedHttpV1Operation } from '@gscdump/contracts/v1/http'
 // this list resolves, so the proxy cannot become an open relay onto
 // gscdump.com.
 //
-// The Bing operations are deliberately absent. Bing is behind an allowlist and
-// has no surface in this app yet, so exposing its reads through the browser
-// proxy would widen the relay for nothing.
-import type { Caller } from '#layers/pro-saas/shared/caller'
+// The Bing operations are a second, conditional list. They resolve only while
+// `NUXT_PUBLIC_FEATURES_BING` is on, which is the same flag the sidebar reads
+// for the two Bing rows. With the flag off the pages do not exist, so the
+// relay must not carry their reads either.
+import type { ProFeatureFlags } from '#layers/pro-shell/shared/manifest'
 import { createGscdumpV1Protocol, resolveHttpOperation } from '@gscdump/contracts/v1/http'
 import { callerCan } from '#layers/pro-saas/shared/policies/team-policy'
 
 const protocol = createGscdumpV1Protocol()
 
-const browserOperationEntries = [
+const baseOperationEntries = [
   { surface: protocol.surfaces.analytics, operation: protocol.surfaces.analytics.operations.queryReport },
   { surface: protocol.surfaces.analytics, operation: protocol.surfaces.analytics.operations.queryReportDetail },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getSiteAnalysis },
@@ -61,9 +63,23 @@ const browserOperationEntries = [
   { surface: protocol.surfaces.realtime, operation: protocol.surfaces.realtime.operations.createTicket },
 ] as const
 
-type BrowserOperationEntry = typeof browserOperationEntries[number]
+/**
+ * Bing search performance, plus the connection read and its verify action.
+ * Gated on the `bing` feature flag, never on the caller.
+ *
+ * The evidence operation (`partner.sites.indexing.bing.evidence.list`) stays
+ * off: the crawl view reads the `crawl` dataset of `bing.data.get`, so nothing
+ * here needs per-URL rows and the relay stays as narrow as the pages.
+ */
+const bingOperationEntries = [
+  { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getSiteBingData },
+  { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getSiteBingConnection },
+  { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.verifySiteBingConnection },
+] as const
+
+type BrowserOperationEntry = typeof baseOperationEntries[number] | typeof bingOperationEntries[number]
 export const gscdumpV1BrowserOperationIds = Object.freeze(
-  browserOperationEntries.map(entry => entry.operation.id),
+  [...baseOperationEntries, ...bingOperationEntries].map(entry => entry.operation.id),
 )
 
 export type GscdumpV1ProxyOperation = ResolvedHttpV1Operation<BrowserOperationEntry>
@@ -83,13 +99,20 @@ export const GSCDUMP_V1_USER_SCOPED_OPERATION_ID = 'partner.users.sites.availabl
  * any method/surface/path combination that is not an exact match for one of
  * the registry operations above; the caller must treat `null` as 404, never
  * attempt a raw passthrough.
+ *
+ * `flags` comes from the same public runtime config the sidebar reads. Omitting
+ * it resolves the base list only, which is the production state.
  */
 export function resolveGscdumpV1ProxyOperation(
   method: string,
   surfaceName: string,
   path: string,
+  flags: ProFeatureFlags = {},
 ): GscdumpV1ProxyOperation | null {
-  return resolveHttpOperation(browserOperationEntries, { method, path, surface: surfaceName })
+  const entries = flags.bing
+    ? [...baseOperationEntries, ...bingOperationEntries]
+    : baseOperationEntries
+  return resolveHttpOperation(entries, { method, path, surface: surfaceName })
 }
 
 /** Extracts the `siteId` path parameter when the resolved operation has one. */

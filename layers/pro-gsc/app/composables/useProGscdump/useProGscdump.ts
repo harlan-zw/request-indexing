@@ -153,6 +153,18 @@ export function useProGscdump() {
     return runV1<T>(() => createV1Client().createSitemapAction(input), silent)
   }
 
+  function getSiteBingData<T = GscdumpV1OperationResponse<'partner.sites.bing.data.get'>['data']>(input: GscdumpV1OperationInput<'partner.sites.bing.data.get'>, silent = false) {
+    return runV1<T>(() => createV1Client().getSiteBingData(input), silent)
+  }
+
+  function getSiteBingConnection<T = GscdumpV1OperationResponse<'partner.sites.indexing.bing.connection.get'>['data']>(input: GscdumpV1OperationInput<'partner.sites.indexing.bing.connection.get'>, silent = false) {
+    return runV1<T>(() => createV1Client().getSiteBingConnection(input), silent)
+  }
+
+  function verifySiteBingConnection<T = GscdumpV1OperationResponse<'partner.sites.indexing.bing.connection.verify'>['data']>(input: GscdumpV1OperationInput<'partner.sites.indexing.bing.connection.verify'>, silent = false) {
+    return runV1<T>(() => createV1Client().verifySiteBingConnection(input), silent)
+  }
+
   return {
     createSitemapAction,
     getCanonicalMismatches,
@@ -163,6 +175,8 @@ export function useProGscdump() {
     getKeywordBreadth,
     getPositionDistribution,
     getSiteAnalysis,
+    getSiteBingConnection,
+    getSiteBingData,
     getSiteIndexing,
     getSiteIndexingDiagnostics,
     getSiteSitemapChanges,
@@ -179,5 +193,6 @@ export function useProGscdump() {
     queryAnalyticsReport,
     queryAnalyticsReportDetail,
     recoverSitePermission,
+    verifySiteBingConnection,
   }
 }

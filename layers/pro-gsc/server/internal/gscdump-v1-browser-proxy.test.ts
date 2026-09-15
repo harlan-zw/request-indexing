@@ -49,12 +49,29 @@ describe('resolveGscdumpV1ProxyOperation', () => {
     expect(resolved?.operation.id).toBe('analytics.rows.query')
   })
 
-  // Bing sits behind an email allowlist and has no surface here yet. Exposing
-  // its reads through the browser proxy would widen the relay for nothing.
-  it('rejects every Bing operation', () => {
+  // The two Bing pages are behind `NUXT_PUBLIC_FEATURES_BING`. With the flag
+  // off they do not exist, so the relay must not carry their reads either.
+  it('rejects every Bing operation while the flag is off', () => {
     expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/bing/data')).toBeNull()
     expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/indexing/bing/connection')).toBeNull()
     expect(resolveGscdumpV1ProxyOperation('POST', 'partner', 'sites/s_site-1/indexing/bing/connection/verify')).toBeNull()
+    expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/bing/data', { bing: false })).toBeNull()
+  })
+
+  it('resolves the three Bing operations while the flag is on', () => {
+    const flags = { bing: true }
+    expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/bing/data', flags)?.operation.id)
+      .toBe('partner.sites.bing.data.get')
+    expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/indexing/bing/connection', flags)?.operation.id)
+      .toBe('partner.sites.indexing.bing.connection.get')
+    expect(resolveGscdumpV1ProxyOperation('POST', 'partner', 'sites/s_site-1/indexing/bing/connection/verify', flags)?.operation.id)
+      .toBe('partner.sites.indexing.bing.connection.verify')
+  })
+
+  // The crawl view reads the `crawl` dataset of `bing.data.get`, so nothing
+  // needs per-URL evidence rows and the relay stays as narrow as the pages.
+  it('rejects the Bing evidence operation even while the flag is on', () => {
+    expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/indexing/bing/evidence', { bing: true })).toBeNull()
   })
 
   it('rejects a path with no matching operation', () => {
