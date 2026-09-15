@@ -429,301 +429,314 @@ const isConnected = computed(() => Boolean(gscdumpSiteId.value))
 </script>
 
 <template>
-  <ProPageZone tier="primary" first>
-    <UiAlert
-      v-if="publicationNotice"
-      :status="publicationNotice.status"
-      :title="publicationNotice.title"
-      :description="publicationNotice.description"
-      class="mb-6"
-    />
-    <UiAlert
-      v-if="sitemapsError && !sitemapsData"
-      status="error"
-      title="Sitemaps could not be loaded"
-      description="Search Console sitemap evidence is unavailable."
-    >
-      <template #action>
-        <UiButton purpose="secondary" size="xs" class="min-h-11" @click="retrySitemaps">
-          Retry
+  <div data-testid="indexing-sitemaps-page">
+    <!--
+      A page whose root is a component renders as a fragment, which Nuxt reports
+      as NUXT_E4004: the route change then has no element to mount against and
+      the page opens blank. This wrapper gives the route a real single root.
+    -->
+    <ProPageZone tier="primary" first>
+      <UiAlert
+        v-if="publicationNotice"
+        :status="publicationNotice.status"
+        :title="publicationNotice.title"
+        :description="publicationNotice.description"
+        class="mb-6"
+      />
+      <UiAlert
+        v-if="sitemapsError && !sitemapsData"
+        status="error"
+        title="Sitemaps could not be loaded"
+        description="Search Console sitemap evidence is unavailable."
+      >
+        <template #action>
+          <UiButton purpose="secondary" size="xs" class="min-h-11" @click="retrySitemaps">
+            Retry
+          </UiButton>
+        </template>
+      </UiAlert>
+
+      <UiEmptyState
+        v-else-if="!isConnected"
+        icon="link"
+        title="Connect Search Console to see sitemaps"
+        description="Sitemap files, their reported issues and their URL history all come from Search Console."
+      />
+
+      <UiEmptyState
+        v-else-if="!hasReportShell && !resolvedEmptyState"
+        icon="loading"
+        title="Checking /sitemap.xml"
+        description="Confirming whether the sitemap is live before suggesting a change."
+        aria-busy="true"
+      />
+
+      <UiEmptyState
+        v-else-if="!hasReportShell && resolvedEmptyState"
+        :icon="resolvedEmptyState._tag === 'install' ? 'file-x' : resolvedEmptyState._tag === 'repair' ? 'wifi-off' : 'search'"
+        :title="resolvedEmptyState.title"
+        :description="resolvedEmptyState.description"
+      >
+        <UiButton
+          v-if="resolvedEmptyState._tag === 'retry'"
+          purpose="secondary"
+          class="min-h-11"
+          @click="refreshLiveness()"
+        >
+          {{ resolvedEmptyState.actionLabel }}
         </UiButton>
-      </template>
-    </UiAlert>
+        <UiButton
+          v-else-if="emptyActionTo"
+          :to="emptyActionTo"
+          external
+          target="_blank"
+          purpose="secondary"
+          class="min-h-11"
+          trailing-icon="external"
+        >
+          {{ resolvedEmptyState.actionLabel }}
+        </UiButton>
+      </UiEmptyState>
 
-    <UiEmptyState
-      v-else-if="!isConnected"
-      icon="link"
-      title="Connect Search Console to see sitemaps"
-      description="Sitemap files, their reported issues and their URL history all come from Search Console."
-    />
+      <!--
+        The mobile track is spelled out. Without it the single implicit column is
+        auto-sized, so it grows to the widest sitemap path and the page scrolls
+        sideways at 390px; `minmax(0,1fr)` caps it at the viewport and lets the
+        report's own `truncate` do its job.
+      -->
+      <div v-else class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside v-if="loading" class="self-start" aria-hidden="true">
+          <div class="flex flex-col gap-1.5 px-2">
+            <UiSkeleton v-for="i in 3" :key="i" type="block" class="h-6 w-full rounded-md" />
+          </div>
+        </aside>
 
-    <UiEmptyState
-      v-else-if="!hasReportShell && !resolvedEmptyState"
-      icon="loading"
-      title="Checking /sitemap.xml"
-      description="Confirming whether the sitemap is live before suggesting a change."
-      aria-busy="true"
-    />
+        <aside v-else class="self-start">
+          <UiDisclosure label="Select sitemap" class="rounded-lg px-3 py-1 ring-1 ring-default lg:hidden">
+            <div class="pb-2">
+              <UCheckbox
+                v-if="problemRows.length"
+                v-model="problemsOnly"
+                label="Problems only"
+                class="min-h-11 px-2"
+              />
+              <UiNavList :links="sitemapLinks" label="Sitemap selection mobile">
+                <template #icon="{ link }">
+                  <UiSeverityDot :severity="(link as SitemapNavLink).severity" />
+                </template>
+              </UiNavList>
+            </div>
+          </UiDisclosure>
 
-    <UiEmptyState
-      v-else-if="!hasReportShell && resolvedEmptyState"
-      :icon="resolvedEmptyState._tag === 'install' ? 'file-x' : resolvedEmptyState._tag === 'repair' ? 'wifi-off' : 'search'"
-      :title="resolvedEmptyState.title"
-      :description="resolvedEmptyState.description"
-    >
-      <UiButton
-        v-if="resolvedEmptyState._tag === 'retry'"
-        purpose="secondary"
-        class="min-h-11"
-        @click="refreshLiveness()"
-      >
-        {{ resolvedEmptyState.actionLabel }}
-      </UiButton>
-      <UiButton
-        v-else-if="emptyActionTo"
-        :to="emptyActionTo"
-        external
-        target="_blank"
-        purpose="secondary"
-        class="min-h-11"
-        trailing-icon="external"
-      >
-        {{ resolvedEmptyState.actionLabel }}
-      </UiButton>
-    </UiEmptyState>
-
-    <div v-else class="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-      <aside v-if="loading" class="self-start" aria-hidden="true">
-        <div class="flex flex-col gap-1.5 px-2">
-          <UiSkeleton v-for="i in 3" :key="i" type="block" class="h-6 w-full rounded-md" />
-        </div>
-      </aside>
-
-      <aside v-else class="self-start">
-        <UiDisclosure label="Select sitemap" class="rounded-lg px-3 py-1 ring-1 ring-default lg:hidden">
-          <div class="pb-2">
+          <div class="hidden lg:sticky lg:top-6 lg:block">
             <UCheckbox
               v-if="problemRows.length"
               v-model="problemsOnly"
               label="Problems only"
-              class="min-h-11 px-2"
+              class="mb-2 min-h-11 px-2"
             />
-            <UiNavList :links="sitemapLinks" label="Sitemap selection mobile">
+            <UiNavList :links="sitemapLinks" label="Sitemap selection">
               <template #icon="{ link }">
                 <UiSeverityDot :severity="(link as SitemapNavLink).severity" />
               </template>
             </UiNavList>
           </div>
-        </UiDisclosure>
+        </aside>
 
-        <div class="hidden lg:sticky lg:top-6 lg:block">
-          <UCheckbox
-            v-if="problemRows.length"
-            v-model="problemsOnly"
-            label="Problems only"
-            class="mb-2 min-h-11 px-2"
-          />
-          <UiNavList :links="sitemapLinks" label="Sitemap selection">
-            <template #icon="{ link }">
-              <UiSeverityDot :severity="(link as SitemapNavLink).severity" />
-            </template>
-          </UiNavList>
-        </div>
-      </aside>
-
-      <UiCard v-if="loading" emphasis size="lg" class="min-w-0" aria-label="Loading sitemap report">
-        <div class="border-b border-default pb-4">
-          <UiSkeleton type="text" :base="220" :range="60" />
-        </div>
-        <div class="grid gap-6 pt-5 lg:grid-cols-2">
-          <div class="space-y-3">
-            <UiSkeleton type="text" :base="120" :range="30" />
-            <UiSkeleton type="text" :base="180" :range="50" class="!h-9" />
-            <UiSkeleton type="text" :base="280" :range="60" />
+        <UiCard v-if="loading" emphasis size="lg" class="min-w-0" aria-label="Loading sitemap report">
+          <div class="border-b border-default pb-4">
+            <UiSkeleton type="text" :base="220" :range="60" />
           </div>
-          <UiSkeleton :lines="4" :base="160" :range="80" />
-        </div>
-      </UiCard>
-
-      <div v-else-if="selectedSitemap" class="min-w-0 space-y-6">
-        <UiAlert
-          v-if="sitemapsError && sitemapsData"
-          status="warning"
-          title="Latest sitemap refresh failed"
-          description="Showing the last successful sitemap report."
-        >
-          <template #action>
-            <UiButton purpose="secondary" size="xs" class="min-h-11 sm:min-h-0" @click="retrySitemaps">
-              Retry
-            </UiButton>
-          </template>
-        </UiAlert>
-
-        <UiAlert
-          v-if="livenessUnavailable"
-          status="warning"
-          title="Live sitemap check unavailable"
-          description="Stored Search Console evidence is still shown for this sitemap."
-        >
-          <template #action>
-            <UiButton purpose="secondary" size="xs" class="min-h-11 sm:min-h-0" @click="refreshLiveness()">
-              Retry live check
-            </UiButton>
-          </template>
-        </UiAlert>
-
-        <UiEntitySummary
-          stack-header-on-mobile
-          :heading="selectedSitemap.path"
-          title="Submitted URLs"
-          :value="selectedSitemap.urlCount"
-          suffix="URLs"
-          :caption="historyCaption"
-          :sparkline="selectedUrlTrend.length > 1 ? selectedUrlTrend : undefined"
-          :facts="selectedFacts"
-          :fact-columns="2"
-        >
-          <template #heading>
-            <div class="min-w-0">
-              <h2 class="truncate text-base font-semibold text-highlighted">
-                {{ selectedSitemap.path }}
-              </h2>
-              <p class="mt-1 text-sm text-muted">
-                {{ selectedVerdict }}
-              </p>
+          <div class="grid grid-cols-[minmax(0,1fr)] gap-6 pt-5 lg:grid-cols-2">
+            <div class="space-y-3">
+              <UiSkeleton type="text" :base="120" :range="30" />
+              <UiSkeleton type="text" :base="180" :range="50" class="!h-9" />
+              <UiSkeleton type="text" :base="280" :range="60" />
             </div>
-          </template>
-          <template #actions>
-            <UiSyncDot v-if="reportRefreshing" status="syncing" label="Refreshing" />
-            <UiButton
-              v-if="searchConsoleSitemapsTo"
-              :to="searchConsoleSitemapsTo"
-              target="_blank"
-              external
-              size="xs"
-              purpose="secondary"
-              trailing-icon="external"
-              class="min-h-11 sm:min-h-0"
-            >
-              Review in Search Console
-            </UiButton>
-          </template>
-          <template #facts>
-            <div class="space-y-4">
-              <UiFactsGrid :facts="selectedFacts" :columns="2" />
-              <section
-                v-if="issueEvidence"
-                aria-labelledby="sitemap-issue-evidence"
-                class="border-t border-default pt-4"
-              >
-                <h3 id="sitemap-issue-evidence" class="text-label">
-                  Issue evidence
-                </h3>
-                <p class="mt-2 text-sm text-muted">
-                  {{ issueEvidence }}
+            <UiSkeleton :lines="4" :base="160" :range="80" />
+          </div>
+        </UiCard>
+
+        <div v-else-if="selectedSitemap" class="min-w-0 space-y-6">
+          <UiAlert
+            v-if="sitemapsError && sitemapsData"
+            status="warning"
+            title="Latest sitemap refresh failed"
+            description="Showing the last successful sitemap report."
+          >
+            <template #action>
+              <UiButton purpose="secondary" size="xs" class="min-h-11 sm:min-h-0" @click="retrySitemaps">
+                Retry
+              </UiButton>
+            </template>
+          </UiAlert>
+
+          <UiAlert
+            v-if="livenessUnavailable"
+            status="warning"
+            title="Live sitemap check unavailable"
+            description="Stored Search Console evidence is still shown for this sitemap."
+          >
+            <template #action>
+              <UiButton purpose="secondary" size="xs" class="min-h-11 sm:min-h-0" @click="refreshLiveness()">
+                Retry live check
+              </UiButton>
+            </template>
+          </UiAlert>
+
+          <UiEntitySummary
+            stack-header-on-mobile
+            :heading="selectedSitemap.path"
+            title="Submitted URLs"
+            :value="selectedSitemap.urlCount"
+            suffix="URLs"
+            :caption="historyCaption"
+            :sparkline="selectedUrlTrend.length > 1 ? selectedUrlTrend : undefined"
+            :facts="selectedFacts"
+            :fact-columns="2"
+          >
+            <template #heading>
+              <div class="min-w-0">
+                <h2 class="truncate text-base font-semibold text-highlighted">
+                  {{ selectedSitemap.path }}
+                </h2>
+                <p class="mt-1 text-sm text-muted">
+                  {{ selectedVerdict }}
                 </p>
-              </section>
-            </div>
-          </template>
-        </UiEntitySummary>
-
-        <UiAlert
-          v-if="changesError && !changesData"
-          status="warning"
-          title="URL changes could not be loaded"
-          description="The current sitemap report is available without its recent change history."
-        >
-          <template #action>
-            <UiButton purpose="secondary" size="xs" class="min-h-11 sm:min-h-0" @click="refreshChanges()">
-              Retry changes
-            </UiButton>
-          </template>
-        </UiAlert>
-
-        <UiAlert
-          v-if="changesError && changesData"
-          status="warning"
-          title="Latest change refresh failed"
-          description="Showing the last successful change sample."
-        >
-          <template #action>
-            <UiButton purpose="secondary" size="xs" class="min-h-11 sm:min-h-0" @click="refreshChanges()">
-              Retry changes
-            </UiButton>
-          </template>
-        </UiAlert>
-
-        <UiAlert
-          v-if="selectedChangeCoverage?._tag === 'truncated' && !(changesError && changesData)"
-          status="warning"
-          title="URL change history is partial"
-          :description="selectedChangeCoverage.alertDescription"
-        />
-
-        <UiDataList
-          v-if="!changesError || changesData"
-          title="Recent URL changes"
-          icon="history"
-          :items="recentChanges"
-          :loading="changesLoading"
-          empty-icon="history"
-          :empty-text="selectedChangeCoverage?.emptyText ?? 'No recent changes for this sitemap in this period.'"
-        >
-          <template #header-trailing>
-            <div class="flex flex-wrap items-center justify-end gap-3">
-              <span v-if="selectedChangeCoverage" class="text-sm text-muted">
-                {{ selectedChangeCoverage.summary }}
-              </span>
-              <UiTooltip
-                v-if="selectedChangeCoverage"
-                :title="selectedChangeCoverage.tooltipTitle"
-                :description="selectedChangeCoverage.tooltipDescription"
-                trigger-as="button"
+              </div>
+            </template>
+            <template #actions>
+              <UiSyncDot v-if="reportRefreshing" status="syncing" label="Refreshing" />
+              <UiButton
+                v-if="searchConsoleSitemapsTo"
+                :to="searchConsoleSitemapsTo"
+                target="_blank"
+                external
+                size="xs"
+                purpose="secondary"
+                trailing-icon="external"
+                class="min-h-11 sm:min-h-0"
               >
-                <span class="inline-flex min-h-11 min-w-11 items-center justify-center sm:min-h-0 sm:min-w-0">
-                  <UiIcon name="help" class="size-4 text-dimmed" aria-hidden="true" />
+                Review in Search Console
+              </UiButton>
+            </template>
+            <template #facts>
+              <div class="space-y-4">
+                <UiFactsGrid :facts="selectedFacts" :columns="2" />
+                <section
+                  v-if="issueEvidence"
+                  aria-labelledby="sitemap-issue-evidence"
+                  class="border-t border-default pt-4"
+                >
+                  <h3 id="sitemap-issue-evidence" class="text-label">
+                    Issue evidence
+                  </h3>
+                  <p class="mt-2 text-sm text-muted">
+                    {{ issueEvidence }}
+                  </p>
+                </section>
+              </div>
+            </template>
+          </UiEntitySummary>
+
+          <UiAlert
+            v-if="changesError && !changesData"
+            status="warning"
+            title="URL changes could not be loaded"
+            description="The current sitemap report is available without its recent change history."
+          >
+            <template #action>
+              <UiButton purpose="secondary" size="xs" class="min-h-11 sm:min-h-0" @click="refreshChanges()">
+                Retry changes
+              </UiButton>
+            </template>
+          </UiAlert>
+
+          <UiAlert
+            v-if="changesError && changesData"
+            status="warning"
+            title="Latest change refresh failed"
+            description="Showing the last successful change sample."
+          >
+            <template #action>
+              <UiButton purpose="secondary" size="xs" class="min-h-11 sm:min-h-0" @click="refreshChanges()">
+                Retry changes
+              </UiButton>
+            </template>
+          </UiAlert>
+
+          <UiAlert
+            v-if="selectedChangeCoverage?._tag === 'truncated' && !(changesError && changesData)"
+            status="warning"
+            title="URL change history is partial"
+            :description="selectedChangeCoverage.alertDescription"
+          />
+
+          <UiDataList
+            v-if="!changesError || changesData"
+            title="Recent URL changes"
+            icon="history"
+            :items="recentChanges"
+            :loading="changesLoading"
+            empty-icon="history"
+            :empty-text="selectedChangeCoverage?.emptyText ?? 'No recent changes for this sitemap in this period.'"
+          >
+            <template #header-trailing>
+              <div class="flex flex-wrap items-center justify-end gap-3">
+                <span v-if="selectedChangeCoverage" class="text-sm text-muted">
+                  {{ selectedChangeCoverage.summary }}
                 </span>
-              </UiTooltip>
-              <ClientOnly>
-                <ProDateRangePicker
-                  v-model:period="period"
-                  v-model:compare-mode="compareMode"
-                  v-model:stable-data="stableData"
-                  :show-compare="false"
-                  :show-stable="false"
-                />
-              </ClientOnly>
-            </div>
-          </template>
-          <template #default="{ item }: { item: ReportChange }">
-            <a
-              :href="item.url"
-              target="_blank"
-              rel="noopener"
-              class="relative z-1 flex min-h-11 w-full items-center gap-3 rounded-md py-2 text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-0 sm:py-1"
-              :title="item.url"
-              @click.stop
-            >
-              <span class="w-16 shrink-0 text-sm font-medium text-muted">
-                {{ item.kind === 'added' ? 'Added' : 'Removed' }}
-              </span>
-              <span class="min-w-0 flex-1 truncate text-sm hover:underline">
-                {{ displayUrl(item.url) }}
-              </span>
-              <span class="shrink-0 text-sm text-muted">
-                {{ changeDate(item.timestamp) }}
-              </span>
-            </a>
-          </template>
-          <template #footer>
-            <UiSeverityDot
-              v-if="selectedDropLabel"
-              :severity="selectedDropState._tag === 'recovered_blip' ? 'info' : 'warning'"
-              :label="selectedDropLabel"
-            />
-          </template>
-        </UiDataList>
+                <UiTooltip
+                  v-if="selectedChangeCoverage"
+                  :title="selectedChangeCoverage.tooltipTitle"
+                  :description="selectedChangeCoverage.tooltipDescription"
+                  trigger-as="button"
+                >
+                  <span class="inline-flex min-h-11 min-w-11 items-center justify-center sm:min-h-0 sm:min-w-0">
+                    <UiIcon name="help" class="size-4 text-dimmed" aria-hidden="true" />
+                  </span>
+                </UiTooltip>
+                <ClientOnly>
+                  <ProDateRangePicker
+                    v-model:period="period"
+                    v-model:compare-mode="compareMode"
+                    v-model:stable-data="stableData"
+                    :show-compare="false"
+                    :show-stable="false"
+                  />
+                </ClientOnly>
+              </div>
+            </template>
+            <template #default="{ item }: { item: ReportChange }">
+              <a
+                :href="item.url"
+                target="_blank"
+                rel="noopener"
+                class="relative z-1 flex min-h-11 w-full items-center gap-3 rounded-md py-2 text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-0 sm:py-1"
+                :title="item.url"
+                @click.stop
+              >
+                <span class="w-16 shrink-0 text-sm font-medium text-muted">
+                  {{ item.kind === 'added' ? 'Added' : 'Removed' }}
+                </span>
+                <span class="min-w-0 flex-1 truncate text-sm hover:underline">
+                  {{ displayUrl(item.url) }}
+                </span>
+                <span class="shrink-0 text-sm text-muted">
+                  {{ changeDate(item.timestamp) }}
+                </span>
+              </a>
+            </template>
+            <template #footer>
+              <UiSeverityDot
+                v-if="selectedDropLabel"
+                :severity="selectedDropState._tag === 'recovered_blip' ? 'info' : 'warning'"
+                :label="selectedDropLabel"
+              />
+            </template>
+          </UiDataList>
+        </div>
       </div>
-    </div>
-  </ProPageZone>
+    </ProPageZone>
+  </div>
 </template>

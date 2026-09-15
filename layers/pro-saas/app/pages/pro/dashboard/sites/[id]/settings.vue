@@ -1,13 +1,30 @@
 <script lang="ts" setup>
+import { useProGscdumpSitemaps } from '#layers/pro-gsc/app/composables/useProGscdump'
+
 definePageMeta({
   proTab: { feature: 'settings', label: 'Site Settings', icon: 'i-heroicons-cog', order: 90 },
   title: 'Site settings',
   icon: 'i-heroicons-cog',
 })
 
-const { site, siteId, siteName } = useSite('Site Settings')
+const { site, siteId, siteName, gscdumpSiteId } = useSite('Site Settings')
 
-const sitemaps = computed(() => (site.value as { sitemaps?: { path?: string }[] } | null)?.sitemaps ?? [])
+// The Sitemaps page reads Search Console through gscdump. This panel used to
+// read `sites.sitemaps`, a column nothing writes any more, so a site with a
+// live sitemap reported none here. One source, one answer.
+const {
+  data: sitemapsData,
+  status: sitemapsStatus,
+  error: sitemapsError,
+} = useProGscdumpSitemaps(computed(() => gscdumpSiteId.value ?? undefined))
+
+const sitemaps = computed(() => sitemapsData.value?.sitemaps ?? [])
+const sitemapsLoading = computed(() =>
+  Boolean(gscdumpSiteId.value)
+  && !sitemapsData.value
+  && !sitemapsError.value
+  && (sitemapsStatus.value === 'idle' || sitemapsStatus.value === 'pending'),
+)
 
 const toast = useToast()
 const confirmOpen = ref(false)
@@ -62,8 +79,14 @@ async function removeSite() {
             <dt class="text-muted">
               Sitemaps
             </dt>
-            <dd v-if="sitemaps.length" class="space-y-1 font-mono text-xs break-all">
-              <div v-for="sitemap in sitemaps" :key="sitemap.path ?? ''">
+            <dd v-if="sitemapsLoading" class="text-muted">
+              Loading sitemaps from Search Console.
+            </dd>
+            <dd v-else-if="sitemapsError" class="text-muted">
+              Search Console sitemaps could not be loaded.
+            </dd>
+            <dd v-else-if="sitemaps.length" class="space-y-1 font-mono text-xs break-all">
+              <div v-for="sitemap in sitemaps" :key="sitemap.path">
                 {{ sitemap.path }}
               </div>
             </dd>

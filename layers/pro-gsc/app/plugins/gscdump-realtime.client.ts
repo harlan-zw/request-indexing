@@ -86,9 +86,11 @@ export default defineNuxtPlugin({
             },
           })
           const client = createGscdumpRealtimeV1Client({
-            ticketProvider: () => http.createRealtimeTicket({
-              body: { origin: window.location.origin },
-            }),
+            // The body is empty on purpose. A ticket's origin is host policy,
+            // so the proxy substitutes its own request origin; sending one from
+            // the browser is rejected as an unexpected body and the ticket
+            // never minted. Same call shape as nuxtseo.com.
+            ticketProvider: () => http.createRealtimeTicket({ body: {} }),
             applyEvent: async event => invalidateAffectedSites(event),
             resync: async () => refreshNuxtData(),
             onObservation: (observation) => {
