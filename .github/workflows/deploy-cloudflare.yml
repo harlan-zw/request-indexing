@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: deploy-cloudflare-production
@@ -89,3 +90,22 @@ jobs:
       # gone wrong from this yet; the risk is that it is unenforced.
 
       - run: pnpm deploy
+
+      # Reuse the deploy build. Reporting errors must not change deployment status.
+      - name: Report Nuxt DX budget
+        id: dx_budget
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        timeout-minutes: 2
+        uses: harlan-zw/harlan-nuxt/.github/actions/nuxt-dx-budget@95e49acf4a8f38b76cd374e2531039b280b869bc
+        with:
+          artifact-name: nuxt-dx-size-budget-v3-prod
+          report-path: .nuxt/dx/size-budget.json
+          threshold-kb: 10
+          comment: 'false'
+      - name: Surface unavailable size report
+        if: steps.dx_budget.outcome == 'failure'
+        run: |
+          echo '::warning::Nuxt DX reporting failed. See the report step.'
+          echo '### Nuxt DX report unavailable' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Reporting failed. The deployment result is unchanged.' >> "$GITHUB_STEP_SUMMARY"
