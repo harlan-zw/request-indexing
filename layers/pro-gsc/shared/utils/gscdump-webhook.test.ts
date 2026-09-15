@@ -3,8 +3,12 @@
 // receiver verifies via `@gscdump/sdk/webhook`. If those two ever drift, every
 // webhook silently 401s and lifecycle state stops converging, so pin the
 // agreement against a signature produced the way gscdump produces one.
+//
+// SDK 3.x removed the `Result`-returning parser. The receiver now calls
+// `verifyWebhookSignature` for the 401 decision and parses the envelope
+// separately, so both halves are pinned here.
 
-import { parseWebhookPayloadResult } from '@gscdump/sdk/webhook'
+import { parseWebhookPayload, verifyWebhookSignature } from '@gscdump/sdk/webhook'
 import { describe, expect, it } from 'vitest'
 
 const SECRET = 'whsec_test_secret'
@@ -35,29 +39,31 @@ describe('gscdump webhook verification', () => {
   it('accepts a delivery signed the way gscdump signs it', async () => {
     const body = JSON.stringify(envelope)
 
-    const result = await parseWebhookPayloadResult(body, {
-      secret: SECRET,
-      signature: await signLikeGscdump(body, SECRET),
-    })
+    const verified = await verifyWebhookSignature(body, await signLikeGscdump(body, SECRET), SECRET)
 
-    expect(result.ok).toBe(true)
-    expect(result.ok && result.value.deliveryId).toBe(envelope.deliveryId)
-    expect(result.ok && result.value.event).toBe('site.analytics.ready')
+    expect(verified).toBe(true)
   })
 
   it('rejects a body tampered with after signing', async () => {
     const signature = await signLikeGscdump(JSON.stringify(envelope), SECRET)
     const tampered = JSON.stringify({ ...envelope, userId: 'usr_attacker' })
 
-    const result = await parseWebhookPayloadResult(tampered, { secret: SECRET, signature })
+    const verified = await verifyWebhookSignature(tampered, signature, SECRET)
 
-    expect(result.ok).toBe(false)
-    expect(!result.ok && result.error.statusCode).toBe(401)
+    expect(verified).toBe(false)
   })
 
   it('rejects an unsigned delivery', async () => {
-    const result = await parseWebhookPayloadResult(JSON.stringify(envelope), { secret: SECRET, signature: null })
+    const verified = await verifyWebhookSignature(JSON.stringify(envelope), null, SECRET)
 
-    expect(result.ok).toBe(false)
+    expect(verified).toBe(false)
+  })
+
+  it('reads the envelope the receiver dispatches on', async () => {
+    const parsed = await parseWebhookPayload(JSON.stringify(envelope), { validateSignature: false })
+
+    expect(parsed.deliveryId).toBe(envelope.deliveryId)
+    expect(parsed.event).toBe('site.analytics.ready')
+    expect(parsed.siteId).toBe('site_123')
   })
 })
