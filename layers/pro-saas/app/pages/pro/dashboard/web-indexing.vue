@@ -14,12 +14,12 @@ const sites = computed(() => (data.value?.sites || []))
 
 <template>
   <div class="space-y-10">
-    <div v-for="site in sites" :key="site.publicId">
+    <div v-for="site in sites" :key="site.siteId">
       <CardTitle>
-        <!-- `site.publicId` is the route slug. The sync engine id (`gscdumpSiteId`)
+        <!-- `site.siteId` is the route slug. The sync engine id (`gscdumpSiteId`)
              is not a valid slug and 404s if used here. -->
         <NuxtLink
-          :to="`/dashboard/site/${encodeURIComponent(site.publicId)}/web-indexing`"
+          :to="`/dashboard/site/${encodeURIComponent(site.siteId)}/web-indexing`"
           class="flex min-h-11 items-center gap-2 rounded-md text-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           <SiteFavicon :site="site" />
