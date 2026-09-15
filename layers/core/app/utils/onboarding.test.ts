@@ -1,42 +1,33 @@
 import { describe, expect, it } from 'vitest'
-import { needsOnboarding, resolveTeamOnboarding } from './onboarding'
+import { needsOnboarding, resolveUserOnboarding } from './onboarding'
 
-describe('resolveTeamOnboarding', () => {
+describe('resolveUserOnboarding', () => {
   it('reports a signed-out session', () => {
-    expect(resolveTeamOnboarding(undefined)).toEqual({ _tag: 'SignedOut' })
-    expect(resolveTeamOnboarding({})).toEqual({ _tag: 'SignedOut' })
+    expect(resolveUserOnboarding(undefined)).toEqual({ _tag: 'SignedOut' })
+    expect(resolveUserOnboarding({})).toEqual({ _tag: 'SignedOut' })
   })
 
-  it('reports an absent team instead of reading through it', () => {
-    expect(resolveTeamOnboarding({ user: { id: 1 } })).toEqual({ _tag: 'NoTeam' })
-    expect(resolveTeamOnboarding({ user: { id: 1 }, team: null })).toEqual({ _tag: 'NoTeam' })
+  it('reports a user who has not finished onboarding', () => {
+    expect(resolveUserOnboarding({ user: { id: 1 } })).toEqual({ _tag: 'NotOnboarded' })
+    expect(resolveUserOnboarding({ user: { id: 1 }, onboardingCompletedAt: null })).toEqual({ _tag: 'NotOnboarded' })
   })
 
-  it('reports a team that has not finished onboarding', () => {
-    expect(resolveTeamOnboarding({ user: { id: 1 }, team: { teamId: 7, onboardedStep: null } }))
-      .toEqual({ _tag: 'NotOnboarded', teamId: 7 })
-  })
-
-  it('reports a finished team with the step it stopped on', () => {
-    expect(resolveTeamOnboarding({ user: { id: 1 }, team: { teamId: 7, onboardedStep: 'sites-and-backup' } }))
-      .toEqual({ _tag: 'Onboarded', teamId: 7, step: 'sites-and-backup' })
+  it('reports a finished user with the time they finished', () => {
+    expect(resolveUserOnboarding({ user: { id: 1 }, onboardingCompletedAt: '2026-09-15T00:00:00.000Z' }))
+      .toEqual({ _tag: 'Onboarded', completedAt: '2026-09-15T00:00:00.000Z' })
   })
 })
 
 describe('needsOnboarding', () => {
-  it('sends a user with no team to onboarding', () => {
-    expect(needsOnboarding(resolveTeamOnboarding({ user: { id: 1 } }))).toBe(true)
+  it('sends an unfinished user to onboarding', () => {
+    expect(needsOnboarding(resolveUserOnboarding({ user: { id: 1 } }))).toBe(true)
   })
 
-  it('sends an unfinished team to onboarding', () => {
-    expect(needsOnboarding(resolveTeamOnboarding({ user: { id: 1 }, team: { teamId: 7, onboardedStep: null } }))).toBe(true)
-  })
-
-  it('leaves a finished team alone', () => {
-    expect(needsOnboarding(resolveTeamOnboarding({ user: { id: 1 }, team: { teamId: 7, onboardedStep: 'sites-and-backup' } }))).toBe(false)
+  it('leaves a finished user alone, whichever team they are on', () => {
+    expect(needsOnboarding(resolveUserOnboarding({ user: { id: 1 }, onboardingCompletedAt: '2026-09-15T00:00:00.000Z' }))).toBe(false)
   })
 
   it('leaves a signed-out session to the auth middleware', () => {
-    expect(needsOnboarding(resolveTeamOnboarding(null))).toBe(false)
+    expect(needsOnboarding(resolveUserOnboarding(null))).toBe(false)
   })
 })

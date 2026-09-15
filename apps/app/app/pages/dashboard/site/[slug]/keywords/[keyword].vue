@@ -28,7 +28,7 @@ const pagesForKeywordFilter = computed(() => [
   <div class="space-y-7">
     <div>
       <UButton
-        :to="`/dashboard/site/${site.siteId}/keywords`"
+        :to="`/dashboard/site/${site.publicId}/keywords`"
         icon="i-heroicons-arrow-left-20-solid"
         color="neutral"
         variant="link"
@@ -56,7 +56,7 @@ const pagesForKeywordFilter = computed(() => [
           <GscdumpPagesTable
             class="min-w-[44rem] md:min-w-0"
             :gscdump-site-id="site.gscdumpSiteId"
-            :route-slug="String(site.siteId)"
+            :route-slug="String(site.publicId)"
             :extra-filters="pagesForKeywordFilter"
             :page-size="10"
             :exclude-columns="['topKeyword']"

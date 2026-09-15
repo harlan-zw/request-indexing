@@ -6,7 +6,7 @@
 // gscdump client directly, it just triggers the existing listener.
 //
 // D1 doesn't enforce FK cascades (see `delete-user.ts`), so every table that
-// references `sites.siteId` is purged explicitly, children before the
+// references `sites.id` is purged explicitly, children before the
 // `sites` row itself. `jobs`/`failed_jobs`/`job_batches` carry a bare
 // (non-FK) `site_id` column for queue bookkeeping and are intentionally left
 // alone — they're transient queue history, not site data.
@@ -14,10 +14,6 @@ import { eq } from 'drizzle-orm'
 import {
   indexingInvestigations,
   indexingJobs,
-  siteDateAnalytics,
-  siteDateCountryAnalytics,
-  sitePathDateAnalytics,
-  sitePaths,
   teamSites,
   usages,
   userSites,
@@ -32,7 +28,7 @@ export default defineProApiHandler(async (event) => {
 
   await dispatchEvent('pro:site:removed', {
     event,
-    siteId: site.siteId,
+    siteId: site.id,
     teamId: team.teamId,
     userId: caller.user.id,
     gscdumpSiteId: site.gscdumpSiteId,
@@ -42,15 +38,11 @@ export default defineProApiHandler(async (event) => {
   // a shared array of table refs) so drizzle keeps each `siteId` column's own
   // brand — a generic loop over mixed table types loses that and breaks typing.
   const childDeletes: Array<() => Promise<unknown>> = [
-    () => db.delete(siteDateAnalytics).where(eq(siteDateAnalytics.siteId, site.siteId)),
-    () => db.delete(siteDateCountryAnalytics).where(eq(siteDateCountryAnalytics.siteId, site.siteId)),
-    () => db.delete(sitePathDateAnalytics).where(eq(sitePathDateAnalytics.siteId, site.siteId)),
-    () => db.delete(sitePaths).where(eq(sitePaths.siteId, site.siteId)),
-    () => db.delete(usages).where(eq(usages.siteId, site.siteId)),
-    () => db.delete(userSites).where(eq(userSites.siteId, site.siteId)),
-    () => db.delete(teamSites).where(eq(teamSites.siteId, site.siteId)),
-    () => db.delete(indexingJobs).where(eq(indexingJobs.siteId, site.siteId)),
-    () => db.delete(indexingInvestigations).where(eq(indexingInvestigations.siteId, site.siteId)),
+    () => db.delete(usages).where(eq(usages.siteId, site.id)),
+    () => db.delete(userSites).where(eq(userSites.siteId, site.id)),
+    () => db.delete(teamSites).where(eq(teamSites.siteId, site.id)),
+    () => db.delete(indexingJobs).where(eq(indexingJobs.siteId, site.id)),
+    () => db.delete(indexingInvestigations).where(eq(indexingInvestigations.siteId, site.id)),
   ]
 
   const warnings: string[] = []
@@ -60,7 +52,7 @@ export default defineProApiHandler(async (event) => {
     })
   }
 
-  await db.delete(sites).where(eq(sites.siteId, site.siteId))
+  await db.delete(sites).where(eq(sites.id, site.id))
 
   return { success: true, siteId: site.publicId, warnings }
 })

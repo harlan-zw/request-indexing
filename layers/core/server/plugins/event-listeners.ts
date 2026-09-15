@@ -2,7 +2,7 @@ import type { NitroRuntimeHooks } from 'nitropack'
 import type { TaskMap, TaskName } from '#shared/types/tasks'
 import { queueJob } from '../utils/event-service'
 
-interface JobInsertOpts { siteId?: number, userId?: number }
+interface JobInsertOpts { siteId?: string, userId?: number }
 
 function listeners<T extends keyof NitroRuntimeHooks>(
   hookName: T,

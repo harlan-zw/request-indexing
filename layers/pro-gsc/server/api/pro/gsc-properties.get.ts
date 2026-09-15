@@ -75,18 +75,20 @@ export default defineProApiHandler({ team: true }, async ({ team: ctx }): Promis
   if (!gscConnected)
     return { connected: false, properties: [] }
 
-  // V1: core sites does not have teamId; team→site lives on `team_sites` join.
-  // Until pro-gsc lifts the cross-table lookup, list owner-scoped sites only.
+  // Every site the caller's current team owns. This used to list the caller's
+  // own sites, so a teammate's site never appeared in the property matcher.
   const userSites = await db
     .select({
-      id: sites.siteId,
+      id: sites.id,
       url: sites.property,
       name: sites.property,
       gscdumpSiteId: sites.gscdumpSiteId,
       gscdumpSiteUrl: sites.gscdumpSiteUrl,
     })
     .from(sites)
-    .where(eq(sites.ownerId, ctx.caller.user.id))
+    .where(ctx.caller.currentTeamId
+      ? eq(sites.teamId, ctx.caller.currentTeamId)
+      : eq(sites.ownerId, ctx.caller.user.id))
 
   // Build domain lookup for matching
   const siteDomains = userSites

@@ -28,11 +28,7 @@ import {
   notifications,
   proEvents,
   sessions,
-  siteDateAnalytics,
-  siteDateCountryAnalytics,
   siteGroups,
-  sitePathDateAnalytics,
-  sitePaths,
   sites,
   teamAuditEvents,
   teamGscCredentials,
@@ -115,15 +111,20 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
     })
   }
 
-  // Resolve every site this user owns up-front so child purges can scope by siteId.
-  const ownedSiteRows = await db.select({ id: sites.siteId }).from(sites).where(eq(sites.ownerId, userId))
-  const siteIds = ownedSiteRows.map(s => s.id)
-
   // Pre-resolve teams the user owns so cascading children can be scoped explicitly.
   // D1 enforces FKs, so we manually delete every team-scoped child row
   // for owned teams before deleting the team itself.
   const ownedTeamRows = await db.select({ id: teams.teamId }).from(teams).where(eq(teams.ownerId, userId))
   const ownedTeamIds = ownedTeamRows.map(t => t.id)
+
+  // Sites belong to a team, so an owned team's sites go with it. `sites.team_id`
+  // is ON DELETE RESTRICT, so missing one of these blocks the team delete
+  // rather than silently orphaning it. Sites the user created inside someone
+  // else's team stay with that team; only creator attribution is lost.
+  const ownedSiteRows = ownedTeamIds.length
+    ? await db.select({ id: sites.id }).from(sites).where(or(eq(sites.ownerId, userId), inArray(sites.teamId, ownedTeamIds)))
+    : await db.select({ id: sites.id }).from(sites).where(eq(sites.ownerId, userId))
+  const siteIds = ownedSiteRows.map(s => s.id)
 
   const hasSites = () => siteIds.length > 0
   const hasTeams = () => ownedTeamIds.length > 0
@@ -205,27 +206,7 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
         ? db.delete(jobBatches).where(or(eq(jobBatches.userId, userId), inArray(jobBatches.siteId, siteIds)))
         : db.delete(jobBatches).where(eq(jobBatches.userId, userId)),
     },
-    // ── Owned-site analytics and inspection children ─────────────────────
-    {
-      table: 'site_paths',
-      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_paths where site_id in ${siteList()}`) : Promise.resolve(0),
-      run: () => hasSites() ? db.delete(sitePaths).where(inArray(sitePaths.siteId, siteIds)) : Promise.resolve(),
-    },
-    {
-      table: 'site_date_analytics',
-      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_date_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
-      run: () => hasSites() ? db.delete(siteDateAnalytics).where(inArray(siteDateAnalytics.siteId, siteIds)) : Promise.resolve(),
-    },
-    {
-      table: 'site_date_country_analytics',
-      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_date_country_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
-      run: () => hasSites() ? db.delete(siteDateCountryAnalytics).where(inArray(siteDateCountryAnalytics.siteId, siteIds)) : Promise.resolve(),
-    },
-    {
-      table: 'site_path_date_analytics',
-      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_path_date_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
-      run: () => hasSites() ? db.delete(sitePathDateAnalytics).where(inArray(sitePathDateAnalytics.siteId, siteIds)) : Promise.resolve(),
-    },
+    // ── Owned-site children ──────────────────────────────────────────────
     {
       table: 'usages',
       count: () => hasSites() ? scalar(db, sql`select count(*) as c from usages where site_id in ${siteList()}`) : Promise.resolve(0),
@@ -272,8 +253,8 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
     },
     {
       table: 'sites',
-      count: () => scalar(db, sql`select count(*) as c from sites where owner_id = ${userId}`),
-      run: () => db.delete(sites).where(eq(sites.ownerId, userId)),
+      count: () => hasSites() ? scalar(db, sql`select count(*) as c from sites where id in ${siteList()}`) : Promise.resolve(0),
+      run: () => hasSites() ? db.delete(sites).where(inArray(sites.id, siteIds)) : Promise.resolve(),
     },
     // ── Owned-team scoped rows ───────────────────────────────────────────
     {
@@ -419,7 +400,7 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
   }
 }
 
-function idList(ids: number[]) {
+function idList(ids: (number | string)[]) {
   // Drizzle's inArray works for delete/update; for raw scalar count we hand-build the SQL list.
   return sql`(${sql.join(ids.map(id => sql`${id}`), sql`, `)})`
 }

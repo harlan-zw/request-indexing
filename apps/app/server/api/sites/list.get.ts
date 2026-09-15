@@ -13,7 +13,7 @@ import { lifecycleSiteFor, syncStatusFor } from '../../utils/site-lifecycle'
 export default defineProApiHandler({ team: true }, async ({ team: ctx }) => {
   const rows = await ctx.db.select({ site: sites })
     .from(sites)
-    .innerJoin(teamSites, and(eq(sites.siteId, teamSites.siteId), eq(teamSites.teamId, ctx.team.teamId)))
+    .innerJoin(teamSites, and(eq(sites.id, teamSites.siteId), eq(teamSites.teamId, ctx.team.teamId)))
     .where(eq(sites.active, true))
     .all()
 

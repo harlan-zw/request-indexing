@@ -60,7 +60,7 @@ async function refresh() {
 
 const { user, fetch } = useUserSession()
 
-const selectedSites = ref<string[]>(siteData.value?.sites?.map(s => String(s.siteId)) || [])
+const selectedSites = ref<string[]>(siteData.value?.sites?.map(s => String(s.publicId)) || [])
 const toast = useToast()
 const isSubmitting = ref(false)
 
@@ -85,7 +85,7 @@ async function onSubmit() {
   await $fetch('/api/teams/currentTeam', {
     method: 'POST',
     body: JSON.stringify({
-      onboardedStep: 'sites-and-backup', // maybe we change onboarding in future and they need to repeat it
+      completeOnboarding: true,
       selectedSites: selectedSites.value,
       backupsEnabled: true,
     }),

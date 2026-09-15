@@ -12,7 +12,7 @@ export default defineJob({
 
     const site = await db.query.sites.findFirst({
       with: { owner: true },
-      where: eq(sites.siteId, siteId),
+      where: eq(sites.id, siteId),
     }) as (typeof sites.$inferSelect & { owner: { publicId: string } | null }) | undefined
 
     if (!site)
@@ -21,7 +21,7 @@ export default defineJob({
     await db.update(sites).set({
       isSynced: true,
       lastSynced: Date.now(),
-    }).where(eq(sites.siteId, siteId))
+    }).where(eq(sites.id, siteId))
 
     if (site.owner) {
       broadcastToUser(site.owner.publicId, {

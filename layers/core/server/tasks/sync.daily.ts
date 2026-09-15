@@ -21,15 +21,15 @@ export default defineTask({
     const validSites = await db.selectDistinct({
       siteId: teamSites.siteId,
       lastSynced: sites.lastSynced,
-    }).from(teamSites).where(eq(sites.active, true)).leftJoin(sites, eq(teamSites.siteId, sites.siteId))
+    }).from(teamSites).where(eq(sites.active, true)).leftJoin(sites, eq(teamSites.siteId, sites.id))
 
     for (const site of validSites) {
       await batchJobs(db, env, {
         name: 'site/sync',
-        siteId: site.siteId,
+        siteId: site.id,
         onFinish: {
           name: 'sites/sync-finished',
-          payload: { siteId: site.siteId },
+          payload: { siteId: site.id },
         },
       }, [])
     }

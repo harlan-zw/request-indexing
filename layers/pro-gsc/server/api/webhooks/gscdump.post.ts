@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
 
   const localSite = envelope.siteId
     ? await db.query.sites.findFirst({
-        columns: { siteId: true, ownerId: true },
+        columns: { id: true, ownerId: true, teamId: true },
         where: eq(sites.gscdumpSiteId, envelope.siteId),
       })
     : undefined
@@ -108,7 +108,7 @@ export default defineEventHandler(async (event) => {
     if (patch) {
       await db.update(sites)
         .set(patch)
-        .where(eq(sites.siteId, localSite.siteId))
+        .where(eq(sites.id, localSite.id))
     }
   }
 
@@ -124,7 +124,7 @@ export default defineEventHandler(async (event) => {
     event,
     envelope,
     userId: localUser.userId,
-    siteId: localSite?.siteId ?? null,
+    siteId: localSite?.id ?? null,
   }).catch((err: unknown) => logWarn('webhook.side_effect_failed', err, { event: envelope.event }))
 
   return { ok: true }

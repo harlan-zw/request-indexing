@@ -18,7 +18,7 @@ const sites = computed(() => sitesData.value?.sites || [])
 // `/api/sites/list` returns `sites.public_id` ("kv1112") as `siteId`, while the
 // row type declares the integer primary key. Compare as strings until that type
 // is honest, so the match does not depend on the lie.
-const site = computed(() => sites.value.find(s => String(s.siteId) === slug))
+const site = computed(() => sites.value.find(s => String(s.publicId) === slug))
 
 // Only a loaded roster can prove a slug is wrong. Throwing while `sitesData`
 // is still null would turn "not fetched yet" into "does not exist".

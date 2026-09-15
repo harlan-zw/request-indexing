@@ -9,20 +9,20 @@ describe('pro event contracts', () => {
   it('parses a local event without losing its request context', () => {
     const payload = siteRemoved.input.parse({
       event,
-      siteId: 1,
+      siteId: '8efd1107-dca5-4e80-aad6-99d98af86ea5',
       teamId: 2,
       userId: 3,
       gscdumpSiteId: null,
     })
 
     expect(payload.event).toBe(event)
-    expect(payload.siteId).toBe(1)
+    expect(payload.siteId).toBe('8efd1107-dca5-4e80-aad6-99d98af86ea5')
   })
 
   it('rejects invalid identifiers and integration kinds', () => {
     expect(() => siteRemoved.input.parse({
       event,
-      siteId: 0,
+      siteId: '',
       teamId: 2,
       userId: 3,
       gscdumpSiteId: null,

@@ -5,9 +5,10 @@ import { useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
 import { getGscdumpWebhookUrl } from '#layers/pro-gsc/server/utils/gscdump-origin'
 import { sites, users } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
+import { resolveSiteAccess } from '#layers/pro-saas/shared/site-access'
 
 const bodySchema = z.object({
-  siteId: z.number().int().positive(),
+  siteId: z.string().min(1),
   gscSiteUrl: z.string().min(1),
 })
 
@@ -21,13 +22,19 @@ export default defineProApiHandler({ body: bodySchema }, async ({ db, caller, bo
   if (!dbUser?.gscdumpUserId)
     throw createError({ statusCode: 400, message: 'Not registered with gscdump' })
 
-  // Verify site belongs to user
+  // Verify the site belongs to a team the caller is in.
   const [site] = await db
     .select()
     .from(sites)
-    .where(eq(sites.siteId, body.siteId))
+    .where(eq(sites.id, body.siteId))
 
-  if (!site || site.ownerId !== caller.user.id)
+  const access = resolveSiteAccess({
+    siteTeamId: site?.teamId ?? null,
+    memberships: caller.memberships,
+    isAdmin: caller.isAdmin,
+    ability: 'manage-sites',
+  })
+  if (!site || access._tag === 'Err')
     throw createError({ statusCode: 404, message: 'Site not found' })
 
   if (site.gscdumpSiteId)
@@ -60,7 +67,7 @@ export default defineProApiHandler({ body: bodySchema }, async ({ db, caller, bo
       gscdumpSiteId: registration.siteId,
       gscdumpSiteUrl: simpleDomain,
     })
-    .where(eq(sites.siteId, body.siteId))
+    .where(eq(sites.id, body.siteId))
 
   return {
     success: true,

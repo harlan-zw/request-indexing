@@ -96,10 +96,10 @@ export async function deleteTeam(event: H3Event, ctx: CurrentTeamContext) {
     })
     .where(eq(users.currentTeamId, ctx.team.teamId))
 
-  // V1: contentBriefs / monthlyReports / scheduledReports tables dropped.
-  // sites.teamId does not exist on core schema (team→site goes via team_sites).
-  // Site cleanup for owned teams is handled at deleteUserData level.
-  await ctx.db.delete(sites).where(eq(sites.ownerId, ctx.caller.user.id))
+  // `sites.team_id` is ON DELETE RESTRICT, so the team's sites go first or the
+  // team delete below fails. It used to purge by creator, which both missed a
+  // teammate's site and took the caller's sites in other teams with it.
+  await ctx.db.delete(sites).where(eq(sites.teamId, ctx.team.teamId))
   await ctx.db.delete(teams).where(eq(teams.teamId, ctx.team.teamId))
 
   if (ctx.team.gscdumpTeamId) {

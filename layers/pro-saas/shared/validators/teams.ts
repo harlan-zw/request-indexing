@@ -17,7 +17,8 @@ export const teamTransferOwnershipSchema = z.object({ newOwnerUserId: z.string()
 // comes from there.
 export const teamSelectedSitesSchema = z.array(z.string().min(1)).max(100, 'Too many sites in one request')
 export const teamOnboardingUpdateSchema = z.object({
-  onboardedStep: z.string().trim().min(1).max(60).optional(),
+  /** Marks the signed-in user as onboarded. The flag is user scoped. */
+  completeOnboarding: z.boolean().optional(),
   backupsEnabled: z.boolean().optional(),
   selectedSites: teamSelectedSitesSchema.default([]),
 })

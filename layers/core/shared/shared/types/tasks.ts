@@ -1,7 +1,7 @@
 export interface TaskMap {
   'users/send-welcome-email': { userId: number }
-  'sites/setup': { siteId: number }
-  'sites/sync-finished': { siteId: number }
+  'sites/setup': { siteId: string }
+  'sites/sync-finished': { siteId: string }
   'teams/sync-selected': { teamId: number }
 }
 

@@ -40,7 +40,7 @@ async function callSitemaps(action: 'submit' | 'refresh') {
   }
 
   busy.value = action
-  const result = await $fetch(`/api/gscdump/${site.siteId}/sitemaps`, {
+  const result = await $fetch(`/api/gscdump/${site.publicId}/sitemaps`, {
     method: 'POST',
     body: action === 'refresh'
       ? { action: 'refresh' }

@@ -14,7 +14,7 @@ const removing = ref(false)
 
 async function removeSite() {
   removing.value = true
-  const result = await $fetch<{ success: boolean }>(`/api/sites/${site.siteId}`, { method: 'DELETE' })
+  const result = await $fetch<{ success: boolean }>(`/api/sites/${site.publicId}`, { method: 'DELETE' })
     .then(() => ({ _tag: 'Ok' as const }))
     .catch((error: unknown) => ({ _tag: 'Err' as const, error }))
   removing.value = false

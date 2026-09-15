@@ -1,13 +1,13 @@
 <script setup lang="ts">
 const { sites } = defineProps<{
-  sites: Array<{ siteId: string | number, domain?: string | null, property?: string | null }>
+  sites: Array<{ publicId: string, domain?: string | null, property?: string | null }>
 }>()
 
 const items = computed(() =>
   sites.map(site => ({
     label: siteLabel(site),
     icon: 'i-ph-browser-duotone',
-    to: `/dashboard/site/${encodeURIComponent(site.siteId)}/overview`,
+    to: `/dashboard/site/${encodeURIComponent(site.publicId)}/overview`,
   })),
 )
 </script>

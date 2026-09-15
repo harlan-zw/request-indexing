@@ -1,12 +1,10 @@
 // Onboarding site picker (`dashboard/team/setup.vue`, `dashboard/team/sites.vue`).
-// Runs before a team has any `team_sites` rows, so this lists the caller's own
-// synced GSC properties (`sites.ownerId`), not a team-scoped join — matching
-// the owner-scoped pattern already used by `gsc-properties.get.ts` for the
-// same reason ("team→site lives on team_sites, list owner-scoped until
-// selection happens"). Sync status/progress comes from gscdump's lifecycle;
+// Lists the synced GSC properties the caller can pick from: their current
+// team's sites, plus any they created before a team owned them.
+// Sync status/progress comes from gscdump's lifecycle;
 // `pageCount30Day` is a real per-site page count pulled from gscdump `getData`
 // (not fabricated), bounded to synced sites only.
-import { and, eq } from 'drizzle-orm'
+import { and, eq, or } from 'drizzle-orm'
 import { between, date, daysAgo, gsc, page, today } from 'gscdump/query'
 import { useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
 import { sites, users } from '#layers/pro-saas/server/database'
@@ -20,7 +18,12 @@ import { MAX_TEAM_SITES } from '../../utils/team-site-limit'
 const pageCountState = gsc.select(page).where(between(date, daysAgo(30), today())).limit(1).getState()
 
 export default defineProApiHandler({}, async ({ db, caller }) => {
-  const ownedSites = await db.select().from(sites).where(and(eq(sites.ownerId, caller.user.id), eq(sites.active, true))).all()
+  const ownedSites = await db.select().from(sites).where(and(
+    caller.currentTeamId
+      ? or(eq(sites.teamId, caller.currentTeamId), eq(sites.ownerId, caller.user.id))
+      : eq(sites.ownerId, caller.user.id),
+    eq(sites.active, true),
+  )).all()
 
   const [user] = await db.select({ gscdumpUserId: users.gscdumpUserId })
     .from(users)

@@ -22,7 +22,7 @@ definePageMeta({
       <GscdumpPagesTable
         class="min-w-[44rem] md:min-w-0"
         :gscdump-site-id="site.gscdumpSiteId"
-        :route-slug="String(site.siteId)"
+        :route-slug="String(site.publicId)"
         :page-size="12"
       />
     </div>

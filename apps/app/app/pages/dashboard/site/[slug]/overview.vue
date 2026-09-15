@@ -30,7 +30,7 @@ const { periodLabel } = useDashboardPeriod()
         </UCard>
         <div>
           <CardTitle>
-            <NuxtLink :to="`/dashboard/site/${site.siteId}/pages`" class="hover:underline">
+            <NuxtLink :to="`/dashboard/site/${site.publicId}/pages`" class="hover:underline">
               Pages
             </NuxtLink>
           </CardTitle>
@@ -41,7 +41,7 @@ const { periodLabel } = useDashboardPeriod()
               <GscdumpPagesTable
                 class="min-w-[34rem] md:min-w-0"
                 :gscdump-site-id="site.gscdumpSiteId"
-                :route-slug="String(site.siteId)"
+                :route-slug="String(site.publicId)"
                 :page-size="5"
                 :searchable="false"
                 :sortable="false"
@@ -53,7 +53,7 @@ const { periodLabel } = useDashboardPeriod()
         </div>
         <div>
           <CardTitle>
-            <NuxtLink class="hover:underline" :to="`/dashboard/site/${site.siteId}/keywords`">
+            <NuxtLink class="hover:underline" :to="`/dashboard/site/${site.publicId}/keywords`">
               Keywords
             </NuxtLink>
           </CardTitle>
@@ -62,7 +62,7 @@ const { periodLabel } = useDashboardPeriod()
               <GscdumpKeywordsTable
                 class="min-w-[34rem] md:min-w-0"
                 :gscdump-site-id="site.gscdumpSiteId"
-                :route-slug="String(site.siteId)"
+                :route-slug="String(site.publicId)"
                 :page-size="5"
                 :searchable="false"
                 :sortable="false"
@@ -76,7 +76,7 @@ const { periodLabel } = useDashboardPeriod()
       <div class="space-y-10 lg:col-span-3">
         <div>
           <CardTitle>
-            <NuxtLink class="hover:underline" :to="`/dashboard/site/${site.siteId}/countries`">
+            <NuxtLink class="hover:underline" :to="`/dashboard/site/${site.publicId}/countries`">
               Countries
             </NuxtLink>
           </CardTitle>

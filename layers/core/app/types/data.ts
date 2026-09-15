@@ -96,7 +96,7 @@ export interface SiteAnalytics {
 }
 
 export interface GoogleSearchConsoleSite {
-  siteId: number
+  siteId: string
   siteUrl: string
   domain: string
   permissionLevel?: string | null

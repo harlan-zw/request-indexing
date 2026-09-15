@@ -37,25 +37,23 @@ export default defineProApiHandler({ body: bodySchema, site: true }, async ({ ev
   if (!gscdumpSiteId)
     throw createError({ statusCode: 404, message: 'GSC site not found or no access' })
 
-  // B3 mirror: bind the gscdump userSite to the pro team's mirrored gscdump team.
-  // V1: core sites are owner-scoped (no direct `teamId`). Team→site relation
-  // lives on `team_sites`; until pro-gsc is reshaped to consult that mediator,
-  // mirror via the owner's currentTeam only.
+  // B3 mirror: bind the gscdump userSite to the pro team's mirrored gscdump
+  // team. The site's own `team_id` is the authority now, so the mirror no
+  // longer depends on whichever team its creator happens to be viewing.
   const ctx = await db.select({
     siteOwnerId: sites.ownerId,
+    siteTeamId: sites.teamId,
   })
     .from(sites)
-    .where(eq(sites.siteId, siteId))
+    .where(eq(sites.id, siteId))
     .get()
 
   if (ctx?.siteOwnerId) {
-    const owner = await db.select({ gscdumpUserId: users.gscdumpUserId, currentTeamId: users.currentTeamId })
+    const owner = await db.select({ gscdumpUserId: users.gscdumpUserId })
       .from(users)
       .where(eq(users.userId, ctx.siteOwnerId))
       .get()
-    const ownerTeam = owner?.currentTeamId
-      ? await db.select({ gscdumpTeamId: teams.gscdumpTeamId, teamId: teams.teamId }).from(teams).where(eq(teams.teamId, owner.currentTeamId)).get()
-      : null
+    const ownerTeam = await db.select({ gscdumpTeamId: teams.gscdumpTeamId, teamId: teams.teamId }).from(teams).where(eq(teams.teamId, ctx.siteTeamId)).get()
     if (owner?.gscdumpUserId && ownerTeam?.gscdumpTeamId) {
       const teamsClient = useGscdumpTeamsClient(event)
       await teamsClient.bindSiteToTeam(

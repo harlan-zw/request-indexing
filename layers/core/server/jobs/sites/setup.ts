@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { withoutTrailingSlash } from 'ufo'
-import { sites } from '~~/layers/core/server/db/schema'
+import { sites, userSites } from '~~/layers/core/server/db/schema'
 import { broadcastToUser } from '~~/layers/core/server/utils/event-service'
 import { defineJob } from '../_types'
 
@@ -13,10 +13,9 @@ export default defineJob({
 
     const site = await db.query.sites.findFirst({
       with: {
-        ownerPermissions: true,
         owner: true,
       },
-      where: eq(sites.siteId, siteId),
+      where: eq(sites.id, siteId),
     })
 
     const user = site?.owner
@@ -40,7 +39,7 @@ export default defineJob({
       gscdumpSiteId: registration.siteId,
       gscdumpSiteUrl: site.property,
       gscdumpSyncStatus: syncStatus,
-    }).where(eq(sites.siteId, siteId))
+    }).where(eq(sites.id, siteId))
 
     // For domain properties, discover sub-domains
     if (site.property.startsWith('sc-domain') && !site.domain) {
@@ -52,19 +51,29 @@ export default defineJob({
         .map(s => withoutTrailingSlash(s.siteUrl))
 
       if (childDomains.length) {
+        // The creator's own Search Console permission level, carried onto the
+        // split-domain children. It used to ride a composite `ownerPermissions`
+        // relation, which the team-scoped schema no longer declares.
+        const ownerPermission = site.ownerId
+          ? await db.select({ permissionLevel: userSites.permissionLevel })
+              .from(userSites)
+              .where(and(eq(userSites.siteId, site.id), eq(userSites.userId, site.ownerId)))
+              .get()
+          : undefined
         await createSites({
           sites: childDomains.map(domain => ({
             ownerId: site.ownerId,
+            teamId: site.teamId,
             property: site.property,
             domain: withoutTrailingSlash(domain),
-            parentId: site.siteId,
+            parentId: site.id,
             active: true,
             gscdumpSiteId: registration.siteId,
             gscdumpSiteUrl: site.property,
             gscdumpSyncStatus: syncStatus,
           })),
           userSites: childDomains.map(() => ({
-            permissionLevel: site.ownerPermissions?.permissionLevel,
+            permissionLevel: ownerPermission?.permissionLevel ?? undefined,
           })),
         }, user)
       }

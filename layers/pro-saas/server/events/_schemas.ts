@@ -9,6 +9,9 @@ export const requestEventSchema = z.custom<H3Event>(value => (
 
 export const idSchema = z.number().int().positive()
 
+/** A Site id: the text UUID `sites.id` carries since the team-scoping migration. */
+export const siteIdSchema = z.string().min(1)
+
 export const integrationKindSchema = z.enum([
   'gscdump',
   'github',

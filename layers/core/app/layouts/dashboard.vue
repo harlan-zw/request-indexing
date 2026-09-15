@@ -12,7 +12,7 @@ const { data } = await fetchSites()
 const sites = computed(() => data.value?.sites || [])
 
 const isOnWelcome = computed(() => router.currentRoute.value.path === ONBOARDING_ROUTE)
-const onboarding = computed(() => resolveTeamOnboarding(session.value))
+const onboarding = computed(() => resolveUserOnboarding(session.value))
 
 watch([isOnWelcome, onboarding], ([onWelcome, state]) => {
   if (!onWelcome && needsOnboarding(state))
@@ -23,7 +23,7 @@ const site = computed(() => {
   const slug = route.params.slug as string | undefined
   if (!slug)
     return undefined
-  return sites.value.find(candidate => String(candidate.siteId) === slug)
+  return sites.value.find(candidate => String(candidate.publicId) === slug)
 })
 
 const pageTitle = computed(() => String(route.meta.subTitle || route.meta.title || 'Dashboard'))
@@ -32,30 +32,30 @@ const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta
 const dashboards = computed<NavigationMenuItem[]>(() => !site.value
   ? []
   : [
-      { label: 'Organic Search', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'), icon: 'i-ph-app-window-duotone' },
-      { label: 'Keyword Insights', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keyword-insights'), icon: 'i-ph-lightning-duotone' },
-      { label: 'Web Indexing', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'web-indexing'), icon: 'i-ph-check-circle-duotone' },
-      { label: 'Analysis', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'analysis'), icon: 'i-ph-chart-pie-slice-duotone' },
-      { label: 'Sitemaps', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'sitemaps'), icon: 'i-ph-map-trifold-duotone' },
+      { label: 'Organic Search', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'overview'), icon: 'i-ph-app-window-duotone' },
+      { label: 'Keyword Insights', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'keyword-insights'), icon: 'i-ph-lightning-duotone' },
+      { label: 'Web Indexing', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'web-indexing'), icon: 'i-ph-check-circle-duotone' },
+      { label: 'Analysis', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'analysis'), icon: 'i-ph-chart-pie-slice-duotone' },
+      { label: 'Sitemaps', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'sitemaps'), icon: 'i-ph-map-trifold-duotone' },
     ])
 
 const siteLinks = computed<NavigationMenuItem[]>(() => !site.value
   ? []
   : [
-      { label: 'Pages', icon: 'i-heroicons-folder', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages') },
-      { label: 'Keywords', icon: 'i-heroicons-magnifying-glass-circle', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords') },
-      { label: 'Countries', icon: 'i-ph-globe-hemisphere-east-duotone', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries') },
+      { label: 'Pages', icon: 'i-heroicons-folder', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'pages') },
+      { label: 'Keywords', icon: 'i-heroicons-magnifying-glass-circle', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'keywords') },
+      { label: 'Countries', icon: 'i-ph-globe-hemisphere-east-duotone', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'countries') },
     ])
 
 const apiLinks = computed<NavigationMenuItem[]>(() => !site.value
   ? []
   : [
-      { label: 'API Usages', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'usages') },
+      { label: 'API Usages', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'usages') },
       // Renamed with the page: it archives Search Console data, it does not export.
-      { label: 'Data Archive', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'data') },
+      { label: 'Data Archive', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'data') },
       // `settings` had no nav entry at all, so the only way to reach site
       // removal was to type the URL.
-      { label: 'Site Settings', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'settings') },
+      { label: 'Site Settings', to: joinURL('/dashboard/site', encodeURIComponent(site.value.publicId), 'settings') },
     ])
 
 const teamLinks = computed<NavigationMenuItem[]>(() => [
@@ -67,7 +67,7 @@ const onlySiteLinks = computed<NavigationMenuItem[]>(() => sites.value.map((cand
   const label = siteLabel(candidate)
   return {
     label,
-    to: candidate.isSynced ? `/dashboard/site/${candidate.siteId}/overview` : undefined,
+    to: candidate.isSynced ? `/dashboard/site/${candidate.publicId}/overview` : undefined,
     disabled: !candidate.isSynced,
     icon: candidate.isSynced ? undefined : 'i-ph-circle-x-duotone',
     avatar: candidate.isSynced
@@ -91,7 +91,7 @@ const domains = computed(() => {
 
 const domainMenuItems = computed<DropdownMenuItem[]>(() => domains.value.map(candidate => ({
   label: siteLabel(candidate),
-  to: `/dashboard/site/${candidate.siteId}/overview`,
+  to: `/dashboard/site/${candidate.publicId}/overview`,
 })))
 
 const siteSwitcherItems = computed<DropdownMenuItem[]>(() => sites.value.map((candidate) => {
@@ -102,7 +102,7 @@ const siteSwitcherItems = computed<DropdownMenuItem[]>(() => sites.value.map((ca
       text: label,
       src: `/_favicon?domain=${withoutTrailingSlash(label)}`,
     },
-    onSelect: () => changeSite(candidate.siteId),
+    onSelect: () => changeSite(candidate.publicId),
   }
 }))
 

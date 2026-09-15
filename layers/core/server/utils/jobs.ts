@@ -14,7 +14,7 @@ export interface Job {
   jobType: string
   batchId: string | null
   userId: number | null
-  siteId: number | null
+  siteId: string | null
   payload: Record<string, unknown>
   attempts: number
   maxAttempts: number

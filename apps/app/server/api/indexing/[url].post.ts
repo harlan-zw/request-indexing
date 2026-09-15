@@ -5,8 +5,9 @@ import { getIndexingMetadata, googleSearchConsole, parseGoogleError, requestInde
 import { createError, defineEventHandler, getQuery, getRouterParams } from 'h3'
 import { incrementUsage } from '~~/layers/core/server/app/services/usage'
 import { authenticateUser } from '~~/layers/core/server/app/utils/auth'
-import { googleAccounts, googleOAuthClients, indexingJobs, sites, teamMemberships, teamSites, userSites } from '~~/layers/core/server/db/schema'
+import { googleAccounts, googleOAuthClients, indexingJobs, sites, teamMemberships, teams } from '~~/layers/core/server/db/schema'
 import { checkProToolRateLimit } from '~~/layers/pro-saas/server/utils/rate-limit'
+import { normalizeSiteRef } from '~~/layers/pro-saas/shared/site-access'
 import { logWarn } from '~~/shared/logging'
 
 type IndexingTokens = GoogleAccountsSelect['tokens']
@@ -142,28 +143,26 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Missing url param or siteId query' })
   }
 
-  const site = await db.query.sites.findFirst({ where: eq(sites.publicId, siteId) })
+  const ref = normalizeSiteRef(siteId)
+  const site = ref._tag === 'PublicId'
+    ? await db.query.sites.findFirst({ where: eq(sites.publicId, ref.publicId) })
+    : ref._tag === 'Uuid'
+      ? await db.query.sites.findFirst({ where: eq(sites.id, ref.id) })
+      : undefined
   if (!site) {
     throw createError({ statusCode: 404, statusMessage: 'Site not found' })
   }
 
-  // Ownership, the legacy per-user link, and team membership. The team path was
-  // missing, so a team member who reaches a site through `team_sites` (which is
-  // how the dashboard lists it, and how `requireTeamSite` grants access
-  // everywhere else) was refused indexing on a site they can otherwise see.
-  const hasAccess = site.ownerId === user.userId
-    || !!(await db.query.userSites.findFirst({
-      where: and(eq(userSites.userId, user.userId), eq(userSites.siteId, site.siteId)),
-    }))
-    || !!(await db.select({ teamId: teamSites.teamId })
-      .from(teamSites)
-      .innerJoin(teamMemberships, and(
-        eq(teamMemberships.teamId, teamSites.teamId),
-        eq(teamMemberships.userId, user.userId),
-      ))
-      .where(eq(teamSites.siteId, site.siteId))
-      .get())
-  if (!hasAccess) {
+  // Team membership on the site's owning team, the one access rule the rest of
+  // the app now uses. Owner, `user_sites` and `team_sites` were three parallel
+  // answers to the same question, and they disagreed.
+  const teamOwner = await db.select({ ownerId: teams.ownerId }).from(teams).where(eq(teams.teamId, site.teamId)).get()
+  const isTeamOwner = teamOwner?.ownerId === user.userId
+  const isTeamMember = isTeamOwner || !!(await db.select({ teamId: teamMemberships.teamId })
+    .from(teamMemberships)
+    .where(and(eq(teamMemberships.teamId, site.teamId), eq(teamMemberships.userId, user.userId)))
+    .get())
+  if (!isTeamMember) {
     throw createError({ statusCode: 403, statusMessage: 'You do not have access to this site' })
   }
 
@@ -202,7 +201,7 @@ export default defineEventHandler(async (event) => {
   const path = toSitePath(url)
   const state = result.status === 'submitted' ? 'submitted' : 'accepted'
   await db.insert(indexingJobs).values({
-    siteId: site.siteId,
+    siteId: site.id,
     path,
     transport: 'google',
     state,
@@ -211,9 +210,9 @@ export default defineEventHandler(async (event) => {
   }).onConflictDoUpdate({
     target: [indexingJobs.siteId, indexingJobs.path, indexingJobs.transport],
     set: { state, submittedAt: new Date(), updatedAt: new Date(), lastError: null },
-  }).catch(err => logWarn('indexing.job_record_failed', err, { siteId: site.siteId, path }))
+  }).catch(err => logWarn('indexing.job_record_failed', err, { siteId: site.id, path }))
 
-  await incrementUsage(site.siteId, 'indexingApi').catch(err => logWarn('indexing.usage_record_failed', err, { siteId: site.siteId }))
+  await incrementUsage(site.id, 'indexingApi').catch(err => logWarn('indexing.usage_record_failed', err, { siteId: site.id }))
 
   return {
     status: result.status,
