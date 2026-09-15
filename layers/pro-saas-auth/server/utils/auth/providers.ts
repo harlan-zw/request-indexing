@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import type { AuthProviderId, NormalizedIdentity } from '../../../shared/types/auth'
 import { z } from 'zod'
+import { logWarn } from '~~/shared/logging'
 
 const githubContextSchema = z.object({
   tokens: z.object({ access_token: z.string() }),
@@ -47,10 +48,20 @@ const githubProvider: AuthProvider = {
     interface GhEmail { email: string, primary: boolean, verified: boolean }
     const emails = await $fetch<GhEmail[]>('https://api.github.com/user/emails', {
       headers: {
-        Authorization: `Bearer ${tokens.access_token}`,
-        Accept: 'application/vnd.github+json',
+        'Authorization': `Bearer ${tokens.access_token}`,
+        'Accept': 'application/vnd.github+json',
+        // GitHub's REST API answers 403 to any request without a User-Agent.
+        // Without this every GitHub sign-in silently lost the verified email
+        // list and fell back to the profile email, which may be unverified.
+        'User-Agent': 'request-indexing.com',
       },
-    }).catch(() => [] as GhEmail[])
+    }).catch((err: unknown) => {
+      // Not fatal: the profile email below still identifies the account. It is
+      // logged because a persistent failure means every GitHub sign-in loses
+      // its verified-email check.
+      logWarn('auth.optional_probe_failed', err, { stage: 'github_user_emails' })
+      return [] as GhEmail[]
+    })
 
     const verified = emails
       .filter(e => e.verified)

@@ -25,6 +25,14 @@ module '#auth-utils' {
      */
     gscdumpUserId?: string | null
     /**
+     * True only when gscdump holds BOTH the user id and the per-user API key.
+     * The id alone leaves every browser query failing, so the connect prompt
+     * keys off this, not off `gscdumpUserId`.
+     */
+    gscdumpConnected?: boolean
+    /** True when the current team owns at least one site. */
+    hasSites?: boolean
+    /**
      * Search Console grant state, published as one block by
      * `buildGscSessionFields`. `pro-gate.global.ts` and both
      * integration-readiness policies read these.

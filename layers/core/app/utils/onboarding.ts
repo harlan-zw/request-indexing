@@ -1,6 +1,3 @@
-/** Where a user goes to finish onboarding. */
-export const ONBOARDING_ROUTE = '/pro/dashboard/team/setup'
-
 /**
  * The session shape the onboarding decision reads. Kept structural so the
  * decision stays a pure function of data, testable without a Nuxt session.

@@ -1,6 +1,7 @@
-import { GSC_INDEXING_SCOPE, GSC_READ_SCOPE, GSC_WRITE_SCOPE } from 'gscdump'
+import { GSC_INDEXING_SCOPE, GSC_READ_SCOPE, GSC_SITE_VERIFICATION_SCOPE, GSC_WRITE_SCOPE } from 'gscdump'
 import { withQuery } from 'ufo'
 import { randomUUID } from 'uncrypto'
+import { safeAuthRedirect } from '#layers/pro-saas-auth/shared/utils/auth-redirect'
 
 // GSC OAuth — INTEGRATION grant, not sign-in identity. Issues Google's
 // webmasters / indexing scopes with offline access + refresh tokens. The
@@ -21,6 +22,17 @@ export default defineEventHandler(async (event) => {
       GSC_INDEXING_SCOPE,
     )
   }
+  else if (requestedScope === 'verify') {
+    // Step up to add and verify a property on the user's behalf: `webmasters`
+    // to add it, `siteverification` to prove ownership. Asked for only by that
+    // flow, never at sign-up, so the consent screen a new user sees stays
+    // short. `include_granted_scopes` below merges it with what they already
+    // granted, so the step-up never costs them their existing access.
+    scopes.push(
+      GSC_WRITE_SCOPE,
+      GSC_SITE_VERIFICATION_SCOPE,
+    )
+  }
   else if (requestedScope === 'write') {
     scopes.push(GSC_WRITE_SCOPE)
   }
@@ -31,7 +43,9 @@ export default defineEventHandler(async (event) => {
   const state = randomUUID()
   await setUserSession(event, {
     googleOauthState: state,
-    googleOauthReturnTo: typeof returnTo === 'string' ? returnTo : undefined,
+    // Parsed once here: the callback redirects to whatever this holds, so an
+    // unchecked value is an open redirect off the back of a Google round trip.
+    googleOauthReturnTo: safeAuthRedirect(returnTo) ?? undefined,
   })
 
   const config = useRuntimeConfig(event)
@@ -48,6 +62,9 @@ export default defineEventHandler(async (event) => {
       scope: scopes.join(' '),
       access_type: 'offline',
       prompt: 'consent',
+      // Incremental auth: merge the requested scopes with any already granted,
+      // so a targeted step-up never drops the user's read or indexing access.
+      include_granted_scopes: 'true',
       state,
     }),
   )

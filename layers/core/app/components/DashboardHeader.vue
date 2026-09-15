@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { createLogoutHandler } from '~~/layers/core/app/composables/auth'
+import { ONBOARDING_ROUTE } from '#layers/pro-saas/shared/onboarding'
 
 const { toggle = true } = defineProps<{
   toggle?: boolean
@@ -10,7 +11,7 @@ const { user } = useUserSession()
 const logout = createLogoutHandler()
 const router = useRouter()
 
-const isOnWelcome = computed(() => router.currentRoute.value.path === '/pro/dashboard/team/setup')
+const isOnWelcome = computed(() => router.currentRoute.value.path === ONBOARDING_ROUTE)
 
 const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
   if (isOnWelcome.value) {
