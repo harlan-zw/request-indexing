@@ -1,6 +1,6 @@
 # Brief: vs-seo-gets
 
-State: brief reviewed. Parent revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
+State: article reviewed. Original brief base Git revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
 Owner: product_writer. Brief reviewer: sources_reviewer. Coordinator: request_content_lead.
 
 Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../../VERIFIED-CLAIMS.md), [SCREENSHOTS](../../SCREENSHOTS.md), and the root glossary.
@@ -31,8 +31,29 @@ Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../..
 
 Use the ledger's additional exact URLs where claim IDs require them. Open full sources during review.
 
-## Review record
+## Current review status
 
-Brief review: approved by sources_reviewer on2026-09-15 against foundation files at cf640ac5; evidence in private brief-review.md. Writer response: pending.
-Factual draft review: pending. Humanize surface/structural changes: pending.
-Final article review: pending. Rendered evidence: pending. Coordinator decision: pending.
+Article reviewed on 15 September 2026. Accepted Git revision: `89dd568eda983e68e7132dd2265ef8a6e54fc7f4`.
+Article SHA256 file digest at that revision: `1216b6014cdddf46288edfe0b4dcd61fe0214a1c6961144ba6b193fbe28ba26a`.
+sources_reviewer approved factual and humanized prose, then reviewed the final formatting-only revision.
+Shared coordinator acceptance and rendered checks are recorded in the [collection ledger](../README.md).
+Article PR: [#77](https://github.com/harlan-zw/request-indexing/pull/77), stacked on foundation [#75](https://github.com/harlan-zw/request-indexing/pull/75).
+Later revisions require review of their changes. This record does not approve an unreviewed future head.
+Merge and live publication are not recorded as complete. Authenticated Google actions remain untested.
+
+## History, 15 September 2026: Factual draft handoff
+
+Writer: product_writer, 15 September 2026. Draft based on reviewed brief and claims. Preserved route/publication date where present; updated review date. Removed unsupported assertions and duplicate comparison H1s.
+At this handoff, factual review was requested before humanization; it was subsequently approved. No authenticated actions or manufactured screenshots.
+
+## History, 15 September 2026: Humanize and meaning review
+
+All eight factual drafts approved by sources_reviewer on 15 September 2026, including conditional vendor API scope and per-user quota fixes.
+Surface pass: corrected number/version spacing, replaced formal or padded wording, retained protocol names.
+Structural pass: kept the common task first; removed repeated conclusions and editorial process details from the opening. Specific edits below.
+- 'Their request actions use different mechanisms, so a simple yes-or-no submission comparison would hide the useful distinction.' → 'The first difference to check is what happens after you click the request button.'
+- 'Source access lets you inspect the request path; it does not prove a live indexing outcome.' → 'You can inspect that request path in the source.'
+- 'Choose by the next task' → 'Which task matters most?'
+Meaning recheck: claim scopes, URLs, dates, examples and execution limitations preserved. Vendor mechanism uncertainty and per-user tool denominator retained. Executable code unchanged. Independent humanized review was requested at this stage and subsequently approved.
+
+Writer mobile390 check after humanization: oneH1, document width390, no overflow. Full-page screenshot inspected, including wrapped code or comparison table. Private screenshot ri-batch-vs-seo-gets.png; lead subsequently completed the collection route and viewport checks.

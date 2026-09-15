@@ -57,3 +57,36 @@ Product checks use revision cf640ac56542cca8850b2ce3ab773f35c8910e21. Evidence k
 | VENDOR-04 | Observed | Live public page observation | Tag Parrot states its service is closed and indexing unavailable. | No closure date established. Preserve comparison URL; explain replacement workflow, not current plans. | https://tagparrot.com/pricing ; saved public text ri-tagparrot-pricing.txt in private evidence | 2026-09-15 | Current closure notice; date unstated |
 
 Unverified product claims withdrawn: unlimited rows, indefinite hosted retention, guaranteed200/day customer entitlement, live efficacy, future IndexNow support.
+
+## Executable example evidence
+
+Checked 15 September 2026 with Node.js 24.18.0 and googleapis 181.0.0.
+Writer and independent reviewer ran `node check.mjs` in private `request-indexing-content-dogfood/code-checks/` evidence.
+The harness instantiated the actual client, mocked its credential provider, and intercepted HTTP with all external network disabled.
+It checked publish method, URL, body, authorization header, success/failure output, mixed sequential outcomes, and input deduplication.
+The executable fences in Node, tutorial and bulk guides matched the tested files.
+These checks establish client request construction and local handling. They do not establish credential validity, property ownership, or live Google outcomes.
+
+The writer also ran `node metadata-check.mjs` for GET metadata URL/query construction and receipt response handling.
+Final review must compare code fences again if humanization changes them.
+
+Primary library sources: https://github.com/googleapis/google-api-nodejs-client and https://github.com/googleapis/google-auth-library-nodejs.
+Reproduce later by extracting the complete `.mjs` fences and installing the recorded client version in private scratch storage.
+Do not treat the old check count as a new run when changing dependencies.
+
+On 15 September 2026, the writer and independent reviewer reran the [durable example harness](editorial/examples-check/README.md).
+It extracts current article fences into scratch storage and checks publish success, failure, mixed bulk results, and metadata.
+All four cases passed. This is a new run with the recorded versions, not a replacement for the earlier evidence.
+
+## Setup screenshot evidence, 15 September 2026
+
+- CLOUD-UI-01, Observed: signed-in Cloud API Library displayed Web Search Indexing API, Manage, and API Enabled. This proves the displayed state only.
+- CLOUD-UI-02, Observed: the empty Create service account form displayed Permissions (optional). It was cancelled without submitting.
+- CLOUD-KEY-01, Documented: the current Cloud key guide uses Keys, Add key, Create new key, JSON, then Create. See https://docs.cloud.google.com/iam/docs/keys-create-delete. No key was created in this check.
+- GSC-UI-01, Observed: Settings → Users and permissions → Add user opens an email field and Permission selector with Owner. Captured with blank email and Owner selected, then cancelled. No access was granted; credential authorization remains untested.
+
+Capture geometry, redaction and publication status belong in SCREENSHOTS.md. Private source files remain outside Git.
+
+- GSC-UI-02, Observed on 15 September 2026: URL Inspection showed URL is on Google and a Request indexing control for an existing documentation page. No indexing request or live test was submitted. The capture does not establish indexing speed or an API notification outcome.
+
+- CLOUD-UI-03, Observed on 15 September 2026: Keys → Add key → Create new key opens a dialog with JSON selected and Create. A user-authorized temporary service account enabled this capture. The dialog was cancelled, no key was created, and the account was deleted.
