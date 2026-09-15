@@ -11,9 +11,6 @@ export default defineNuxtPlugin({
   setup: proFeatureSetup({
     features: [{
       id: 'search-console',
-      label: 'Search Console',
-      icon: 'i-simple-icons-google',
-      group: 'visibility',
       integration: 'gsc-connected',
       stateResolver: siteId => useGscFeatureDataState(siteId, { includeStale: true }),
       lockedDescription: 'View your Google search performance data: keywords, pages, and trends.',

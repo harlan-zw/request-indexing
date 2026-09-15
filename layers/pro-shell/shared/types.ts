@@ -10,10 +10,8 @@ import type { IntegrationReadiness } from './policies/integration-readiness'
  * lookups, no importFrom indirection. See ADR-0015 (superseded section).
  */
 export interface ProFeatureRegistration {
+  /** Manifest id. Label, icon, group, order and route come from there. */
   id: string
-  label: string
-  icon: string
-  group?: 'visibility' | 'health' | 'growth' | 'ai' | 'reports'
   /**
    * External-account state the feature reads (e.g. GSC OAuth scope). Drives
    * the locked render only — not a server-side security check. Handlers under
@@ -35,10 +33,13 @@ export interface ProFeatureRegistration {
 }
 
 /**
- * Feature with build-time tab metadata merged in. What consumer composables
- * see.
+ * Feature with its manifest entry and build-time tab metadata merged in. What
+ * consumer composables see.
  */
 export interface ProSiteFeature extends ProFeatureRegistration {
+  label: string
+  icon?: string
+  route?: string
   tabs: ProSiteFeatureTab[]
 }
 

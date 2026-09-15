@@ -12,9 +12,11 @@ export default {
     // Eager scan so custom meta is on page.meta during pages:extend
     // (default 'after-resolve' fires too late for our hook).
     scanPageMeta: true,
-    // Allowlist `proTab` for static extraction from definePageMeta.
-    // Without this, custom keys land in __nuxt_dynamic_meta_key and are
-    // invisible at build time.
-    extraPageMetaExtractionKeys: ['proTab', 'pro'],
+    // Allowlist `proTab`, `pro` and `layout` for static extraction from
+    // definePageMeta. Without this, those keys land in
+    // `__nuxt_dynamic_meta_key` and are invisible at build time. The module
+    // sets the same list, because a layer's `experimental` block does not
+    // survive the merge with the root config.
+    extraPageMetaExtractionKeys: ['proTab', 'pro', 'layout'],
   },
 }
