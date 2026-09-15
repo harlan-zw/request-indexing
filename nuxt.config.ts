@@ -113,7 +113,18 @@ export default defineNuxtConfig({
   imports: { autoImport: true },
 
   hooks: {
+    // Dev-only server routes never reach a production bundle. Scanned handlers
+    // are a separate list from declared ones, so both are filtered. Each
+    // handler also 404s unless `import.meta.dev`; this is the second lock, so a
+    // missing guard in one file cannot ship an open door.
     'nitro:config': function (config) {
+      // Dev-only server routes are never scanned into a production build. Each
+      // handler also 404s unless `import.meta.dev`; this is the second lock, so
+      // a missing guard in one file cannot ship an open door.
+      if (!config.dev) {
+        config.ignore = config.ignore || []
+        config.ignore.push('api/_dev/**')
+      }
       config.typescript = config.typescript || {}
       config.typescript.tsConfig = config.typescript.tsConfig || {}
       config.typescript.tsConfig.include = config.typescript.tsConfig.include || []
@@ -372,6 +383,13 @@ export default defineNuxtConfig({
       baseUrl: 'https://requestindexing.com',
       indexing: {
         usageLimitPerUser: 15,
+      },
+      // Nav rows that are declared but not shipped. `bing` covers both Bing
+      // surfaces: gscdump has not released the partner operations they read,
+      // so the rows stay out of the sidebar until NUXT_PUBLIC_FEATURES_BING
+      // is set. See layers/pro-shell/shared/manifest.ts.
+      features: {
+        bing: false,
       },
     },
     indexing: {

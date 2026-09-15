@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useAttrs, watch } from 'vue'
+import { computed, onMounted, ref, useAttrs, watch } from 'vue'
 import { UiIcon } from '#components'
 import { useFaviconBacking } from '../../composables/useFaviconBacking'
 import { faviconFallbackInitial, faviconProxyPath, isBlankFaviconSize } from '../../utils/favicon-fallback'
@@ -88,14 +88,33 @@ const showFallback = computed(() => failed.value || !cleanDomain.value)
 // opacity keeps it a muted chip rather than a stark card while staying light/dark
 // enough for the glyph to read.
 const { backing, onLoad } = useFaviconBacking(() => cleanDomain.value)
-function handleLoad(event: Event) {
-  const image = event.currentTarget
-  if (image instanceof HTMLImageElement && isBlankFaviconSize(image.naturalWidth, image.naturalHeight)) {
+function markBlankOrBack(image: HTMLImageElement, event: Event) {
+  if (isBlankFaviconSize(image.naturalWidth, image.naturalHeight)) {
     failed.value = true
     return
   }
   onLoad(event)
 }
+
+function handleLoad(event: Event) {
+  const image = event.currentTarget
+  if (image instanceof HTMLImageElement)
+    markBlankOrBack(image, event)
+}
+
+const imageEl = ref<HTMLImageElement | null>(null)
+
+// A server-rendered `<img>` whose bytes are already in the browser cache is
+// `complete` before hydration attaches the listener, so `load` never fires and
+// the blank 1x1 the proxy returns for a site with no favicon renders as an
+// empty box instead of the initial. Re-run the same check once on mount, which
+// is after hydration, so the branch swap is a normal update rather than a
+// mismatch.
+onMounted(() => {
+  const image = imageEl.value
+  if (image?.complete && image.naturalWidth)
+    markBlankOrBack(image, new Event('load'))
+})
 const attrs = useAttrs()
 </script>
 
@@ -144,6 +163,7 @@ const attrs = useAttrs()
     :style="{ width: `${size}px`, height: `${size}px` }"
   >
     <img
+      ref="imageEl"
       :src="src"
       :alt="decorative ? '' : alt"
       :aria-hidden="decorative ? 'true' : undefined"

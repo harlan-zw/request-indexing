@@ -1,6 +1,11 @@
 <script lang="ts" setup>
-import type { NavigationMenuItem } from '@nuxt/ui'
-import DashboardShell from './_DashboardShell.vue'
+// The focused account shell: profile and team settings, away from Site work.
+//
+// It renders the same `UiAppShell` the dashboard does, so the two shells share
+// one rail, one drawer and one skip link. The nav rows are `UiNavList` links
+// rather than a second navigation component, so a row here behaves exactly
+// like a row in the Site sidebar.
+import type { UiNavLink } from '#layers/design-system/app/shared/nav'
 
 const route = useRoute()
 const { session } = useUserSession()
@@ -11,28 +16,30 @@ const { session } = useUserSession()
 const pageTitle = computed(() => String(route.meta.subTitle || route.meta.title || 'Account'))
 const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta.icon : undefined)
 
-const accountLinks: NavigationMenuItem[] = [
-  { label: 'Profile', to: '/pro/dashboard/account', icon: 'i-heroicons-user-circle' },
+const backLink: UiNavLink[] = [
+  { label: 'Back to dashboard', to: '/pro/dashboard', icon: 'back' },
 ]
 
-const teamLinks: NavigationMenuItem[] = [
-  { label: 'Members', to: '/pro/dashboard/team/members', icon: 'i-heroicons-users' },
-  { label: 'Settings', to: '/pro/dashboard/team/settings', icon: 'i-heroicons-cog' },
+const accountLinks: UiNavLink[] = [
+  { label: 'Profile', to: '/pro/dashboard/account', icon: 'user' },
 ]
 
-const supportLinks: NavigationMenuItem[] = [
-  { icon: 'i-ph-envelope-open-duotone', label: 'Email', to: 'mailto:harlan@harlanzw.com', target: '_blank' },
-  { icon: 'i-ph-chat-centered-text-duotone', label: 'Discord', to: 'https://discord.gg/275MBUBvgP', target: '_blank' },
-  { icon: 'i-ph-github-logo', label: 'Submit a bug', to: 'https://github.com/harlan-zw/request-indexing/issues/new/choose', target: '_blank' },
+const teamLinks: UiNavLink[] = [
+  { label: 'Members', to: '/pro/dashboard/team/members', icon: 'users' },
+  { label: 'Settings', to: '/pro/dashboard/team/settings', icon: 'settings' },
 ]
 
-const groups = [{ id: 'links', label: 'Go to', items: [] }]
+const supportLinks: UiNavLink[] = [
+  { icon: 'mail', label: 'Email', to: 'mailto:harlan@harlanzw.com' },
+  { icon: 'discord', label: 'Discord', to: 'https://discord.gg/275MBUBvgP' },
+  { icon: 'github', label: 'Submit a bug', to: 'https://github.com/harlan-zw/request-indexing/issues/new/choose' },
+]
 </script>
 
 <template>
-  <DashboardShell content-class="p-0">
+  <UiAppShell content-class="p-0">
     <template #brand>
-      <NuxtLink to="/pro/dashboard" class="inline-flex min-h-11 items-center rounded-md text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+      <NuxtLink to="/pro/dashboard" class="inline-flex min-h-11 items-center rounded-md text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:min-h-0">
         <OgBrand :size="26" wordmark semantic />
       </NuxtLink>
     </template>
@@ -47,22 +54,20 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
     </template>
 
     <template #sidebar>
-      <UButton icon="i-ph-arrow-u-down-left" color="neutral" variant="ghost" size="sm" to="/pro/dashboard" class="min-h-10 justify-start">
-        Back to dashboard
-      </UButton>
+      <UiNavList variant="sidebar" tone="default" label="Leave account settings" :links="backLink" />
 
       <div>
-        <div class="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted">
+        <div class="mb-1.5 px-1 text-sm font-medium tracking-wide text-dimmed lg:text-xs dark:text-muted">
           Account
         </div>
-        <UNavigationMenu orientation="vertical" :items="accountLinks" />
+        <UiNavList variant="sidebar" tone="default" label="Account" :links="accountLinks" />
       </div>
 
       <div class="mt-auto border-t border-default pt-4">
-        <div class="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted">
-          Team Settings
+        <div class="mb-1.5 px-1 text-sm font-medium tracking-wide text-dimmed lg:text-xs dark:text-muted">
+          Team settings
         </div>
-        <UNavigationMenu orientation="vertical" :items="teamLinks" />
+        <UiNavList variant="sidebar" tone="default" label="Team settings" :links="teamLinks" />
       </div>
     </template>
 
@@ -104,19 +109,13 @@ const groups = [{ id: 'links', label: 'Go to', items: [] }]
       <aside class="lg:sticky lg:top-24 lg:self-start">
         <div class="rounded-[var(--ui-radius)] border border-default bg-elevated/40">
           <div class="border-b border-default px-3 py-2 text-sm font-semibold text-highlighted">
-            Get Help
+            Get help
           </div>
           <div class="p-1">
-            <UNavigationMenu orientation="vertical" :items="supportLinks" />
+            <UiNavList label="Get help" :links="supportLinks" />
           </div>
         </div>
       </aside>
     </div>
-
-    <template #extras>
-      <ClientOnly>
-        <LazyUDashboardSearch :groups="groups" />
-      </ClientOnly>
-    </template>
-  </DashboardShell>
+  </UiAppShell>
 </template>
