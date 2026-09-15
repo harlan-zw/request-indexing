@@ -65,6 +65,20 @@ export type UiTableFeatures = typeof uiTableFeatures
 export type UiTableColumn<T extends object> = ColumnDef<UiTableFeatures, T, unknown> & UiTableColumnMeta
 export type UiTableRowId<T> = string | ((row: T) => string)
 
+export function resolveUiTableRowId<T extends object>(row: T, index: number, rowId?: UiTableRowId<T>): string {
+  const record = row as Record<string, unknown>
+  const id = rowId === undefined
+    ? record.id
+    : typeof rowId === 'function'
+      ? rowId(row)
+      : record[rowId]
+  if (typeof id === 'string' && id !== '')
+    return id
+  if (typeof id === 'number')
+    return String(id)
+  return String(index)
+}
+
 export const uiTableVisibleFromClass: Record<UiTableVisibleFrom, string> = {
   'sm': 'hidden sm:table-cell',
   'md': 'hidden md:table-cell',
