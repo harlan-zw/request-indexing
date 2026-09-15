@@ -85,10 +85,10 @@ const humanUpdatedDate = computed(() => page.value?.updatedAt
 </script>
 
 <template>
-  <Head>
-    <Link v-for="link in navigationLinks" :key="link.rel" :rel="link.rel" :href="link.href" />
-  </Head>
   <div class="flex justify-between w-full">
+    <Head>
+      <Link v-for="link in navigationLinks" :key="link.rel" :rel="link.rel" :href="link.href" />
+    </Head>
     <div class="xl:mx-auto w-full max-w-[66ch]">
       <UPageHeader v-bind="page" :ui="{ title: 'text-center text-balance xl:leading-normal min-w-full', description: 'text-center' }">
         <div class="flex justify-center items-center gap-3 mt-5 text-sm text-[var(--ui-text-dimmed)] flex-wrap">

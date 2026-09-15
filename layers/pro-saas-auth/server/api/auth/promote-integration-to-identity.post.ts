@@ -103,7 +103,7 @@ export default defineEventHandler(async (event) => {
   try {
     await useAuthHooks().callHook('user:identity-linked', {
       event,
-      user: { id: userId, apiKey: session.apiKey ?? '', source: null },
+      user: { id: userId, source: null },
       identity,
     })
   }

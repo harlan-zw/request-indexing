@@ -9,7 +9,6 @@ export type {
   JobSelect,
   SiteDateAnalyticsSelect,
   SiteInsert,
-  SiteKeywordDateAnalyticsSelect,
   SitePathSelect,
   SiteSelect,
   SiteUrlDateAnalyticsSelect,

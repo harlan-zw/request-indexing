@@ -1,7 +1,6 @@
 import type { H3Event } from 'h3'
 import type { AuthProviderId, NormalizedIdentity } from '../../../shared/types/auth'
 import { eq } from 'drizzle-orm'
-import { customAlphabet } from 'nanoid'
 import { logError } from '~~/shared/logging'
 import { logger } from '~~/shared/server/logger'
 import * as schema from '#layers/pro-saas/server/database'
@@ -12,9 +11,6 @@ import { attachIdentityToUser, resolveExistingUser, upsertIdentity } from './ide
 import { setAuthSession } from './session'
 
 const { users } = schema
-
-const apiKeyAlphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-const generateApiKey = customAlphabet(apiKeyAlphabet, 40)
 
 const AUTH_SOURCE_VALUES = ['pro-free'] as const
 type AuthSource = typeof AUTH_SOURCE_VALUES[number]
@@ -33,14 +29,13 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
   const db = useDrizzle(event)
   const source = readAuthSource(event)
 
-  const { user: existing, matchedBy } = await resolveExistingUser(
+  const { user: existing } = await resolveExistingUser(
     db,
     provider,
     identity.providerUserId,
   )
 
   let dbUserId: number | null = existing?.userId ?? null
-  let apiKey: string = existing?.apiKey ?? generateApiKey()
   let isNewUser = false
 
   if (!existing) {
@@ -60,7 +55,6 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
         avatar: identity.avatarUrl ?? '',
         lastLogin: Date.now(),
         sub: identity.providerUserId,
-        apiKey,
         source: source ?? undefined,
       },
       {
@@ -83,17 +77,7 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
       // returned 404, hiding the failure behind a missing page.
       return sendRedirect(event, `/login?error=${encodeURIComponent('Failed to create account')}`)
     dbUserId = created.user.userId
-    apiKey = created.user.apiKey ?? apiKey
     isNewUser = true
-  }
-  else if (matchedBy === 'identity' || matchedBy === 'legacy-sub') {
-    // Refresh apiKey if missing.
-    if (!existing.apiKey) {
-      await db.update(users).set({ apiKey, updatedAt: Date.now() }).where(eq(users.userId, existing.userId)).catch((error: unknown) => logger.error('[auth] apikey refresh failed:', error))
-    }
-    else {
-      apiKey = existing.apiKey
-    }
   }
 
   // Upsert identity row.
@@ -110,7 +94,7 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
     if (isNewUser) {
       await useAuthHooks().callHook('user:created', {
         event,
-        user: { id: dbUserId!, apiKey, source: source ?? null },
+        user: { id: dbUserId!, source: source ?? null },
         identity: identityRow,
         isNewUser: true,
         sourceCookie: source ?? null,
@@ -119,7 +103,7 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
     else {
       await useAuthHooks().callHook('user:signed-in', {
         event,
-        user: { id: dbUserId!, apiKey, source: source ?? null },
+        user: { id: dbUserId!, source: source ?? null },
         identity: identityRow,
         sourceCookie: source ?? null,
       })
@@ -131,12 +115,12 @@ export async function signInOrCreate({ event, provider, identity }: SignInOrCrea
 
   const finalUser = await db.query.users.findFirst({
     where: eq(users.userId, dbUserId!),
-    columns: { currentTeamId: true, apiKey: true },
+    columns: { currentTeamId: true },
   }).catch(() => null)
 
   await setAuthSession(
     event,
-    { id: dbUserId!, apiKey: finalUser?.apiKey ?? apiKey, currentTeamId: finalUser?.currentTeamId ?? null },
+    { id: dbUserId!, currentTeamId: finalUser?.currentTeamId ?? null },
     identityRow,
   )
 
@@ -185,7 +169,7 @@ export async function attachIdentityToCurrentSession({ event, provider, identity
   try {
     await useAuthHooks().callHook('user:identity-linked', {
       event,
-      user: { id: session.user.id as unknown as number, apiKey: session.apiKey ?? '', source: null },
+      user: { id: session.user.id as unknown as number, source: null },
       identity: result.identity,
     })
   }

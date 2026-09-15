@@ -13,7 +13,7 @@
 // (via the onboarding reconcile) rather than building state from the payload.
 
 import type { WebhookEnvelope } from '@gscdump/contracts'
-import { parseWebhookPayloadResult, WEBHOOK_SIGNATURE_HEADER } from '@gscdump/sdk/webhook'
+import { parseWebhookPayload, verifyWebhookSignature, WEBHOOK_SIGNATURE_HEADER } from '@gscdump/sdk/webhook'
 import { eq } from 'drizzle-orm'
 import { logWarn } from '~~/shared/logging'
 import { dispatchEvent } from '#domain-events/server'
@@ -46,19 +46,22 @@ export default defineEventHandler(async (event) => {
   if (!raw)
     throw createError({ statusCode: 400, message: 'Empty webhook body' })
 
-  // Pass the signature explicitly. `headers` on the SDK option bag is the
-  // parsed `PartnerWebhookHeaders` shape, not raw HTTP header names, so handing
-  // it h3's header record reads `signature` as undefined and fails every check.
-  const parsed = await parseWebhookPayloadResult(raw, {
-    secret,
-    signature: getHeader(event, WEBHOOK_SIGNATURE_HEADER) ?? null,
-  })
-  if (!parsed.ok) {
-    logWarn('gscdump.proxy.failed', parsed.error, { stage: 'webhook_signature' })
+  // Verify first, parse second, the way nuxtseo.com does. SDK 3.x dropped the
+  // `Result`-returning parser, and the throwing one raises the same exception
+  // for a bad signature as for a malformed envelope. Those need different status
+  // codes, so the HMAC check stays its own step and the parse runs with
+  // `validateSignature: false`.
+  //
+  // Pass the signature explicitly. `headers` on the SDK option bag is the parsed
+  // `PartnerWebhookHeaders` shape, not raw HTTP header names, so handing it h3's
+  // header record reads `signature` as undefined and fails every check.
+  const signature = getHeader(event, WEBHOOK_SIGNATURE_HEADER) ?? null
+  if (!await verifyWebhookSignature(raw, signature, secret)) {
+    logWarn('gscdump.proxy.failed', new Error('invalid gscdump webhook signature'), { stage: 'webhook_signature' })
     throw createError({ statusCode: 401, message: 'Invalid webhook signature' })
   }
 
-  const envelope = parsed.value
+  const envelope = await parseWebhookPayload(raw, { validateSignature: false }) as WebhookEnvelope
 
   // Retries reuse the delivery id, so a second arrival of work we already did
   // is a no-op rather than a duplicate reconcile.
