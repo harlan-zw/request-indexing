@@ -8,6 +8,7 @@ import { computed, h, watchEffect } from 'vue'
 import { UiProgressPercent } from '#components'
 import { deriveUrlBrandKeywords } from '../../../../shared/brand-queries'
 import { isBrandTerm } from '../../../../shared/query-display'
+import { tableAvailability } from '../../../../shared/table-availability'
 import ProGscTableShell from '../../../components/pro/ProGscTableShell.vue'
 import ProQueryLabel from '../../../components/pro/ProQueryLabel.vue'
 import { periodToDateRange } from '../../../composables/useGscPeriod'
@@ -118,7 +119,14 @@ const {
   facets: queryFacets,
 })
 
-watchEffect(() => emit('available', !isLoading.value && !error.value && rows.value.length > 0))
+// Only once the load settles. Reporting "no rows" mid-load pulled the trend
+// chart out of the page above while Vue was still hydrating it, which threw
+// the whole route into the error boundary.
+watchEffect(() => {
+  const availability = tableAvailability({ isLoading: isLoading.value, error: error.value, rowCount: rows.value.length })
+  if (availability._tag === 'settled')
+    emit('available', availability.hasRows)
+})
 
 // These two say clicks, not rankings, because that is what they select on. A
 // query whose rank collapsed while its clicks held never appears here; the

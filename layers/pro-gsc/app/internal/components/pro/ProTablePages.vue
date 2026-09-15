@@ -7,6 +7,7 @@ import { useRoute } from 'nuxt/app'
 import { computed, h, watchEffect } from 'vue'
 import { getPath } from '~~/layers/design-system/app/composables/formatting'
 import { NuxtLink, UiIcon, UiProgressPercent } from '#components'
+import { tableAvailability } from '../../../../shared/table-availability'
 import ProGscTableShell from '../../../components/pro/ProGscTableShell.vue'
 import { periodToDateRange } from '../../../composables/useGscPeriod'
 import { useProEntitySparklines, useProGscdumpTableData, useProTopAssociations } from '../../../composables/useProGscdump'
@@ -95,7 +96,14 @@ const {
   facets: pageFacets,
 })
 
-watchEffect(() => emit('available', !isLoading.value && !error.value && rows.value.length > 0))
+// Only once the load settles. Reporting "no rows" mid-load pulled the trend
+// chart out of the page above while Vue was still hydrating it, which threw
+// the whole route into the error boundary.
+watchEffect(() => {
+  const availability = tableAvailability({ isLoading: isLoading.value, error: error.value, rowCount: rows.value.length })
+  if (availability._tag === 'settled')
+    emit('available', availability.hasRows)
+})
 
 const filters = [
   { key: 'new', label: 'New', icon: 'ai', tooltip: 'Pages that appeared in search results for the first time in this period' },
