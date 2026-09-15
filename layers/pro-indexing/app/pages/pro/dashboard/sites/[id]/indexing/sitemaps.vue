@@ -417,6 +417,10 @@ const reportRefreshing = computed(() =>
 // report never renders full width and then jumps left when sitemaps land. Only
 // a settled zero drops the shell for the empty state.
 const hasReportShell = computed(() => loading.value || rows.value.length > 0)
+
+// Without a Search Console link there is no sitemap report and no probe to run,
+// so the page says that rather than offering to retry a check it never made.
+const isConnected = computed(() => Boolean(gscdumpSiteId.value))
 </script>
 
 <template>
@@ -440,6 +444,13 @@ const hasReportShell = computed(() => loading.value || rows.value.length > 0)
         </UiButton>
       </template>
     </UiAlert>
+
+    <UiEmptyState
+      v-else-if="!isConnected"
+      icon="link"
+      title="Connect Search Console to see sitemaps"
+      description="Sitemap files, their reported issues and their URL history all come from Search Console."
+    />
 
     <UiEmptyState
       v-else-if="!hasReportShell && !resolvedEmptyState"

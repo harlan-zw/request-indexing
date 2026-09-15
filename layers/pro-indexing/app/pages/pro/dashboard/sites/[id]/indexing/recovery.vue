@@ -42,13 +42,27 @@ const buckets = computed(() => {
 })
 
 const totalRejected = computed(() => buckets.value.reduce((sum, bucket) => sum + bucket.count, 0))
+
+// A site with no Search Console link answers the diagnostics query with
+// nothing, and an empty bucket list then reads as "Google is refusing no
+// pages". That is a clean bill for a site nobody has checked, so the connect
+// state is its own branch.
+const isConnected = computed(() => Boolean(gscdumpSiteId.value))
+const hasEvidence = computed(() => Boolean(diagnostics.value))
 </script>
 
 <template>
   <ProPageStates>
     <ProPageZone tier="primary" first>
+      <UiEmptyState
+        v-if="!isConnected"
+        icon="link"
+        title="Connect Search Console to see refused pages"
+        description="Recovery reads the crawled-not-indexed, discovered-not-indexed, and soft-404 buckets from Search Console."
+      />
+
       <UiAlert
-        v-if="status === 'success' && totalRejected === 0"
+        v-else-if="hasEvidence && status === 'success' && totalRejected === 0"
         status="success"
         title="Google is not refusing pages on this site"
         description="Search Console reports no pages in the crawled-not-indexed, discovered-not-indexed, or soft-404 buckets."
