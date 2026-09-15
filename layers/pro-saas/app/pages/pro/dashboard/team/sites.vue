@@ -60,7 +60,7 @@ async function refresh() {
 
 const { user, fetch } = useUserSession()
 
-const selectedSites = ref<string[]>(siteData.value?.sites?.map(s => String(s.publicId)) || [])
+const selectedSites = ref<string[]>(siteData.value?.sites?.map(s => String(s.siteId)) || [])
 const toast = useToast()
 const isSubmitting = ref(false)
 

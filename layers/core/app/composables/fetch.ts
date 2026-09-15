@@ -1,4 +1,4 @@
-import type { SiteSelect } from '#shared/types/database'
+import type { SiteFleetRow } from '~~/layers/core/app/types'
 import { createLogoutHandler } from '~~/layers/core/app/composables/auth'
 import { useAsyncData } from '#imports'
 
@@ -7,7 +7,7 @@ export async function fetchSites() {
   const { user } = useUserSession()
   const logout = createLogoutHandler()
   const fetchFn = useRequestFetch()
-  return useAsyncData<{ sites: SiteSelect[] }>(`sites`, async () => {
+  return useAsyncData<{ sites: SiteFleetRow[] }>(`sites`, async () => {
     return fetchFn(`/api/sites/list`, {
       query: {
         teamId: user.value?.currentTeamId,
