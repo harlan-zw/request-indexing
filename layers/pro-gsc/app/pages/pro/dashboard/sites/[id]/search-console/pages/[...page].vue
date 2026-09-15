@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import ProCardGsc from '#layers/pro-gsc/app/components/pro/ProCardGsc.vue'
 import ProGscReadError from '#layers/pro-gsc/app/components/pro/ProGscReadError.vue'
+import ProGscSurfaceBar from '#layers/pro-gsc/app/components/pro/ProGscSurfaceBar.vue'
 import { useProGscdumpDates } from '#layers/pro-gsc/app/composables/useProGscdump'
 import { useProGscFilters } from '#layers/pro-gsc/app/composables/useProGscFilters'
 import ProTableKeywords from '#layers/pro-gsc/app/internal/components/pro/ProTableKeywords.vue'
@@ -10,7 +11,7 @@ import { decodeRouteParam } from '#layers/pro-gsc/shared/route-params'
 // Page detail, ported from nuxtseo.com's `pages/[...page].vue`: the page's own
 // daily trend, then the keywords that rank for it.
 
-const { siteId, site, siteStatus, isReady, gscdumpSiteId } = useSite()
+const { siteId, site, siteStatus, isReady, isNotConnected, gscdumpSiteId } = useSite()
 
 const route = useRoute()
 const pageUrl = computed(() => decodeRouteParam(route.params.page))
@@ -73,7 +74,6 @@ const pagesHref = computed(() => `/pro/dashboard/sites/${siteId.value}/search-co
           <NuxtLink :to="pagesHref" class="hover:text-default transition-colors">
             Pages
           </NuxtLink>
-          <span class="mx-1.5 text-dimmed">/</span>
         </nav>
         <h1 class="mt-1 text-sm font-semibold text-highlighted truncate" :title="pageFullUrl">
           {{ pagePath }}
@@ -91,12 +91,23 @@ const pagesHref = computed(() => `/pro/dashboard/sites/${siteId.value}/search-co
       </UiButton>
     </div>
 
+    <ProGscSurfaceBar surface="detail" :site-id="siteId" />
+
     <ProPageZone tier="primary" first>
       <!-- A failed read used to fall between the skeleton and the card and
            render nothing at all. Say what happened instead. -->
       <ProGscReadError :error="pageDatesError" />
 
-      <UiCard v-if="!pageDates && (siteStatus === 'pending' || !isReady)" variant="default" aria-busy="true">
+      <!-- An unconnected site never resolves this read, so it would sit on the
+           skeleton forever. Say what is missing instead. -->
+      <UiEmptyState
+        v-if="!pageDates && isNotConnected"
+        compact
+        icon="google"
+        title="Connect Search Console"
+        description="This page's trend fills in once Google Search Console is connected for this site."
+      />
+      <UiCard v-else-if="!pageDates && (siteStatus === 'pending' || !isReady)" variant="default" aria-busy="true">
         <div class="grid grid-cols-2 sm:flex sm:items-center gap-4 mb-6">
           <div v-for="i in 4" :key="i" class="flex-1 space-y-2">
             <UiSkeleton class="h-3" :index="i" :base="60" :range="20" />

@@ -5,6 +5,7 @@ import { gscMetricColors, vizTextColor } from '~~/layers/design-system/app/compo
 import { calcTrendPercent, formatNumber } from '~~/layers/design-system/app/composables/formatting'
 import ProCardGsc from '#layers/pro-gsc/app/components/pro/ProCardGsc.vue'
 import ProGscReadError from '#layers/pro-gsc/app/components/pro/ProGscReadError.vue'
+import ProGscSurfaceBar from '#layers/pro-gsc/app/components/pro/ProGscSurfaceBar.vue'
 import { periodToDateRange } from '#layers/pro-gsc/app/composables/useGscPeriod'
 import {
   useProEntitySparklines,
@@ -27,7 +28,7 @@ import { isBrandTerm } from '#layers/pro-gsc/shared/query-display'
 // Dropped against upstream: search volume, CPC and difficulty (those come from
 // DataForSEO, which this app does not carry) and the chat eject.
 
-const { siteId, site, siteStatus, isReady, gscdumpSiteId } = useSite()
+const { siteId, site, siteStatus, isReady, isNotConnected, gscdumpSiteId } = useSite()
 
 const route = useRoute()
 const keyword = computed(() => String(route.params.keyword))
@@ -168,6 +169,8 @@ const queriesHref = computed(() => `/pro/dashboard/sites/${siteId.value}/search-
       <span class="text-default">&ldquo;{{ keyword }}&rdquo;</span>
     </nav>
 
+    <ProGscSurfaceBar surface="detail" :site-id="siteId" />
+
     <!-- Identity header: hero search clicks plus the performance facts -->
     <ProPageZone tier="primary" first>
       <UiEntitySummary
@@ -239,7 +242,16 @@ const queriesHref = computed(() => `/pro/dashboard/sites/${siteId.value}/search-
            render nothing at all. Say what happened instead. -->
       <ProGscReadError :error="keywordDatesError" />
 
-      <UiCard v-if="!keywordDates && (siteStatus === 'pending' || !isReady)" variant="default" aria-busy="true">
+      <!-- An unconnected site never resolves this read, so it would sit on the
+           skeleton forever. Say what is missing instead. -->
+      <UiEmptyState
+        v-if="!keywordDates && isNotConnected"
+        compact
+        icon="google"
+        title="Connect Search Console"
+        description="This keyword's trend fills in once Google Search Console is connected for this site."
+      />
+      <UiCard v-else-if="!keywordDates && (siteStatus === 'pending' || !isReady)" variant="default" aria-busy="true">
         <div class="grid grid-cols-2 sm:flex sm:items-center gap-4 mb-6">
           <div v-for="i in 4" :key="i" class="flex-1 space-y-2">
             <UiSkeleton class="h-3" :index="i" :base="60" :range="20" />
