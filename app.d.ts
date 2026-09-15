@@ -24,6 +24,16 @@ module '#auth-utils' {
      * yet, which is what the connect prompt keys off.
      */
     gscdumpUserId?: string | null
+    /**
+     * Search Console grant state, published as one block by
+     * `buildGscSessionFields`. `pro-gate.global.ts` and both
+     * integration-readiness policies read these.
+     */
+    gscConnected?: boolean
+    gscEmail?: string | null
+    googleScopes?: string | null
+    gscIndexingScope?: boolean
+    gscSitemapsScope?: boolean
     team?: {
       teamId: number
       name: string

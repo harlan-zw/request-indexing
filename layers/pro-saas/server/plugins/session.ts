@@ -3,6 +3,7 @@ import { and, desc, eq } from 'drizzle-orm'
 import { googleAccounts, teamSites } from '~~/layers/core/server/db/schema'
 import { logger } from '~~/shared/server/logger'
 import * as schema from '#layers/pro-saas/server/database'
+import { buildGscSessionFields } from '../utils/gsc-session-fields'
 import { hasAuthenticatedSession } from '../utils/session-auth-state'
 
 export default defineNitroPlugin(() => {
@@ -103,9 +104,10 @@ export default defineNitroPlugin(() => {
         logger.error('[session] google account lookup failed:', error)
         return null
       })
-    session.gscConnected = !!googleAccount
-    session.gscEmail = (googleAccount?.payload as { email?: string | null } | undefined)?.email ?? null
-    session.googleScopes = googleAccount?.tokens?.scope ?? null
+    // One projection publishes the whole Search Console block. `pro-gate` reads
+    // `gscIndexingScope` and `gscSitemapsScope` from it; assigning the
+    // connection without them left both gates permanently closed.
+    Object.assign(session, buildGscSessionFields(googleAccount))
     session.gscdumpUserId = user.gscdumpUserId
     // A gscdump user id alone does not make Search Console usable: every
     // browser query goes through the same-origin v1 proxy, which needs the
