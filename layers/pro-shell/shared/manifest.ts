@@ -186,3 +186,53 @@ export function findProSiteFeatureEntry(id: string): ProSiteFeatureManifestEntry
 export function expandProSiteRoute(route: string, siteId: string): string {
   return route.replace(/:id\(\)|:slug\(\)|\[id\]|\[slug\]/g, siteId)
 }
+
+/**
+ * Which flagged rows are on. Absent means off, which is also the production
+ * state for every flag declared here.
+ */
+export type ProFeatureFlags = Partial<Record<ProFeatureFlag, boolean>>
+
+const PRO_FEATURE_FLAG_NAMES: readonly ProFeatureFlag[] = ['bing']
+
+/**
+ * Parse a public runtime config block into feature flags.
+ *
+ * One reader for the sidebar, the route guard and the server proxy, so a flag
+ * cannot mean three things. Anything that is not the literal `true` is off:
+ * `NUXT_PUBLIC_FEATURES_BING` arrives as a string in some deployments, and a
+ * non-empty string like `"false"` must not read as on.
+ */
+export function readProFeatureFlags(publicConfig: unknown): ProFeatureFlags {
+  const features = (publicConfig as { features?: unknown } | null | undefined)?.features
+  if (!features || typeof features !== 'object')
+    return {}
+  const source = features as Record<string, unknown>
+  const flags: ProFeatureFlags = {}
+  for (const name of PRO_FEATURE_FLAG_NAMES)
+    flags[name] = source[name] === true || source[name] === 'true'
+  return flags
+}
+
+/** Route templates that carry a flag, compiled once into path matchers. */
+const FLAGGED_ROUTE_MATCHERS: readonly { flag: ProFeatureFlag, match: RegExp }[] = proSiteFeatureIds
+  .flatMap((id) => {
+    const entry = proSiteFeatureManifest[id] as ProSiteFeatureManifestEntry
+    if (!entry.flag)
+      return []
+    const pattern = entry.route
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/:id\\\(\\\)/g, '[^/]+')
+    return [{ flag: entry.flag, match: new RegExp(`^${pattern}/?$`) }]
+  })
+
+/**
+ * The flag a path requires, or `null` when the path is not flagged.
+ *
+ * Derived from the manifest rather than declared on each page, so a flagged
+ * surface cannot ship reachable because someone forgot the page meta.
+ */
+export function requiredProFeatureFlag(path: string): ProFeatureFlag | null {
+  const clean = path.split('?')[0]!.split('#')[0]!
+  return FLAGGED_ROUTE_MATCHERS.find(entry => entry.match.test(clean))?.flag ?? null
+}

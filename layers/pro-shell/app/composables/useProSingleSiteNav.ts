@@ -9,6 +9,7 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { ProNavSection, ProSiteNavFlags, ProSiteNavLink } from './useProSiteNav'
 import { computed, toValue } from 'vue'
+import { readProFeatureFlags } from '../../shared/manifest'
 import { decorateSiteNavLink, useProNavSetupBadges } from './useProNavSetupBadges'
 import { useProSiteNav } from './useProSiteNav'
 
@@ -53,8 +54,7 @@ export function useProSingleSiteNav(siteSource: MaybeRefOrGetter<ProNavSite | nu
   // link, exactly as upstream does.
   // One place decides what a flag means. `useProSiteNav` stays free of runtime
   // config so it can be exercised without a Nuxt instance.
-  const flags = computed<ProSiteNavFlags>(() =>
-    (useRuntimeConfig().public as { features?: ProSiteNavFlags }).features ?? {})
+  const flags = computed<ProSiteNavFlags>(() => readProFeatureFlags(useRuntimeConfig().public))
 
   const { pinnedLinks, sections, footerLinks } = useProSiteNav(() => siteRef.value, {
     flags,

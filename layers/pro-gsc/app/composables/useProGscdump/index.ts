@@ -9,6 +9,14 @@ export {
 } from './useProEntitySparklines'
 export { useProGscdump } from './useProGscdump'
 export { useProGscdumpAnalysis } from './useProGscdumpAnalysis'
+export {
+  type BingDataset,
+  type BingSiteId,
+  useProGscdumpBingConnection,
+  useProGscdumpBingData,
+  type UseProGscdumpBingDataOptions,
+  useProGscdumpBingVerify,
+} from './useProGscdumpBing'
 export { useProGscdumpData } from './useProGscdumpData'
 export { useProGscdumpDataDetail } from './useProGscdumpDataDetail'
 export { useProGscdumpDates } from './useProGscdumpDates'
