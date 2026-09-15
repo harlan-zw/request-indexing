@@ -75,9 +75,9 @@ const darkTheme = {
     lineColor: 'rgba(32, 226, 47, 1)',
   },
   series2: {
-    topColor: 'rgba(156, 39, 176, 0.4)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.5)',
+    topColor: 'rgba(59, 130, 246, 0.4)',
+    bottomColor: 'rgba(59, 130, 246, 0.04)',
+    lineColor: 'rgba(59, 130, 246, 0.5)',
   },
   series3: {
     topColor: 'rgba(255, 152, 0, 0.3)',
@@ -105,15 +105,15 @@ const lightTheme = {
     },
   },
   series: {
-    topColor: 'rgba(33, 150, 243, 0.9)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 0.5)',
+    topColor: 'rgba(16, 185, 129, 0.9)',
+    bottomColor: 'rgba(16, 185, 129, 0.04)',
+    lineColor: 'rgba(16, 185, 129, 0.5)',
   },
-  // this is the impressions from google search console, we want to use a similar purple
+  // this is the impressions from google search console, we want to use a similar blue
   series2: {
-    topColor: 'rgba(156, 39, 176, 0.3)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.4)',
+    topColor: 'rgba(59, 130, 246, 0.3)',
+    bottomColor: 'rgba(59, 130, 246, 0.04)',
+    lineColor: 'rgba(59, 130, 246, 0.4)',
   },
   series3: {
     topColor: 'rgba(255, 152, 0, 0.3)',
@@ -136,7 +136,7 @@ const themesData = {
 const palettes = [lightTheme.series, lightTheme.series2, lightTheme.series3]
 
 /**
- * Series legend. The chart draws a blue and a purple line with nothing naming
+ * Series legend. The chart draws an emerald and a blue line with nothing naming
  * them, so the reader cannot tell which metric is which. Colours here mirror
  * the order `addSeries` assigns palettes in.
  */

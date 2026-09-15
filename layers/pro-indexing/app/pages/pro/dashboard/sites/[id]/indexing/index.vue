@@ -27,7 +27,11 @@ import { selectIndexCohortLead } from '#layers/pro-indexing/shared/index-cohorts
 import { selectIndexingRegressionLead } from '#layers/pro-indexing/shared/indexing-transition-lead'
 import { computeTrustGate, sitemapHistoryCollapsed } from '#layers/pro-indexing/shared/trust-gate'
 
-definePageMeta({ proTab: { feature: 'indexing', label: 'Overview', icon: 'i-lucide-layout-dashboard', order: 0 } })
+definePageMeta({
+  proTab: { feature: 'indexing', label: 'Overview', icon: 'i-lucide-layout-dashboard', order: 0 },
+  title: 'Indexing',
+  icon: 'i-lucide-layout-dashboard',
+})
 
 const { siteId, gscdumpSiteId, isNotConnected } = useSite('Indexing')
 const proFetch = useProFetch()

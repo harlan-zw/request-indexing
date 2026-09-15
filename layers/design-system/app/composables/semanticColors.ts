@@ -6,7 +6,7 @@
  * 2. **Threshold colors** — good/needs-attention/poor for CWV, indexing %, etc.
  * 3. **Trend colors** — positive (green) / negative (red) / neutral for change values
  *
- * Metric visualization colors (clicks=blue, impressions=purple, etc.) are intentionally
+ * Metric visualization colors (clicks=emerald, impressions=blue, etc.) are intentionally
  * NOT included here — those are data-viz concerns, not semantic.
  */
 
@@ -27,10 +27,10 @@ export const semanticColors: Record<SemanticStatus, SemanticColorSet> = {
   error: { text: 'text-error', bg: 'bg-error/10', dot: 'bg-error', border: 'border-error/20', hex: '#ef4444' },
   warning: { text: 'text-warning', bg: 'bg-warning/10', dot: 'bg-warning', border: 'border-warning/20', hex: '#eab308' },
   info: { text: 'text-info', bg: 'bg-info/10', dot: 'bg-info', border: 'border-info/20', hex: '#3b82f6' },
-  // hex is a violet-tinted grey (hue ~292) matching the de-chromatized neutral
+  // hex is an olive-tinted grey (hue ~105) matching the de-chromatized neutral
   // ramp, not stock cold blue-slate — so chart neutrals sit with the surface
   // greys instead of reading cool against them.
-  neutral: { text: 'text-muted', bg: 'bg-accented', dot: 'bg-[var(--ui-border)]', border: 'border-default', hex: '#9e9aa6' },
+  neutral: { text: 'text-muted', bg: 'bg-accented', dot: 'bg-[var(--ui-border)]', border: 'border-default', hex: '#a3a292' },
 }
 
 /** Map dashboard health status to semantic status */

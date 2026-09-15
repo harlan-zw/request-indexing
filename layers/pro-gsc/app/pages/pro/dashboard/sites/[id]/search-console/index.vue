@@ -5,7 +5,11 @@ import ProGscControlBar from '#layers/pro-gsc/app/components/pro/ProGscControlBa
 import ProQueryLabel from '#layers/pro-gsc/app/components/pro/ProQueryLabel.vue'
 import { useProGscdumpDates, useProGscdumpTableData } from '#layers/pro-gsc/app/composables/useProGscdump'
 
-definePageMeta({ proTab: { feature: 'search-console', label: 'Overview', icon: 'i-lucide-layout-dashboard', order: 0 } })
+definePageMeta({
+  proTab: { feature: 'search-console', label: 'Overview', icon: 'i-lucide-layout-dashboard', order: 0 },
+  title: 'Search Console',
+  icon: 'i-lucide-layout-dashboard',
+})
 
 const { siteId, siteStatus, gscdumpSiteId, isProcessing, isReady, isNotConnected } = useSite('Search Console')
 
@@ -53,8 +57,8 @@ const demoHeroStats = computed(() => {
   const d = demoDates.value
   const loading = !d
   return [
-    { title: 'Clicks', icon: 'i-lucide-mouse-pointer-click', iconColor: 'blue', value: d?.period?.clicks != null ? formatNumber(d.period.clicks) : null, loading },
-    { title: 'Impressions', icon: 'i-lucide-eye', iconColor: 'purple', value: d?.period?.impressions != null ? formatNumber(d.period.impressions) : null, loading },
+    { title: 'Clicks', icon: 'i-lucide-mouse-pointer-click', iconColor: 'emerald', value: d?.period?.clicks != null ? formatNumber(d.period.clicks) : null, loading },
+    { title: 'Impressions', icon: 'i-lucide-eye', iconColor: 'blue', value: d?.period?.impressions != null ? formatNumber(d.period.impressions) : null, loading },
     { title: 'CTR', icon: 'i-lucide-percent', iconColor: 'neutral', value: d?.period?.ctr != null ? `${(d.period.ctr * 100).toFixed(1)}%` : null, loading },
     { title: 'Position', icon: 'i-lucide-arrow-up-down', iconColor: 'neutral', value: d?.period?.position != null ? d.period.position.toFixed(1) : null, loading },
   ]

@@ -49,7 +49,7 @@ const darkTheme = {
     bottomFillColor1: 'rgba(32, 226, 47, 0.56)',
     bottomFillColor2: 'rgba(32, 226, 47, 0.04)',
   },
-  series2: { color: 'rgba(156, 39, 176, 0.5)' },
+  series2: { color: 'rgba(59, 130, 246, 0.5)' },
 } as const
 
 const lightTheme = {
@@ -75,16 +75,16 @@ const lightTheme = {
     },
   },
   series: {
-    baseLineColor: 'rgba(33, 150, 243, 0.5)',
-    topLineColor: 'rgba(33, 150, 243, 0.5)',
-    topFillColor1: 'rgba(33, 150, 243, 0.9)',
-    topFillColor2: 'rgba(33, 150, 243, 0.04)',
-    bottomLineColor: 'rgba(33, 150, 243, 0.5)',
-    bottomFillColor1: 'rgba(33, 150, 243, 0.9)',
-    bottomFillColor2: 'rgba(33, 150, 243, 0.04)',
+    baseLineColor: 'rgba(16, 185, 129, 0.5)',
+    topLineColor: 'rgba(16, 185, 129, 0.5)',
+    topFillColor1: 'rgba(16, 185, 129, 0.9)',
+    topFillColor2: 'rgba(16, 185, 129, 0.04)',
+    bottomLineColor: 'rgba(16, 185, 129, 0.5)',
+    bottomFillColor1: 'rgba(16, 185, 129, 0.9)',
+    bottomFillColor2: 'rgba(16, 185, 129, 0.04)',
   },
-  // this is the ctr from google search console, we want to use a similar purple
-  series2: { color: 'rgba(156, 39, 176, 0.4)' },
+  // this is the ctr from google search console, we want to use a similar blue
+  series2: { color: 'rgba(59, 130, 246, 0.4)' },
 } as const
 
 const themesData = {

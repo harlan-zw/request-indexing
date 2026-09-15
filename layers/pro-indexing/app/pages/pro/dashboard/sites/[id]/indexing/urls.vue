@@ -3,7 +3,11 @@ import TableIndexingUrls from '#layers/pro-indexing/app/internal/components/Tabl
 import { issueDetails } from '#layers/pro-indexing/app/utils/indexing-issues'
 import { INDEXING_URLS_PAGE_SIZE } from '#layers/pro-indexing/app/utils/indexing-urls-first-page'
 
-definePageMeta({ proTab: { feature: 'indexing', label: 'URLs', icon: 'i-lucide-link-2', order: 30 } })
+definePageMeta({
+  proTab: { feature: 'indexing', label: 'URLs', icon: 'i-lucide-link-2', order: 30 },
+  title: 'URLs',
+  icon: 'i-lucide-link-2',
+})
 
 const { gscdumpSiteId } = useSite('Indexing URLs')
 const route = useRoute()

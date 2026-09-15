@@ -34,6 +34,25 @@ const scopedSite = computed<ProNavSite | null>(() => {
   return sites.value.length === 1 ? sites.value[0]! : null
 })
 
+/**
+ * The dashboard's one `h1`, rendered here rather than in twenty pages.
+ *
+ * Every `/pro/dashboard/**` page already declares its name through
+ * `definePageMeta({ title })`, so the shell can name the page without a per-page
+ * header component. A page that folds its heading into a richer identity block
+ * (the query and page drill-ins) sets `proOwnHeading` and this steps aside, so
+ * no route ever ships two `h1`s.
+ */
+const ownsHeading = computed(() => (route.meta as { proOwnHeading?: boolean }).proOwnHeading === true)
+const pageTitle = computed(() => {
+  if (ownsHeading.value)
+    return null
+  const title = route.meta.subTitle ?? route.meta.title
+  return typeof title === 'string' && title ? title : null
+})
+const pageDescription = computed(() => typeof route.meta.description === 'string' ? route.meta.description : null)
+const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta.icon : undefined)
+
 const userMenuItems = computed(() => [
   [{ label: 'Account', icon: 'i-lucide-user', to: '/pro/dashboard/account' }],
   [{ label: 'Sign out', icon: 'i-lucide-log-out', color: 'error' as const, to: '/auth/logout', external: true }],
@@ -95,6 +114,16 @@ const userMenuItems = computed(() => [
         <UColorModeButton size="xs" variant="ghost" color="neutral" class="shrink-0" />
       </div>
     </template>
+
+    <header v-if="pageTitle" class="mb-6">
+      <h1 class="flex min-w-0 items-center gap-2 font-title text-xl font-semibold tracking-tight text-highlighted">
+        <UIcon v-if="pageIcon" :name="pageIcon" class="size-5 shrink-0 text-primary" aria-hidden="true" />
+        <span class="truncate">{{ pageTitle }}</span>
+      </h1>
+      <p v-if="pageDescription" class="mt-1 text-sm text-muted">
+        {{ pageDescription }}
+      </p>
+    </header>
 
     <slot />
   </UiAppShell>

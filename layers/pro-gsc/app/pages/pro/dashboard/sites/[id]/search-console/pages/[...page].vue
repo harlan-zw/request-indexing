@@ -11,6 +11,10 @@ import { decodeRouteParam } from '#layers/pro-gsc/shared/route-params'
 // Page detail, ported from nuxtseo.com's `pages/[...page].vue`: the page's own
 // daily trend, then the keywords that rank for it.
 
+// The heading lives under the breadcrumb below, beside the Visit Page action,
+// so the shell does not add a second one.
+definePageMeta({ proOwnHeading: true })
+
 const { siteId, site, siteStatus, isReady, isNotConnected, gscdumpSiteId } = useSite()
 
 const route = useRoute()

@@ -13,7 +13,7 @@ const props = defineProps<{
   period?: Period
   width?: number
   height?: number
-  color?: 'blue' | 'green' | 'purple' | 'orange' | 'neutral'
+  color?: 'blue' | 'green' | 'lime' | 'orange' | 'neutral'
 }>()
 
 const isVisible = ref(false)

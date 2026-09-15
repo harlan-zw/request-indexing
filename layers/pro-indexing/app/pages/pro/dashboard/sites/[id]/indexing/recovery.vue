@@ -10,7 +10,11 @@ import { useProGscdumpIndexingDiagnostics } from '#layers/pro-gsc/app/composable
  * prescribes.
  */
 
-definePageMeta({ proTab: { feature: 'indexing', label: 'Recovery', icon: 'i-lucide-life-buoy', order: 10 } })
+definePageMeta({
+  proTab: { feature: 'indexing', label: 'Recovery', icon: 'i-lucide-life-buoy', order: 10 },
+  title: 'Recovery',
+  icon: 'i-lucide-life-buoy',
+})
 
 const { siteId, gscdumpSiteId } = useSite('Indexing recovery')
 

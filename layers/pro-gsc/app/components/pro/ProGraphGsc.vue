@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Scale, TextAlign } from '@unovis/ts'
 import { VisArea, VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue'
+import { gscMetricColors } from '~~/layers/design-system/app/composables/dataVizColors'
 import { GSC_STABLE_LATENCY_DAYS } from '../../composables/useGscPeriod'
 
 interface DataRow {
@@ -31,12 +32,20 @@ const emit = defineEmits<{
 const devSkeleton = useProDevSkeleton()
 const loading = computed(() => loadingProp || devSkeleton.value)
 
-// Centralized color definitions
+// Series colour comes from the one metric-identity map, not from literals here.
+// The hardcoded rgba() triples this replaced had drifted off the palette (the
+// impressions line stayed purple-500 and the CTR line green-500 through the
+// Verdant re-brand), so the chart and its own legend disagreed.
+function alpha(hex: string, a: number) {
+  const n = Number.parseInt(hex.slice(1), 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`
+}
+
 const gscColors = {
-  clicks: { line: 'rgba(59, 130, 246, 0.9)', area: 'url(#gradient-clicks)', prev: 'rgba(59, 130, 246, 0.3)' },
-  impressions: { line: 'rgba(168, 85, 247, 0.7)', area: 'url(#gradient-impressions)', prev: 'rgba(168, 85, 247, 0.3)' },
-  ctr: { line: 'rgba(34, 197, 94, 0.9)', prev: 'rgba(34, 197, 94, 0.3)' },
-  position: { line: 'rgba(251, 146, 60, 0.9)', prev: 'rgba(251, 146, 60, 0.3)' },
+  clicks: { line: alpha(gscMetricColors.clicks.hex, 0.9), area: 'url(#gradient-clicks)', prev: alpha(gscMetricColors.clicks.hex, 0.3) },
+  impressions: { line: alpha(gscMetricColors.impressions.hex, 0.7), area: 'url(#gradient-impressions)', prev: alpha(gscMetricColors.impressions.hex, 0.3) },
+  ctr: { line: alpha(gscMetricColors.ctr.hex, 0.9), prev: alpha(gscMetricColors.ctr.hex, 0.3) },
+  position: { line: alpha(gscMetricColors.position.hex, 0.9), prev: alpha(gscMetricColors.position.hex, 0.3) },
 }
 
 // Shared config for overlaid containers
@@ -46,12 +55,12 @@ const chartInnerHeight = computed(() => chartHeight.value - margin.top - margin.
 
 const svgDefs = `
   <linearGradient id="gradient-clicks" gradientTransform="rotate(90)">
-    <stop offset="0%" stop-color="rgba(59, 130, 246, 0.25)" />
-    <stop offset="100%" stop-color="rgba(59, 130, 246, 0.01)" />
+    <stop offset="0%" stop-color="${alpha(gscMetricColors.clicks.hex, 0.25)}" />
+    <stop offset="100%" stop-color="${alpha(gscMetricColors.clicks.hex, 0.01)}" />
   </linearGradient>
   <linearGradient id="gradient-impressions" gradientTransform="rotate(90)">
-    <stop offset="0%" stop-color="rgba(168, 85, 247, 0.2)" />
-    <stop offset="100%" stop-color="rgba(168, 85, 247, 0.01)" />
+    <stop offset="0%" stop-color="${alpha(gscMetricColors.impressions.hex, 0.2)}" />
+    <stop offset="100%" stop-color="${alpha(gscMetricColors.impressions.hex, 0.01)}" />
   </linearGradient>`
 
 // --- Comparison data handling ---

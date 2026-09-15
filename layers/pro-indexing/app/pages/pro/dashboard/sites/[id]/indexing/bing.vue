@@ -15,7 +15,12 @@ import ProBingVerification from '#layers/pro-gsc/app/internal/components/bing/Pr
 import { bingConnectionSetupState, bingRequestErrorState, toBingConnectionView } from '#layers/pro-gsc/app/utils/bing-view'
 import { BING_REPORTING_WINDOW_DAYS, bingReportingWindow } from '#layers/pro-gsc/shared/bing-reporting-window'
 
-definePageMeta({ proTab: { feature: 'indexing', label: 'Bing', icon: 'i-lucide-search-check', order: 50 } })
+definePageMeta({
+  proTab: { feature: 'indexing', label: 'Bing', icon: 'i-lucide-search-check', order: 50 },
+  title: 'Bing indexing',
+  icon: 'i-lucide-search-check',
+  description: 'What Bing Webmaster Tools reports about crawling this Site.',
+})
 
 const { gscdumpSiteId } = useSite('Bing indexing')
 
@@ -54,15 +59,6 @@ function handleVerificationChecked(next: BingConnectionV1) {
 
 <template>
   <div data-testid="indexing-bing-page" class="flex flex-col gap-5">
-    <div class="flex flex-col gap-1">
-      <h1 class="text-xl font-semibold text-highlighted">
-        Bing indexing
-      </h1>
-      <p class="text-sm text-muted">
-        What Bing Webmaster Tools reports about crawling this Site.
-      </p>
-    </div>
-
     <UiEmptyState
       v-if="!linked"
       icon="search"

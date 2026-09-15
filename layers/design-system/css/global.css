@@ -864,7 +864,6 @@ textarea {
 
 /* Section accent — module-colored section tints (landing sections, docs headers, module-scoped pages) */
 .section-accent-pink { @apply bg-pink-50 dark:bg-pink-500/5 border-pink-200/50 dark:border-pink-500/10; }
-.section-accent-purple { @apply bg-purple-50 dark:bg-purple-500/5 border-purple-200/50 dark:border-purple-500/10; }
 .section-accent-yellow { @apply bg-yellow-50 dark:bg-yellow-500/5 border-yellow-200/50 dark:border-yellow-500/10; }
 .section-accent-green { @apply bg-green-50 dark:bg-green-500/5 border-green-200/50 dark:border-green-500/10; }
 .section-accent-blue { @apply bg-blue-50 dark:bg-blue-500/5 border-blue-200/50 dark:border-blue-500/10; }

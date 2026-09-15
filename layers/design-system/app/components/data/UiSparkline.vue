@@ -16,7 +16,7 @@ interface Props {
   width?: number | string
   height?: number | string
   size?: 'sm' | 'md' | 'lg'
-  /** Single color or named color (blue, green, purple, orange, red, neutral) */
+  /** Single color or named color (blue, green, lime, orange, red, neutral) */
   color?: string
   /** Full gradient color array, overrides color & trend defaults */
   colors?: string[]

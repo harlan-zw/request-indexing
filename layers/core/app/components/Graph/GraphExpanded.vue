@@ -49,9 +49,9 @@ const darkTheme = {
     lineColor: 'rgba(32, 226, 47, 1)',
   },
   series2: {
-    topColor: 'rgba(156, 39, 176, 0.4)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.5)',
+    topColor: 'rgba(59, 130, 246, 0.4)',
+    bottomColor: 'rgba(59, 130, 246, 0.04)',
+    lineColor: 'rgba(59, 130, 246, 0.5)',
   },
 } as const
 
@@ -78,15 +78,15 @@ const lightTheme = {
     },
   },
   series: {
-    topColor: 'rgba(33, 150, 243, 0.9)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 0.5)',
+    topColor: 'rgba(16, 185, 129, 0.9)',
+    bottomColor: 'rgba(16, 185, 129, 0.04)',
+    lineColor: 'rgba(16, 185, 129, 0.5)',
   },
-  // this is the impressions from google search console, we want to use a similar purple
+  // this is the impressions from google search console, we want to use a similar blue
   series2: {
-    topColor: 'rgba(156, 39, 176, 0.3)',
-    bottomColor: 'rgba(156, 39, 176, 0.04)',
-    lineColor: 'rgba(156, 39, 176, 0.4)',
+    topColor: 'rgba(59, 130, 246, 0.3)',
+    bottomColor: 'rgba(59, 130, 246, 0.04)',
+    lineColor: 'rgba(59, 130, 246, 0.4)',
   },
 } as const
 
@@ -150,9 +150,9 @@ onMounted(() => {
   }).filter(Boolean) as SeriesMarker<string>[]
 
   const clicksSeries = _chart.addSeries(AreaSeries, {
-    topColor: 'rgba(33, 150, 243, 0.56)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 1)',
+    topColor: 'rgba(16, 185, 129, 0.56)',
+    bottomColor: 'rgba(16, 185, 129, 0.04)',
+    lineColor: 'rgba(16, 185, 129, 1)',
     lineWidth: 2,
     priceLineVisible: false,
     lastValueVisible: false,
@@ -165,9 +165,9 @@ onMounted(() => {
     clicksSeries.setData(props.clicks)
 
   const impressionsSeries = _chart.addSeries(AreaSeries, {
-    topColor: 'rgba(33, 150, 243, 0.56)',
-    bottomColor: 'rgba(33, 150, 243, 0.04)',
-    lineColor: 'rgba(33, 150, 243, 1)',
+    topColor: 'rgba(16, 185, 129, 0.56)',
+    bottomColor: 'rgba(16, 185, 129, 0.04)',
+    lineColor: 'rgba(16, 185, 129, 1)',
     lineWidth: 2,
     priceLineVisible: false,
     lastValueVisible: false,

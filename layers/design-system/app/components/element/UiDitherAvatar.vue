@@ -35,7 +35,7 @@ const { seed, size = 32, label } = defineProps<{
  */
 
 const SIZE = 36
-const AVATAR_COLORS = ['#8B5CF6', '#00DC82', '#F59E0B', '#EC4899', '#3B82F6'] as const
+const AVATAR_COLORS = ['#84CC16', '#00DC82', '#F59E0B', '#EC4899', '#3B82F6'] as const
 
 function hashCode(name: string): number {
   let hash = 0

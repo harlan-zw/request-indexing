@@ -22,7 +22,7 @@ const emit = defineEmits<{
 
 const colorClasses = {
   blue: { active: 'border-b-blue-500', icon: 'text-blue-500', dot: 'bg-blue-500' },
-  purple: { active: 'border-b-purple-500', icon: 'text-purple-500', dot: 'bg-purple-500' },
+  amber: { active: 'border-b-amber-500', icon: 'text-amber-500', dot: 'bg-amber-500' },
   orange: { active: 'border-b-orange-500', icon: 'text-orange-500', dot: 'bg-orange-500' },
   green: { active: 'border-b-emerald-500', icon: 'text-emerald-500', dot: 'bg-emerald-500' },
 } as const

@@ -3,7 +3,7 @@ definePageMeta({ layout: 'kit' })
 useHead({ title: 'Icon palette · Brand Kit' })
 
 const semantic: string[] = ['neutral', 'primary', 'success', 'warning', 'error', 'info']
-const named: string[] = ['red', 'orange', 'amber', 'yellow', 'green', 'emerald', 'teal', 'blue', 'cyan', 'sky', 'indigo', 'violet', 'purple', 'pink', 'rose', 'gray', 'slate']
+const named: string[] = ['red', 'orange', 'amber', 'yellow', 'green', 'emerald', 'teal', 'blue', 'cyan', 'sky', 'lime', 'pink', 'rose', 'gray', 'slate']
 
 const dataViz = [
   { label: 'Clicks (GSC)', set: gscMetricColors.clicks, key: 'gscMetricColors.clicks' },
@@ -188,7 +188,7 @@ const healthMap = [
     <KitSection
       title="Data-viz colors"
       code="composables/dataVizColors.ts"
-      description="Metric identity: clicks=blue, impressions=purple, CTR=emerald, position=orange. Use only for charts and metric legends — not for system state."
+      description="Metric identity: clicks=emerald, impressions=blue, CTR=amber, position=orange. Use only for charts and metric legends — not for system state."
     >
       <UCard variant="outline">
         <table class="w-full text-sm">

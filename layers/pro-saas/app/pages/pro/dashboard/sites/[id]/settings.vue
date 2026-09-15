@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 definePageMeta({
   proTab: { feature: 'settings', label: 'Site Settings', icon: 'i-heroicons-cog', order: 90 },
-  title: 'Site Settings',
+  title: 'Site settings',
   icon: 'i-heroicons-cog',
 })
 

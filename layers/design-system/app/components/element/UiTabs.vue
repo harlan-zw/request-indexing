@@ -21,7 +21,7 @@ import { NuxtLink } from '#components'
  *
  * Both modes share `kind`:
  *  - `kind="page"`   — primary strip under `ProPageHeader`; white underline on
- *                      the active tab (text-level emphasis, never the CTA violet).
+ *                      the active tab (text-level emphasis, never the CTA emerald).
  *  - `kind="subnav"` — nested one level below; quiet `bg-elevated` pill.
  *
  * For a compact, enclosed segmented toggle in a section header, use `UiTogglePill`.

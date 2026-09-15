@@ -15,7 +15,7 @@ import { m, useReducedMotion } from 'motion-v'
  *   1. Wrapper lift — motion-v spring scale + y on hover, settle on tap.
  *   2. Halo — soft box-shadow rings via `--ui-text` accent, follows shape.
  *   3. Spotlight — radial gradient anchored to cursor (`--mb-mx/--mb-my`),
- *      neutral tint so primary/pro buttons don't read violet.
+ *      neutral tint so primary/pro buttons don't read off-brand.
  *   4. Specular sweep — thin skewed band on hover-enter for CTA only.
  *   5. Trailing-icon nudge — +1.5px on hover when `#trailing` is set.
  *
