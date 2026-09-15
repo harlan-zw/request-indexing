@@ -24,6 +24,17 @@ import { createGscdumpV1Client } from '@gscdump/sdk/v1'
 import { showGscdumpErrorToast } from '../../utils/gscdump-toast'
 import { parseGscdumpError } from '../_gscdump-error'
 
+/**
+ * How long a browser read may run before it is treated as failed.
+ *
+ * A read with no deadline has no error state: the indexing overview sat on its
+ * skeleton indefinitely because the diagnosis request never settled either way.
+ * Past this the request aborts, the caller's `error` is set, and the page can
+ * offer a retry. The ceiling is well above the slowest read measured in
+ * production (about 15s for a large site's breakdown).
+ */
+const GSCDUMP_BROWSER_READ_TIMEOUT_MS = 30_000
+
 function createV1Client() {
   return createGscdumpV1Client({
     apiRoot: '/api/_gscdump',
@@ -31,7 +42,9 @@ function createV1Client() {
     fetch: (request, init) => {
       const headers = new Headers(init?.headers)
       headers.delete('authorization')
-      return fetch(request, { ...init, headers })
+      const deadline = AbortSignal.timeout(GSCDUMP_BROWSER_READ_TIMEOUT_MS)
+      const signal = init?.signal ? AbortSignal.any([init.signal, deadline]) : deadline
+      return fetch(request, { ...init, headers, signal })
     },
   })
 }
