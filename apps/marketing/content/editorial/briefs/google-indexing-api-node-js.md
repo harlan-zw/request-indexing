@@ -1,6 +1,6 @@
 # Brief: google-indexing-api-node-js
 
-State: brief ready. Parent revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
+State: brief reviewed. Parent revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
 Owner: product_writer. Brief reviewer: sources_reviewer. Coordinator: request_content_lead.
 
 Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../../VERIFIED-CLAIMS.md), [SCREENSHOTS](../../SCREENSHOTS.md), and the root glossary.
@@ -33,7 +33,7 @@ Use the ledger's additional exact URLs where claim IDs require them. Open full s
 
 ## Review record
 
-Brief review: sources_reviewer R1–R3 incorporated; confirmation pending. Writer response: pending.
+Brief review: sources_reviewer approved R1–R3 at f248596 on2026-09-15; private brief-review.md records the decision. Writer response: pending.
 Factual draft review: pending. Humanize surface/structural changes: pending.
 Final article review: pending. Rendered evidence: pending. Coordinator decision: pending.
 

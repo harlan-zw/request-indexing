@@ -35,3 +35,13 @@ Prioritize reader problems and verified source gaps; no measured demand claim is
 
 Pilot: indexing-api-for-blog-posts. Each brief records owner, revision, review evidence, and decision.
 New articles are excluded from this pass. Candidate gaps may be recorded without publication.
+
+## Foundation acceptance
+
+Root accepted foundations and recovered glossary on15September2026, with article-specific contributions, per-user app limit, and asset root clarified.
+Sources reviewer approved all nine briefs at f248596 after concrete Node/tutorial/bulk example contracts were added.
+This is permission to draft, not final article approval.
+
+Rendered exclusion checks: /COPY, /SOURCES, /VERIFIED-CLAIMS, /SCREENSHOTS, and /editorial return404.
+Marketing public asset /card.png returns200. Generated collection cache contains exactly the nine article paths.
+Production build passed with these editorial records present. Sitemap and final article payload checks follow in the collection phase.
