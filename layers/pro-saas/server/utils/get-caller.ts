@@ -5,10 +5,7 @@
 
 import type { H3Event } from 'h3'
 import type { AuthProviderId } from '#layers/pro-saas-auth/shared/types/auth'
-import type {
-  Caller,
-  CallerAuthMethod,
-} from '../../shared/caller'
+import type { Caller } from '../../shared/caller'
 import type { User } from '../database'
 import { desc, eq } from 'drizzle-orm'
 import { ProError } from '../../shared/errors'
@@ -114,7 +111,6 @@ function buildCaller(
   identity: PrimaryIdentity | null,
   providers: AuthProviderId[],
   memberships: Caller['memberships'],
-  authMethod: CallerAuthMethod,
   isAdmin: boolean,
 ): Caller {
   const name = identity?.displayName ?? null
@@ -127,13 +123,11 @@ function buildCaller(
       name,
       avatarUrl,
       providers,
-      apiKey: user.apiKey,
       createdAt: user.createdAt ? new Date(user.createdAt as unknown as number).toISOString() : null,
     },
     memberships,
     currentTeamId: user.currentTeamId ?? null,
     isAdmin,
-    authMethod,
   }
 }
 
@@ -144,24 +138,6 @@ export async function getCaller(event: H3Event): Promise<Caller | null> {
     return cached as Caller | null
 
   const db = useDrizzle(event)
-
-  // API-key path: pro-auth middleware populates event.context.proAuth.
-  // Re-load the user row to honour ADR-0001 (don't trust cached identity).
-  const proAuth = ctx.proAuth as { user: User } | undefined
-  if (proAuth?.user) {
-    const user = await db.query.users.findFirst({ where: eq(users.userId, proAuth.user.userId) })
-    if (!user) {
-      ctx[CACHE_KEY] = null
-      return null
-    }
-    const [{ primary, providers }, memberships] = await Promise.all([
-      loadPrimaryIdentity(db, user.userId),
-      loadMemberships(db, user.userId),
-    ])
-    const caller = buildCaller(event, db, user, primary, providers, memberships, 'apiKey', isAdminEmail(primary?.email ?? user.email ?? null))
-    ctx[CACHE_KEY] = caller
-    return caller
-  }
 
   // Session path.
   const session = await getUserSession(event)
@@ -180,7 +156,7 @@ export async function getCaller(event: H3Event): Promise<Caller | null> {
     loadPrimaryIdentity(db, user.userId),
     loadMemberships(db, user.userId),
   ])
-  const caller = buildCaller(event, db, user, primary, providers, memberships, 'session', isAdminEmail(session.user.email ?? null))
+  const caller = buildCaller(event, db, user, primary, providers, memberships, isAdminEmail(session.user.email ?? null))
   ctx[CACHE_KEY] = caller
   return caller
 }

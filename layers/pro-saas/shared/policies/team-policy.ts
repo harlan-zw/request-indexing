@@ -11,14 +11,13 @@ export type Ability
   = | 'manage-team' // rename, settings
     | 'manage-members' // invite, change role, remove
     | 'manage-sites' // add/remove sites, edit site settings
-    | 'manage-api-tokens' // create/revoke any team API token; non-admins manage only their own
     | 'write-data' // run scans, edit briefs/keywords/competitors
     | 'read-data'
     | 'transfer-ownership' // owner-only
     | 'delete-team' // owner-only
 
 const roleAbilities: Record<TeamRole, Ability[]> = {
-  admin: ['manage-team', 'manage-members', 'manage-sites', 'manage-api-tokens', 'write-data', 'read-data'],
+  admin: ['manage-team', 'manage-members', 'manage-sites', 'write-data', 'read-data'],
   editor: ['manage-sites', 'write-data', 'read-data'],
   viewer: ['read-data'],
 }

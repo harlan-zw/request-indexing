@@ -10,14 +10,12 @@ import { findIdentityByProviderEmail } from '#layers/pro-saas-auth/server/utils/
 import { ProError } from '../../shared/errors'
 import {
   sites,
-  teamApiTokens,
   teamInvitations,
   teamMemberships,
   teams,
   userIdentities,
   users,
 } from '../database'
-import { generatePlaintextToken, hashToken, tokenLast4 } from '../utils/team-domain'
 
 type DB = ReturnType<typeof useDrizzle>
 type CreateTeamInput = z.infer<typeof teamCreateSchema>
@@ -26,7 +24,6 @@ type InviteTeamMemberInput = z.infer<typeof invitationCreateSchema>
 type UpdateTeamMemberRoleInput = z.infer<typeof teamMemberRoleUpdateSchema>
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000
-const ROLE_RANK: Record<'admin' | 'editor' | 'viewer', number> = { viewer: 0, editor: 1, admin: 2 }
 
 export async function createTeam(
   event: H3Event,
@@ -326,104 +323,4 @@ export async function transferTeamOwnership(ctx: CurrentTeamContext, newOwnerId:
     targetId: String(newOwnerId),
     metadata: { fromUserId: previousOwnerId, toUserId: newOwnerId },
   })
-}
-
-export async function createTeamApiToken(
-  ctx: CurrentTeamContext,
-  input: { label?: string, role: 'admin' | 'editor' | 'viewer', expiresAt?: string },
-) {
-  const canManageAll = ctx.can('manage-api-tokens')
-  if (!canManageAll) {
-    const callerRole = ctx.role as 'admin' | 'editor' | 'viewer'
-    if (ROLE_RANK[input.role] > ROLE_RANK[callerRole])
-      throw new ProError('forbidden', { message: `Cannot create a ${input.role} token from a ${callerRole} role` })
-  }
-
-  const result = await ctx.team.issueApiToken({
-    userId: ctx.caller.user.id,
-    role: input.role,
-    label: input.label ?? null,
-    expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
-  })
-
-  await ctx.team.audit({
-    actorUserId: ctx.caller.user.id,
-    kind: 'api_token.created',
-    targetType: 'api_token',
-    targetId: String(result.record.id),
-    metadata: { label: input.label ?? null, role: input.role, last4: result.record.last4 },
-  })
-
-  return result
-}
-
-export async function revokeTeamApiToken(ctx: CurrentTeamContext, tokenId: number) {
-  const token = await ctx.db
-    .select()
-    .from(teamApiTokens)
-    .where(and(eq(teamApiTokens.teamApiTokenId, tokenId), eq(teamApiTokens.teamId, ctx.team.teamId)))
-    .get()
-
-  if (!token)
-    throw new ProError('not_found', { message: 'Token not found' })
-
-  if (!ctx.can('manage-api-tokens') && token.userId !== ctx.caller.user.id)
-    throw new ProError('forbidden', { message: 'Cannot revoke another member\'s token' })
-
-  await ctx.db.delete(teamApiTokens).where(eq(teamApiTokens.teamApiTokenId, tokenId))
-  await ctx.team.audit({
-    actorUserId: ctx.caller.user.id,
-    kind: 'api_token.revoked',
-    targetType: 'api_token',
-    targetId: String(tokenId),
-    metadata: { label: token.label, role: token.role, last4: token.last4 },
-  })
-}
-
-export async function rerollTeamApiToken(ctx: CurrentTeamContext, tokenId: number) {
-  const token = await ctx.db
-    .select()
-    .from(teamApiTokens)
-    .where(and(eq(teamApiTokens.teamApiTokenId, tokenId), eq(teamApiTokens.teamId, ctx.team.teamId)))
-    .get()
-
-  if (!token)
-    throw new ProError('not_found', { message: 'Token not found' })
-
-  if (!ctx.can('manage-api-tokens') && token.userId !== ctx.caller.user.id)
-    throw new ProError('forbidden', { message: 'Cannot reroll another member\'s token' })
-
-  const plaintext = generatePlaintextToken()
-  const tokenHash = await hashToken(plaintext)
-  const last4 = tokenLast4(plaintext)
-
-  const record = await ctx.db.update(teamApiTokens)
-    .set({
-      tokenHash,
-      last4,
-      usageCount: 0,
-      lastUsedAt: null,
-    })
-    .where(eq(teamApiTokens.teamApiTokenId, tokenId))
-    .returning({
-      id: teamApiTokens.teamApiTokenId,
-      label: teamApiTokens.label,
-      last4: teamApiTokens.last4,
-      role: teamApiTokens.role,
-      usageCount: teamApiTokens.usageCount,
-      lastUsedAt: teamApiTokens.lastUsedAt,
-      createdAt: teamApiTokens.createdAt,
-      expiresAt: teamApiTokens.expiresAt,
-    })
-    .get()
-
-  await ctx.team.audit({
-    actorUserId: ctx.caller.user.id,
-    kind: 'api_token.rerolled',
-    targetType: 'api_token',
-    targetId: String(tokenId),
-    metadata: { label: token.label, role: token.role, previousLast4: token.last4, last4 },
-  })
-
-  return { plaintext, record }
 }

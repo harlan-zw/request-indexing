@@ -11,7 +11,6 @@ import { defineProApiHandler } from '../../utils/handler'
 
 export default defineProApiHandler({
   caller: false,
-  usage: { source: 'rest', action: 'verify' },
 }, async () => {
   throw createError({
     statusCode: 501,

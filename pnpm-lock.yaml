@@ -13,14 +13,14 @@ catalogs:
       specifier: ^5.20260816.1
       version: 5.20260816.1
     '@gscdump/contracts':
-      specifier: ^2.2.0
-      version: 2.2.0
+      specifier: 3.6.3
+      version: 3.6.3
     '@gscdump/engine':
-      specifier: ^2.2.0
-      version: 2.2.0
+      specifier: 3.6.3
+      version: 3.6.3
     '@gscdump/sdk':
-      specifier: ^2.2.0
-      version: 2.2.0
+      specifier: 3.6.3
+      version: 3.6.3
     '@harlan-zw/comark-content':
       specifier: 0.1.2
       version: 0.1.2
@@ -169,8 +169,8 @@ catalogs:
       specifier: ^1.8.0
       version: 1.8.0
     gscdump:
-      specifier: ^2.2.0
-      version: 2.2.0
+      specifier: 3.6.3
+      version: 3.6.3
     h3:
       specifier: ^1.15.11
       version: 1.15.11
@@ -276,13 +276,13 @@ importers:
     dependencies:
       '@gscdump/contracts':
         specifier: 'catalog:'
-        version: 2.2.0
+        version: 3.6.3
       '@gscdump/engine':
         specifier: 'catalog:'
-        version: 2.2.0(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
+        version: 3.6.3(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
       '@gscdump/sdk':
         specifier: 'catalog:'
-        version: 2.2.0(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))
+        version: 3.6.3
       '@harlan-zw/comark-content':
         specifier: 'catalog:'
         version: 0.1.2(cabb6b03befa0b1be5ba252369cf89f2)
@@ -396,7 +396,7 @@ importers:
         version: 16.2.3
       gscdump:
         specifier: 'catalog:'
-        version: 2.2.0
+        version: 3.6.3
       h3:
         specifier: 'catalog:'
         version: 1.15.11
@@ -1643,25 +1643,25 @@ packages:
   '@floating-ui/vue@1.1.11':
     resolution: {integrity: sha512-HzHKCNVxnGS35r9fCHBc3+uCnjw9IWIlCPL683cGgM9Kgj2BiAl8x1mS7vtvP6F9S/e/q4O6MApwSHj8hNLGfw==}
 
-  '@gscdump/contracts@2.2.0':
-    resolution: {integrity: sha512-KVpH34D1TPvwOX2YBFrf0IqSIj9lgxzbfpb9FWnGDoF4a2Z2Ct8bvfnOXiZrEYuuzCpRUNMgovAyWZ2pD1gBzw==}
+  '@gscdump/contracts@3.6.3':
+    resolution: {integrity: sha512-vR7MjPBsl7eF7cRiwQc5XhRffMpsvWsEArBtLhwdyDGKnvuV/Ek+qtIC2dDeP8qfI1K4HoNcRziy1u61eAuG4w==}
     engines: {node: '>=22'}
 
-  '@gscdump/engine@2.2.0':
-    resolution: {integrity: sha512-SNauxeHo0+iGj5D3bsktzDfYbEcO0gCfTSU88kV8/kKCkdSoxox6+UBn1uX8sBVG0lp31HqZYaURue/k+XV9UQ==}
+  '@gscdump/engine@3.6.3':
+    resolution: {integrity: sha512-TSYJLvQsko6D1VSMiMD2IHp0qMWvDk2EML23W4LSgXZRVTgm5STsHV97UjdHNa3AcNPUnRVoj7GbUvjDbk5rww==}
     engines: {node: '>=22'}
     peerDependencies:
-      '@duckdb/duckdb-wasm': ^1.33.1-dev57.0
+      '@duckdb/node-api': ^1.5.5-r.4
     peerDependenciesMeta:
-      '@duckdb/duckdb-wasm':
+      '@duckdb/node-api':
         optional: true
 
-  '@gscdump/lakehouse@2.2.0':
-    resolution: {integrity: sha512-kF5NbYRwxRKpY+KadqYxpxPbhTU5tzLWz6o2lVZB+raITURmbUyMPlY4OOb8g2Gqez6BmIj/AkPOkGEHz4B5Ig==}
+  '@gscdump/lakehouse@3.6.3':
+    resolution: {integrity: sha512-V7HXIYa/0YQV5hkHCU6mW4cWobInVKxiaHxyKXgVp8Ax+vno09SX1+PRh26yqW8gblMAKe31Ag3pdRdhlVOqaw==}
     engines: {node: '>=22'}
 
-  '@gscdump/sdk@2.2.0':
-    resolution: {integrity: sha512-V94rkdiZSbAU5AcNybMuPorl0afUcCnfWM7t2E5W5Mr+zAcEHGivE2yoWbM5OVz/9JJDDzPvlN4DcmUuj0X2tw==}
+  '@gscdump/sdk@3.6.3':
+    resolution: {integrity: sha512-CpzBku0/+JEMZMwyoZsPncKbZ/gaP+6UA1YWD9WUhLgdk1EeLaEi73Ifvy8Mv2gAb/NVaxxUOmXa63zQHOcOEA==}
     engines: {node: '>=22'}
 
   '@harlan-zw/comark-content@0.1.2':
@@ -6141,8 +6141,8 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  gscdump@2.2.0:
-    resolution: {integrity: sha512-910Qe7i2697cD9dRX2+XgoqFixKA/fuxp8l7aspiyNGOAkG3xRquXSHKhYTdyL73TmyrYE4SD2LlRWVDeJUN6w==}
+  gscdump@3.6.3:
+    resolution: {integrity: sha512-trJURNfnUoeKTbozsEWADaxePI11Wqydszqmn8oRIBJVeUpIr2z29JSn0jGwxA8WkYs38QJKz1dU4MtrNTGRZA==}
     engines: {node: '>=22'}
 
   gzip-size@7.0.0:
@@ -9091,6 +9091,9 @@ packages:
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
+  zod@4.6.5:
+    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
+
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
@@ -9983,16 +9986,17 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@gscdump/contracts@2.2.0':
+  '@gscdump/contracts@3.6.3':
     dependencies:
-      zod: 4.4.3
+      zod: 4.6.5
 
-  '@gscdump/engine@2.2.0(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)':
+  '@gscdump/engine@3.6.3(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)':
     dependencies:
-      '@gscdump/contracts': 2.2.0
-      '@gscdump/lakehouse': 2.2.0
+      '@gscdump/contracts': 3.6.3
+      '@gscdump/lakehouse': 3.6.3
       drizzle-orm: 1.0.0-rc.4(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
-      gscdump: 2.2.0
+      gscdump: 3.6.3
+      pathe: 2.0.3
       proper-lockfile: 4.1.2
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
@@ -10043,63 +10047,14 @@ snapshots:
       - valibot
       - zod
 
-  '@gscdump/lakehouse@2.2.0': {}
+  '@gscdump/lakehouse@3.6.3': {}
 
-  '@gscdump/sdk@2.2.0(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))':
+  '@gscdump/sdk@3.6.3':
     dependencies:
-      '@gscdump/contracts': 2.2.0
-      '@gscdump/engine': 2.2.0(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
-      gscdump: 2.2.0
+      '@gscdump/contracts': 3.6.3
+      gscdump: 3.6.3
       ofetch: 1.5.1
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - '@aws-sdk/client-rds-data'
-      - '@cloudflare/workers-types'
-      - '@duckdb/duckdb-wasm'
-      - '@effect/sql-d1'
-      - '@effect/sql-libsql'
-      - '@effect/sql-mysql2'
-      - '@effect/sql-pg'
-      - '@effect/sql-pglite'
-      - '@effect/sql-sqlite-bun'
-      - '@effect/sql-sqlite-do'
-      - '@effect/sql-sqlite-node'
-      - '@effect/sql-sqlite-wasm'
-      - '@electric-sql/pglite'
-      - '@libsql/client'
-      - '@libsql/client-wasm'
-      - '@neondatabase/serverless'
-      - '@op-engineering/op-sqlite'
-      - '@opentelemetry/api'
-      - '@planetscale/database'
-      - '@sinclair/typebox'
-      - '@sqlitecloud/drivers'
-      - '@tidbcloud/serverless'
-      - '@tursodatabase/database'
-      - '@tursodatabase/database-common'
-      - '@tursodatabase/database-wasm'
-      - '@tursodatabase/serverless'
-      - '@tursodatabase/sync'
-      - '@types/better-sqlite3'
-      - '@types/mssql'
-      - '@types/pg'
-      - '@types/sql.js'
-      - '@upstash/redis'
-      - '@vercel/postgres'
-      - '@xata.io/client'
-      - arktype
-      - better-sqlite3
-      - bun-types
-      - effect
-      - expo-sqlite
-      - mssql
-      - mysql2
-      - pg
-      - postgres
-      - sql.js
-      - sqlite3
-      - typebox
-      - valibot
+      zod: 4.6.5
 
   '@harlan-zw/comark-content@0.1.2(cabb6b03befa0b1be5ba252369cf89f2)':
     dependencies:
@@ -15271,9 +15226,9 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  gscdump@2.2.0:
+  gscdump@3.6.3:
     dependencies:
-      '@gscdump/contracts': 2.2.0
+      '@gscdump/contracts': 3.6.3
       ofetch: 1.5.1
 
   gzip-size@7.0.0:
@@ -19107,5 +19062,7 @@ snapshots:
       readable-stream: 4.7.0
 
   zod@4.4.3: {}
+
+  zod@4.6.5: {}
 
   zwitch@2.0.4: {}
