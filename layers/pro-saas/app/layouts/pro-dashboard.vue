@@ -4,7 +4,8 @@ const { session } = useUserSession()
 const navigation = [
   { label: 'Dashboard', icon: 'i-lucide-layout-dashboard', to: '/pro/dashboard' },
   { label: 'Account', icon: 'i-lucide-user', to: '/pro/dashboard/account' },
-  { label: 'Teams', icon: 'i-lucide-users', to: '/pro/dashboard/teams' },
+  { label: 'Team', icon: 'i-lucide-users', to: '/pro/dashboard/team/settings' },
+  { label: 'Submit a URL', icon: 'i-lucide-send', to: '/pro/dashboard/web-indexing' },
 ]
 </script>
 

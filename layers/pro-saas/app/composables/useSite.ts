@@ -1,18 +1,17 @@
 import { useProGscStatus } from '#layers/pro-gsc/app/composables/useProGscStatus'
 
 /**
- * Site context composable. The original `useProSiteInjection`-based version
- * was removed when the `/pro/dashboard/*` route family + layout injections
- * were deleted; this is a minimal V1-shaped stand-in that consumers can
- * keep calling until the canonical site-context composable lands.
- *
- * TODO(pro-saas-cleanup): replace with the V1 site context composable once
- * `apps/app/pages/dashboard/site/[slug]` defines its own injection shape.
+ * Site context for every `/pro/dashboard/sites/:id` page. The route param is
+ * the site's `s_` public id; `/api/pro/sites/:id` resolves it and returns the
+ * fields the pages read.
  */
 interface SiteShape {
   id?: string
+  publicId?: string
   url?: string
   name?: string | null
+  domain?: string | null
+  property?: string
   gscdumpSiteId?: string | null
   gscdumpSiteUrl?: string | null
 }
