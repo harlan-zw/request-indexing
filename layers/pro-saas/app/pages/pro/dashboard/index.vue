@@ -80,7 +80,7 @@ async function refreshAll() {
     <ConnectSearchConsoleCard />
 
     <div v-if="sites.length" :key="key" class="space-y-7">
-      <CardSite v-for="site in sites" :key="site.publicId" :site="site" />
+      <CardSite v-for="site in sites" :key="site.siteId" :site="site" />
     </div>
     <div v-else class="rounded-lg border border-default py-12 text-center">
       <p class="font-medium text-highlighted">
