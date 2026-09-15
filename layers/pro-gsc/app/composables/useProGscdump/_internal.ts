@@ -28,7 +28,6 @@ export function useGscdumpQuery<T>(
     return fn(_siteId.value, gscdump)
   }, {
     server: false,
-    lazy: true,
     immediate: options?.immediate ?? true,
     ...(shouldWatch ? { watch: [_siteId, ...watchSources] } : {}),
   })

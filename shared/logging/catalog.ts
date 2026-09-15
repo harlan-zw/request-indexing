@@ -22,7 +22,7 @@ export const LOG_CATALOG = {
   'gscdump.teams.client_failed': 'gscdump teams-client mutation failed',
   'gscdump.integration.probe_failed': 'pro gscdump-integration probe failed on the client plugin',
   'gscdump.engine.fallback': 'browser DuckDB-WASM path threw and fell back to cloud (paying user got slow path)',
-  'gscdump.table_cell.unresolved': 'a table cell read (top association, sparkline) failed; the cell degrades to a dash',
+  'gscdump.table_cell.unresolved': 'a table cell read (top association) failed; the cells degrade to a dash',
 
   // Storage / KV best-effort
   'kv.best_effort_write_failed': 'KV/storage write blip; counters/cache will self-heal',

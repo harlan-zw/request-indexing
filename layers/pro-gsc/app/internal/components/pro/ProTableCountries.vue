@@ -147,7 +147,7 @@ const columns = computed<UiTableColumn<CountryTableRow>[]>(() => {
           ]),
           h(ProSparklineCell, {
             data: sparklines.map.value.get(country) ?? null,
-            pending: sparklines.pendingFor(country),
+            pending: sparklines.pending.value,
             error: !!sparklines.error.value,
             dates: sparklines.dates.value,
             label: getCountryName(country, country),

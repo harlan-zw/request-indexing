@@ -1,22 +1,26 @@
 import type { MaybeRefOrGetter, Ref } from 'vue'
+import type { BuilderState } from '../../../shared/gscdump-api'
+import { inArray, page as pageColumn, queryCanonical, query as queryColumn } from 'gscdump/query'
 import { computed, onScopeDispose, ref, toValue, watch } from 'vue'
 import { logWarn } from '~~/shared/logging'
 import { operatorFreeKeyword } from '../../../shared/search-operator-queries'
+import { selectTopAssociations } from '../../../shared/top-associations'
+import { andFilter, dateFilter } from '../../../shared/utils/filter-wire'
 import { useProGscdump } from './useProGscdump'
 
 /**
- * Resolve the top associated entity for a table page: the top page for each
- * query, or the top query for each page.
+ * Resolve the top associated entity for a table page in ONE read: the top page
+ * for each query, or the top query for each page.
  *
- * The `top-association` operation answers one identifier per call, so the reads
- * are issued with a bounded concurrency and cached per key. A key already
- * resolved for the current site and window is never requested again, so paging
- * through a load-more table costs only the newly visible rows.
+ * nuxtseo.com answers the whole page in a single windowed scan. The `top-
+ * association` operation this app had been using takes one identifier per call,
+ * so a 25-row table issued 25 requests behind one pending flag and no cell
+ * rendered until the slowest of them returned — the blank "Top page" column.
+ * One grouped `(dimension, counterpart)` report replaces the fan-out; the
+ * rank-1 pick is a pure function over the rows it returns.
  *
- * Resolution is per key, not per table page. A single pending flag over the
- * whole batch kept every cell in its loading state until the slowest of 25
- * reads returned, which is why the column read as permanently blank; a cell now
- * settles the moment its own read lands.
+ * Keys already resolved for the current site and window are never requested
+ * again, so paging through a load-more table costs only the new rows.
  */
 export interface UseProTopAssociationsOptions {
   gscdumpSiteId: MaybeRefOrGetter<string | null | undefined>
@@ -25,36 +29,26 @@ export interface UseProTopAssociationsOptions {
   group: 'query' | 'queryCanonical' | 'page'
   /** Visible row keys. */
   keys: MaybeRefOrGetter<readonly string[]>
-  /** Requests in flight at once. */
-  concurrency?: number
 }
 
-async function forEachWithConcurrency<T>(
-  items: readonly T[],
-  limit: number,
-  fn: (item: T) => Promise<void>,
-): Promise<void> {
-  let cursor = 0
-  async function worker() {
-    while (cursor < items.length)
-      await fn(items[cursor++]!)
-  }
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
-}
+const DIMENSION_COLUMNS = {
+  page: pageColumn,
+  query: queryColumn,
+  queryCanonical,
+} as const
+
+/** Counterparts one key may carry before the read stops being worth widening. */
+const COUNTERPARTS_PER_KEY = 50
 
 export function useProTopAssociations(opts: UseProTopAssociationsOptions): {
   map: Ref<Map<string, string>>
   pending: Ref<boolean>
-  /** True only while this key's own read is in flight. */
-  pendingFor: (key: string) => boolean
 } {
   const gscdump = useProGscdump()
   const map = ref<Map<string, string>>(new Map())
-  const unresolved = ref<Set<string>>(new Set())
-  const pending = computed(() => unresolved.value.size > 0)
+  const pending = ref(false)
   // Grouping by a query dimension returns the top page, and the reverse.
-  const associationType = opts.group === 'page' ? 'topKeyword' : 'topPage'
-  const concurrency = opts.concurrency ?? 4
+  const topDimension = opts.group === 'page' ? 'query' : 'page'
   const cached = new Map<string, string | null>()
   let cacheScope = ''
 
@@ -66,24 +60,6 @@ export function useProTopAssociations(opts: UseProTopAssociationsOptions): {
     }
     return [...seen]
   })
-
-  function publish(keys: readonly string[]): void {
-    const next = new Map<string, string>()
-    for (const key of keys) {
-      const value = cached.get(key)
-      if (value)
-        next.set(key, value)
-    }
-    map.value = next
-  }
-
-  function settle(key: string): void {
-    if (!unresolved.value.has(key))
-      return
-    const next = new Set(unresolved.value)
-    next.delete(key)
-    unresolved.value = next
-  }
 
   let token = 0
   onScopeDispose(() => token++)
@@ -98,41 +74,51 @@ export function useProTopAssociations(opts: UseProTopAssociationsOptions): {
       }
       if (!import.meta.client || !siteId || !keys.length || !range?.start || !range?.end) {
         map.value = new Map()
-        unresolved.value = new Set()
+        pending.value = false
         return
       }
       const missing = keys.filter(k => !cached.has(k))
-      publish(keys)
-      unresolved.value = new Set(missing)
-      if (!missing.length)
-        return
-
-      await forEachWithConcurrency(missing, concurrency, async (identifier) => {
-        const data = await gscdump.getTopAssociation<{ value: string | null }>({
-          params: { siteId },
-          query: { type: associationType, identifier, startDate: range.start, endDate: range.end },
-          // Silent: an unresolved association renders as a dash in its own
-          // cell, which says more than a toast over the whole table. The
-          // failure is still logged rather than dropped.
-        }, true).catch((cause: unknown) => {
-          logWarn('gscdump.table_cell.unresolved', cause, { read: 'top-association', type: associationType, identifier })
-          return null
-        })
+      if (missing.length) {
+        pending.value = true
+        const state: BuilderState = {
+          dimensions: [opts.group, topDimension],
+          filter: andFilter(dateFilter(range), inArray(DIMENSION_COLUMNS[opts.group], missing)),
+          orderBy: { column: 'clicks', dir: 'desc' },
+          rowLimit: Math.min(25_000, missing.length * COUNTERPARTS_PER_KEY),
+        }
+        // Silent: an unresolved association renders as a dash in its own cell,
+        // which says more than a toast over the whole table. The failure is
+        // logged rather than dropped.
+        const response = await gscdump.queryAnalyticsReport({ params: { siteId }, body: { state } }, true)
+          .catch((cause: unknown) => {
+            logWarn('gscdump.table_cell.unresolved', cause, { read: 'top-association', group: opts.group })
+            return null
+          })
         if (current !== token)
           return
-        // An operator string is not a ranking, so it must never be offered as
-        // a page's top keyword.
-        const value = data?.value ?? null
-        cached.set(identifier, associationType === 'topKeyword' ? operatorFreeKeyword(value) : value)
-        publish(keys)
-        settle(identifier)
-      })
-      if (current !== token)
-        return
-      unresolved.value = new Set()
+
+        const top = selectTopAssociations((response?.rows ?? []) as unknown as Record<string, unknown>[], {
+          groupField: opts.group,
+          topField: topDimension,
+        })
+        for (const key of missing) {
+          const value = top.get(key) ?? null
+          // An operator string is not a ranking, so it must never be offered as
+          // a page's top keyword.
+          cached.set(key, topDimension === 'query' ? operatorFreeKeyword(value) : value)
+        }
+      }
+      const next = new Map<string, string>()
+      for (const k of keys) {
+        const v = cached.get(k)
+        if (v)
+          next.set(k, v)
+      }
+      map.value = next
+      pending.value = false
     },
     { immediate: true, deep: true },
   )
 
-  return { map, pending, pendingFor: (key: string) => unresolved.value.has(key) }
+  return { map, pending }
 }
