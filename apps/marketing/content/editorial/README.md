@@ -55,3 +55,8 @@ The five editorial exclusion routes return404. Screenshots for Node, bulk and co
 Existing tests passed: 32 files, 184 tests. Targeted ESLint and full typecheck passed.
 Production build passed after the final inline-code wrapping repair. PR preparation and live publication remain pending.
 No authenticated setup screenshots or live Google authorization, notification, or indexing tests were performed.
+
+Final CI found five executable-fence formatting errors that the earlier targeted renderer lint did not cover.
+After formatting those fences, `pnpm exec eslint .` passed across the repository.
+The coordinator extracted the final fences and reran the same actual-client intercepted-response checks; success, failure, and mixed bulk handling passed.
+This is a new check, not a rewrite of the earlier targeted-lint evidence.

@@ -43,7 +43,9 @@ if (!input) {
   throw new Error('Pass a URL file: node submit-many.mjs urls.txt')
 }
 const urls = [...new Set((await readFile(input, 'utf8'))
-  .split(/\r?\n/).map(url => url.trim()).filter(Boolean))]
+  .split(/\r?\n/)
+  .map(url => url.trim())
+  .filter(Boolean))]
 const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/indexing'],
 })
@@ -66,7 +68,6 @@ for (const url of urls) {
     process.exitCode = 1
   })
 }
-
 ```
 
 ```bash

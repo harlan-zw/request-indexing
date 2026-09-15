@@ -59,7 +59,6 @@ await indexing.urlNotifications.publish({
   }))
   process.exitCode = 1
 })
-
 ```
 
 ```bash

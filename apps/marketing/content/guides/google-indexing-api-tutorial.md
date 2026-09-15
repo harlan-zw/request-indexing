@@ -73,7 +73,6 @@ await indexing.urlNotifications.publish({
   }))
   process.exitCode = 1
 })
-
 ```
 
 Run it with your eligible URL:
