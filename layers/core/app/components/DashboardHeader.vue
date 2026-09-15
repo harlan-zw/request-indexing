@@ -11,7 +11,7 @@ const { user } = useUserSession()
 const logout = createLogoutHandler()
 const router = useRouter()
 
-const isOnWelcome = computed(() => router.currentRoute.value.path === '/pro/dashboard/team/setup')
+const isOnWelcome = computed(() => router.currentRoute.value.path === ONBOARDING_ROUTE)
 
 const authDropdownItems = computed<DropdownMenuItem[][]>(() => {
   if (isOnWelcome.value) {
