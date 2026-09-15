@@ -60,6 +60,7 @@
     "@unovis/vue": "catalog:",
     "@vueuse/core": "catalog:",
     "@vueuse/nuxt": "catalog:",
+    "consola": "3.4.2",
     "date-fns": "catalog:",
     "date-fns-tz": "catalog:",
     "devalue": "catalog:",

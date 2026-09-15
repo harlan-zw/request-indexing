@@ -64,6 +64,7 @@ export const LOG_CATALOG = {
 
   // Handler-internal best-effort branches
   'handler.body_parse_failed': 'readBody failed; treated as undefined and re-validated by zod',
+  'handler.unhandled_error': 'unhandled throw inside a pro API handler; the client got a generic 500 envelope',
 
   // Transactional email (drip, invites, discord role assign, etc.)
   'email.send_failed': 'transactional email send failed; user does not see it but it should have shipped',
