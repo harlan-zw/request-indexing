@@ -8,8 +8,8 @@ import { and, eq, or } from 'drizzle-orm'
 import { between, date, daysAgo, gsc, page, today } from 'gscdump/query'
 import { useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
 import { sites, users } from '#layers/pro-saas/server/database'
-import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
-import { isNearRetentionLimit, lifecycleSiteFor, syncStatusFor } from '../../utils/site-lifecycle'
+import { defineProApiHandler, getProLogger } from '#layers/pro-saas/server/utils/handler'
+import { isNearRetentionLimit, lifecycleOf, lifecycleSiteFor, readOptionalUserLifecycle, syncStatusFor } from '../../utils/site-lifecycle'
 
 import { MAX_TEAM_SITES } from '../../utils/team-site-limit'
 
@@ -17,7 +17,7 @@ import { MAX_TEAM_SITES } from '../../utils/team-site-limit'
 // need `totalCount` from the response, not the rows themselves).
 const pageCountState = gsc.select(page).where(between(date, daysAgo(30), today())).limit(1).getState()
 
-export default defineProApiHandler({}, async ({ db, caller }) => {
+export default defineProApiHandler({}, async ({ db, caller, event }) => {
   const ownedSites = await db.select().from(sites).where(and(
     caller.currentTeamId
       ? or(eq(sites.teamId, caller.currentTeamId), eq(sites.ownerId, caller.user.id))
@@ -29,24 +29,24 @@ export default defineProApiHandler({}, async ({ db, caller }) => {
     .from(users)
     .where(eq(users.userId, caller.user.id))
 
-  // Built only for a caller gscdump actually knows. `useGscdumpClient` throws
-  // when the partner key is absent, so constructing it up front turned a user
-  // with no gscdump account into a 500 on the onboarding "Connect your sites"
-  // step: the roster never loaded, their existing sites read as zero and the
-  // step could not be finished. `/api/pro/gsc-properties` already guards it
-  // this way.
-  const gscdump = user?.gscdumpUserId ? useGscdumpClient() : null
-  const lifecycle = (gscdump && user?.gscdumpUserId)
-    ? await gscdump.getUserLifecycle(user.gscdumpUserId).catch(() => null)
-    : null
+  // The client is built inside the read, so a caller gscdump does not know and
+  // a partner key that will not build both land on the stored sync status
+  // instead of a 500. Guarding only on `gscdumpUserId` used to leave the second
+  // case open: `useGscdumpClient` throws before any promise exists, and the
+  // onboarding "Connect your sites" step then read the caller's existing sites
+  // as zero and could not be finished.
+  const lifecycleRead = await readOptionalUserLifecycle(user?.gscdumpUserId, useGscdumpClient)
+  if (lifecycleRead._tag === 'Unavailable')
+    getProLogger(event).warn('[sites/preview] gscdump lifecycle unavailable:', lifecycleRead.reason)
+  const lifecycle = lifecycleOf(lifecycleRead)
 
   const previews = await Promise.all(ownedSites.map(async (site) => {
     const lifecycleSite = lifecycleSiteFor(lifecycle, site.gscdumpSiteId)
     const syncStatus = syncStatusFor(lifecycleSite, site.gscdumpSyncStatus)
     const oldest = lifecycleSite?.analytics.syncedRange.oldest ?? null
 
-    const pageCount30Day = (gscdump && site.gscdumpSiteId && lifecycleSite?.analytics.queryable)
-      ? await gscdump.getData(site.gscdumpSiteId, pageCountState).then(r => r.totalCount).catch(() => 0)
+    const pageCount30Day = (lifecycleRead._tag === 'Loaded' && site.gscdumpSiteId && lifecycleSite?.analytics.queryable)
+      ? await lifecycleRead.reader.getData(site.gscdumpSiteId, pageCountState).then(r => r.totalCount).catch(() => 0)
       : 0
 
     return {

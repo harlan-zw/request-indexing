@@ -12,10 +12,10 @@ import type { SiteFleetRow } from '~~/layers/core/app/types'
 import { and, eq } from 'drizzle-orm'
 import { useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
 import { sites, users } from '#layers/pro-saas/server/database'
-import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
-import { lifecycleSiteFor, syncStatusFor } from '../../utils/site-lifecycle'
+import { defineProApiHandler, getProLogger } from '#layers/pro-saas/server/utils/handler'
+import { lifecycleOf, lifecycleSiteFor, readOptionalUserLifecycle, syncStatusFor } from '../../utils/site-lifecycle'
 
-export default defineProApiHandler({ team: true }, async ({ team: ctx }) => {
+export default defineProApiHandler({ team: true }, async ({ team: ctx, event }) => {
   const rows = await ctx.db.select({ site: sites })
     .from(sites)
     .where(and(eq(sites.teamId, ctx.team.teamId), eq(sites.active, true)))
@@ -28,9 +28,10 @@ export default defineProApiHandler({ team: true }, async ({ team: ctx }) => {
     .from(users)
     .where(eq(users.userId, ctx.caller.user.id))
 
-  const lifecycle = user?.gscdumpUserId
-    ? await useGscdumpClient().getUserLifecycle(user.gscdumpUserId).catch(() => null)
-    : null
+  const lifecycleRead = await readOptionalUserLifecycle(user?.gscdumpUserId, useGscdumpClient)
+  if (lifecycleRead._tag === 'Unavailable')
+    getProLogger(event).warn('[sites/list] gscdump lifecycle unavailable:', lifecycleRead.reason)
+  const lifecycle = lifecycleOf(lifecycleRead)
 
   return {
     sites: rows.map(({ site }): SiteFleetRow => {
