@@ -9,6 +9,11 @@ minimumReleaseAgeExclude:
   - '@harlan-zw/nuxt-use-query@0.1.0'
   - '@harlan-zw/nuxt-wide-events@0.1.0'
   - nuxt-skew-protection@1.4.3
+  - '@gscdump/contracts@3.6.3'
+  - '@gscdump/engine@3.6.3'
+  - '@gscdump/lakehouse@3.6.3'
+  - '@gscdump/sdk@3.6.3'
+  - gscdump@3.6.3
 
 shellEmulator: true
 autoInstallPeers: false
@@ -53,9 +58,9 @@ patchedDependencies:
 catalog:
   '@antfu/eslint-config': ^9.3.0
   '@cloudflare/workers-types': ^5.20260816.1
-  '@gscdump/contracts': ^2.2.0
-  '@gscdump/engine': ^2.2.0
-  '@gscdump/sdk': ^2.2.0
+  '@gscdump/contracts': 3.6.3
+  '@gscdump/engine': 3.6.3
+  '@gscdump/sdk': 3.6.3
   '@harlan-zw/comark-content': 0.1.2
   '@harlan-zw/nuxt-checkin': 0.3.0
   '@harlan-zw/nuxt-cloudflare': 0.4.3
@@ -102,7 +107,7 @@ catalog:
   eslint: ^10.8.1
   globby: ^16.2.3
   googlethis: ^1.8.0
-  gscdump: ^2.2.0
+  gscdump: 3.6.3
   h3: ^1.15.11
   hookable: ^6.1.1
   klona: ^2.0.6
