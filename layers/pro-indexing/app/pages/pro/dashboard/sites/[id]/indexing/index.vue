@@ -1,735 +1,709 @@
 <script lang="ts" setup>
-import type { IssueSeverity } from '#layers/pro-indexing/app/utils/indexing-issues'
-import { gscConsoleUrl } from '@gscdump/sdk/gsc-console-url'
-import { useProGscdump, useProGscdumpIndexing, useProGscdumpIndexingDiagnostics, useProGscdumpSitemaps } from '#layers/pro-gsc/app/composables/useProGscdump'
-import { issueIcons } from '#layers/pro-indexing/app/utils/indexing-issues'
+import type { FactItem } from '#layers/design-system/app/components/data/UiFactsGrid.vue'
+import type { IndexingCoverageTrendViewState } from '#layers/pro-indexing/app/utils/indexing-coverage-trend'
+import type { IndexingPipelineEvidence } from '#layers/pro-indexing/app/utils/indexing-overview'
+import type { IndexCohortsResponse } from '#layers/pro-indexing/shared/contracts/index-cohorts'
+import type { SitemapLiveness } from '#layers/pro-indexing/shared/contracts/sitemap-liveness'
+import type { IndexingTransitionEvidence } from '#layers/pro-indexing/shared/indexing-transition-lead'
+import type { FunnelStep } from '#layers/pro-saas/app/components/pro/ProFunnel.vue'
+import { withQuery } from 'ufo'
+import {
+  useProGscdump,
+  useProGscdumpIndexing,
+  useProGscdumpIndexingDiagnostics,
+  useProGscdumpIndexingUrls,
+  useProGscdumpSitemaps,
+} from '#layers/pro-gsc/app/composables/useProGscdump'
+import IndexingCohortList from '#layers/pro-indexing/app/internal/components/indexing/IndexingCohortList.vue'
+import IndexingCoverageTrend from '#layers/pro-indexing/app/internal/components/indexing/IndexingCoverageTrend.vue'
+import IndexingDiagnosisPanel from '#layers/pro-indexing/app/internal/components/indexing/IndexingDiagnosisPanel.vue'
+import { buildIndexingCoverageTrend } from '#layers/pro-indexing/app/utils/indexing-coverage-trend'
+import {
+  buildIndexingOverviewModel,
+  buildIndexingPipelineEvidence,
+} from '#layers/pro-indexing/app/utils/indexing-overview'
+import { sitemapLivenessSchema } from '#layers/pro-indexing/shared/contracts/sitemap-liveness'
+import { selectIndexCohortLead } from '#layers/pro-indexing/shared/index-cohorts'
+import { selectIndexingRegressionLead } from '#layers/pro-indexing/shared/indexing-transition-lead'
+import { computeTrustGate, sitemapHistoryCollapsed } from '#layers/pro-indexing/shared/trust-gate'
 
 definePageMeta({ proTab: { feature: 'indexing', label: 'Overview', icon: 'i-lucide-layout-dashboard', order: 0 } })
 
-const { siteId, gscdumpSiteId, isNotConnected, isProcessing, isReady } = useSite()
-const route = useRoute()
-const gscConnectUrl = computed(() => `/auth/integrations/gsc/connect?returnTo=${encodeURIComponent(route.fullPath)}`)
-const { period, stableData } = useSitePeriod()
-const { createSitemapAction } = useProGscdump()
-const toast = useToast()
+const { siteId, gscdumpSiteId, isNotConnected } = useSite('Indexing')
+const proFetch = useProFetch()
+const { listSiteIndexingTransitions } = useProGscdump()
 
-const submittingSitemap = ref(false)
-async function autoDiscoverSitemap() {
-  if (!gscdumpSiteId.value)
-    return
-  submittingSitemap.value = true
-  const res = await createSitemapAction<{ discovered: string | null, submitError?: string | null }>({
-    params: { siteId: gscdumpSiteId.value },
-    body: { action: 'auto-discover' },
-  }, true).catch(() => null)
-  submittingSitemap.value = false
-  if (res?.discovered && !res.submitError) {
-    toast.add({ title: 'Sitemap submitted', description: res.discovered, color: 'success' })
+const {
+  data: indexingData,
+  status: indexingProgressStatus,
+  error: indexingProgressError,
+  refresh: refreshIndexingProgress,
+} = useProGscdumpIndexing(computed(() => gscdumpSiteId.value ?? ''), 28)
+const {
+  data: diagnosticsData,
+  status: diagnosticsStatus,
+  error: diagnosticsError,
+  refresh: refreshDiagnostics,
+} = useProGscdumpIndexingDiagnostics(computed(() => gscdumpSiteId.value ?? ''))
+const {
+  data: sitemapsData,
+  status: sitemapsStatus,
+  error: sitemapsError,
+  refresh: refreshSitemaps,
+} = useProGscdumpSitemaps(computed(() => gscdumpSiteId.value ?? undefined))
+const {
+  data: indexingUrlsData,
+  status: indexingUrlsStatus,
+  error: indexingUrlsError,
+  refresh: refreshIndexingUrls,
+} = useProGscdumpIndexingUrls(computed(() => gscdumpSiteId.value ?? ''), { limit: 500 })
+
+const summary = computed(() => diagnosticsData.value?.summary)
+const diagnosisMeta = computed(() => diagnosticsData.value?.meta)
+const urlInspectionScopeCount = computed(() => {
+  const response = indexingUrlsData.value
+  if (!response)
+    return null
+  if (response.pagination.total > 0)
+    return response.pagination.total
+  return response.urls.length > 0 ? response.urls.length : null
+})
+const diagnosticSummaryCount = computed(() => {
+  const total = summary.value?.totalUrls
+  return total != null && total > 0 ? total : null
+})
+const scopedSitemaps = computed(() => sitemapsData.value?.sitemaps ?? [])
+const scopedSitemapUrlHistory = computed(() =>
+  Array.from(sitemapsData.value?.history ?? [], point => ({ date: point.date, urlCount: point.urlCount }))
+    .sort((left, right) => left.date.localeCompare(right.date)),
+)
+const inspectedCount = computed(() =>
+  urlInspectionScopeCount.value
+  ?? diagnosticSummaryCount.value
+  ?? indexingData.value?.meta.inspectedCount
+  ?? diagnosisMeta.value?.inspectedCount
+  ?? 0,
+)
+const sitemapTotal = computed(() => {
+  if (sitemapsData.value) {
+    return scopedSitemaps.value
+      .filter(sitemap => !sitemap.isIndex)
+      .reduce((total, sitemap) => total + sitemap.urlCount, 0)
   }
-  else if (res?.discovered && res.submitError) {
-    toast.add({ title: 'Sitemap found but failed to submit', description: res.submitError, color: 'error' })
-  }
-  else {
-    toast.add({ title: 'No sitemap found', description: 'Could not find a sitemap via robots.txt or common paths. Submit one manually in Search Console.', color: 'warning' })
-  }
+  return diagnosisMeta.value?.sitemapTotal
+    ?? indexingData.value?.meta.sitemapTotal
+    ?? 0
+})
+const indexingStatus = computed<'pending' | 'partial' | 'complete' | null>(() => {
+  if (indexingData.value?.meta.indexingStatus)
+    return indexingData.value.meta.indexingStatus
+  if (diagnosisMeta.value?.indexingStatus)
+    return diagnosisMeta.value.indexingStatus
+  const response = indexingUrlsData.value
+  if (!summary.value || !response)
+    return null
+  return !response.pagination.hasMore && response.pagination.total === summary.value.totalUrls
+    ? 'complete'
+    : 'partial'
+})
+const completeUrlSnapshot = computed(() => {
+  const response = indexingUrlsData.value
+  return response && !response.pagination.hasMore && response.urls.length === response.pagination.total
+    ? response
+    : null
+})
+const diagnosisTotalUrls = computed(() =>
+  diagnosticSummaryCount.value
+  ?? completeUrlSnapshot.value?.pagination.total
+  ?? 0,
+)
+const diagnosisIndexed = computed(() =>
+  diagnosticSummaryCount.value != null
+    ? summary.value?.indexed ?? 0
+    : completeUrlSnapshot.value?.urls.filter(row => row.verdict === 'PASS').length ?? 0,
+)
+const overviewError = computed(() => diagnosticsError.value ?? sitemapsError.value)
+const hasRequiredOverviewEvidence = computed(() => !!summary.value && !!sitemapsData.value)
+const overviewErrorTitle = computed(() => (
+  diagnosticsError.value
+    ? 'Indexing diagnosis failed to load'
+    : sitemapsError.value
+      ? 'Sitemap evidence failed to load'
+      : 'Indexing coverage failed to load'
+))
+async function retryOverview() {
+  await Promise.all([
+    refreshDiagnostics(),
+    refreshSitemaps(),
+    refreshIndexingUrls(),
+    refreshIndexingProgress(),
+  ])
 }
 
-// --- Indexing data ---
-const { data: indexingData, status: indexingStatus, error: indexingError } = useProGscdumpIndexing(
-  computed(() => gscdumpSiteId.value ?? ''),
-  computed(() => periodToDateRange(period.value, stableData.value).days),
-)
+const primarySitemap = computed(() => scopedSitemaps.value[0] ?? null)
+const primarySitemapUrl = computed(() => primarySitemap.value?.path)
 
-const indexingMeta = computed(() => indexingData.value?.meta)
-const indexingNotReady = computed(() => {
-  if (isProcessing.value && !isReady.value)
-    return true
-  if (indexingMeta.value?.indexingStatus === 'pending')
-    return true
-  return false
-})
-const overviewLoading = computed(() => (indexingStatus.value === 'pending' || indexingStatus.value === 'idle') && !indexingData.value)
-const summary = computed(() => indexingData.value?.summary)
-
-// --- Computed metrics from trend data ---
-const latestErrors = computed(() => {
-  if (!indexingData.value?.trend.length)
-    return 0
-  const latest = indexingData.value.trend.at(-1)
-  if (!latest)
-    return 0
-  return (latest.issues.notFound || 0)
-    + (latest.issues.soft404 || 0)
-    + (latest.issues.serverError || 0)
-})
-
-// --- Index drop alert ---
-// Detect whether total URLs grew (new pages added) vs pages actually dropping out
-const totalUrlsGrowth = computed(() => {
-  const trend = indexingData.value?.trend
-  if (!trend?.length || trend.length < 2)
-    return 0
-  const first = trend[0]
-  const latest = trend.at(-1)
-  return first && latest ? latest.totalUrls - first.totalUrls : 0
-})
-
-const indexDropAlert = computed(() => {
-  const s = summary.value
-  if (!s)
-    return null
-  // Check 7-day change first, then 28-day
-  let drop: { percentDrop: number, period: string } | null = null
-  if (s.change7d != null && s.change7d <= -2) {
-    drop = { percentDrop: Math.abs(s.change7d), period: '7 days' }
-  }
-  else if (s.change28d != null && s.change28d <= -5) {
-    drop = { percentDrop: Math.abs(s.change28d), period: '28 days' }
-  }
-  if (!drop)
-    return null
-  // If total URLs grew, this is likely dilution from new pages — less severe
-  const newPagesAdded = totalUrlsGrowth.value > 0
-  return { ...drop, newPagesAdded }
-})
-
-// --- Hero sparklines ---
-const totalUrlsSparkline = computed(() =>
-  indexingData.value?.trend?.map((t, i) => ({ x: i, value: t.totalUrls })) ?? [],
-)
-const indexedCountSparkline = computed(() =>
-  indexingData.value?.trend?.map((t, i) => ({ x: i, value: Math.round(t.totalUrls * t.indexedPercent / 100) })) ?? [],
-)
-
-// Index rate health status
-const indexRateStatus = computed(() => {
-  if (!summary.value)
-    return undefined
-  if (summary.value.indexedPercent >= 90)
-    return 'good' as const
-  if (summary.value.indexedPercent < 50)
-    return 'crisis' as const
-  return 'warning' as const
-})
-
-// --- Diagnostics + Sitemaps for overview panels ---
-const { data: diagnosticsData } = useProGscdumpIndexingDiagnostics(
-  computed(() => gscdumpSiteId.value ?? ''),
-  { immediate: !!gscdumpSiteId.value },
-)
-
-const { data: sitemapsData } = useProGscdumpSitemaps(
-  computed(() => gscdumpSiteId.value ?? undefined),
-  { immediate: !!gscdumpSiteId.value },
-)
-const searchConsoleSitemapsUrl = computed(() => {
-  const siteLabel = sitemapsData.value?.meta?.siteUrl ?? indexingMeta.value?.siteUrl
-  return siteLabel
-    ? gscConsoleUrl({ siteLabel, resource: 'sitemaps' })
-    : 'https://search.google.com/search-console'
-})
-
-// --- Unified top issues ---
-interface TopIssue {
-  id: string
-  label: string
-  severity: IssueSeverity
-  count: number
-  source: 'indexing' | 'sitemap'
-  icon: string
-  issueType?: string
-  sitemapPath?: string
+function parseSitemapLiveness(value: unknown): SitemapLiveness | null {
+  const parsed = sitemapLivenessSchema.safeParse(value)
+  return parsed.success ? parsed.data : null
 }
 
-const topIssues = computed<TopIssue[]>(() => {
-  const items: TopIssue[] = []
+// The live probe runs client-side only: it costs up to 15s on a cold cache and
+// the verdict below reads fine without it.
+const { data: rawLivenessData, error: livenessError } = useAsyncData<unknown>(
+  computed(() => `indexing-overview:sitemap-liveness:${siteId.value}:${primarySitemapUrl.value ?? ''}`),
+  async () => {
+    if (!gscdumpSiteId.value)
+      return null
+    const base = `/api/pro/sites/${siteId.value}/sitemap-liveness`
+    return proFetch(primarySitemapUrl.value ? withQuery(base, { sitemap: primarySitemapUrl.value }) : base)
+  },
+  { server: false, lazy: true, watch: [gscdumpSiteId, primarySitemapUrl] },
+)
+const livenessData = computed(() => parseSitemapLiveness(rawLivenessData.value))
 
-  if (diagnosticsData.value?.issues) {
-    for (const i of diagnosticsData.value.issues) {
-      if (i.count > 0 && i.type !== 'not_indexed') {
-        items.push({
-          id: `idx-${i.type}`,
-          label: i.label,
-          severity: i.severity,
-          count: i.count,
-          source: 'indexing',
-          icon: issueIcons[i.type] || 'i-lucide-alert-circle',
-          issueType: i.type,
-        })
-      }
-    }
-  }
+const lastDownloadedAt = computed(() =>
+  scopedSitemaps.value
+    .map(sitemap => sitemap.lastDownloaded)
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1) ?? null,
+)
 
-  if (sitemapsData.value?.sitemaps) {
-    for (const s of sitemapsData.value.sitemaps) {
-      if (s.errors > 0) {
-        items.push({
-          id: `sm-err-${s.path}`,
-          label: `${getSitemapName(s.path)} — ${s.errors} error${s.errors === 1 ? '' : 's'}`,
-          severity: 'error',
-          count: s.errors,
-          source: 'sitemap',
-          icon: 'i-lucide-file-x',
-          sitemapPath: s.path,
-        })
-      }
-      if (s.warnings > 0) {
-        items.push({
-          id: `sm-warn-${s.path}`,
-          label: `${getSitemapName(s.path)} — ${s.warnings} warning${s.warnings === 1 ? '' : 's'}`,
-          severity: 'warning',
-          count: s.warnings,
-          source: 'sitemap',
-          icon: 'i-lucide-file-warning',
-          sitemapPath: s.path,
-        })
-      }
-    }
-  }
+const trust = computed(() => {
+  if (livenessError.value)
+    return { state: 'unknown' as const, reason: 'Sitemap reachability could not be checked.' }
 
-  const order: Record<string, number> = { error: 0, warning: 1, info: 2 }
-  return items.sort((a, b) => {
-    const sevDiff = (order[a.severity] ?? 3) - (order[b.severity] ?? 3)
-    if (sevDiff !== 0)
-      return sevDiff
-    return b.count - a.count
+  return computeTrustGate({
+    connected: !!gscdumpSiteId.value && !isNotConnected.value,
+    inspectedCount: inspectedCount.value || null,
+    totalUrls: summary.value?.totalUrls ?? null,
+    indexingStatus: indexingStatus.value,
+    sitemapsPending: indexingStatus.value === 'pending',
+    noSitemapsSubmitted: scopedSitemaps.value.length === 0,
+    liveness: livenessData.value,
+    lastDownloadedAt: lastDownloadedAt.value,
+    sitemapCollapsed: sitemapHistoryCollapsed(
+      scopedSitemapUrlHistory.value.map(point => point.urlCount),
+    ),
+    now: new Date(),
   })
 })
 
-const topIssuesSlice = computed(() => topIssues.value.slice(0, 7))
-
-// Smart summary text
-const notIndexedCount = computed(() => {
-  if (!summary.value)
-    return 0
-  return summary.value.totalUrls - summary.value.indexed
+const pipelineEvidence = computed<IndexingPipelineEvidence>(() => {
+  const response = indexingUrlsData.value
+  if (!response)
+    return { _tag: 'unavailable', reason: 'partial_rows' }
+  return buildIndexingPipelineEvidence({
+    urls: response.urls,
+    pagination: response.pagination,
+    inspectedCount: inspectedCount.value,
+  })
 })
 
-const summaryTitle = computed(() => {
-  if (!summary.value)
-    return ''
-  const pct = summary.value.indexedPercent
-  if (pct >= 95)
-    return 'Indexing looks healthy'
-  if (pct >= 80)
-    return 'Most pages are indexed'
-  if (pct >= 50)
-    return 'Indexing needs attention'
-  return 'Indexing issues detected'
+const overviewModel = computed(() => {
+  if (overviewError.value && !hasRequiredOverviewEvidence.value)
+    return null
+
+  if (!summary.value || !sitemapsData.value) {
+    if (!isNotConnected.value)
+      return null
+  }
+
+  return buildIndexingOverviewModel({
+    totalUrls: diagnosisTotalUrls.value,
+    indexed: diagnosisIndexed.value,
+    issues: diagnosticsData.value?.issues ?? [],
+    indexingStatus: indexingStatus.value,
+    inspectedCount: inspectedCount.value,
+    sitemapTotal: sitemapTotal.value,
+    sitemapHistory: scopedSitemapUrlHistory.value,
+    sampleUrls: indexingUrlsData.value?.urls,
+    pipeline: pipelineEvidence.value,
+    trust: trust.value,
+  })
 })
 
-// --- Aggregate crawl pipeline ---
-function issueCount(type: string): number {
-  return diagnosticsData.value?.issues?.find(i => i.type === type)?.count ?? 0
+const overviewLoading = computed(() =>
+  !overviewModel.value
+  && !overviewError.value
+  && [diagnosticsStatus.value, sitemapsStatus.value].some(status => status === 'pending' || status === 'idle'),
+)
+const overviewRefreshing = computed(() =>
+  !!overviewModel.value
+  && [diagnosticsStatus.value, sitemapsStatus.value, indexingUrlsStatus.value]
+    .some(status => status === 'pending'),
+)
+
+function indexingRoute(page: 'sitemaps' | 'urls', query?: Record<string, string>) {
+  const base = `/pro/dashboard/sites/${siteId.value}/indexing/${page}`
+  return query ? withQuery(base, query) : base
 }
 
-type PipelineStatus = 'success' | 'error' | 'warning' | 'neutral'
-
-const aggregatePipeline = computed(() => {
-  if (!summary.value || !diagnosticsData.value)
-    return null
-
-  const total = summary.value.totalUrls
-  if (!total)
-    return null
-
-  const blocked = issueCount('blocked_robots')
-  const fetchFails = issueCount('not_found') + issueCount('soft_404') + issueCount('server_error')
-  const noindex = issueCount('noindex')
-  const indexed = summary.value.indexed
-
-  const robotsPass = total - blocked
-  const fetchPass = robotsPass - fetchFails
-  const indexingPass = fetchPass - noindex
-
-  function stepStatus(pass: number, total: number): PipelineStatus {
-    if (pass === total)
-      return 'success'
-    if (pass < total)
-      return 'error'
-    return 'neutral'
-  }
-
-  function pct(pass: number, of: number): string {
-    return of > 0 ? `${Math.round((pass / of) * 100)}%` : '—'
-  }
-
-  return [
-    {
-      label: 'Discovered',
-      icon: 'i-lucide-radar',
-      status: 'neutral' as PipelineStatus,
-      displayValue: useProHumanFriendlyNumber(total),
-      value: `${total} URLs`,
-      raw: total,
-      tooltip: `${useProHumanFriendlyNumber(total)} total URLs known to Google`,
-      sparkline: totalUrlsSparkline.value.map(d => d.value),
-    },
-    {
-      label: 'Crawled',
-      icon: 'i-lucide-bot',
-      status: stepStatus(fetchPass, robotsPass),
-      displayValue: useProHumanFriendlyNumber(fetchPass),
-      value: pct(fetchPass, total),
-      raw: fetchPass,
-      tooltip: `${useProHumanFriendlyNumber(fetchPass)} of ${useProHumanFriendlyNumber(total)} successfully fetched`,
-      to: fetchFails > 0 ? indexingRoute('urls', { issue: 'not_found' }) : undefined,
-    },
-    {
-      label: 'Indexable',
-      icon: 'i-lucide-file-check',
-      status: stepStatus(indexingPass, fetchPass),
-      displayValue: useProHumanFriendlyNumber(indexingPass),
-      value: pct(indexingPass, total),
-      raw: indexingPass,
-      tooltip: `${useProHumanFriendlyNumber(indexingPass)} of ${useProHumanFriendlyNumber(total)} allowed for indexing`,
-      to: noindex > 0 ? indexingRoute('urls', { issue: 'noindex' }) : undefined,
-    },
-    {
-      label: 'Indexed',
-      icon: 'i-lucide-database',
-      status: stepStatus(indexed, indexingPass),
-      displayValue: useProHumanFriendlyNumber(indexed),
-      value: `${summary.value!.indexedPercent.toFixed(1)}%`,
-      raw: indexed,
-      tooltip: `${useProHumanFriendlyNumber(indexed)} of ${useProHumanFriendlyNumber(total)} in Google's index`,
-      sparkline: indexedCountSparkline.value.map(d => d.value),
-      to: indexingRoute('urls'),
-    },
-  ]
+const urlsRoute = computed(() => indexingRoute('urls'))
+const sitemapsRoute = computed(() => indexingRoute('sitemaps'))
+const primaryActionRoute = computed(() => {
+  const model = overviewModel.value
+  if (model?._tag !== 'diagnosis' || !model.primaryAction?.issueType)
+    return urlsRoute.value
+  return indexingRoute('urls', { issue: model.primaryAction.issueType })
 })
 
-// Funnel-shaped steps derived from the same source data
-const funnelSteps = computed(() => {
-  if (!aggregatePipeline.value)
+// Cohorts partition the inspected set by path and test which part Google
+// indexes worse than the rest. Client-side only and best effort: the diagnosis
+// above is complete without it.
+const { data: cohortState, error: cohortsError } = useAsyncData<IndexCohortsResponse | null>(
+  computed(() => `indexing-overview:cohorts:${siteId.value}`),
+  () => proFetch<IndexCohortsResponse>(`/api/pro/sites/${siteId.value}/indexing/cohorts`),
+  { server: false, lazy: true, watch: [siteId] },
+)
+
+// Transitions only sharpen the cohort headline. The proxy answers 409 for a
+// site whose Search Console credential is missing or revoked, which is an
+// account state rather than a fault, so the error is read and dropped here.
+const { data: transitionsData, error: transitionsError } = useAsyncData(
+  computed(() => `indexing-overview:transitions:${gscdumpSiteId.value ?? ''}`),
+  () => gscdumpSiteId.value
+    ? listSiteIndexingTransitions({ params: { siteId: gscdumpSiteId.value }, query: {} }, true)
+    : Promise.resolve(null),
+  { server: false, lazy: true, watch: [gscdumpSiteId] },
+)
+const transitions = computed<IndexingTransitionEvidence[]>(() => {
+  if (transitionsError.value)
     return []
-  return aggregatePipeline.value.map(s => ({
-    key: s.label,
-    label: s.label,
-    value: s.raw,
-    displayValue: s.displayValue,
-    tooltip: s.tooltip,
-    to: s.to,
+  return (transitionsData.value as { transitions?: IndexingTransitionEvidence[] } | null)?.transitions ?? []
+})
+
+// The hero leads with the worst cohort when one clears the significance test,
+// falling back to the reason-derived headline when nothing separates.
+const statisticalCohortLead = computed(() =>
+  cohortState.value ? selectIndexCohortLead(cohortState.value) : undefined,
+)
+const cohortLead = computed(() => {
+  const lead = statisticalCohortLead.value
+  if (lead?._tag !== 'lead')
+    return lead
+
+  const regression = selectIndexingRegressionLead(lead.cell, transitions.value)
+  if (regression._tag !== 'lead')
+    return lead
+
+  return {
+    ...lead,
+    title: regression.title,
+    detail: `${regression.detail} ${lead.title} ${lead.detail}`,
+  }
+})
+const cohortLeadTo = computed(() => {
+  const lead = cohortLead.value
+  if (lead?._tag !== 'lead')
+    return undefined
+  return indexingRoute('urls', lead.cell.pathPrefix
+    ? { status: 'not_indexed', search: lead.cell.pathPrefix }
+    : { status: 'not_indexed' })
+})
+
+const funnelStageDescriptions = {
+  inspected: 'URLs checked with Google URL Inspection in this snapshot.',
+  crawled: 'Inspected URLs Google has fetched at least once.',
+  indexable: 'Crawled URLs whose fetch, robots, and indexing signals allow indexing.',
+  indexed: 'Inspected URLs Google currently reports as indexed.',
+} satisfies Record<'inspected' | 'crawled' | 'indexable' | 'indexed', string>
+const funnelSteps = computed<FunnelStep[]>(() => {
+  const model = overviewModel.value
+  if (model?._tag !== 'diagnosis' || model.pipeline._tag !== 'available')
+    return []
+  return model.pipeline.steps.map(step => ({
+    key: step.id,
+    label: step.label,
+    value: step.value,
+    displayValue: step.value.toLocaleString(),
+    tooltip: `${step.countLabel}. ${funnelStageDescriptions[step.id]}`,
   }))
 })
-
-const funnelDelta = computed(() => {
-  const change = summary.value?.change7d
-  if (change == null)
-    return undefined
-  const dir: 'up' | 'down' | 'flat' = change > 0 ? 'up' : change < 0 ? 'down' : 'flat'
-  return { value: `${Math.abs(change).toFixed(1)}% vs prior 7 days`, direction: dir }
+const largestFunnelLoss = computed(() => {
+  const model = overviewModel.value
+  return model?._tag === 'diagnosis' && model.pipeline._tag === 'available'
+    ? model.pipeline.largestLoss
+    : null
+})
+const funnelUnavailableReason = computed(() => {
+  const model = overviewModel.value
+  if (model?._tag !== 'diagnosis' || model.pipeline._tag === 'available')
+    return null
+  if (indexingUrlsStatus.value === 'pending' || indexingUrlsStatus.value === 'idle')
+    return 'Building the stage funnel from URL Inspection evidence.'
+  if (indexingUrlsError.value)
+    return 'The stage funnel is unavailable because URL Inspection rows failed to load.'
+  if (model.pipeline.reason === 'partial_rows') {
+    const loaded = indexingUrlsData.value?.urls.length ?? 0
+    const total = indexingUrlsData.value?.pagination.total ?? model.scope.inspected
+    return `The stage funnel needs all inspected rows; ${loaded.toLocaleString()} of ${total.toLocaleString()} are loaded.`
+  }
+  return 'The stage funnel is waiting for the URL rows and diagnosis snapshot to agree.'
 })
 
-const funnelContext = computed(() => {
-  if (!summary.value)
-    return undefined
-  return `${useProHumanFriendlyNumber(summary.value.indexed)} indexed of ${useProHumanFriendlyNumber(summary.value.totalUrls)} discovered`
-})
-const topIssuesLoading = computed(() => !diagnosticsData.value && !sitemapsData.value)
-
-// --- Signals ---
-const signals = computed(() => summary.value?.signals)
-const hasMobileData = computed(() => {
-  if (!signals.value)
-    return false
-  return (signals.value.mobilePass + signals.value.mobileFail) > 0
-})
-const hasRichResults = computed(() => {
-  if (!signals.value)
-    return false
-  return signals.value.richResultTypes.length > 0
-})
-const mobileFriendlyPercent = computed(() => {
-  if (!signals.value)
-    return 0
-  const total = signals.value.mobilePass + signals.value.mobileFail
-  return total > 0 ? Math.round((signals.value.mobilePass / total) * 100) : 0
-})
-const mobileStats = computed(() => {
-  if (!signals.value)
-    return []
-  const items = [
-    { label: 'Mobile Friendly', count: signals.value.mobilePass, icon: 'i-lucide-check-circle', iconColor: semanticColors.success.text },
-  ]
-  if (signals.value.mobileFail > 0)
-    items.push({ label: 'Mobile Issues', count: signals.value.mobileFail, icon: 'i-lucide-alert-triangle', iconColor: semanticColors.warning.text })
-  items.push(
-    { label: 'Mobile Googlebot', count: signals.value.crawlingMobile, icon: 'i-lucide-smartphone', iconColor: 'text-dimmed' },
-    { label: 'Desktop Googlebot', count: signals.value.crawlingDesktop, icon: 'i-lucide-monitor', iconColor: 'text-dimmed' },
-  )
-  return items
+const coverageTrendState = computed<IndexingCoverageTrendViewState>(() => {
+  if (indexingProgressError.value)
+    return { _tag: 'error' }
+  if (
+    !indexingData.value
+    && (indexingProgressStatus.value === 'idle' || indexingProgressStatus.value === 'pending')
+  ) {
+    return { _tag: 'loading' }
+  }
+  return { _tag: 'loaded', trend: buildIndexingCoverageTrend(indexingData.value?.trend ?? []) }
 })
 
-// Sitemaps overview items
-const sitemapItems = computed(() => {
-  if (!sitemapsData.value?.sitemaps?.length)
-    return []
-  return sitemapsData.value.sitemaps.map((s) => {
-    const history = sitemapsData.value?.perSitemapHistory?.[s.path]
-    const latest = history?.at(-1)
-    return {
-      name: getSitemapName(s.path),
-      path: s.path,
-      urlCount: s.urlCount,
-      errors: s.errors,
-      warnings: s.warnings,
-      contentChanged: latest?.changed ?? false,
-      urlDelta: latest?.urlDelta ?? 0,
-    }
-  })
-})
-const totalSitemapUrls = computed(() => sitemapItems.value.reduce((sum, s) => sum + s.urlCount, 0))
-const totalUrlDelta = computed(() => {
-  const latest = sitemapsData.value?.history?.[0]
-  return latest?.urlDelta ?? 0
+const inspectionProgress = computed(() => {
+  const providerMeta = indexingData.value?.meta
+  const inspected = Math.max(0, providerMeta?.inspectedCount ?? inspectedCount.value)
+  const total = Math.max(0, providerMeta?.sitemapTotal ?? sitemapTotal.value)
+  if (total === 0)
+    return null
+  const derivedPercent = Math.round(inspected / total * 100)
+  const percent = Math.min(100, Math.max(0, providerMeta?.indexingProgress ?? derivedPercent))
+  return {
+    inspected,
+    total,
+    percent,
+    complete: providerMeta?.indexingStatus === 'complete' && inspected >= total,
+  }
 })
 
-// Route helpers for linking to sibling pages
-// Optional facets are common here, so the signature takes them and drops the
-// absent ones. A caller that has no issue type gets the unfiltered page, not a
-// `?issue=undefined` link.
-function indexingRoute(page: string, query?: Record<string, string | undefined>) {
-  const base = `/pro/dashboard/sites/${siteId.value}/indexing/${page}`
-  const params = Object.entries(query ?? {})
-    .filter((entry): entry is [string, string] => entry[1] !== undefined)
-  if (!params.length)
-    return base
-  return `${base}?${new URLSearchParams(params).toString()}`
+function formatDate(value: string | null): string {
+  if (!value)
+    return 'Not fetched yet'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime()))
+    return 'Unknown'
+  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(date)
 }
 
-function itemCount(item: { count: number }) {
-  return item.count
+function formatShortDate(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime()))
+    return value
+  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short' }).format(date)
 }
 
-function sitemapUrlCount(item: { urlCount: number }) {
-  return item.urlCount
+const sitemapReachability = computed(() => {
+  const live = livenessData.value
+  if (!live)
+    return { value: 'Checking', status: 'neutral' as const }
+  if (live.status === 'reachable')
+    return { value: 'Reachable', status: 'success' as const }
+  if (live.status === 'timeout')
+    return { value: 'Timing out', status: 'warning' as const }
+  return { value: live.statusCode ? `HTTP ${live.statusCode}` : 'Unreachable', status: 'error' as const }
+})
+
+const totalSitemapErrors = computed(() =>
+  scopedSitemaps.value.reduce((total, sitemap) => total + sitemap.errors, 0),
+)
+const totalSitemapWarnings = computed(() =>
+  scopedSitemaps.value.reduce((total, sitemap) => total + sitemap.warnings, 0),
+)
+
+function pluralize(count: number, singular: string): string {
+  return `${count.toLocaleString()} ${singular}${count === 1 ? '' : 's'}`
 }
 
-function getIndexingErrorMessage(error: unknown) {
-  if (typeof error !== 'object' || error === null || !('data' in error))
-    return 'Failed to load indexing data'
-  const data = error.data
-  return typeof data === 'object' && data !== null && 'message' in data && typeof data.message === 'string'
-    ? data.message
-    : 'Failed to load indexing data'
+const sitemapIssueBreakdown = computed(() => {
+  const errors = totalSitemapErrors.value
+  const warnings = totalSitemapWarnings.value
+  if (errors === 0 && warnings === 0)
+    return 'No errors or warnings'
+  return [errors > 0 ? pluralize(errors, 'error') : null, warnings > 0 ? pluralize(warnings, 'warning') : null]
+    .filter(Boolean)
+    .join(' · ')
+})
+
+const sitemapHistory = computed(() => scopedSitemapUrlHistory.value)
+const sitemapIssueHistory = computed(() =>
+  [...(sitemapsData.value?.history ?? [])].sort((left, right) => left.date.localeCompare(right.date)),
+)
+const sitemapCurrentUrlCount = computed(() => sitemapTotal.value)
+const sitemapCurrentIssueCount = computed(() => totalSitemapErrors.value + totalSitemapWarnings.value)
+const sitemapUrlTrend = computed(() => {
+  const points = sitemapHistory.value.map(point => ({ date: point.date, value: point.urlCount }))
+  if (!points.length || points.at(-1)?.value !== sitemapCurrentUrlCount.value)
+    points.push({ date: 'current', value: sitemapCurrentUrlCount.value })
+  return points
+})
+const sitemapIssueTrend = computed(() => {
+  const points = sitemapIssueHistory.value.map(point => ({ date: point.date, value: point.errors + point.warnings }))
+  if (!points.length || points.at(-1)?.value !== sitemapCurrentIssueCount.value)
+    points.push({ date: 'current', value: sitemapCurrentIssueCount.value })
+  return points
+})
+const sitemapUrlDelta = computed(() => {
+  const first = sitemapHistory.value[0]
+  return first ? sitemapCurrentUrlCount.value - first.urlCount : undefined
+})
+const sitemapIssueDelta = computed(() => {
+  const first = sitemapIssueHistory.value[0]
+  return first ? sitemapCurrentIssueCount.value - (first.errors + first.warnings) : undefined
+})
+function sitemapHistoryLabel(history: ReadonlyArray<{ date: string }>): string | undefined {
+  return history.length ? `since ${formatShortDate(history[0]!.date)}` : undefined
 }
+const sitemapTrendLabel = computed(() => sitemapHistoryLabel(sitemapHistory.value))
+const sitemapIssueTrendLabel = computed(() => sitemapHistoryLabel(sitemapIssueHistory.value))
+
+const sitemapFacts = computed<FactItem[]>(() => [
+  ...(scopedSitemaps.value.length === 1
+    ? [{
+        label: 'Reachability',
+        value: sitemapReachability.value.value,
+        status: sitemapReachability.value.status,
+      }]
+    : []),
+  { label: 'Last Search Console fetch', value: formatDate(lastDownloadedAt.value) },
+  { label: 'Files', value: scopedSitemaps.value.length.toLocaleString() },
+  { label: 'Snapshots', value: sitemapHistory.value.length.toLocaleString() },
+])
+
+function cacheAge(timestamp: number | undefined): string | null {
+  if (!timestamp)
+    return null
+  const milliseconds = timestamp > 10_000_000_000 ? timestamp : timestamp * 1000
+  const minutes = Math.max(0, Math.floor((Date.now() - milliseconds) / 60_000))
+  if (minutes < 1)
+    return 'updated just now'
+  if (minutes < 60)
+    return `updated ${minutes}m ago`
+  return `updated ${Math.floor(minutes / 60)}h ago`
+}
+
+const diagnosisFreshness = computed(() => {
+  const age = cacheAge(diagnosticsData.value?.meta.rollupBuiltAt)
+  if (overviewRefreshing.value)
+    return age ? `refreshing · ${age}` : 'refreshing'
+  return age
+})
+const overviewErrorDescription = computed(() => overviewModel.value
+  ? 'Showing the last available indexing evidence. Retry to refresh it.'
+  : 'Required indexing evidence could not be loaded. Retry to rebuild the diagnosis.',
+)
 </script>
 
 <template>
   <div data-testid="indexing-page">
-    <!-- Nothing to load until Search Console is connected. Without this the
-         page sits on its skeletons forever, because the coverage reads never
-         fire and every `loading` flag only clears when data arrives. -->
-    <UiEmptyState
-      v-if="isNotConnected"
-      icon="i-lucide-database"
-      title="Connect Google Search Console"
-      description="Indexing coverage comes from Search Console. Connect this site's property to see which pages Google has indexed."
-    >
-      <UiMotionButton :to="gscConnectUrl" external size="xs" icon="i-simple-icons-google">
-        Connect Search Console
-      </UiMotionButton>
-    </UiEmptyState>
+    <div v-if="overviewError && overviewModel" class="mb-6">
+      <UiAlert
+        status="warning"
+        :title="overviewErrorTitle"
+        :description="overviewErrorDescription"
+      >
+        <template #action>
+          <UiButton purpose="secondary" size="xs" class="min-h-11" @click="retryOverview">
+            Retry
+          </UiButton>
+        </template>
+      </UiAlert>
+    </div>
 
-    <!-- Syncing: not enough data yet -->
-    <UiEmptyState
-      v-else-if="indexingNotReady"
-      icon="i-lucide-loader"
-      :title="isProcessing && !isReady ? 'Importing search data...' : 'Collecting indexing data...'"
-      :description="isProcessing && !isReady
-        ? 'Search Console data is being synced. Indexing coverage will appear once the initial import completes.'
-        : 'URLs are being inspected via Google\'s URL Inspection API. This runs daily and may take a few days to cover all pages.'"
-    >
-      <!-- Progress bar for partial indexing -->
-      <div v-if="indexingMeta?.indexingProgress != null && indexingMeta.indexingProgress > 0" class="w-48 mx-auto">
-        <div class="flex items-center justify-between text-xs text-muted mb-1.5">
-          <span>{{ useProHumanFriendlyNumber(indexingMeta.inspectedCount) }} / {{ useProHumanFriendlyNumber(indexingMeta.sitemapTotal) }} URLs</span>
-          <span class="tabular-nums font-medium">{{ indexingMeta.indexingProgress }}%</span>
-        </div>
-        <div class="h-1.5 bg-accented rounded-full overflow-hidden">
-          <div
-            class="h-full rounded-full bg-primary transition-[width] duration-500"
-            :style="{ width: `${indexingMeta.indexingProgress}%` }"
-          />
-        </div>
-      </div>
-    </UiEmptyState>
+    <ProPageZone tier="primary" first :aria-busy="overviewLoading">
+      <IndexingDiagnosisPanel
+        v-if="overviewModel"
+        :state="{ _tag: 'ready', model: overviewModel }"
+        :action-to="primaryActionRoute"
+        :sitemap-to="sitemapsRoute"
+        :freshness="diagnosisFreshness"
+        :lead="cohortLead"
+        :lead-to="cohortLeadTo"
+      />
 
-    <template v-else>
-      <!-- Alert zone (severity order: error → warning → info) -->
-      <div class="flex flex-col gap-3 mb-6">
-        <!-- Indexing error alert -->
-        <UiAlert
-          v-if="indexingError && !isNotConnected && indexingStatus !== 'pending'"
-          status="error"
-          :title="getIndexingErrorMessage(indexingError)"
-        >
-          <template #action>
-            <UiMotionButton size="xs" color="neutral" variant="subtle" @click="$router.go(0)">
-              Retry
-            </UiMotionButton>
-          </template>
-        </UiAlert>
+      <UiAlert
+        v-else-if="overviewError"
+        status="error"
+        :title="overviewErrorTitle"
+        :description="overviewErrorDescription"
+      >
+        <template #action>
+          <UiButton purpose="secondary" size="xs" class="min-h-11" @click="retryOverview">
+            Retry
+          </UiButton>
+        </template>
+      </UiAlert>
 
-        <!-- Index drop alert -->
-        <UiAlert
-          v-if="indexDropAlert"
-          :status="indexDropAlert.newPagesAdded ? 'warning' : 'error'"
-          :icon="indexDropAlert.newPagesAdded ? 'i-lucide-plus-circle' : 'i-lucide-trending-down'"
-          :title="indexDropAlert.newPagesAdded ? 'New pages diluting index rate' : 'Index coverage dropping'"
-          :description="indexDropAlert.newPagesAdded
-            ? `Index rate fell ${indexDropAlert.percentDrop.toFixed(1)}% over the last ${indexDropAlert.period}, but ${useProHumanFriendlyNumber(totalUrlsGrowth)} new URLs were added. Google hasn't indexed them yet, this usually resolves on its own.`
-            : `Index rate fell ${indexDropAlert.percentDrop.toFixed(1)}% over the last ${indexDropAlert.period}. Pages may be falling out of Google's index.`"
-        >
-          <template #action>
-            <UiMotionButton size="xs" color="neutral" variant="subtle" trailing-icon="i-lucide-arrow-right" :to="indexingRoute('urls', { status: 'not_indexed' })">
-              View not-indexed URLs
-            </UiMotionButton>
-          </template>
-        </UiAlert>
+      <IndexingDiagnosisPanel
+        v-else-if="overviewLoading"
+        :state="{ _tag: 'loading' }"
+        :action-to="urlsRoute"
+        :sitemap-to="sitemapsRoute"
+        :freshness="null"
+      />
 
-        <!-- Summary alert (hidden when index drop alert already provides context) -->
-        <UiAlert
-          v-if="summary && summaryTitle && !indexDropAlert"
-          :status="indexRateStatus === 'good' ? 'success' : indexRateStatus === 'crisis' ? 'error' : 'warning'"
-          :icon="indexRateStatus === 'good' ? 'i-lucide-check-circle' : indexRateStatus === 'crisis' ? 'i-lucide-alert-triangle' : 'i-lucide-info'"
-          :title="summaryTitle"
-        >
-          <span v-if="notIndexedCount > 0 || latestErrors > 0" class="text-muted">
-            <template v-if="notIndexedCount > 0">
-              <span class="font-semibold text-default">{{ useProHumanFriendlyNumber(notIndexedCount) }}</span> of {{ useProHumanFriendlyNumber(summary!.totalUrls) }} pages ({{ (100 - summary!.indexedPercent).toFixed(0) }}%) aren't indexed.
-            </template>
-            <template v-if="latestErrors > 0">
-              {{ ' ' }}<span class="font-semibold text-default">{{ latestErrors }}</span> error{{ latestErrors === 1 ? '' : 's' }} need{{ latestErrors === 1 ? 's' : '' }} attention.
-            </template>
-            <template v-if="summary!.change7d != null">
-              {{ ' ' }}Index rate {{ summary!.change7d > 0 ? 'up' : 'down' }} <span class="font-semibold text-default">{{ Math.abs(summary!.change7d).toFixed(1) }}%</span> over 7 days.
-            </template>
-          </span>
-          <template v-if="topIssues.length > 0" #action>
-            <UiMotionButton size="xs" color="neutral" variant="subtle" trailing-icon="i-lucide-arrow-right" :to="indexingRoute('issues')">
-              View all issues
-            </UiMotionButton>
-          </template>
-        </UiAlert>
+      <UiAlert
+        v-else
+        status="error"
+        title="Indexing evidence is unavailable"
+        description="No diagnosis could be built from the current evidence. Retry the indexing checks."
+      >
+        <template #action>
+          <UiButton purpose="secondary" size="xs" class="min-h-11" @click="retryOverview">
+            Retry
+          </UiButton>
+        </template>
+      </UiAlert>
+    </ProPageZone>
 
-        <!-- No sitemaps submitted warning -->
-        <UiAlert
-          v-if="indexingMeta?.noSitemapsSubmitted"
-          status="warning"
-          title="No sitemap submitted in Google Search Console"
-          description="We'll check robots.txt and common paths to find and submit your sitemap automatically."
-        >
-          <template #action>
-            <div class="flex items-center gap-2">
-              <UiMotionButton size="xs" color="neutral" variant="subtle" :loading="submittingSitemap" @click="autoDiscoverSitemap">
-                Submit sitemap now
-              </UiMotionButton>
-              <UiMotionButton size="xs" variant="ghost" trailing-icon="i-lucide-external-link" :to="searchConsoleSitemapsUrl" target="_blank">
-                Submit manually
-              </UiMotionButton>
+    <ProPageZone v-if="overviewLoading" tier="secondary" aria-busy="true">
+      <ProSecondaryGrid layout="wide-narrow">
+        <UiCard title="Why pages stop" size="sm">
+          <div class="space-y-4">
+            <div class="border-b border-default pb-4">
+              <UiSkeleton type="text" :base="180" :range="30" />
+              <UiSkeleton type="text" :base="420" :range="80" class="mt-3 !h-24" />
             </div>
-          </template>
-        </UiAlert>
-
-        <!-- Sitemaps pending parse -->
-        <UiAlert
-          v-if="indexingMeta?.sitemapsPending"
-          status="info"
-          icon="i-lucide-loader"
-          title="Sitemap submitted, will be parsed within 24 hours"
-          description="Your sitemap has been submitted to Google Search Console. URLs will be available after the next daily sync."
-        />
-      </div>
-
-      <!-- ═══ HERO ZONE ═══ -->
-      <ProPageZone tier="primary" first :aria-busy="overviewLoading">
-        <div v-if="overviewLoading && !aggregatePipeline" aria-hidden="true">
-          <div class="flex items-start justify-between gap-4 mb-3">
-            <div class="flex flex-col gap-1.5">
-              <UiSkeleton type="text" :index="1" :base="80" :range="20" />
-              <UiSkeleton type="text" :index="2" :base="60" :range="20" class="!h-7" />
-              <UiSkeleton type="text" :index="3" :base="180" :range="40" />
-            </div>
-            <UiSkeleton type="text" :index="4" :base="90" :range="20" />
+            <UiSkeleton :lines="3" :base="260" :range="80" />
           </div>
-          <UiSkeleton type="text" :index="5" :base="800" :range="100" class="!h-[220px] !rounded" />
+        </UiCard>
+        <div class="space-y-3" aria-label="Sitemap evidence">
+          <UiCard title="Sitemap" variant="subtle" size="sm">
+            <UiSkeleton :lines="2" :base="120" :range="40" />
+          </UiCard>
+          <UiStat title="Submitted URLs" loading card size="sm" />
+          <UiStat title="Reported issues" loading card size="sm" />
         </div>
-        <ProFunnel
-          v-else-if="funnelSteps.length"
-          :steps="funnelSteps"
-          :primary="summary ? `${summary.indexedPercent.toFixed(1)}%` : undefined"
-          title="Index coverage"
-          :context="funnelContext"
-          :delta="funnelDelta"
-          :height="220"
-          aria-label="Indexing funnel: Discovered, Crawled, Indexable, Indexed"
-        />
-      </ProPageZone>
+      </ProSecondaryGrid>
+    </ProPageZone>
 
-      <!-- ═══ SECONDARY ZONE ═══ -->
-      <ProPageZone tier="secondary">
-        <!-- Top Issues (full-width) -->
-        <UiDataList
-          v-if="topIssuesLoading || topIssuesSlice.length > 0"
-          title="Top Issues"
-          tooltip="Indexing and sitemap problems ordered by severity. Includes issues from Google's index coverage and your registered sitemaps."
-          :loading="topIssuesLoading"
-          :items="topIssuesSlice"
-          :view-more-to="topIssues.length > 7 ? indexingRoute('issues') : undefined"
-          :view-more-label="topIssues.length > 7 ? `View all ${topIssues.length} issues` : undefined"
-          empty-icon="i-lucide-check-circle"
-          empty-text="No issues detected — indexing and sitemaps are healthy"
-          :bar-value="itemCount"
-        >
-          <template #default="{ item: issue }">
-            <NuxtLink
-              :to="issue.source === 'sitemap'
-                ? indexingRoute('sitemaps')
-                : indexingRoute('urls', { issue: issue.issueType })"
-              class="flex items-center gap-3 w-full text-left min-w-0"
-            >
-              <UiSeverityDot :severity="issue.severity" />
-              <div
-                class="flex items-center justify-center size-7 rounded-md shrink-0"
-                :class="issue.severity === 'error' ? 'bg-error/8 text-error' : issue.severity === 'warning' ? 'bg-warning/8 text-warning' : 'bg-info/8 text-info'"
-              >
-                <UIcon :name="issue.icon" class="size-3.5" />
-              </div>
-              <span class="text-sm truncate flex-1">{{ issue.label }}</span>
-            </NuxtLink>
-            <div class="flex items-center gap-2 shrink-0">
-              <span class="text-sm font-semibold tabular-nums text-default">
-                {{ useProHumanFriendlyNumber(issue.count) }}
-              </span>
-              <UIcon name="i-lucide-chevron-right" class="size-3.5 text-dimmed" />
-            </div>
-          </template>
-        </UiDataList>
-
-        <!-- All clear state -->
-        <UiEmptyState
-          v-else
-          icon="i-lucide-shield-check"
-          title="All clear"
-          description="No indexing or sitemap issues detected. All crawled URLs are healthy."
-        >
-          <div class="flex items-center justify-center gap-5">
-            <UiSeverityDot severity="success" label="0 errors" />
-            <UiSeverityDot severity="success" label="0 warnings" />
-          </div>
-        </UiEmptyState>
-      </ProPageZone>
-
-      <!-- ═══ TERTIARY ZONE ═══ -->
-      <ProPageZone tier="tertiary">
-        <ProSecondaryGrid layout="equal">
-          <!-- Sitemaps -->
-          <UiDataList
-            v-if="sitemapItems.length"
-            title="Sitemaps"
-            tooltip="Sitemaps registered in Google Search Console. Errors or warnings may prevent proper indexing."
-            :items="sitemapItems"
-            :bar-value="sitemapUrlCount"
-            :view-more-to="indexingRoute('sitemaps')"
-            view-more-label="View all"
+    <ProPageZone v-if="overviewModel?._tag === 'diagnosis'" tier="secondary">
+      <ProSecondaryGrid layout="wide-narrow">
+        <UiCard title="Why pages stop" size="sm">
+          <!--
+            Full inspection coverage is a non-event: a 100% bar paints an
+            expected state and spends the attention budget the one incomplete
+            site needs. Complete coverage degrades to a caption; only a gap
+            keeps the bar.
+          -->
+          <p
+            v-if="inspectionProgress?.complete"
+            class="mb-4 border-b border-default pb-4 text-mini text-dimmed"
           >
-            <template #header-trailing>
-              <div class="flex items-center gap-2">
-                <span v-if="totalUrlDelta !== 0" class="text-[11px] tabular-nums font-medium" :class="semanticColors[trendToSemantic(totalUrlDelta)].text">
-                  {{ totalUrlDelta > 0 ? '+' : '' }}{{ totalUrlDelta }}
-                </span>
-                <span class="text-xs text-dimmed tabular-nums">{{ useProHumanFriendlyNumber(totalSitemapUrls) }} URLs</span>
-              </div>
-            </template>
-            <template #default="{ item: sm }">
-              <NuxtLink :to="indexingRoute('sitemaps')" class="absolute inset-0 z-10" :aria-label="`View sitemap ${sm.name}`" />
-              <div class="flex items-center gap-2 min-w-0 flex-1">
-                <UIcon name="i-lucide-file-text" class="size-3.5 text-muted shrink-0" />
-                <span class="text-sm truncate">{{ sm.name }}</span>
-                <UTooltip v-if="sm.contentChanged" text="Content changed recently">
-                  <UIcon name="i-lucide-refresh-cw" class="size-3 text-dimmed shrink-0" />
-                </UTooltip>
-              </div>
-              <div class="flex items-center gap-1.5 shrink-0">
-                <UiChip v-if="sm.errors > 0" status="error" icon="i-lucide-alert-circle">
-                  {{ sm.errors }}
-                </UiChip>
-                <UiChip v-if="sm.warnings > 0" status="warning" icon="i-lucide-alert-triangle">
-                  {{ sm.warnings }}
-                </UiChip>
-                <UiSeverityDot v-if="!sm.errors && !sm.warnings" severity="success" />
-                <span class="text-sm tabular-nums">{{ useProHumanFriendlyNumber(sm.urlCount) }}</span>
-                <UiChip
-                  v-if="sm.urlDelta !== 0"
-                  :status="trendToSemantic(sm.urlDelta)"
-                  tabular
-                >
-                  {{ sm.urlDelta > 0 ? '+' : '' }}{{ sm.urlDelta }}
-                </UiChip>
-                <UIcon name="i-lucide-chevron-right" class="size-3 text-dimmed" />
-              </div>
-            </template>
-          </UiDataList>
-
-          <!-- Signals column -->
-          <div class="flex flex-col gap-6">
-            <!-- Rich Results -->
-            <UiDataList
-              v-if="signals && hasRichResults"
-              title="Rich Results"
-              tooltip="Structured data detected on your indexed pages. Higher coverage means more chance of enhanced search results."
-              :items="signals.richResultTypes"
-              :bar-value="itemCount"
-              :view-more-to="indexingRoute('urls', { issue: 'rich_results_pass' })"
-              view-more-label="View all URLs"
-            >
-              <template #header-trailing>
-                <div class="flex items-center gap-2.5">
-                  <UiSeverityDot severity="success" :label="`${signals.richResultsPass} valid`" />
-                  <UiSeverityDot v-if="signals.richResultsFail > 0" severity="error" :label="`${signals.richResultsFail} invalid`" />
-                </div>
-              </template>
-              <template #default="{ item: rt }">
-                <NuxtLink :to="indexingRoute('urls', { issue: 'rich_results_pass', search: rt.type })" class="absolute inset-0 z-10" :aria-label="`View ${rt.type} rich results`" />
-                <span class="text-sm truncate">{{ rt.type }}</span>
-                <div class="flex items-center gap-1.5 shrink-0">
-                  <span class="text-sm tabular-nums">{{ useProHumanFriendlyNumber(rt.count) }}</span>
-                  <UIcon name="i-lucide-chevron-right" class="size-3 text-dimmed" />
-                </div>
-              </template>
-            </UiDataList>
-
-            <!-- Mobile & Crawling -->
-            <UiDataList
-              v-if="signals && hasMobileData"
-              title="Mobile & Crawling"
-              tooltip="Mobile usability verdicts and which Googlebot variant crawls your indexed pages."
-              :items="mobileStats"
-              :bar-value="itemCount"
-            >
-              <template #header-trailing>
-                <UiProgressCircle :percent="mobileFriendlyPercent" :size="28" :stroke-size="3" />
-              </template>
-              <template #default="{ item }">
-                <div class="flex items-center gap-2">
-                  <UIcon :name="item.icon" class="size-3.5" :class="item.iconColor" />
-                  <span class="text-sm">{{ item.label }}</span>
-                </div>
-                <span class="text-sm tabular-nums">{{ useProHumanFriendlyNumber(item.count) }}</span>
-              </template>
-            </UiDataList>
-
-            <!-- No signals data -->
-            <UiEmptyState
-              v-if="signals && !hasRichResults && !hasMobileData && !sitemapItems.length"
-              icon="i-lucide-sparkles"
-              title="No rich results or mobile data"
+            All {{ inspectionProgress.total.toLocaleString() }} sitemap URLs have current inspection evidence.
+          </p>
+          <div
+            v-else-if="inspectionProgress"
+            class="mb-4 border-b border-default pb-4"
+          >
+            <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+              <p class="text-sm font-medium text-default">
+                Inspection coverage
+              </p>
+              <p class="shrink-0 text-sm numerals-display text-muted">
+                {{ inspectionProgress.inspected.toLocaleString() }} of {{ inspectionProgress.total.toLocaleString() }} sitemap URLs checked · {{ inspectionProgress.percent }}%
+              </p>
+            </div>
+            <UiProgressPercent
+              :value="inspectionProgress.percent"
+              :total="100"
+              :tooltip="`${inspectionProgress.percent}% of known sitemap URLs have current URL Inspection evidence`"
+              color="primary"
+              class="mt-2"
             />
           </div>
-        </ProSecondaryGrid>
-      </ProPageZone>
-    </template>
+          <p v-else-if="indexingProgressError" class="mb-4 text-sm text-muted">
+            Inspection progress is unavailable.
+          </p>
+
+          <IndexingCoverageTrend
+            :state="coverageTrendState"
+            :action-to="urlsRoute"
+            @retry="refreshIndexingProgress"
+          />
+
+          <div v-if="funnelSteps.length" class="border-b border-default pb-4">
+            <ProFunnel
+              :steps="funnelSteps"
+              :height="160"
+              scale="neutral"
+              aria-label="Indexing funnel stages"
+            />
+            <p v-if="largestFunnelLoss" class="mt-2 text-sm text-muted">
+              {{ largestFunnelLoss.count.toLocaleString() }} of {{ overviewModel.scope.inspected.toLocaleString() }} inspected URLs stop between
+              {{ largestFunnelLoss.from.toLowerCase() }} and {{ largestFunnelLoss.to.toLowerCase() }}.
+            </p>
+          </div>
+          <p
+            v-else-if="funnelUnavailableReason"
+            class="border-b border-default pb-4 text-sm text-muted"
+          >
+            {{ funnelUnavailableReason }}
+          </p>
+
+          <!--
+            Cohort comparison replaces the reason-group list. The reason
+            taxonomy names Google's symptom ("crawled but not indexed"), which
+            the developer cannot act on; the cohort names the part of their
+            site Google treats worse than the rest, which they can. Browsing by
+            issue type is not lost: the URLs tab owns that filter and the hero's
+            primary action deep-links the top reason.
+          -->
+          <IndexingCohortList
+            v-if="cohortState"
+            :key="cohortState._tag"
+            :state="cohortState"
+            :urls-route="urlsRoute"
+            :class="{ 'mt-3': funnelSteps.length || funnelUnavailableReason }"
+          />
+          <p
+            v-else-if="cohortsError"
+            class="text-sm text-muted"
+            :class="{ 'mt-3': funnelSteps.length || funnelUnavailableReason }"
+          >
+            Cohort comparison is unavailable.
+          </p>
+          <UiSkeleton
+            v-else
+            :lines="3"
+            :base="260"
+            :range="80"
+            :class="{ 'mt-3': funnelSteps.length || funnelUnavailableReason }"
+          />
+        </UiCard>
+
+        <div class="space-y-3" aria-label="Sitemap evidence">
+          <UiCard title="Sitemaps" variant="subtle" size="sm">
+            <div class="flex flex-col gap-4">
+              <UiFactsGrid :facts="sitemapFacts" :columns="2" />
+              <UiButton
+                :to="sitemapsRoute"
+                purpose="link"
+                trailing-icon="next"
+                class="min-h-11 self-start"
+              >
+                View sitemaps
+              </UiButton>
+            </div>
+          </UiCard>
+          <UiStat
+            title="Submitted URLs"
+            tooltip="URLs currently reported across submitted sitemap files."
+            :value="sitemapCurrentUrlCount"
+            :trend="sitemapUrlDelta"
+            :trend-label="sitemapTrendLabel"
+            :sparkline="sitemapUrlTrend.length > 1 ? sitemapUrlTrend : undefined"
+            card
+            size="sm"
+          />
+          <UiStat
+            title="Reported issues"
+            :tooltip="sitemapIssueBreakdown"
+            :value="sitemapCurrentIssueCount"
+            :value-class="sitemapCurrentIssueCount > 0 ? 'text-warning' : 'text-default'"
+            :trend="sitemapIssueDelta"
+            :trend-label="sitemapIssueTrendLabel"
+            :sparkline="sitemapIssueTrend.length > 1 ? sitemapIssueTrend : undefined"
+            invert-trend
+            card
+            size="sm"
+          />
+        </div>
+      </ProSecondaryGrid>
+    </ProPageZone>
   </div>
 </template>
