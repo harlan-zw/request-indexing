@@ -6,10 +6,13 @@
 // "5/3" state with the progress bar overflowing and Save still enabled.
 //
 // `/api/sites/preview` returns this as `maxSites` so the UI never carries its
-// own copy, and `/api/teams/currentTeam` rejects a selection that exceeds it so
-// the client cannot be the only thing standing between a user and an over-limit
-// team.
-export const MAX_TEAM_SITES = 3
+// own copy, and both `/api/pro/sites` and `/api/teams/currentTeam` reject a
+// selection that exceeds it, so the client cannot be the only thing standing
+// between a user and an over-limit team.
+// nuxtseo.com gates this on the plan: a pre-billing team registers up to
+// `ONBOARDING_SITE_CAP`, which is its `TRIAL_SITE_CAP` of 5. There is no billing
+// here, so that number is the flat cap.
+export const MAX_TEAM_SITES = 5
 
 export interface SiteSelectionOverLimit {
   _tag: 'OverLimit'
