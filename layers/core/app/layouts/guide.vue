@@ -1,13 +1,20 @@
 <script lang="ts" setup>
 const route = useRoute()
 
-const { data: navigation } = await useAsyncData('guides-nav', () => queryCollectionNavigation('guides'), {
+const { data: navigation } = await useAsyncData('guides-nav', () => queryCollectionNavigation('guides', ['navigation']), {
   default: () => [],
 })
 
 const navItems = computed(() => {
-  return navigation.value?.[0]?.children || navigation.value || []
+  const items = navigation.value?.[0]?.children || navigation.value || []
+  return items.slice().sort((a, b) => navigationOrder(a.navigation) - navigationOrder(b.navigation))
 })
+
+function navigationOrder(value: unknown): number {
+  if (value && typeof value === 'object' && 'order' in value && typeof value.order === 'number')
+    return value.order
+  return Number.POSITIVE_INFINITY
+}
 
 function isActive(path: string) {
   return route.path === path
@@ -21,7 +28,7 @@ const breadcrumbs = useBreadcrumbItems()
     <UMain class="relative mb-20 px-5">
       <!-- Ambient glow -->
       <div class="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-green-500/[0.07] to-transparent pointer-events-none" />
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px bg-gradient-to-r from-transparent via-green-500/40 to-transparent" />
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] max-w-full h-px bg-gradient-to-r from-transparent via-green-500/40 to-transparent" />
 
       <div class="max-w-[1400px] mx-auto lg:pt-5 relative">
         <UPage :ui="{ left: 'lg:col-span-3 xl:col-span-2', center: 'col-span-5 lg:col-span-7 xl:col-span-8' }">
@@ -67,3 +74,31 @@ const breadcrumbs = useBreadcrumbItems()
     </UMain>
   </div>
 </template>
+
+<style scoped>
+:deep(:not(pre) > code) {
+  overflow-wrap: anywhere;
+}
+
+:deep(figure > img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+}
+
+:deep(figure > figcaption) {
+  margin-top: 0.75rem;
+  color: var(--ui-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+:deep(figure > figcaption a) {
+  color: inherit;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+</style>

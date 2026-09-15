@@ -1,53 +1,46 @@
 ---
-title: Request Indexing vs SEO Gets
-description: SEO Gets extends Google Search Console retention past 16 months. Request Indexing does the same retention plus indexing status and submission, free during beta and open source.
+title: "Request Indexing vs SEO Gets: Notifications and Reporting"
+description: "Compare direct Indexing API notifications with SEO Gets analytics, indexing history, and its Search Console inspection shortcut."
 keywords:
   - seo gets alternative
   - gsc retention tool
   - google search console history
+updatedAt: "2026-09-15"
 ---
 
-# Request Indexing vs SEO Gets
+SEO Gets is worth considering when you need Search Console analysis and indexing history. Request Indexing provides an open-source application with a direct Google Indexing API notification path. The first difference to check is what happens after you click the request button.
 
-SEO Gets solves one real problem well: Google deletes your Search Console data after 16 months, and SEO Gets keeps it for five years. Request Indexing solves the same problem, plus the indexing side: what's indexed, what isn't, and pushing the URLs that need submitting.
+Checked 15 September 2026 against vendor documentation and Request Indexing source. No authenticated service comparison was performed.
 
-## At a glance
+## What happens when you request indexing?
 
-| | Request Indexing | SEO Gets |
-|---|---|---|
-| **GSC retention** | Past 16 months | 5 years |
-| **Open source** | GPL-3.0 | Closed |
-| **Self-hostable** | Yes | No |
-| **Indexing status per URL, with reason** | Yes | Page-level reports |
-| **Indexing API submission** | Yes | No |
-| **IndexNow / Bing** | Planned, via the gscdump protocol | No |
-| **Sitemap tracking (declared vs. discovered)** | Yes | No |
-| **Row caps** | None | 50k rows (vs. GSC's 1k) |
-| **Price** | Free during beta | $49/mo |
+| Product | Documented or inspected action |
+| --- | --- |
+| SEO Gets | Opens Search Console's URL Inspection tool with the selected URL loaded |
+| Request Indexing | Uses connected Google credentials to send an Indexing API notification, with a check for recent notifications |
 
-## What SEO Gets does well
+SEO Gets explains its shortcut in [Index Reporting](https://seogets.com/features/index-reporting). Request Indexing's behavior is visible in its [notification endpoint](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/apps/app/server/api/indexing/%5Burl%5D.post.ts).
 
-- Clean, focused product around GSC retention and analytics.
-- 50x the row cap of GSC's native UI.
-- Page-level indexing reports beyond what GSC's API surfaces.
-- Established, with thousands of SEO professionals already using it.
+For an ordinary blog post, opening Search Console can be the appropriate next step. Google's API notification path supports only eligible job and livestream pages. Use the [blog-post guide](/indexing-api-for-blog-posts) to choose the interface before comparing convenience.
 
-## Where Request Indexing differs
+## SEO Gets reporting and storage
 
-**1. Submission is part of the job.** SEO Gets is excellent at GSC retention and stops there. Request Indexing keeps the same history, then lets you act on it: submit unindexed URLs to Google's Indexing API from the same dashboard.
+SEO Gets offers Free and Core plans. Its current [pricing page](https://seogets.com/pricing) lists a 16-month base historical window. Five-year storage belongs to an add-on; it is not included merely because you connected a property.
 
-**2. Open by default.** SEO Gets is closed SaaS. Request Indexing is GPL-3.0 on GitHub. Self-host on your own Cloudflare account, or export your data if you ever want to leave.
+The [Index Reporting page](https://seogets.com/features/index-reporting) describes indexing history and weekly alerts through its Super Sites add-on. Its [extended storage documentation](https://seogets.com/features/how-to-extend-gsc-historical-data) explains the longer search-performance history. Check the current add-on terms alongside the base plan.
 
-**3. Built on an open protocol.** Retention and indexing data run through gscdump, a public protocol with its own documented contract, not a private database only we can query.
+For teams reviewing several properties, the [feature list](https://seogets.com/features) also includes content groups, portfolio analysis, and client reporting. These may matter more than where a request-indexing button sits.
 
-**4. Free during beta.** SEO Gets charges from day one. Request Indexing doesn't have a paid tier yet; the product shape is still settling.
+## Request Indexing's scope and limits
 
-## When to choose SEO Gets
+Request Indexing's [source is GPLv3](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/LICENSE). The inspected implementation is a free beta and retrieves stored indexing states through gscdump. You can inspect that request path in the source.
 
-If you only care about GSC retention and analytics today, want the longer five-year window, and want a mature, proven product with no setup beyond OAuth, SEO Gets is a solid choice.
+This comparison does not establish an unlimited-row allowance or a hosted retention guarantee for Request Indexing. Its application request limits also differ from Google's project quotas. Read [the quota guide](/google-indexing-api-quota) if request volume affects your choice.
 
-## When to choose Request Indexing
+## Which task matters most?
 
-If you want retention and indexing submission in the same place, want to self-host or read the source, and don't want to pay for a tool that's still finding its shape.
+If you want portfolio reporting and a history of indexing changes, examine SEO Gets' reporting and add-on features. If you need to inspect or adapt an open-source notification workflow for eligible content, examine Request Indexing's code and setup requirements.
 
-Try it: [requestindexing.com](https://requestindexing.com) · GitHub: [harlan-zw/request-indexing](https://github.com/harlan-zw/request-indexing)
+In either case, a request is not a promise that Google will index the page. The [API overview](/google-indexing-api) separates notification receipt from inspection results.
+
+*Correction, 15 September 2026: An earlier version said SEO Gets lacked indexing requests and charged from day one. SEO Gets offers a free plan and an inspection shortcut. Earlier unverified Request Indexing retention and row-limit claims are removed.*

@@ -1,55 +1,44 @@
 ---
-title: Request Indexing vs Indexly
-description: Indexly is an AI-visibility platform that bundles prompt tracking with SEO reporting. Request Indexing doesn't do AI visibility at all; it's a small, free, open-source tool for Google indexing status and submission.
+title: "Request Indexing vs Indexly: Compare the Workflow"
+description: "Compare Indexly's advertised automation and AI visibility features with Request Indexing's open-source notification workflow."
 keywords:
   - indexly alternative
   - indexly vs request indexing
   - google indexing api tool
+updatedAt: "2026-09-15"
 ---
 
-# Request Indexing vs Indexly
+Indexly combines automated indexing with AI visibility and content functions. Request Indexing is an open-source option for a narrower workflow: viewing indexing information and sending Google Indexing API notifications. Start with the functions your team needs.
 
-Indexly is a closed-SaaS "AI visibility" platform: prompt tracking and citation monitoring layered on top of a traditional SEO suite, priced for agencies. Request Indexing is a much smaller, single-purpose tool. It does not track LLM citations or AI crawlers; it answers one question, whether your pages are indexed by Google, and helps you fix it.
+This comparison checks Indexly's public documentation and Request Indexing's source on 15 September 2026. It does not report authenticated tests of either service.
 
-If you need AI-visibility reporting, Indexly is built for that and we are not the alternative to look at. If you want a free, open, focused tool for the Google side of indexing, read on.
+## What Indexly offers
 
-## At a glance
+[Indexly's current plans](https://indexly.ai/pricing) advertise prompt and citation tracking alongside automated indexing. Higher plans add CMS integrations, API access, and white-label functions. Its [indexing use cases](https://indexly.ai/use-cases/indexing) cover several publishing platforms.
 
-| | Request Indexing | Indexly |
-|---|---|---|
-| **Scope** | Google indexing status + submission | AI-visibility platform (citations, prompts) + SEO suite |
-| **Open source** | GPL-3.0 | Closed |
-| **Self-hostable** | Yes (your own Cloudflare account) | No |
-| **GSC retention past 16 months** | Yes | Limited |
-| **AI crawler / LLM citation tracking** | No, not something we build | Yes |
-| **Google Indexing API** | Yes | Yes |
-| **IndexNow / Bing** | Planned, via the gscdump protocol | Yes |
-| **Auto-publish to CMS** | No | Yes |
-| **Price** | Free during beta | $99/mo |
-| **Free tier** | Yes | No (14-day trial) |
+That broader scope may suit a team that wants content automation and AI visibility reporting together. Check which plan includes the functions you need; a platform-wide feature list does not establish availability on every plan.
 
-## What Indexly does well
+## What Request Indexing implements
 
-- Prompt-tracking and citation-gap analysis across multiple LLMs.
-- Content agents that generate and auto-publish to WordPress, Ghost, and Webflow.
-- White-label reports for agencies on the Scale tier.
+The [notification endpoint](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/apps/app/server/api/indexing/%5Burl%5D.post.ts) reads notification metadata before sending a new request. It skips another publish when it finds a recent update notification within its 48-hour window. That is an application policy, not evidence that Google indexed the URL.
 
-## Where Request Indexing differs
+The application also reads stored indexing information through its gscdump integration. Its [GPLv3 source](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/LICENSE) is available to inspect. Self-hosting requires infrastructure and configuration; this comparison does not establish a completed one-click setup.
 
-**1. We stayed small on purpose.** Indexly bundles AI visibility, content generation, and traditional SEO reporting into one suite. Request Indexing does one job: tell you what Google has and hasn't indexed, and let you push URLs that need it. No dashboard with a query builder in it.
+## Questions to settle before choosing
 
-**2. Open by default.** GPL-3.0. Self-host on your own Cloudflare account with your own keys. Indexly is a closed SaaS; your data lives on their servers.
+| Your question | What to check |
+| --- | --- |
+| Do I need AI visibility and content automation? | Indexly's plan-specific model, prompt and CMS features |
+| Do I need source access? | Request Indexing's repository and deployment requirements |
+| How many requests can I send? | Both the tool's limits and Google's project quota |
+| Will a notification prove indexing? | No; check index information separately |
 
-**3. Retention you can verify.** We keep your Search Console history past Google's 16-month wipe, on an open protocol you could build your own client against.
+Request Indexing is a free beta in the inspected code. Its shared tool limit is separate from Google's quota; see [the quota guide](/google-indexing-api-quota). For Indexly's current billing options, use its [pricing page](https://indexly.ai/pricing). Check the billing interval and included features before choosing a plan.
 
-**4. Not a content generator.** Indexly auto-publishes to your CMS. We don't touch your content pipeline; submission and observation are the whole product.
+## Check your content type first
 
-## When to choose Indexly
+If a tool uses Google's Indexing API, that API supports `JobPosting`, or `BroadcastEvent` embedded in `VideoObject`. A vendor's support for a CMS does not establish which submission mechanism it uses or expand Google's API scope. [Google's quickstart](https://developers.google.com/search/apis/indexing-api/v3/quickstart) defines the boundary.
 
-If you need AI-visibility tracking, an agency-grade reporting suite, and content automation, and don't mind a closed platform, Indexly is built for that job.
+For ordinary posts, read [the supported alternatives](/indexing-api-for-blog-posts) before choosing a submission tool. For eligible pages, the [API guide](/google-indexing-api) explains what notification receipt can establish.
 
-## When to choose Request Indexing
-
-If your question is narrower: "is this page indexed, and how do I get it indexed," and you want that answered for free without signing up for a suite you don't need.
-
-Try it: [requestindexing.com](https://requestindexing.com) · GitHub: [harlan-zw/request-indexing](https://github.com/harlan-zw/request-indexing)
+*Correction, 15 September 2026: Removed unverified retention comparisons, trial terms, future features and unlimited-data claims.*

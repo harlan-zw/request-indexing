@@ -10,7 +10,7 @@ Missing credentials and missing evidence never prove health.
 
 ## Release
 
-Use Nuxt Check-in 0.2.0, Cloudflare 0.4.2, and Sentry 0.1.6 from the npm registry.
+Use Nuxt Check-in 0.3.0, Cloudflare 0.4.3, and Sentry 0.1.7 from the npm registry.
 The lockfile pins the published shared CLI release.
 Deploy the report route before activating the updated routine.
 Configure external credentials as described in the daily skill.
