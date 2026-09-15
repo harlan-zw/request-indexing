@@ -61,13 +61,29 @@ export interface OnboardingResumeSignals {
  * The step a half-onboarded user resumes at, inferred from persisted state.
  * There is no "current step" column, so a Google round trip or a closed tab
  * cannot strand the user on a step they already finished.
+ *
+ * A connected site outranks a missing Google grant. `connect` is an offer, not
+ * a requirement, so a user who already registered a site must never be sent
+ * back to it: that is the state they land in when Google is unreachable, and
+ * they would resume onto the one step they cannot finish.
  */
 export function resolveOnboardingResumeStep(signals: OnboardingResumeSignals): OnboardingStep {
-  if (!signals.gscConnected)
-    return 'connect'
-  if (!signals.hasSites)
-    return 'sites'
-  return 'sync'
+  if (signals.hasSites)
+    return 'sync'
+  return signals.gscConnected ? 'sites' : 'connect'
+}
+
+/**
+ * Whether the wizard may leave `step`.
+ *
+ * Registering a site is the only requirement. Connecting Search Console is a
+ * capability the product offers, not a stage that gates it: a user who has not
+ * verified a property, who signed in with GitHub, or whose grant fails cannot
+ * satisfy it on demand, and gating on it left them on step one with a disabled
+ * Continue and no way forward. This mirrors nuxtseo.com ADR-0035.
+ */
+export function canAdvanceOnboardingStep(step: OnboardingStep, signals: OnboardingResumeSignals): boolean {
+  return step === 'sites' ? signals.hasSites : true
 }
 
 export interface OnboardingGateInput extends OnboardingResumeSignals {

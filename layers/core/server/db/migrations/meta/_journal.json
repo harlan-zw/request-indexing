@@ -99,6 +99,13 @@
       "when": 1789454370437,
       "tag": "0014_sites_team_scoped_uuid",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1789478959036,
+      "tag": "0015_sites_domain_unique_per_team",
+      "breakpoints": true
     }
   ]
 }

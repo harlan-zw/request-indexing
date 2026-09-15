@@ -29,6 +29,8 @@ interface GscProperty {
 
 interface GscPropertiesResponse {
   connected: boolean
+  /** True once gscdump holds the caller's Search Console account. */
+  gscdumpRegistered?: boolean
   properties: GscProperty[]
   error?: { reason: string, message: string }
 }
@@ -46,6 +48,13 @@ const { data: gsc, refresh: refreshGsc, status: gscStatus } = await useFetch<Gsc
   server: false,
   default: () => ({ connected: false, properties: [] }),
 })
+
+// `status` is `idle` during SSR and `pending` on the client's first tick, and
+// rendering the loading line off the raw status made the server emit a comment
+// where the client emitted a div. One "not resolved yet" predicate keeps both
+// sides agreeing through hydration.
+const gscPending = computed(() => gscStatus.value !== 'success' && gscStatus.value !== 'error')
+const sitesPending = computed(() => sitesStatus.value !== 'success' && sitesStatus.value !== 'error')
 
 const connectedSites = computed(() => preview.value?.sites ?? [])
 const maxSites = computed(() => preview.value?.maxSites ?? 0)
@@ -164,7 +173,7 @@ async function connect(value: string) {
       </p>
     </form>
 
-    <div v-if="gscStatus === 'pending'" class="text-sm text-muted" role="status" aria-live="polite">
+    <div v-if="gscPending" class="text-sm text-muted" role="status" aria-live="polite">
       Reading your Search Console properties.
     </div>
 
@@ -205,7 +214,10 @@ async function connect(value: string) {
       </ul>
     </div>
 
-    <p v-else-if="sitesStatus !== 'pending' && gsc?.connected" class="text-sm text-muted">
+    <!-- Only true once something is connected. A brand new account reaches this
+         branch with nothing connected and no property to suggest, and read
+         "everything is already connected" as a reason to stop typing. -->
+    <p v-else-if="!sitesPending && gsc?.gscdumpRegistered && connectedSites.length" class="text-sm text-muted">
       Every Search Console property you can reach is already connected. Add one in
       <a class="underline" href="https://search.google.com/search-console" target="_blank" rel="noopener">Google Search Console</a>,
       then reload this step.

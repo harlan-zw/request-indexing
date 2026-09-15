@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canAdvanceOnboardingStep,
   ONBOARDING_ROUTE,
   onboardingStepIndex,
   parseOnboardingCompletedFlag,
@@ -10,17 +11,32 @@ import {
 } from './onboarding'
 
 describe('resolveOnboardingResumeStep', () => {
-  it('starts at connect while Google Search Console is not connected', () => {
+  it('starts at connect while nothing has been done', () => {
     expect(resolveOnboardingResumeStep({ gscConnected: false, hasSites: false })).toBe('connect')
-    expect(resolveOnboardingResumeStep({ gscConnected: false, hasSites: true })).toBe('connect')
   })
 
   it('resumes at sites once Google is connected and no site exists', () => {
     expect(resolveOnboardingResumeStep({ gscConnected: true, hasSites: false })).toBe('sites')
   })
 
-  it('resumes at sync once a site exists', () => {
+  it('resumes at sync once a site exists, connected to Google or not', () => {
     expect(resolveOnboardingResumeStep({ gscConnected: true, hasSites: true })).toBe('sync')
+    expect(resolveOnboardingResumeStep({ gscConnected: false, hasSites: true })).toBe('sync')
+  })
+})
+
+describe('canAdvanceOnboardingStep', () => {
+  it('lets a user leave the connect step without a Google grant', () => {
+    expect(canAdvanceOnboardingStep('connect', { gscConnected: false, hasSites: false })).toBe(true)
+  })
+
+  it('holds the sites step until a site exists', () => {
+    expect(canAdvanceOnboardingStep('sites', { gscConnected: true, hasSites: false })).toBe(false)
+    expect(canAdvanceOnboardingStep('sites', { gscConnected: false, hasSites: true })).toBe(true)
+  })
+
+  it('lets the last step finish', () => {
+    expect(canAdvanceOnboardingStep('sync', { gscConnected: false, hasSites: true })).toBe(true)
   })
 })
 
@@ -76,6 +92,14 @@ describe('resolveOnboardingGate', () => {
       _tag: 'Redirect',
       path: ONBOARDING_ROUTE,
       query: { step: 'sites' },
+    })
+  })
+
+  it('does not send a user who already has a site back to the Google step', () => {
+    expect(resolveOnboardingGate({ ...halfway, gscConnected: false, hasSites: true, path: '/pro/dashboard' })).toEqual({
+      _tag: 'Redirect',
+      path: ONBOARDING_ROUTE,
+      query: { step: 'sync' },
     })
   })
 

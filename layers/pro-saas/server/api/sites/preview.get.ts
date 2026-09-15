@@ -29,8 +29,14 @@ export default defineProApiHandler({}, async ({ db, caller }) => {
     .from(users)
     .where(eq(users.userId, caller.user.id))
 
-  const gscdump = useGscdumpClient()
-  const lifecycle = user?.gscdumpUserId
+  // Built only for a caller gscdump actually knows. `useGscdumpClient` throws
+  // when the partner key is absent, so constructing it up front turned a user
+  // with no gscdump account into a 500 on the onboarding "Connect your sites"
+  // step: the roster never loaded, their existing sites read as zero and the
+  // step could not be finished. `/api/pro/gsc-properties` already guards it
+  // this way.
+  const gscdump = user?.gscdumpUserId ? useGscdumpClient() : null
+  const lifecycle = (gscdump && user?.gscdumpUserId)
     ? await gscdump.getUserLifecycle(user.gscdumpUserId).catch(() => null)
     : null
 
@@ -39,7 +45,7 @@ export default defineProApiHandler({}, async ({ db, caller }) => {
     const syncStatus = syncStatusFor(lifecycleSite, site.gscdumpSyncStatus)
     const oldest = lifecycleSite?.analytics.syncedRange.oldest ?? null
 
-    const pageCount30Day = (site.gscdumpSiteId && lifecycleSite?.analytics.queryable)
+    const pageCount30Day = (gscdump && site.gscdumpSiteId && lifecycleSite?.analytics.queryable)
       ? await gscdump.getData(site.gscdumpSiteId, pageCountState).then(r => r.totalCount).catch(() => 0)
       : 0
 

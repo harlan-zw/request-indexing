@@ -55,6 +55,10 @@ export async function registerSite(
   if (limit._tag === 'OverLimit')
     return { _tag: 'OverLimit', selected: limit.selected, max: limit.max }
 
+  // `onConflictDoNothing` rather than a bare insert: the read above and the
+  // insert are two statements, so a double submit could land both and answer
+  // the second with a raw constraint error the user reads as a 500. Losing the
+  // race now means the other request already connected the site.
   const [site] = await db.insert(sites).values({
     teamId: team.teamId,
     ownerId: caller.user.id,
@@ -64,10 +68,17 @@ export async function registerSite(
     property: parsed.origin,
     domain: parsed.domain,
     active: true,
-  }).returning()
+  }).onConflictDoNothing().returning()
 
-  if (!site)
+  if (!site) {
+    const raced = await db.select()
+      .from(sites)
+      .where(and(eq(sites.teamId, team.teamId), eq(sites.domain, parsed.domain)))
+      .get()
+    if (raced)
+      return { _tag: 'AlreadyConnected', site: raced }
     throw new Error('Failed to create site')
+  }
 
   // Fan out so Search Console links itself to the new Site. The listener is
   // isolated, so a Google failure leaves the Site registered rather than

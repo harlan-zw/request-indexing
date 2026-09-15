@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { OnboardingStep } from '#layers/pro-saas/shared/onboarding'
 import {
+  canAdvanceOnboardingStep,
   ONBOARDING_STEP_LABELS,
   ONBOARDING_STEPS,
   onboardingStepIndex,
@@ -94,13 +95,15 @@ function next() {
 }
 
 const nextLabel = computed(() => step.value === 'sync' ? 'Go to dashboard' : 'Continue')
-const nextDisabled = computed(() => {
-  if (step.value === 'connect')
-    return !gscConnected.value
-  if (step.value === 'sites')
-    return !hasSites.value
-  return false
-})
+const nextDisabled = computed(() => !canAdvanceOnboardingStep(step.value, {
+  gscConnected: gscConnected.value,
+  hasSites: hasSites.value,
+}))
+
+// Search Console is an offer, so the skip has to be visible. Without it the
+// only wording on the step is "Connect", and a user who cannot connect reads a
+// working Continue as a mistake rather than as the way out.
+const skipLabel = computed(() => step.value === 'connect' && !gscConnected.value ? 'Skip for now' : undefined)
 
 function back() {
   goStep(ONBOARDING_STEPS[Math.max(0, stepIndex.value - 1)]!)
@@ -193,10 +196,12 @@ useSeoMeta({ title: 'Set up Request Indexing' })
 
     <UiWizardNav
       :can-back="stepIndex > 0"
+      :skip-label="skipLabel"
       :next-label="nextLabel"
       :next-disabled="nextDisabled"
       :next-loading="finishing"
       @back="back"
+      @skip="next"
       @next="next"
     />
   </div>

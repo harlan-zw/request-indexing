@@ -1,11 +1,15 @@
 // Team-scoped site roster consumed by `fetchSites()`
 // (layers/core/app/composables/fetch.ts), which every dashboard page reads
-// through. `team_sites` predates the pro-saas augment and isn't re-exported
-// by the `#schema` surface, so it's imported straight from the core schema
-// (matches `apps/app/server/api/teams/sites.get.ts`).
+// through.
+//
+// Scoped by `sites.team_id`, the ownership axis migration 0014 made NOT NULL.
+// This used to inner join `team_sites`, whose rows carry a Google account and
+// are written only by the Search Console link path, so a site connected by
+// address during onboarding was missing from the sidebar and from every page
+// that reads this roster: onboarding finished and the dashboard said "No sites
+// yet". `/api/sites/preview` already scopes the same roster this way.
 import type { SiteFleetRow } from '~~/layers/core/app/types'
 import { and, eq } from 'drizzle-orm'
-import { teamSites } from '~~/layers/core/server/db/schema'
 import { useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
 import { sites, users } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
@@ -14,8 +18,7 @@ import { lifecycleSiteFor, syncStatusFor } from '../../utils/site-lifecycle'
 export default defineProApiHandler({ team: true }, async ({ team: ctx }) => {
   const rows = await ctx.db.select({ site: sites })
     .from(sites)
-    .innerJoin(teamSites, and(eq(sites.id, teamSites.siteId), eq(teamSites.teamId, ctx.team.teamId)))
-    .where(eq(sites.active, true))
+    .where(and(eq(sites.teamId, ctx.team.teamId), eq(sites.active, true)))
     .all()
 
   // V1: sync status is read against the caller's own gscdump user, not the
