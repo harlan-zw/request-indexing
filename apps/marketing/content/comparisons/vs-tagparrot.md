@@ -1,53 +1,40 @@
 ---
-title: Request Indexing vs TagParrot, OmegaIndexer, and the indie indexers
-description: TagParrot, OmegaIndexer, IndexMeNow, PageIndexer are closed-SaaS URL submitters built around the Google Indexing API. Request Indexing pairs the same submission with Search Console data and retention, free during beta, open source.
+title: "Tag Parrot Is Closed: Choosing a Replacement Workflow"
+description: "Tag Parrot states its service is closed. Choose a replacement based on your content type, inspection needs, and Google's supported request methods."
 keywords:
   - tagparrot alternative
-  - omegaindexer alternative
   - google indexing api tool
   - open source indexing
+updatedAt: "2026-09-15"
 ---
 
-# Request Indexing vs TagParrot, OmegaIndexer, and the indie indexers
+**Tag Parrot states that its service is closed and indexing is unavailable.** Its [pricing page](https://tagparrot.com/pricing), checked on 15 September 2026, also says existing subscriptions were cancelled and refunded. The notice does not give a closure date.
 
-A cluster of closed-SaaS products (TagParrot, OmegaIndexer, IndexMeNow, IndexJump, PageIndexer, Foudroyer) all do one thing: submit URLs to Google's Indexing API. They differ on price, quotas, and refund policies. Request Indexing does the same submission, plus the Search Console data to know what needs submitting, in one small open-source app.
+Start with the task you need to replace. Do you need to send notifications or find out which pages are indexed?
 
-## At a glance
+## For ordinary blog or product pages
 
-| | Request Indexing | TagParrot / OmegaIndexer / similar |
-|---|---|---|
-| **Open source** | GPL-3.0 | Closed |
-| **Self-hostable** | Yes | No |
-| **Google Indexing API** | Yes | Yes |
-| **IndexNow (Bing/Yandex/Naver)** | Planned, via the gscdump protocol | Yes (most) |
-| **Indexing status per URL** | Yes, with the stated reason | Submission confirmation only |
-| **GSC retention past 16 months** | Yes | No |
-| **Sitemap tracking (declared vs. discovered)** | Yes | No |
-| **Free tier** | Yes, free during beta | Rarely |
-| **Price** | Free during beta | $11–$60/mo |
+Use Google's supported methods for ordinary pages: URL Inspection for a few URLs and a sitemap for many. You must be an owner or full user of the property to request indexing manually. [Google's recrawl guidance](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl) explains the options.
 
-## What the indexers do well
+A third-party wrapper around the Indexing API does not expand its supported content. Google limits that API to `JobPosting`, or `BroadcastEvent` embedded in `VideoObject`. See [Google's quickstart](https://developers.google.com/search/apis/indexing-api/v3/quickstart).
 
-- Cheap, focused URL submission with credit-based pricing.
-- Some offer money-back guarantees ("indexed in 7-9 days or refund").
-- Established patterns: sitemap auto-sync, scheduled submission, simple dashboards.
+If you previously submitted ordinary articles through an API tool, read [the blog-post guide](/indexing-api-for-blog-posts) before rebuilding that workflow elsewhere.
 
-## Where Request Indexing differs
+## For eligible job or livestream pages
 
-**1. Status, not just submission.** TagParrot and peers confirm the request was sent and stop there. We show what Google actually did with it: indexed, discovered but not crawled, crawled but not indexed, and why, synced from Search Console.
+Request Indexing's [implemented notification endpoint](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/apps/app/server/api/indexing/%5Burl%5D.post.ts) provides a direct Google Indexing API path. It checks recent notification metadata and applies an app limit before sending.
 
-**2. Retention they don't have.** They submit and forget. We keep your Search Console history past Google's 16-month wipe.
+You can also build your own client. The [setup tutorial](/google-indexing-api-tutorial) covers Google's documented service-account prerequisites and approval requirements.
 
-**3. Open source.** GPL-3.0. Bring your own Cloudflare account and Google OAuth app if you'd rather run the whole thing yourself. The submission quota is Google's, not ours.
+Neither option establishes that a URL will be indexed. Google's [usage guide](https://developers.google.com/search/apis/indexing-api/v3/using-api) describes a successful notification as something that may trigger a recrawl.
 
-**4. Indexing API caveat we are honest about.** Google's Indexing API officially supports `JobPosting` and `BroadcastEvent` schemas. The indexers (and we) submit other URL types anyway; Google generally accepts but may rate-limit or ignore. We do not promise "7 days or refund" because we don't control Google's crawler.
+## Plan the replacement
 
-## When to choose a TagParrot-class tool
+1. Make a list of the URLs you still publish, using your CMS or sitemap. Do not assume Tag Parrot account exports remain available.
+2. Separate ordinary pages from eligible Indexing API content.
+3. Inspect important URLs in Search Console before deciding what to request again. An old submission record does not establish their current status.
+4. Choose a replacement for each task: sitemap maintenance, inspection reporting, or eligible API notifications.
 
-If you only want submission, you want it cheap, and a money-back guarantee matters more to you than seeing what happened after you submitted, the indie indexers are battle-tested.
+Request Indexing's [GPLv3 repository](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/LICENSE) provides source access. This comparison does not verify a hosted retention guarantee, an import from Tag Parrot, or an automatic migration.
 
-## When to choose Request Indexing
-
-If you want to see indexing status alongside submission, keep your Search Console history past 16 months, and would rather the tool be free and open than pay a monthly fee for a single API call.
-
-Try it: [requestindexing.com](https://requestindexing.com) · GitHub: [harlan-zw/request-indexing](https://github.com/harlan-zw/request-indexing)
+*Correction, 15 September 2026: This page previously grouped Tag Parrot with several other vendors and recommended it as an active service. The revision follows Tag Parrot's current closure notice and removes unsupported group-wide claims.*
