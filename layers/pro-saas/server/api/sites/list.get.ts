@@ -3,6 +3,7 @@
 // through. `team_sites` predates the pro-saas augment and isn't re-exported
 // by the `#schema` surface, so it's imported straight from the core schema
 // (matches `apps/app/server/api/teams/sites.get.ts`).
+import type { SiteFleetRow } from '~~/layers/core/app/types'
 import { and, eq } from 'drizzle-orm'
 import { teamSites } from '~~/layers/core/server/db/schema'
 import { useGscdumpClient } from '#layers/pro-gsc/server/utils/gscdump-client'
@@ -29,7 +30,7 @@ export default defineProApiHandler({ team: true }, async ({ team: ctx }) => {
     : null
 
   return {
-    sites: rows.map(({ site }) => {
+    sites: rows.map(({ site }): SiteFleetRow => {
       const lifecycleSite = lifecycleSiteFor(lifecycle, site.gscdumpSiteId)
       return {
         siteId: site.publicId,
