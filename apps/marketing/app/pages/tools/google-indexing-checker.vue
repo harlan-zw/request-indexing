@@ -172,7 +172,7 @@ function checkIndex() {
                 <p class="text-sm text-[var(--ui-text-muted)] mb-3">
                   Request Google to index this page now using the Indexing API. Average indexing time drops from weeks to hours.
                 </p>
-                <UButton to="/get-started" size="sm" color="primary">
+                <UButton to="/pro/onboarding" size="sm" color="primary">
                   Get Started Free
                 </UButton>
               </div>

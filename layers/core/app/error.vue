@@ -50,7 +50,7 @@ const primaryAction = computed(() => {
   if (loggedIn.value)
     return { label: 'Back to dashboard', to: '/pro/dashboard' }
   if (status.value === 401 || status.value === 403)
-    return { label: 'Sign in', to: '/get-started' }
+    return { label: 'Sign in', to: '/login' }
   return { label: 'Back to home', to: '/' }
 })
 

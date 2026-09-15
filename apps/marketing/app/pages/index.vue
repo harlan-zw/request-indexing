@@ -116,7 +116,7 @@ const marketingTools = [
 
               <div class="flex items-center justify-center gap-3 flex-row sm:gap-4 lg:justify-start">
                 <template v-if="!loggedIn">
-                  <UButton to="/get-started" external size="xl" color="primary" trailing-icon="i-heroicons-arrow-right">
+                  <UButton to="/pro/onboarding" external size="xl" color="primary" trailing-icon="i-heroicons-arrow-right">
                     <span>Get started<span class="hidden sm:inline"> free</span></span>
                   </UButton>
                 </template>
@@ -705,7 +705,7 @@ const marketingTools = [
           description="Free, open-source, and takes less than a minute to set up."
           variant="subtle"
           :links="[
-            { label: 'Get Started Free', to: '/get-started', color: 'primary', size: 'xl', trailingIcon: 'i-heroicons-arrow-right' },
+            { label: 'Get Started Free', to: '/pro/onboarding', color: 'primary', size: 'xl', trailingIcon: 'i-heroicons-arrow-right' },
             { label: 'View on GitHub', to: 'https://github.com/harlan-zw/request-indexing', target: '_blank', variant: 'ghost', color: 'neutral', size: 'xl', icon: 'i-simple-icons-github' },
           ]"
         />

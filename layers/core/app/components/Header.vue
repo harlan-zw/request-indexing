@@ -176,11 +176,13 @@ const authDropdownItems = computed(() => {
         />
 
         <template v-if="!loggedIn">
-          <UButton to="/get-started" external color="neutral" variant="ghost" class="hidden md:flex">
-            Login
+          <!-- Two doors, as on nuxtseo.com: `/login` for an existing account,
+               `/pro/onboarding` for a new one. -->
+          <UButton to="/login" external color="neutral" variant="ghost" class="hidden md:flex">
+            Sign in
           </UButton>
-          <UButton to="/get-started" external color="primary" variant="solid">
-            Get Started
+          <UButton to="/pro/onboarding" external color="primary" variant="solid">
+            Get started
           </UButton>
         </template>
         <template v-else>

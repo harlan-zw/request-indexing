@@ -45,7 +45,9 @@ export function createLogoutHandler() {
       await navigateTo('/')
     }
     else {
-      await navigateTo('/get-started')
+      // A forced logout means the session expired under an existing account, so
+      // the sign-in door is the right one. `/pro/onboarding` is for new ones.
+      await navigateTo('/login')
     }
     await nextTickFn(() => {
       // can't access clear API here

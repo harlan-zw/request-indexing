@@ -5,8 +5,8 @@ const links = [
     label: 'Request Indexing',
     children: [
       {
-        label: 'Get Started',
-        to: '/get-started',
+        label: 'Get started',
+        to: '/pro/onboarding',
       },
     ],
   },

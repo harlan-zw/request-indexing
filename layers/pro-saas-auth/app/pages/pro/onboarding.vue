@@ -14,6 +14,12 @@ await fetchSession()
 
 const { features } = useProSaasFeatures()
 
+// `/get-started` used to carry this. Google sends a consent screen where the
+// Search Console scope can be unticked, and the account is then useless to us,
+// so the door that started the flow is the door that reports the refusal.
+const route = useRoute()
+const missingScope = computed(() => route.query.error === 'missing-scope')
+
 const LAST_PROVIDER_KEY = 'nuxtseo:auth:last-provider'
 const lastProvider = ref<AuthProviderId | null>(null)
 onMounted(() => {
@@ -100,7 +106,37 @@ useSeoMeta({
         title="Get your pages indexed"
         description="Connect Google Search Console, then submit the pages Google has missed. Free during the beta."
       />
+
+      <ProAlert
+        v-if="missingScope"
+        data-testid="onboarding-missing-scope"
+        color="warning"
+        title="Search Console access is missing"
+        description="Request Indexing reads your data through the Google Search Console API. Sign up again and allow that access."
+        class="mb-4"
+      />
+
       <UiAuthProviders :providers="providers" @select="rememberProvider" />
+
+      <ul class="mt-6 space-y-2 text-xs text-muted">
+        <li class="flex gap-2">
+          <UIcon name="i-lucide-check" class="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
+          <span>We set up a personal team from your Google Account.</span>
+        </li>
+        <li class="flex gap-2">
+          <UIcon name="i-lucide-check" class="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
+          <span>You choose which Search Console sites to sync.</span>
+        </li>
+        <li class="flex gap-2">
+          <UIcon name="i-lucide-shield-check" class="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
+          <span>You can delete your data and revoke access at any time.</span>
+        </li>
+      </ul>
+
+      <p class="mt-4 text-xs text-muted">
+        Google asks for two scopes. Your Google profile sets up the team. The Google Search Console API, read only, queries your data.
+      </p>
+
       <p class="mt-7 text-xs text-muted">
         Already have an account?
         <ULink to="/login" class="font-medium text-highlighted transition-colors hover:text-primary">

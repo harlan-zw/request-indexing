@@ -312,7 +312,7 @@ function exportCsv() {
             <p class="text-sm text-[var(--ui-text-muted)] mb-3">
               Submit your unindexed pages directly to Google's Indexing API. The API can process 200 URLs per day with batch requests of up to 100.
             </p>
-            <UButton to="/get-started" color="primary" trailing-icon="i-heroicons-arrow-right">
+            <UButton to="/pro/onboarding" color="primary" trailing-icon="i-heroicons-arrow-right">
               Submit to Google Now
             </UButton>
           </div>
