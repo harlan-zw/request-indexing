@@ -75,46 +75,48 @@ describe('selectGscdumpV1SiteAccess', () => {
     expect(selectGscdumpV1SiteAccess(makeCaller(), null, false)).toEqual({ _tag: 'site_not_found' })
   })
 
-  it('allows the direct owner to read', () => {
-    const caller = makeCaller({ user: { ...makeCaller().user, id: 42 } })
-    expect(selectGscdumpV1SiteAccess(caller, { ownerId: 42, teamIds: [] }, false)).toEqual({ _tag: 'allowed' })
+  it('allows the owning team\'s owner to read', () => {
+    const caller = makeCaller({
+      memberships: [{ teamId: 42, teamName: 'Personal', role: 'owner', isOwner: true, isPersonal: true, firstVisitDismissedAt: null }],
+    })
+    expect(selectGscdumpV1SiteAccess(caller, { teamIds: [42] }, false)).toEqual({ _tag: 'allowed' })
   })
 
   it('hides existence from a caller with no team access', () => {
     const caller = makeCaller({ memberships: [] })
-    expect(selectGscdumpV1SiteAccess(caller, { ownerId: 99, teamIds: [7] }, false)).toEqual({ _tag: 'site_not_found' })
+    expect(selectGscdumpV1SiteAccess(caller, { teamIds: [7] }, false)).toEqual({ _tag: 'site_not_found' })
   })
 
   it('allows a team viewer to read', () => {
     const caller = makeCaller({
       memberships: [{ teamId: 7, teamName: 'Team', role: 'viewer', isOwner: false, isPersonal: false, firstVisitDismissedAt: null }],
     })
-    expect(selectGscdumpV1SiteAccess(caller, { ownerId: 99, teamIds: [7] }, false)).toEqual({ _tag: 'allowed' })
+    expect(selectGscdumpV1SiteAccess(caller, { teamIds: [7] }, false)).toEqual({ _tag: 'allowed' })
   })
 
   it('forbids a team viewer from writing', () => {
     const caller = makeCaller({
       memberships: [{ teamId: 7, teamName: 'Team', role: 'viewer', isOwner: false, isPersonal: false, firstVisitDismissedAt: null }],
     })
-    expect(selectGscdumpV1SiteAccess(caller, { ownerId: 99, teamIds: [7] }, true)).toEqual({ _tag: 'forbidden' })
+    expect(selectGscdumpV1SiteAccess(caller, { teamIds: [7] }, true)).toEqual({ _tag: 'forbidden' })
   })
 
   it('allows a team editor to write', () => {
     const caller = makeCaller({
       memberships: [{ teamId: 7, teamName: 'Team', role: 'editor', isOwner: false, isPersonal: false, firstVisitDismissedAt: null }],
     })
-    expect(selectGscdumpV1SiteAccess(caller, { ownerId: 99, teamIds: [7] }, true)).toEqual({ _tag: 'allowed' })
+    expect(selectGscdumpV1SiteAccess(caller, { teamIds: [7] }, true)).toEqual({ _tag: 'allowed' })
   })
 
   it('does not grant access via an unrelated team the caller belongs to', () => {
     const caller = makeCaller({
       memberships: [{ teamId: 5, teamName: 'Other team', role: 'admin', isOwner: false, isPersonal: false, firstVisitDismissedAt: null }],
     })
-    expect(selectGscdumpV1SiteAccess(caller, { ownerId: 99, teamIds: [7] }, false)).toEqual({ _tag: 'site_not_found' })
+    expect(selectGscdumpV1SiteAccess(caller, { teamIds: [7] }, false)).toEqual({ _tag: 'site_not_found' })
   })
 
-  it('lets an admin caller bypass ownership entirely', () => {
+  it('lets an admin caller bypass membership entirely', () => {
     const caller = makeCaller({ isAdmin: true })
-    expect(selectGscdumpV1SiteAccess(caller, { ownerId: 99, teamIds: [] }, true)).toEqual({ _tag: 'allowed' })
+    expect(selectGscdumpV1SiteAccess(caller, { teamIds: [] }, true)).toEqual({ _tag: 'allowed' })
   })
 })
