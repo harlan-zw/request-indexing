@@ -297,7 +297,7 @@ export type IconClass
     | 'i-heroicons-swatch'
     | 'i-heroicons-table-cells'
     | 'i-heroicons-tag'
-    | 'i-heroicons-action'
+    | 'i-heroicons-ticket'
     | 'delete'
     | 'i-heroicons-trophy'
     | 'i-heroicons-truck'
