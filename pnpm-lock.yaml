@@ -385,6 +385,9 @@ importers:
       '@vueuse/nuxt':
         specifier: 'catalog:'
         version: 14.4.0(cabb6b03befa0b1be5ba252369cf89f2)
+      consola:
+        specifier: 3.4.2
+        version: 3.4.2
       date-fns:
         specifier: 'catalog:'
         version: 4.4.0

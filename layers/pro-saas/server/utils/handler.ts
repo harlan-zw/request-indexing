@@ -9,6 +9,7 @@ import type { Ability } from '../../shared/policies/team-policy'
 import type { CurrentTeamContext } from './require-current-team'
 import type { RequireSiteAccessOptions } from './require-site-access'
 import { createConsola } from 'consola'
+import { logError } from '~~/shared/logging'
 import { ProError } from '../../shared/errors'
 import { getCaller, requireCaller } from './get-caller'
 import { requireCurrentTeam } from './require-current-team'
@@ -166,8 +167,7 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
   return defineEventHandler(async (event) => {
     const requestId = ensureRequestId(event)
     setResponseHeader(event, 'x-request-id', requestId)
-    const logger = event.context.logger ?? createLogger(event, requestId)
-    event.context.logger = logger
+    event.context.logger ??= createLogger(event, requestId)
     try {
       if (mode._tag === 'context') {
         const ctx = await buildHandlerCtx(event, mode.options)
@@ -203,7 +203,11 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
         } satisfies ProErrorEnvelope
         throw e
       }
-      logger.error('unhandled error', e)
+      const caller = event.context.__caller
+      logError('handler.unhandled_error', e, {
+        requestId,
+        ...(caller ? { userId: caller.user.id, teamId: caller.currentTeamId } : {}),
+      })
       throw createError({
         statusCode: 500,
         statusMessage: 'internal_error',
@@ -212,6 +216,7 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
           message: 'Internal error',
           requestId,
         } satisfies ProErrorEnvelope,
+        cause: e,
       })
     }
   })
