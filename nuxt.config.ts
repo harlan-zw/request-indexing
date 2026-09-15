@@ -345,6 +345,15 @@ export default defineNuxtConfig({
         'motion-v',
         'reka-ui',
       ],
+      // `@nuxt/ui` pins `@tanstack/vue-table@8`, this repo depends on v9 for the
+      // design-system table. Vite's pre-bundler flattens both onto the hoisted
+      // `@tanstack/table-core@9`, and v8's `createTable` import then resolves to
+      // nothing, so every page rendering a `UTable` 500s in dev. Serving them
+      // from source keeps each package on its own `table-core`.
+      exclude: [
+        '@tanstack/vue-table',
+        '@tanstack/table-core',
+      ],
     },
   },
 

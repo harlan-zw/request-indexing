@@ -195,18 +195,16 @@ function velTemplate(d: VelocityWeek) {
 
 <template>
   <div>
-    <Alert
+    <UiAlert
       v-if="siteStatus === 'error'"
-      color="error"
+      status="error"
       title="Failed to load site data."
     />
 
     <template v-else>
-      <ProContextualTip page-key="search-console-insights" class="mb-4" />
-
       <!-- Position Distribution -->
       <ProPageZone tier="primary" first>
-        <Card v-if="posDistribution?.distribution?.length || (hydrated && posDistStatus === 'pending')">
+        <UiCard v-if="posDistribution?.distribution?.length || (hydrated && posDistStatus === 'pending')">
           <template #header>
             <ProSectionHeader title="Position Distribution" class="!mb-0">
               <template #after-title>
@@ -219,16 +217,16 @@ function velTemplate(d: VelocityWeek) {
               <template #action>
                 <div class="flex items-center gap-3 text-[11px]">
                   <UiTooltip title="Positions 1-3" description="The top 3 organic results. These positions capture roughly 55 to 70% of all clicks for a query.">
-                    <DotLabel :dot-class="positionDistColors.top3.dot" label="1-3" class="cursor-help" />
+                    <UiDotLabel :dot-class="positionDistColors.top3.dot" label="1-3" class="cursor-help" />
                   </UiTooltip>
                   <UiTooltip title="Positions 4-10" description="The rest of page 1. These positions get meaningful click volume, but significantly less than the top 3.">
-                    <DotLabel :dot-class="positionDistColors.page1.dot" label="4-10" class="cursor-help" />
+                    <UiDotLabel :dot-class="positionDistColors.page1.dot" label="4-10" class="cursor-help" />
                   </UiTooltip>
                   <UiTooltip title="Positions 11-20" description="Page 2 of search results. Very few users scroll this far. These keywords are close to page 1 and are good optimisation candidates.">
-                    <DotLabel :dot-class="positionDistColors.page2.dot" label="11-20" class="cursor-help" />
+                    <UiDotLabel :dot-class="positionDistColors.page2.dot" label="11-20" class="cursor-help" />
                   </UiTooltip>
                   <UiTooltip title="Positions 20+" description="Deep in search results. These keywords bring almost no traffic but show Google considers your content relevant to the topic.">
-                    <DotLabel :dot-class="positionDistColors.deep.dot" label="20+" class="cursor-help" />
+                    <UiDotLabel :dot-class="positionDistColors.deep.dot" label="20+" class="cursor-help" />
                   </UiTooltip>
                 </div>
               </template>
@@ -239,7 +237,7 @@ function velTemplate(d: VelocityWeek) {
             :loading="posDistStatus === 'pending'"
             :height="180"
           />
-        </Card>
+        </UiCard>
 
         <!-- Device Gap -->
         <div v-if="deviceGap?.summary">
@@ -249,19 +247,21 @@ function velTemplate(d: VelocityWeek) {
             icon-class="text-dimmed"
           />
           <div class="grid grid-cols-2 gap-3 mt-2">
-            <MetricCard
-              label="CTR Gap"
+            <UiStat
+              size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+              title="CTR Gap"
               :value="`${((deviceGap.summary.avgCtrGap ?? 0) * 100).toFixed(2)}%`"
             />
-            <MetricCard
-              label="Position Gap"
+            <UiStat
+              size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+              title="Position Gap"
               :value="Math.abs(deviceGap.summary.avgPositionGap ?? 0).toFixed(1)"
             />
           </div>
         </div>
 
         <!-- CTR Performance -->
-        <Card title="CTR Performance vs Expected" description="Your site's actual CTR by position bucket. Keywords above or below your average are optimization opportunities.">
+        <UiCard title="CTR Performance vs Expected" description="Your site's actual CTR by position bucket. Keywords above or below your average are optimization opportunities.">
           <template v-if="hydrated && ctrStatus === 'pending'">
             <UiSkeleton :lines="5" :base="200" :range="80" />
           </template>
@@ -294,7 +294,7 @@ function velTemplate(d: VelocityWeek) {
 
             <!-- Outliers -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DataList
+              <UiDataList
                 v-if="ctrData.overperforming?.length"
                 title="Overperforming"
                 tooltip="Keywords with CTR significantly above your site's average for their position. Study these titles and snippets to replicate what works."
@@ -309,9 +309,9 @@ function velTemplate(d: VelocityWeek) {
                     <span class="text-dimmed">exp {{ fmtPct(item.expectedCtr) }}</span>
                   </div>
                 </template>
-              </DataList>
+              </UiDataList>
 
-              <DataList
+              <UiDataList
                 v-if="ctrData.underperforming?.length"
                 title="Underperforming"
                 tooltip="Keywords with CTR below your site's average. These are your best optimisation targets: improving the title or description can increase clicks without changing rankings."
@@ -326,7 +326,7 @@ function velTemplate(d: VelocityWeek) {
                     <span class="text-dimmed">exp {{ fmtPct(item.expectedCtr) }}</span>
                   </div>
                 </template>
-              </DataList>
+              </UiDataList>
             </div>
 
             <ProEducationPanel
@@ -341,35 +341,39 @@ function velTemplate(d: VelocityWeek) {
               color="blue"
             />
           </template>
-          <EmptyState v-else icon="i-lucide-mouse-pointer-click" title="No CTR data" description="Not enough keyword data to calculate CTR curves." />
-        </Card>
+          <UiEmptyState v-else icon="i-lucide-mouse-pointer-click" title="No CTR data" description="Not enough keyword data to calculate CTR curves." />
+        </UiCard>
 
         <!-- Dark Traffic -->
-        <Card title="Hidden Keyword Traffic" description="Google hides ~46% of keyword data. This shows clicks not attributed to any known keyword.">
+        <UiCard title="Hidden Keyword Traffic" description="Google hides ~46% of keyword data. This shows clicks not attributed to any known keyword.">
           <template v-if="hydrated && darkStatus === 'pending'">
             <UiSkeleton :lines="4" :base="180" :range="80" />
           </template>
           <template v-else-if="darkData?.summary">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              <MetricCard
-                label="Total Clicks"
+              <UiStat
+                size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+                title="Total Clicks"
                 :value="formatNumber(darkData.summary.totalClicks)"
               />
-              <MetricCard
-                label="Attributed"
+              <UiStat
+                size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+                title="Attributed"
                 :value="formatNumber(darkData.summary.attributedClicks)"
               />
-              <MetricCard
-                label="Hidden"
+              <UiStat
+                size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+                title="Hidden"
                 :value="formatNumber(darkData.summary.darkClicks)"
               />
-              <MetricCard
-                label="Hidden %"
+              <UiStat
+                size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+                title="Hidden %"
                 :value="fmtPct(darkData.summary.darkPercent)"
               />
             </div>
 
-            <DataList
+            <UiDataList
               v-if="darkData.pages?.length"
               title="Pages with Most Hidden Traffic"
               tooltip="Pages where total clicks significantly exceed clicks from known keywords. These pages likely rank for many long-tail queries that Google doesn't report individually."
@@ -384,7 +388,7 @@ function velTemplate(d: VelocityWeek) {
                   <span class="text-dimmed">{{ fmtPct(item.darkPercent) }}</span>
                 </div>
               </template>
-            </DataList>
+            </UiDataList>
 
             <ProEducationPanel
               class="mt-6"
@@ -398,15 +402,15 @@ function velTemplate(d: VelocityWeek) {
               color="amber"
             />
           </template>
-          <EmptyState v-else icon="i-lucide-eye-off" title="No traffic data" description="Traffic data will appear once sync is complete." />
-        </Card>
+          <UiEmptyState v-else icon="i-lucide-eye-off" title="No traffic data" description="Traffic data will appear once sync is complete." />
+        </UiCard>
       </ProPageZone>
 
       <ProPageZone tier="secondary">
         <!-- Content Velocity + Keyword Breadth side by side -->
         <ProSecondaryGrid layout="equal">
           <!-- Content Velocity -->
-          <Card>
+          <UiCard>
             <template #header>
               <ProSectionHeader title="Content Velocity" class="!mb-0">
                 <template #after-title>
@@ -446,11 +450,11 @@ function velTemplate(d: VelocityWeek) {
                 </template>
               </ClientOnly>
             </template>
-            <EmptyState v-else icon="i-lucide-rocket" title="Not enough data" description="Need more history to calculate velocity." />
-          </Card>
+            <UiEmptyState v-else icon="i-lucide-rocket" title="Not enough data" description="Need more history to calculate velocity." />
+          </UiCard>
 
           <!-- Keyword Breadth -->
-          <Card>
+          <UiCard>
             <template #header>
               <ProSectionHeader title="Keyword Breadth" class="!mb-0">
                 <template #after-title>
@@ -495,37 +499,41 @@ function velTemplate(d: VelocityWeek) {
 
               <!-- Fragile + Authority counts -->
               <div class="grid grid-cols-2 gap-3">
-                <MetricCard
-                  label="Fragile (1-2 kw)"
+                <UiStat
+                  size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+                  title="Fragile (1-2 kw)"
                   :value="String(breadthData.summary?.fragileCount ?? 0)"
                 />
-                <MetricCard
-                  label="Authority (20+ kw)"
+                <UiStat
+                  size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+                  title="Authority (20+ kw)"
                   :value="String(breadthData.summary?.authorityCount ?? 0)"
                 />
               </div>
             </template>
-            <EmptyState v-else icon="i-lucide-layers" title="No breadth data" description="Page-keyword data will appear once sync is complete." />
-          </Card>
+            <UiEmptyState v-else icon="i-lucide-layers" title="No breadth data" description="Page-keyword data will appear once sync is complete." />
+          </UiCard>
         </ProSecondaryGrid>
         <!-- Canonical Mismatches -->
-        <Card title="Canonical Mismatches" description="URLs where Google chose a different canonical than you specified. These silently redirect ranking signals away from your preferred pages.">
+        <UiCard title="Canonical Mismatches" description="URLs where Google chose a different canonical than you specified. These silently redirect ranking signals away from your preferred pages.">
           <template v-if="hydrated && canonicalStatus === 'pending'">
             <UiSkeleton :lines="4" :base="180" :range="80" />
           </template>
           <template v-else-if="canonicalData?.totalCount">
             <div class="grid grid-cols-2 gap-3 mb-6">
-              <MetricCard
-                label="Mismatches"
+              <UiStat
+                size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+                title="Mismatches"
                 :value="formatNumber(canonicalData.totalCount)"
               />
-              <MetricCard
-                label="Consolidation Targets"
+              <UiStat
+                size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+                title="Consolidation Targets"
                 :value="String(canonicalData.consolidationTargets?.length || 0)"
               />
             </div>
 
-            <DataList
+            <UiDataList
               v-if="canonicalData.consolidationTargets?.length"
               title="Google's Chosen Canonicals"
               tooltip="The canonical URLs Google is consolidating your pages to. When Google picks a different canonical, your specified URL won't appear in search results. High counts may indicate duplicate or near-duplicate content that needs to be differentiated or properly redirected."
@@ -538,9 +546,9 @@ function velTemplate(d: VelocityWeek) {
                 </a>
                 <span class="text-sm tabular-nums text-muted">{{ item.count }} pages</span>
               </template>
-            </DataList>
+            </UiDataList>
 
-            <DataList
+            <UiDataList
               v-if="canonicalData.mismatches?.length"
               title="Affected URLs"
               tooltip="Individual URLs where your canonical tag differs from Google's choice. The arrow shows your canonical → Google's chosen canonical. PASS means Google respects your choice; FAIL means it overrode you."
@@ -563,7 +571,7 @@ function velTemplate(d: VelocityWeek) {
                   size="sm"
                 />
               </template>
-            </DataList>
+            </UiDataList>
 
             <ProEducationPanel
               class="mt-6"
@@ -577,11 +585,11 @@ function velTemplate(d: VelocityWeek) {
               color="amber"
             />
           </template>
-          <EmptyState v-else icon="i-lucide-link-2" title="No canonical mismatches" description="No URLs found where Google's canonical differs from yours. Requires URL inspection data." />
-        </Card>
+          <UiEmptyState v-else icon="i-lucide-link-2" title="No canonical mismatches" description="No URLs found where Google's canonical differs from yours. Requires URL inspection data." />
+        </UiCard>
 
         <!-- AI Prompt CTA -->
-        <Card>
+        <UiCard>
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div class="size-10 rounded-lg flex items-center justify-center bg-accented shrink-0">
               <UIcon name="i-lucide-sparkles" class="size-5 text-muted" />
@@ -603,7 +611,7 @@ function velTemplate(d: VelocityWeek) {
               </UButton>
             </div>
           </div>
-        </Card>
+        </UiCard>
       </ProPageZone>
     </template>
   </div>

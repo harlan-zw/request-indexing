@@ -113,22 +113,22 @@ function groupIssueCount(issues: IssueRow[]) {
     :empty="!loading && !allIssues.length"
   >
     <template #loading>
-      <Card>
+      <UiCard>
         <UiSkeleton :lines="6" :base="200" :range="100" />
-      </Card>
+      </UiCard>
     </template>
 
     <template #empty>
-      <EmptyState
+      <UiEmptyState
         icon="i-lucide-shield-check"
         title="All clear"
         description="No indexing issues found. Every crawled URL is healthy and accessible to Googlebot."
       >
         <div class="flex items-center justify-center gap-5">
-          <SeverityDot severity="success" label="0 errors" />
-          <SeverityDot severity="success" label="0 warnings" />
+          <UiSeverityDot severity="success" label="0 errors" />
+          <UiSeverityDot severity="success" label="0 warnings" />
         </div>
-      </EmptyState>
+      </UiEmptyState>
     </template>
 
     <div class="flex flex-col *:min-w-0">
@@ -161,14 +161,14 @@ function groupIssueCount(issues: IssueRow[]) {
           />
 
           <!-- Issue cards -->
-          <Card class="[&_[data-card-body]]:!p-0">
+          <UiCard class="[&_[data-card-body]]:!p-0">
             <div v-for="row in issues" :key="row.type" class="border-b border-default last:border-b-0">
               <!-- Row -->
               <button
                 class="w-full flex items-center gap-2.5 px-4 py-2.5 text-left hover:bg-[var(--ui-bg-accented)]/50 transition-colors duration-150"
                 @click="toggle(row.type)"
               >
-                <SeverityDot :severity="row.severity" />
+                <UiSeverityDot :severity="row.severity" />
                 <ProNavIcon :icon="row.icon" />
                 <span class="text-sm truncate flex-1" :class="group.id === 'expected' ? 'text-muted' : 'text-default'">{{ row.label }}</span>
                 <span class="text-[13px] font-semibold tabular-nums shrink-0" :class="group.id === 'expected' ? 'text-muted' : 'text-default'">{{ useProHumanFriendlyNumber(row.count) }}</span>
@@ -188,7 +188,7 @@ function groupIssueCount(issues: IssueRow[]) {
                 <div class="flex items-start gap-2 rounded-lg bg-[var(--ui-bg-muted)]/50 p-3">
                   <UIcon name="i-lucide-lightbulb" class="size-3.5 shrink-0 mt-0.5 text-dimmed" />
                   <div class="min-w-0">
-                    <MetricLabel>How to fix</MetricLabel>
+                    <UiMetricLabel>How to fix</UiMetricLabel>
                     <p class="text-[13px] text-default leading-relaxed whitespace-pre-line mt-0.5">
                       {{ row.fix }}
                     </p>
@@ -205,7 +205,7 @@ function groupIssueCount(issues: IssueRow[]) {
                 </div>
               </div>
             </div>
-          </Card>
+          </UiCard>
         </div>
       </ProPageZone>
     </div>

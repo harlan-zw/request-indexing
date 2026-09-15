@@ -8,9 +8,9 @@ const { period } = useSitePeriod()
 </script>
 
 <template>
-  <Alert
+  <UiAlert
     v-if="siteStatus === 'error'"
-    color="error"
+    status="error"
     title="Failed to load site data."
   >
     <template #action>
@@ -18,7 +18,7 @@ const { period } = useSitePeriod()
         Back to Sites
       </UButton>
     </template>
-  </Alert>
+  </UiAlert>
 
   <ProPageZone v-else tier="primary" first>
     <ProSectionHeader

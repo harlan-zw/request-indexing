@@ -1,22 +1,13 @@
 <script lang="ts" setup>
 import type { GscdumpDataRow } from '#layers/pro-gsc/app/composables/useProGscdump'
 import ProCardGsc from '#layers/pro-gsc/app/components/pro/ProCardGsc.vue'
+import ProGscControlBar from '#layers/pro-gsc/app/components/pro/ProGscControlBar.vue'
 import ProQueryLabel from '#layers/pro-gsc/app/components/pro/ProQueryLabel.vue'
 import { useProGscdumpDates, useProGscdumpTableData } from '#layers/pro-gsc/app/composables/useProGscdump'
 
 definePageMeta({ proTab: { feature: 'search-console', label: 'Overview', icon: 'i-lucide-layout-dashboard', order: 0 } })
 
-const { siteId, siteStatus, gscdumpSiteId, siteName, isProcessing, isReady, isNotConnected } = useSite('Search Console')
-
-// Item 9 P1 stub — Ask AI deep-link (s2b page-of-origin).
-const askAiHref = computed(() => {
-  const q = new URLSearchParams({
-    prefill: `Why did clicks change on ${siteName.value} last week?`,
-    scope: `@${siteName.value}`,
-    context: 's2b',
-  })
-  return `/pro/dashboard/sites/${siteId.value}/chat?${q.toString()}`
-})
+const { siteId, siteStatus, gscdumpSiteId, isProcessing, isReady, isNotConnected } = useSite('Search Console')
 
 const { period, columns, stableData, compareMode, zoomTo, resetZoom } = useProGscFilters()
 
@@ -308,9 +299,9 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
 <template>
   <div data-testid="search-console-page" class="flex flex-col gap-5">
     <!-- Error -->
-    <Alert
+    <UiAlert
       v-if="siteStatus === 'error'"
-      color="error"
+      status="error"
       title="Failed to load site data."
     >
       <template #action>
@@ -318,29 +309,15 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
           Back to Sites
         </UButton>
       </template>
-    </Alert>
+    </UiAlert>
 
     <template v-else>
-      <ProContextualTip page-key="search-console-overview" />
-
       <!-- The shared control bar owns period, comparison, search type, chart
            metrics and the facets for every Search Console surface. -->
       <ProGscControlBar v-if="!showDemoPreview" show-metrics show-counts :site-id="siteId" />
 
-      <div v-if="!showDemoPreview" class="flex justify-end">
-        <UButton
-          size="xs"
-          color="neutral"
-          variant="subtle"
-          icon="i-lucide-bot-message-square"
-          :to="askAiHref"
-        >
-          Ask AI about this site
-        </UButton>
-      </div>
-
       <!-- Not connected or syncing without data: show live nuxtseo.com preview -->
-      <SampleDataOverlay
+      <UiSampleDataOverlay
         v-if="showDemoPreview"
         :message="demoMessage"
         :description="demoDescription"
@@ -387,7 +364,7 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
             </div>
           </div>
         </div>
-      </SampleDataOverlay>
+      </UiSampleDataOverlay>
 
       <template v-else>
         <!-- Hero: Metrics + Chart -->
@@ -415,7 +392,7 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
           />
           <ProSecondaryGrid layout="wide-narrow">
             <div class="flex flex-col gap-4">
-              <DataList
+              <UiDataList
                 :title="topLabel"
                 tooltip="Top search queries for this period. Variants (e.g. plural/singular) are grouped together."
                 :loading="siteLoading || keywordsLoading"
@@ -451,10 +428,10 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                     </template>
                   </UiTooltip>
                 </template>
-              </DataList>
+              </UiDataList>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DataList
+                <UiDataList
                   title="Growing"
                   icon="i-lucide-trending-up"
                   icon-color="green"
@@ -493,9 +470,9 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                       </template>
                     </UiTooltip>
                   </template>
-                </DataList>
+                </UiDataList>
 
-                <DataList
+                <UiDataList
                   title="Declining"
                   icon="i-lucide-trending-down"
                   icon-color="red"
@@ -534,12 +511,12 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                       </template>
                     </UiTooltip>
                   </template>
-                </DataList>
+                </UiDataList>
               </div>
             </div>
 
             <div class="flex flex-col gap-6">
-              <DataList
+              <UiDataList
                 title="New Rankings"
                 icon="i-lucide-sparkles"
                 icon-color="green"
@@ -570,9 +547,9 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                     </template>
                   </UiTooltip>
                 </template>
-              </DataList>
+              </UiDataList>
 
-              <DataList
+              <UiDataList
                 title="Lost Rankings"
                 icon="i-lucide-ghost"
                 icon-color="red"
@@ -603,7 +580,7 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                     </template>
                   </UiTooltip>
                 </template>
-              </DataList>
+              </UiDataList>
             </div>
           </ProSecondaryGrid>
         </ProPageZone>
@@ -617,7 +594,7 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
           />
           <ProSecondaryGrid layout="wide-narrow">
             <div class="flex flex-col gap-4">
-              <DataList
+              <UiDataList
                 :title="topLabel"
                 tooltip="Pages receiving the most search traffic this period."
                 :loading="siteLoading || pagesLoading"
@@ -652,10 +629,10 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                     </template>
                   </UiTooltip>
                 </template>
-              </DataList>
+              </UiDataList>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DataList
+                <UiDataList
                   title="Growing"
                   icon="i-lucide-trending-up"
                   icon-color="green"
@@ -693,9 +670,9 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                       </template>
                     </UiTooltip>
                   </template>
-                </DataList>
+                </UiDataList>
 
-                <DataList
+                <UiDataList
                   title="Declining"
                   icon="i-lucide-trending-down"
                   icon-color="red"
@@ -733,12 +710,12 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                       </template>
                     </UiTooltip>
                   </template>
-                </DataList>
+                </UiDataList>
               </div>
             </div>
 
             <div class="flex flex-col gap-6">
-              <DataList
+              <UiDataList
                 title="Countries"
                 tooltip="Where your search traffic comes from, based on the searcher's location."
                 :loading="siteLoading || countriesLoading"
@@ -770,9 +747,9 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                     </template>
                   </UiTooltip>
                 </template>
-              </DataList>
+              </UiDataList>
 
-              <DataList
+              <UiDataList
                 title="Devices"
                 tooltip="How your search traffic is split across desktop, mobile, and tablet devices."
                 :loading="siteLoading || devicesLoading"
@@ -811,7 +788,7 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
                     </template>
                   </UiTooltip>
                 </template>
-              </DataList>
+              </UiDataList>
             </div>
           </ProSecondaryGrid>
         </ProPageZone>

@@ -117,9 +117,9 @@ function trendTemplate(d: TrendPoint) {
 
 <template>
   <div>
-    <Alert
+    <UiAlert
       v-if="siteStatus === 'error'"
-      color="error"
+      status="error"
       title="Failed to load site data."
     >
       <template #action>
@@ -127,7 +127,7 @@ function trendTemplate(d: TrendPoint) {
           Back to Sites
         </UButton>
       </template>
-    </Alert>
+    </UiAlert>
 
     <template v-else>
       <!-- Loading -->
@@ -138,9 +138,9 @@ function trendTemplate(d: TrendPoint) {
               <UiSkeleton :lines="2" :base="80" :range="40" />
             </div>
           </div>
-          <Card>
+          <UiCard>
             <UiSkeleton :lines="4" :base="180" :range="80" />
-          </Card>
+          </UiCard>
         </ProPageZone>
       </template>
 
@@ -149,18 +149,20 @@ function trendTemplate(d: TrendPoint) {
         <ProPageZone tier="primary" first>
           <!-- Summary -->
           <div class="grid grid-cols-2 gap-4">
-            <MetricCard
-              label="Canonical Mismatches"
+            <UiStat
+              size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+              title="Canonical Mismatches"
               :value="formatNumber(data.totalCount)"
             />
-            <MetricCard
-              label="Consolidation Targets"
+            <UiStat
+              size="sm" class="p-3 rounded-lg border border-default bg-muted/40"
+              title="Consolidation Targets"
               :value="String(data.consolidationTargets?.length || 0)"
             />
           </div>
 
           <!-- Trend -->
-          <Card v-if="data.trend?.length">
+          <UiCard v-if="data.trend?.length">
             <template #header>
               <span class="text-sm font-medium">Mismatch Trend</span>
             </template>
@@ -176,12 +178,12 @@ function trendTemplate(d: TrendPoint) {
                 <UiSkeleton :lines="3" :base="180" :range="80" />
               </template>
             </ClientOnly>
-          </Card>
+          </UiCard>
         </ProPageZone>
 
         <ProPageZone tier="secondary">
           <!-- Consolidation Targets -->
-          <DataList
+          <UiDataList
             v-if="data.consolidationTargets?.length"
             title="Google's Chosen Canonicals"
             tooltip="The canonical URLs Google is consolidating your pages to. High counts may indicate duplicate content or unwanted canonicalization."
@@ -199,7 +201,7 @@ function trendTemplate(d: TrendPoint) {
               </a>
               <span class="text-sm tabular-nums text-muted">{{ item.count }} pages</span>
             </template>
-          </DataList>
+          </UiDataList>
 
           <!-- Full Mismatch Table via ProGscTableShell -->
           <ProGscTableShell
@@ -226,7 +228,7 @@ function trendTemplate(d: TrendPoint) {
       </template>
 
       <!-- Empty -->
-      <EmptyState
+      <UiEmptyState
         v-else
         icon="i-lucide-link-2"
         title="No canonical mismatches"

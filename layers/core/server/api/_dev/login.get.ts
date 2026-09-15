@@ -13,10 +13,14 @@
 //   open http://localhost:3000/api/_dev/login
 //
 // `?email=` picks a different seeded account, `?site=` the seeded property.
+// `?onboarding=0` seeds the account before onboarding, so the setup wizard can
+// be walked locally. It clears `onboarding_completed_at` on an account that
+// already finished, so the wizard can be walked again without reseeding.
 import { and, eq } from 'drizzle-orm'
 import { googleAccounts, googleOAuthClients, sites, teamSites } from '~~/layers/core/server/db/schema'
 import { userIdentities, users } from '#layers/pro-saas/server/database'
 import { createUserWithPersonalTeam } from '#layers/pro-saas/server/utils/create-user-with-personal-team'
+import { DASHBOARD_ROUTE, ONBOARDING_ROUTE, parseOnboardingCompletedFlag } from '#layers/pro-saas/shared/onboarding'
 
 const DEV_PROVIDER = 'google' as const
 const DEFAULT_EMAIL = 'dev@requestindexing.test'
@@ -29,6 +33,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const email = typeof query.email === 'string' && query.email ? query.email : DEFAULT_EMAIL
   const property = typeof query.site === 'string' && query.site ? query.site : DEFAULT_SITE
+  const skipOnboarding = parseOnboardingCompletedFlag(query.onboarding)
   const providerUserId = `dev-${email}`
   const db = useDrizzle(event)
 
@@ -56,11 +61,18 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'dev_seed_team_missing' })
   const teamId = user.currentTeamId
 
-  // The seeded account is past onboarding. Without this the global gate bounces
-  // every dev sign-in to the setup wizard, which is not what this route is for.
-  if (!user.onboardingCompletedAt) {
+  // The seeded account is past onboarding by default. Without this the global
+  // gate bounces every dev sign-in to the setup wizard, which is not what this
+  // route is for. `?onboarding=0` asks for the opposite: an account the wizard
+  // still owns.
+  if (skipOnboarding && !user.onboardingCompletedAt) {
     await db.update(users)
       .set({ onboardingCompletedAt: new Date() })
+      .where(eq(users.userId, identity.userId))
+  }
+  if (!skipOnboarding && user.onboardingCompletedAt) {
+    await db.update(users)
+      .set({ onboardingCompletedAt: null })
       .where(eq(users.userId, identity.userId))
   }
 
@@ -114,5 +126,5 @@ export default defineEventHandler(async (event) => {
     },
   })
 
-  return sendRedirect(event, '/pro/dashboard')
+  return sendRedirect(event, skipOnboarding ? DASHBOARD_ROUTE : ONBOARDING_ROUTE)
 })

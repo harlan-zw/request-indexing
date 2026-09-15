@@ -7,6 +7,8 @@ import { issueIcons } from '#layers/pro-indexing/app/utils/indexing-issues'
 definePageMeta({ proTab: { feature: 'indexing', label: 'Overview', icon: 'i-lucide-layout-dashboard', order: 0 } })
 
 const { siteId, gscdumpSiteId, isNotConnected, isProcessing, isReady } = useSite()
+const route = useRoute()
+const gscConnectUrl = computed(() => `/auth/integrations/gsc/connect?returnTo=${encodeURIComponent(route.fullPath)}`)
 const { period, stableData } = useSitePeriod()
 const { createSitemapAction } = useProGscdump()
 const toast = useToast()
@@ -384,12 +386,16 @@ const totalUrlDelta = computed(() => {
 })
 
 // Route helpers for linking to sibling pages
-function indexingRoute(page: string, query?: Record<string, string>) {
+// Optional facets are common here, so the signature takes them and drops the
+// absent ones. A caller that has no issue type gets the unfiltered page, not a
+// `?issue=undefined` link.
+function indexingRoute(page: string, query?: Record<string, string | undefined>) {
   const base = `/pro/dashboard/sites/${siteId.value}/indexing/${page}`
-  if (!query || Object.keys(query).length === 0)
+  const params = Object.entries(query ?? {})
+    .filter((entry): entry is [string, string] => entry[1] !== undefined)
+  if (!params.length)
     return base
-  const qs = new URLSearchParams(query).toString()
-  return `${base}?${qs}`
+  return `${base}?${new URLSearchParams(params).toString()}`
 }
 
 function itemCount(item: { count: number }) {
@@ -412,9 +418,23 @@ function getIndexingErrorMessage(error: unknown) {
 
 <template>
   <div data-testid="indexing-page">
+    <!-- Nothing to load until Search Console is connected. Without this the
+         page sits on its skeletons forever, because the coverage reads never
+         fire and every `loading` flag only clears when data arrives. -->
+    <UiEmptyState
+      v-if="isNotConnected"
+      icon="i-lucide-database"
+      title="Connect Google Search Console"
+      description="Indexing coverage comes from Search Console. Connect this site's property to see which pages Google has indexed."
+    >
+      <UiMotionButton :to="gscConnectUrl" external size="xs" icon="i-simple-icons-google">
+        Connect Search Console
+      </UiMotionButton>
+    </UiEmptyState>
+
     <!-- Syncing: not enough data yet -->
-    <EmptyState
-      v-if="indexingNotReady"
+    <UiEmptyState
+      v-else-if="indexingNotReady"
       icon="i-lucide-loader"
       :title="isProcessing && !isReady ? 'Importing search data...' : 'Collecting indexing data...'"
       :description="isProcessing && !isReady
@@ -434,15 +454,15 @@ function getIndexingErrorMessage(error: unknown) {
           />
         </div>
       </div>
-    </EmptyState>
+    </UiEmptyState>
 
     <template v-else>
       <!-- Alert zone (severity order: error → warning → info) -->
       <div class="flex flex-col gap-3 mb-6">
         <!-- Indexing error alert -->
-        <Alert
+        <UiAlert
           v-if="indexingError && !isNotConnected && indexingStatus !== 'pending'"
-          color="error"
+          status="error"
           :title="getIndexingErrorMessage(indexingError)"
         >
           <template #action>
@@ -450,12 +470,12 @@ function getIndexingErrorMessage(error: unknown) {
               Retry
             </UiMotionButton>
           </template>
-        </Alert>
+        </UiAlert>
 
         <!-- Index drop alert -->
-        <Alert
+        <UiAlert
           v-if="indexDropAlert"
-          :color="indexDropAlert.newPagesAdded ? 'warning' : 'error'"
+          :status="indexDropAlert.newPagesAdded ? 'warning' : 'error'"
           :icon="indexDropAlert.newPagesAdded ? 'i-lucide-plus-circle' : 'i-lucide-trending-down'"
           :title="indexDropAlert.newPagesAdded ? 'New pages diluting index rate' : 'Index coverage dropping'"
           :description="indexDropAlert.newPagesAdded
@@ -467,12 +487,12 @@ function getIndexingErrorMessage(error: unknown) {
               View not-indexed URLs
             </UiMotionButton>
           </template>
-        </Alert>
+        </UiAlert>
 
         <!-- Summary alert (hidden when index drop alert already provides context) -->
-        <Alert
+        <UiAlert
           v-if="summary && summaryTitle && !indexDropAlert"
-          :color="indexRateStatus === 'good' ? 'success' : indexRateStatus === 'crisis' ? 'error' : 'warning'"
+          :status="indexRateStatus === 'good' ? 'success' : indexRateStatus === 'crisis' ? 'error' : 'warning'"
           :icon="indexRateStatus === 'good' ? 'i-lucide-check-circle' : indexRateStatus === 'crisis' ? 'i-lucide-alert-triangle' : 'i-lucide-info'"
           :title="summaryTitle"
         >
@@ -492,12 +512,12 @@ function getIndexingErrorMessage(error: unknown) {
               View all issues
             </UiMotionButton>
           </template>
-        </Alert>
+        </UiAlert>
 
         <!-- No sitemaps submitted warning -->
-        <Alert
+        <UiAlert
           v-if="indexingMeta?.noSitemapsSubmitted"
-          color="warning"
+          status="warning"
           title="No sitemap submitted in Google Search Console"
           description="We'll check robots.txt and common paths to find and submit your sitemap automatically."
         >
@@ -511,12 +531,12 @@ function getIndexingErrorMessage(error: unknown) {
               </UiMotionButton>
             </div>
           </template>
-        </Alert>
+        </UiAlert>
 
         <!-- Sitemaps pending parse -->
-        <Alert
+        <UiAlert
           v-if="indexingMeta?.sitemapsPending"
-          color="info"
+          status="info"
           icon="i-lucide-loader"
           title="Sitemap submitted, will be parsed within 24 hours"
           description="Your sitemap has been submitted to Google Search Console. URLs will be available after the next daily sync."
@@ -551,7 +571,7 @@ function getIndexingErrorMessage(error: unknown) {
       <!-- ═══ SECONDARY ZONE ═══ -->
       <ProPageZone tier="secondary">
         <!-- Top Issues (full-width) -->
-        <DataList
+        <UiDataList
           v-if="topIssuesLoading || topIssuesSlice.length > 0"
           title="Top Issues"
           tooltip="Indexing and sitemap problems ordered by severity. Includes issues from Google's index coverage and your registered sitemaps."
@@ -570,7 +590,7 @@ function getIndexingErrorMessage(error: unknown) {
                 : indexingRoute('urls', { issue: issue.issueType })"
               class="flex items-center gap-3 w-full text-left min-w-0"
             >
-              <SeverityDot :severity="issue.severity" />
+              <UiSeverityDot :severity="issue.severity" />
               <div
                 class="flex items-center justify-center size-7 rounded-md shrink-0"
                 :class="issue.severity === 'error' ? 'bg-error/8 text-error' : issue.severity === 'warning' ? 'bg-warning/8 text-warning' : 'bg-info/8 text-info'"
@@ -586,27 +606,27 @@ function getIndexingErrorMessage(error: unknown) {
               <UIcon name="i-lucide-chevron-right" class="size-3.5 text-dimmed" />
             </div>
           </template>
-        </DataList>
+        </UiDataList>
 
         <!-- All clear state -->
-        <EmptyState
+        <UiEmptyState
           v-else
           icon="i-lucide-shield-check"
           title="All clear"
           description="No indexing or sitemap issues detected. All crawled URLs are healthy."
         >
           <div class="flex items-center justify-center gap-5">
-            <SeverityDot severity="success" label="0 errors" />
-            <SeverityDot severity="success" label="0 warnings" />
+            <UiSeverityDot severity="success" label="0 errors" />
+            <UiSeverityDot severity="success" label="0 warnings" />
           </div>
-        </EmptyState>
+        </UiEmptyState>
       </ProPageZone>
 
       <!-- ═══ TERTIARY ZONE ═══ -->
       <ProPageZone tier="tertiary">
         <ProSecondaryGrid layout="equal">
           <!-- Sitemaps -->
-          <DataList
+          <UiDataList
             v-if="sitemapItems.length"
             title="Sitemaps"
             tooltip="Sitemaps registered in Google Search Console. Errors or warnings may prevent proper indexing."
@@ -633,30 +653,30 @@ function getIndexingErrorMessage(error: unknown) {
                 </UTooltip>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <Chip v-if="sm.errors > 0" tone="error" icon="i-lucide-alert-circle">
+                <UiChip v-if="sm.errors > 0" status="error" icon="i-lucide-alert-circle">
                   {{ sm.errors }}
-                </Chip>
-                <Chip v-if="sm.warnings > 0" tone="warning" icon="i-lucide-alert-triangle">
+                </UiChip>
+                <UiChip v-if="sm.warnings > 0" status="warning" icon="i-lucide-alert-triangle">
                   {{ sm.warnings }}
-                </Chip>
-                <SeverityDot v-if="!sm.errors && !sm.warnings" severity="success" />
+                </UiChip>
+                <UiSeverityDot v-if="!sm.errors && !sm.warnings" severity="success" />
                 <span class="text-sm tabular-nums">{{ useProHumanFriendlyNumber(sm.urlCount) }}</span>
-                <Chip
+                <UiChip
                   v-if="sm.urlDelta !== 0"
-                  :tone="trendToSemantic(sm.urlDelta)"
+                  :status="trendToSemantic(sm.urlDelta)"
                   tabular
                 >
                   {{ sm.urlDelta > 0 ? '+' : '' }}{{ sm.urlDelta }}
-                </Chip>
+                </UiChip>
                 <UIcon name="i-lucide-chevron-right" class="size-3 text-dimmed" />
               </div>
             </template>
-          </DataList>
+          </UiDataList>
 
           <!-- Signals column -->
           <div class="flex flex-col gap-6">
             <!-- Rich Results -->
-            <DataList
+            <UiDataList
               v-if="signals && hasRichResults"
               title="Rich Results"
               tooltip="Structured data detected on your indexed pages. Higher coverage means more chance of enhanced search results."
@@ -667,8 +687,8 @@ function getIndexingErrorMessage(error: unknown) {
             >
               <template #header-trailing>
                 <div class="flex items-center gap-2.5">
-                  <SeverityDot severity="success" :label="`${signals.richResultsPass} valid`" />
-                  <SeverityDot v-if="signals.richResultsFail > 0" severity="error" :label="`${signals.richResultsFail} invalid`" />
+                  <UiSeverityDot severity="success" :label="`${signals.richResultsPass} valid`" />
+                  <UiSeverityDot v-if="signals.richResultsFail > 0" severity="error" :label="`${signals.richResultsFail} invalid`" />
                 </div>
               </template>
               <template #default="{ item: rt }">
@@ -679,10 +699,10 @@ function getIndexingErrorMessage(error: unknown) {
                   <UIcon name="i-lucide-chevron-right" class="size-3 text-dimmed" />
                 </div>
               </template>
-            </DataList>
+            </UiDataList>
 
             <!-- Mobile & Crawling -->
-            <DataList
+            <UiDataList
               v-if="signals && hasMobileData"
               title="Mobile & Crawling"
               tooltip="Mobile usability verdicts and which Googlebot variant crawls your indexed pages."
@@ -699,10 +719,10 @@ function getIndexingErrorMessage(error: unknown) {
                 </div>
                 <span class="text-sm tabular-nums">{{ useProHumanFriendlyNumber(item.count) }}</span>
               </template>
-            </DataList>
+            </UiDataList>
 
             <!-- No signals data -->
-            <EmptyState
+            <UiEmptyState
               v-if="signals && !hasRichResults && !hasMobileData && !sitemapItems.length"
               icon="i-lucide-sparkles"
               title="No rich results or mobile data"
