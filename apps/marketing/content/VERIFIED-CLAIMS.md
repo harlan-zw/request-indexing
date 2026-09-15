@@ -57,3 +57,19 @@ Product checks use revision cf640ac56542cca8850b2ce3ab773f35c8910e21. Evidence k
 | VENDOR-04 | Observed | Live public page observation | Tag Parrot states its service is closed and indexing unavailable. | No closure date established. Preserve comparison URL; explain replacement workflow, not current plans. | https://tagparrot.com/pricing ; saved public text ri-tagparrot-pricing.txt in private evidence | 2026-09-15 | Current closure notice; date unstated |
 
 Unverified product claims withdrawn: unlimited rows, indefinite hosted retention, guaranteed200/day customer entitlement, live efficacy, future IndexNow support.
+
+## Executable example evidence
+
+Checked 15 September 2026 with Node.js 24.18.0 and googleapis 181.0.0.
+Writer and independent reviewer ran `node check.mjs` in private `request-indexing-content-dogfood/code-checks/` evidence.
+The harness instantiated the actual client, mocked its credential provider, and intercepted HTTP with all external network disabled.
+It checked publish method, URL, body, authorization header, success/failure output, mixed sequential outcomes, and input deduplication.
+The executable fences in Node, tutorial and bulk guides matched the tested files.
+These checks establish client request construction and local handling. They do not establish credential validity, property ownership, or live Google outcomes.
+
+The writer also ran `node metadata-check.mjs` for GET metadata URL/query construction and receipt response handling.
+Final review must compare code fences again if humanization changes them.
+
+Primary library sources: https://github.com/googleapis/google-api-nodejs-client and https://github.com/googleapis/google-auth-library-nodejs.
+Reproduce later by extracting the complete `.mjs` fences and installing the recorded client version in private scratch storage.
+Do not treat the old check count as a new run when changing dependencies.

@@ -28,3 +28,5 @@ Open each full supporting page. Discovery patterns are not citations.
 - https://developers.google.com/search/blog/2023/06/sitemaps-lastmod-ping
 
 Competitor final supporting URLs and product source revisions belong in VERIFIED-CLAIMS.md before dependent briefs pass.
+
+Client examples use the current official repositories: https://github.com/googleapis/google-api-nodejs-client and https://github.com/googleapis/google-auth-library-nodejs. API payload semantics still come from the Indexing API reference.

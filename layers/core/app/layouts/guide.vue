@@ -1,13 +1,20 @@
 <script lang="ts" setup>
 const route = useRoute()
 
-const { data: navigation } = await useAsyncData('guides-nav', () => queryCollectionNavigation('guides'), {
+const { data: navigation } = await useAsyncData('guides-nav', () => queryCollectionNavigation('guides', ['navigation']), {
   default: () => [],
 })
 
 const navItems = computed(() => {
-  return navigation.value?.[0]?.children || navigation.value || []
+  const items = navigation.value?.[0]?.children || navigation.value || []
+  return items.slice().sort((a, b) => navigationOrder(a.navigation) - navigationOrder(b.navigation))
 })
+
+function navigationOrder(value: unknown): number {
+  if (value && typeof value === 'object' && 'order' in value && typeof value.order === 'number')
+    return value.order
+  return Number.POSITIVE_INFINITY
+}
 
 function isActive(path: string) {
   return route.path === path
@@ -67,3 +74,9 @@ const breadcrumbs = useBreadcrumbItems()
     </UMain>
   </div>
 </template>
+
+<style scoped>
+:deep(:not(pre) > code) {
+  overflow-wrap: anywhere;
+}
+</style>

@@ -1,6 +1,6 @@
 # Brief: google-indexing-api-quota
 
-State: brief reviewed. Parent revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
+State: article reviewed. Parent revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
 Owner: product_writer. Brief reviewer: sources_reviewer. Coordinator: request_content_lead.
 
 Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../../VERIFIED-CLAIMS.md), [SCREENSHOTS](../../SCREENSHOTS.md), and the root glossary.
@@ -33,6 +33,20 @@ Use the ledger's additional exact URLs where claim IDs require them. Open full s
 
 ## Review record
 
-Brief review: approved by sources_reviewer on2026-09-15 against foundation files at cf640ac5; evidence in private brief-review.md. Writer response: pending.
-Factual draft review: pending. Humanize surface/structural changes: pending.
-Final article review: pending. Rendered evidence: pending. Coordinator decision: pending.
+Brief review: approved by sources_reviewer on 2026-09-15 against foundation files at cf640ac5; evidence in private brief-review.md. Writer response: pending.
+Factual draft review: approved by sources_reviewer, 15 September 2026. Humanize changes recorded below.
+Final article review: approved by sources_reviewer against humanized-hashes.json, 15 September 2026. Coordinator delivery review pending.
+
+## Factual draft handoff
+
+Writer: product_writer, 15September2026. Draft based on reviewed brief and claims. Preserved route/publication date where present; updated review date. Removed unsupported assertions and duplicate comparison H1s.
+Factual review requested before humanization. No authenticated actions or manufactured screenshots.
+
+## Humanize and meaning review
+
+All eight factual drafts approved by sources_reviewer on 15 September 2026, including conditional vendor API scope and per-user quota fixes.
+Surface pass: corrected number/version spacing, replaced formal or padded wording, retained protocol names.
+Structural pass: kept the common task first; removed repeated conclusions and editorial process details from the opening. Specific edits below.
+- 'This guide does not establish whether each possible failure consumes quota.' → 'The sources checked here do not establish a charging rule for every possible failure.'
+- "Likewise, a script's local counter only knows about its own run." → "A script's local counter only knows about its own run."
+Meaning recheck: claim scopes, URLs, dates, examples and execution limitations preserved. Vendor mechanism uncertainty and per-user tool denominator retained. Executable code unchanged. Independent humanized review requested.
