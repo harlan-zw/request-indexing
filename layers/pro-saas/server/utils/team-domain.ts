@@ -1,35 +1,18 @@
 // Team domain: deep module wrapping a Team row plus closures bound to db/event.
 // Callers obtain a TeamWithOps via requireCurrentTeam and invoke verbs as methods
-// on the team itself (e.g. ctx.team.audit(...), ctx.team.issueApiToken(...)).
+// on the team itself (e.g. ctx.team.audit(...), ctx.team.sendInvite(...)).
 // See CONTEXT.md and docs/adr/0002-caller-is-the-user-context-seam.md.
 
 import type { H3Event } from 'h3'
-import type { Team, TeamAuditEventKind, TeamRole } from '../database'
+import type { Team, TeamAuditEventKind } from '../database'
 import { logWarn } from '~~/shared/logging'
 import { logger } from '~~/shared/server/logger'
-import { teamApiTokens, teamAuditEvents } from '../database'
+import { teamAuditEvents } from '../database'
 
 // `sendEmail` from the upstream host was deleted during port. Stub to a logger
 // call until request-indexing wires Postmark (already a dep in package.json).
 async function sendEmail(_event: H3Event, opts: { to: string, subject: string, html: string }) {
   console.warn('[email.send_stub]', { to: opts.to, subject: opts.subject })
-}
-
-const TOKEN_PREFIX = 'nsp_team_'
-
-export function generatePlaintextToken(): string {
-  const random = crypto.getRandomValues(new Uint8Array(32))
-  return TOKEN_PREFIX + Array.from(random, b => b.toString(16).padStart(2, '0')).join('')
-}
-
-export async function hashToken(plaintext: string): Promise<string> {
-  const data = new TextEncoder().encode(plaintext)
-  const digest = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('')
-}
-
-export function tokenLast4(plaintext: string): string {
-  return plaintext.slice(-4)
 }
 
 export interface AuditOpts {
@@ -63,27 +46,6 @@ export async function recordTeamAuditEvent(opts: RecordTeamAuditEventOpts): Prom
   })
 }
 
-export interface IssueApiTokenOpts {
-  userId: number
-  role: TeamRole
-  label?: string | null
-  expiresAt?: Date | null
-}
-
-export interface IssueApiTokenResult {
-  plaintext: string
-  record: {
-    id: number
-    label: string | null
-    last4: string
-    role: TeamRole
-    usageCount: number
-    lastUsedAt: Date | null
-    createdAt: Date | null
-    expiresAt: Date | null
-  }
-}
-
 export interface SendInviteOpts {
   email: string
   role: 'admin' | 'editor' | 'viewer'
@@ -95,7 +57,6 @@ export interface SendInviteOpts {
 
 export interface TeamOps {
   audit: (opts: AuditOpts) => Promise<void>
-  issueApiToken: (opts: IssueApiTokenOpts) => Promise<IssueApiTokenResult>
   sendInvite: (opts: SendInviteOpts) => Promise<void>
 }
 
@@ -175,36 +136,6 @@ export function attachTeamOps(
 
   const audit: TeamOps['audit'] = opts => recordTeamAuditEvent({ db, teamId: team.teamId, ...opts })
 
-  const issueApiToken: TeamOps['issueApiToken'] = async (opts) => {
-    const plaintext = generatePlaintextToken()
-    const tokenHash = await hashToken(plaintext)
-    const last4 = tokenLast4(plaintext)
-
-    const inserted = await db.insert(teamApiTokens).values({
-      teamId: team.teamId,
-      userId: opts.userId,
-      tokenHash,
-      last4,
-      label: opts.label ?? null,
-      role: opts.role,
-      expiresAt: opts.expiresAt ?? null,
-    }).returning().get()
-
-    return {
-      plaintext,
-      record: {
-        id: inserted.teamApiTokenId,
-        label: inserted.label,
-        last4: inserted.last4,
-        role: inserted.role as TeamRole,
-        usageCount: inserted.usageCount,
-        lastUsedAt: inserted.lastUsedAt,
-        createdAt: inserted.createdAt,
-        expiresAt: inserted.expiresAt,
-      },
-    }
-  }
-
   const sendInvite: TeamOps['sendInvite'] = async (opts) => {
     const { subject, html } = renderInviteEmail({
       inviterName: opts.inviterName,
@@ -219,5 +150,5 @@ export function attachTeamOps(
     })
   }
 
-  return Object.assign(Object.create(null) as Team, team, { audit, issueApiToken, sendInvite }) as TeamWithOps
+  return Object.assign(Object.create(null) as Team, team, { audit, sendInvite }) as TeamWithOps
 }

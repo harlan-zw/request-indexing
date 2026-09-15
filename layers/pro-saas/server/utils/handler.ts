@@ -10,7 +10,6 @@ import type { CurrentTeamContext } from './require-current-team'
 import type { RequireSiteAccessOptions } from './require-site-access'
 import { createConsola } from 'consola'
 import { ProError } from '../../shared/errors'
-import { recordApiUsageLater } from './api-usage'
 import { getCaller, requireCaller } from './get-caller'
 import { requireCurrentTeam } from './require-current-team'
 import { requireSiteAccess } from './require-site-access'
@@ -89,16 +88,7 @@ export interface ProHandlerTeamOptions {
   teamId?: number
 }
 
-export type ProHandlerAuthMethod = 'session' | 'apiKey' | 'any'
-
 export interface ProHandlerOptions<B extends ZodTypeAny = ZodTypeAny> {
-  /**
-   * Which auth mechanism is required. `'session'` (default) accepts only
-   * cookie sessions; `'apiKey'` accepts only Bearer/x-api-key creds; `'any'`
-   * accepts either. The api-key middleware always runs upstream — this option
-   * decides which resolved caller satisfies the route.
-   */
-  authMethod?: ProHandlerAuthMethod
   /** Resolve `requireCaller(event)` and put it on `ctx.caller`. Default true. */
   caller?: boolean
   /** Resolve `requireCurrentTeam(event, opts)` and put it on `ctx.team`. */
@@ -107,8 +97,6 @@ export interface ProHandlerOptions<B extends ZodTypeAny = ZodTypeAny> {
   site?: boolean | RequireSiteAccessOptions
   /** Validate body via `readProValidatedBody(event, schema)` and put it on `ctx.body`. */
   body?: B
-  /** Record unified API usage for authenticated Pro/team routes. Off by default. */
-  usage?: boolean | { source?: 'rest' | 'internal', action?: string }
 }
 
 export interface ProHandlerCtxBase {
@@ -140,7 +128,6 @@ async function buildHandlerCtx<O extends ProHandlerOptions>(
 ): Promise<ProHandlerCtx<O>> {
   const ctx = { event, db: useDrizzle(event) } as Record<string, unknown>
   const preludeResolvesCaller = !!options.team || !!options.site
-  const authMethod: ProHandlerAuthMethod = options.authMethod ?? 'session'
 
   // Caller defaults to required; opt out with `caller: false`.
   if (options.caller !== false && !preludeResolvesCaller) {
@@ -148,15 +135,6 @@ async function buildHandlerCtx<O extends ProHandlerOptions>(
   }
   else if (options.caller === false) {
     ctx.caller = await getCaller(event)
-  }
-
-  // Enforce auth-method constraint after caller resolution.
-  if (ctx.caller) {
-    const resolvedMethod = (ctx.caller as Caller).authMethod
-    if (authMethod === 'session' && resolvedMethod !== 'session')
-      throw new ProError('unauthorized', { message: 'Session auth required' })
-    if (authMethod === 'apiKey' && resolvedMethod !== 'apiKey')
-      throw new ProError('unauthorized', { message: 'API key required' })
   }
 
   if (options.team) {
@@ -187,24 +165,18 @@ type HandlerMode<O extends ProHandlerOptions, T>
 function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T>): EventHandler<EventHandlerRequest, Promise<T>> {
   return defineEventHandler(async (event) => {
     const requestId = ensureRequestId(event)
-    const startedAt = Date.now()
     setResponseHeader(event, 'x-request-id', requestId)
     const logger = event.context.logger ?? createLogger(event, requestId)
     event.context.logger = logger
-    let ctx: ProHandlerCtx<O> | undefined
-    let statusCode = 200
-    let errorCode: string | null = null
     try {
       if (mode._tag === 'context') {
-        ctx = await buildHandlerCtx(event, mode.options)
+        const ctx = await buildHandlerCtx(event, mode.options)
         return await mode.handler(ctx)
       }
       return await mode.handler(event)
     }
     catch (e) {
       if (e instanceof ProError) {
-        statusCode = e.statusCode
-        errorCode = e.code
         const envelope: ProErrorEnvelope = {
           code: e.code,
           message: e.message,
@@ -218,12 +190,10 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
         })
       }
       if (isH3StyleError(e)) {
-        statusCode = e.statusCode
         const data = asRecord(e.data)
         if (typeof data.code === 'string' && typeof data.requestId === 'string')
           throw e
         const code = statusToProCode(e.statusCode)
-        errorCode = code
         const message = typeof data.message === 'string' ? data.message : e.statusMessage ?? e.message ?? code
         e.data = {
           ...data,
@@ -234,8 +204,6 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
         throw e
       }
       logger.error('unhandled error', e)
-      statusCode = 500
-      errorCode = 'internal_error'
       throw createError({
         statusCode: 500,
         statusMessage: 'internal_error',
@@ -245,32 +213,6 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
           requestId,
         } satisfies ProErrorEnvelope,
       })
-    }
-    finally {
-      const usage = mode._tag === 'context' ? mode.options.usage : undefined
-      if (usage) {
-        const auth = event.context.proAuth as { teamId?: number | null, tokenId?: number | null, user?: { id?: number | null } } | undefined
-        const usageOptions = usage === true ? {} : usage
-        const url = getRequestURL(event)
-        const responseStatus = statusCode >= 400
-          ? statusCode
-          : ((event.node?.res?.statusCode && event.node.res.statusCode >= 400) ? event.node.res.statusCode : statusCode)
-        recordApiUsageLater(event, {
-          teamId: ctx?.team?.team?.teamId ?? auth?.teamId ?? null,
-          teamApiTokenId: auth?.tokenId ?? null,
-          userId: ctx?.caller?.user?.id ?? ctx?.team?.caller?.user?.id ?? auth?.user?.id ?? null,
-          source: usageOptions.source ?? 'rest',
-          method: event.method,
-          path: url.pathname,
-          action: usageOptions.action ?? `${event.method} ${url.pathname}`,
-          status: responseStatus >= 400 ? 'error' : 'success',
-          statusCode: responseStatus,
-          responseTime: Date.now() - startedAt,
-          userAgent: getRequestHeader(event, 'user-agent') ?? null,
-          ip: getRequestIP(event, { xForwardedFor: true }),
-          errorCode,
-        })
-      }
     }
   })
 }
