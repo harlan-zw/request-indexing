@@ -182,7 +182,11 @@ export const sites = sqliteTable('sites', {
 
   ...timestamps,
 }, t => ({
-  unqDomain: unique().on(t.domain),
+  // Team scoped, not global. `domain` used to carry a global unique index, so
+  // the second team to connect any address hit a raw D1 constraint error and
+  // onboarding died with a 500. Ownership is the team (see `teamId` above), and
+  // nuxtseo.com scopes every `sites` uniqueness the same way.
+  unqTeamDomain: unique('sites_team_id_domain_unique').on(t.teamId, t.domain),
   unqPublicId: unique().on(t.publicId),
   teamIdx: index('sites_team_idx').on(t.teamId),
 }))
