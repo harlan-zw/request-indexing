@@ -13,16 +13,14 @@ const length = 12
 
 const nanoid = customAlphabet(alphabet, length)
 
+// Short, copy-pastable public Site id used purely as the URL identity
+// (`s_rkfg95k7`). `sites.id` stays the canonical UUID every foreign key points
+// at; `publicId` only resolves the route param. Mirrors nuxtseo.com.
+const sitePublicId = customAlphabet(alphabet, 8)
+
 const timestamps = {
   createdAt: integer('created_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
   updatedAt: integer('updated_at').notNull().default(sql`(CURRENT_TIMESTAMP)`),
-}
-
-const googleSearchConsolePageAnalytics = {
-  clicks: integer('clicks').default(0),
-  impressions: integer('impressions').default(0),
-  ctr: integer('ctr').default(0),
-  position: integer('position').default(0),
 }
 
 export const teams = sqliteTable('teams', {
@@ -31,7 +29,6 @@ export const teams = sqliteTable('teams', {
   personalTeam: integer('personal_team', { mode: 'boolean' }).notNull().default(true),
   name: text('name').notNull(),
   backupsEnabled: integer('backups_enabled').notNull().default(0),
-  onboardedStep: text('onboarded_step'),
   // pro-saas augment: explicit owner (nullable until backfilled to personal-team creator)
   // Mutual team and user foreign keys require one lazy forward reference.
   // eslint-disable-next-line ts/no-use-before-define
@@ -78,6 +75,8 @@ export const users = sqliteTable('users', {
 
   // Sign-up source for funnel attribution
   source: text('source'),
+  // Onboarding completion is user-scoped, matching nuxtseo.com. It used to sit
+  // on `teams.onboarded_step`, which made a second team look unonboarded.
   onboardingCompletedAt: integer('onboarding_completed_at', { mode: 'timestamp' }),
 
   ...timestamps,
@@ -153,17 +152,23 @@ export const teamUserInvite = sqliteTable('team_user_invite', {
 export type UserSelect = typeof users.$inferSelect
 
 export const sites = sqliteTable('sites', {
-  siteId: integer('site_id').notNull().primaryKey(),
-  publicId: text('public_id').notNull().$defaultFn(nanoid),
+  // Canonical id. A text UUID, matching nuxtseo.com, so its server code and
+  // query keys transfer without an id-shape rewrite at every boundary.
+  id: text('id').notNull().primaryKey().$defaultFn(() => crypto.randomUUID()),
+  // URL-only identity (`s_` + nanoid). Resolved to `id` at the request
+  // boundary by `requireSiteAccess`.
+  publicId: text('public_id').notNull().$defaultFn(() => `s_${sitePublicId()}`),
+  // Team is the single ownership and scoping axis. `ownerId` below is creator
+  // attribution only, so removing the creator never orphans the team's site.
+  teamId: integer('team_id').notNull().references(() => teams.teamId, { onDelete: 'restrict' }),
   property: text('property').notNull(),
   // hides domain properties which we've split into multiple sites
   active: integer('active', { mode: 'boolean' }).notNull().default(false),
-  // isDomainProperty: integer('is_domain_property', { mode: 'boolean' }).notNull().default(false),
   sitemaps: text('sitemaps', { mode: 'json' }).$type<StoredSitemap[]>(),
 
   // for split domain properties
   domain: text('domain'),
-  parentId: integer('parent_id').references((): AnySQLiteColumn => sites.siteId),
+  parentId: text('parent_id').references((): AnySQLiteColumn => sites.id),
 
   // TODO better renaming for these two
   lastSynced: integer('last_synced'),
@@ -179,110 +184,15 @@ export const sites = sqliteTable('sites', {
 }, t => ({
   unqDomain: unique().on(t.domain),
   unqPublicId: unique().on(t.publicId),
+  teamIdx: index('sites_team_idx').on(t.teamId),
 }))
 
 export type SiteInsert = typeof sites.$inferInsert
 export type SiteSelect = typeof sites.$inferSelect
 
-export const sitePaths = sqliteTable('site_paths', {
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
-  path: text('path').notNull(),
-  firstSeenIndexed: integer('first_seen_indexed'),
-  isIndexed: integer('is_indexed', { mode: 'boolean' }).notNull().default(false),
-  indexingVerdict: text('indexing_verdict'),
-  inspectionPayload: text('inspection_payload', { mode: 'json' }).$type<unknown>(),
-  lastInspected: integer('last_inspected'),
-
-  ...timestamps,
-}, t => ({
-  pathIdx: index('path_site_url_idx').on(t.path),
-  unq: unique().on(t.siteId, t.path),
-}))
-
-export type SitePathSelect = typeof sitePaths.$inferSelect
-
-export const siteDateAnalytics = sqliteTable('site_date_analytics', {
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
-  date: text('date').notNull(), // all data for a path
-
-  // google search console (query by date)
-  ...googleSearchConsolePageAnalytics,
-
-  // TODO make life easier for querying?
-  // save all percentile 75
-  mobileOriginCls75: integer('mobile_origin_cls_75'),
-  mobileOriginTtfb75: integer('mobile_origin_ttfb_75'),
-  mobileOriginFcp75: integer('mobile_origin_fcp_75'),
-  mobileOriginLcp75: integer('mobile_origin_lcp_75'),
-  mobileOriginInp75: integer('mobile_origin_inp_75'),
-  // now desktop
-  desktopOriginCls75: integer('desktop_origin_cls_75'),
-  desktopOriginTtfb75: integer('desktop_origin_ttfb_75'),
-  desktopOriginFcp75: integer('desktop_origin_fcp_75'),
-  desktopOriginLcp75: integer('desktop_origin_lcp_75'),
-  desktopOriginInp75: integer('desktop_origin_inp_75'),
-
-  keywords: integer('keywords'),
-  pages: integer('pages'),
-
-  mobileClicks: integer('mobile_clicks'),
-  mobileImpressions: integer('mobile_impressions'),
-  mobileCtr: integer('mobile_ctr'),
-  mobilePosition: integer('mobile_position'),
-
-  desktopClicks: integer('desktop_clicks'),
-  desktopImpressions: integer('desktop_impressions'),
-  desktopCtr: integer('desktop_ctr'),
-  desktopPosition: integer('desktop_position'),
-
-  tabletClicks: integer('tablet_clicks'),
-  tabletImpressions: integer('tablet_impressions'),
-  tabletCtr: integer('tablet_ctr'),
-  tabletPosition: integer('tablet_position'),
-
-  // web indexing
-  isSynced: integer('is_synced', { mode: 'boolean' }).notNull().default(false),
-  indexedPagesCount: integer('indexed_pages_count').default(0),
-  totalPagesCount: integer('total_pages_count').default(0),
-  ...timestamps,
-}, t => ({
-  unq: unique().on(t.siteId, t.date),
-}))
-
-export type SiteDateAnalyticsSelect = typeof siteDateAnalytics.$inferSelect
-
-export const siteDateCountryAnalytics = sqliteTable('site_date_country_analytics', {
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
-  date: text('date').notNull(), // all data for a path
-  country: text('country').notNull(),
-  ...googleSearchConsolePageAnalytics,
-  ...timestamps,
-}, t => ({
-  unq: unique().on(t.siteId, t.date, t.country),
-}))
-
-export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
-  date: text('date').notNull(), // all data for a path
-  path: text('path').notNull(),
-  ...googleSearchConsolePageAnalytics,
-  // keywords: integer('keywords'),
-
-  // TODO make life easier for querying?
-  // save all percentile 75
-  // now desktop
-
-  // google search console (query by date and path)
-  ...timestamps,
-}, t => ({
-  unq: unique().on(t.siteId, t.date, t.path),
-}))
-
-export type SiteUrlDateAnalyticsSelect = typeof sitePathDateAnalytics.$inferSelect
-
 // TODO siteUsages (need to figure out billing but more granular is better)
 export const usages = sqliteTable('usages', {
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
+  siteId: text('site_id').notNull().references(() => sites.id),
   date: text('date').notNull(),
   key: text('key').notNull(),
   usage: integer('usage').notNull().default(0),
@@ -295,7 +205,7 @@ export const usages = sqliteTable('usages', {
 // allow users to hide sites within a team dashboard, also track their permission level to a site
 export const userSites = sqliteTable('user_sites', {
   userId: integer('user_id').notNull().references(() => users.userId),
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
+  siteId: text('site_id').notNull().references(() => sites.id),
   permissionLevel: text('permission_level'),
 }, t => ({
   unq: unique().on(t.userId, t.siteId),
@@ -307,7 +217,7 @@ export type UserSitesInsert = typeof userSites.$inferInsert
 // multiple users and access a single site
 export const teamSites = sqliteTable('team_sites', {
   teamId: integer('team_id').notNull().references(() => teams.teamId),
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
+  siteId: text('site_id').notNull().references(() => sites.id),
   // someone on the team must have the permissions
   googleAccountId: integer('google_account_id').notNull().references(() => googleAccounts.googleAccountId),
   // site can be linked to a team but may not be enabled due to
@@ -330,7 +240,7 @@ export const jobBatches = sqliteTable('job_batches', {
   failedJobs: integer('failed_jobs').notNull().default(0),
   onFinish: text('on_finish'), // JSON: { name, payload }
   allowFailures: integer('allow_failures').default(0),
-  siteId: integer('site_id'),
+  siteId: text('site_id'),
   userId: integer('user_id'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
@@ -346,7 +256,7 @@ export const jobs = sqliteTable('jobs', {
   jobType: text('job_type').notNull(),
   batchId: text('batch_id'),
   userId: integer('user_id'),
-  siteId: integer('site_id'),
+  siteId: text('site_id'),
   payload: text('payload').notNull(), // JSON string with _task embedded
   attempts: integer('attempts').notNull().default(0),
   maxAttempts: integer('max_attempts').notNull().default(3),
@@ -371,7 +281,7 @@ export const failedJobs = sqliteTable('failed_jobs', {
   jobType: text('job_type').notNull(),
   batchId: text('batch_id'),
   userId: integer('user_id'),
-  siteId: integer('site_id'),
+  siteId: text('site_id'),
   payload: text('payload').notNull(),
   exception: text('exception').notNull(),
   attempts: integer('attempts').notNull(),
@@ -391,25 +301,15 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 }))
 
 export const sitesRelations = relations(sites, ({ one, many }) => ({
-  teams: many(teams),
-  urlAnalytics: many(siteDateAnalytics),
-  urls: many(sitePaths),
+  team: one(teams, {
+    fields: [sites.teamId],
+    references: [teams.teamId],
+  }),
   userSites: many(userSites, { relationName: 'sites_users' }),
   teamSites: many(teamSites),
   owner: one(users, {
     fields: [sites.ownerId],
     references: [users.userId],
-  }),
-  ownerPermissions: one(userSites, {
-    fields: [sites.ownerId, sites.siteId],
-    references: [userSites.userId, userSites.siteId],
-  }),
-}))
-
-export const siteUrlsRelations = relations(sitePaths, ({ one }) => ({
-  site: one(sites, {
-    fields: [sitePaths.siteId],
-    references: [sites.siteId],
   }),
 }))
 
@@ -452,7 +352,7 @@ export const userSitesRelations = relations(userSites, ({ one, many }) => ({
   }),
   site: one(sites, {
     fields: [userSites.siteId],
-    references: [sites.siteId],
+    references: [sites.id],
     relationName: 'sites_users',
   }),
   sites: many(sites),
@@ -465,7 +365,7 @@ export const teamSitesRelations = relations(teamSites, ({ one }) => ({
   }),
   site: one(sites, {
     fields: [teamSites.siteId],
-    references: [sites.siteId],
+    references: [sites.id],
   }),
   googleAccount: one(googleAccounts, {
     fields: [teamSites.googleAccountId],
@@ -704,7 +604,7 @@ export const feedback = sqliteTable('feedback', {
 // Cloudflare Queue mirror of submitted URLs. Distinct from generic `jobs`.
 export const indexingJobs = sqliteTable('indexing_jobs', {
   indexingJobId: integer('indexing_job_id').primaryKey({ autoIncrement: true }),
-  siteId: integer('site_id').notNull().references(() => sites.siteId, { onDelete: 'cascade' }),
+  siteId: text('site_id').notNull().references(() => sites.id, { onDelete: 'cascade' }),
   path: text('path').notNull(),
   transport: text('transport').notNull(), // 'google' | 'bing' | 'yandex' | 'naver' | 'seznam'
   state: text('state').notNull().default('queued'), // 'queued' | 'submitted' | 'accepted' | 'rejected' | 'error'
@@ -724,7 +624,7 @@ export const indexingJobs = sqliteTable('indexing_jobs', {
 // gscdump's `inspect.create` operation separately, not this table.
 export const indexingInvestigations = sqliteTable('indexing_investigations', {
   indexingInvestigationId: integer('indexing_investigation_id').primaryKey({ autoIncrement: true }),
-  siteId: integer('site_id').notNull().references(() => sites.siteId, { onDelete: 'cascade' }),
+  siteId: text('site_id').notNull().references(() => sites.id, { onDelete: 'cascade' }),
   url: text('url').notNull(),
   issueType: text('issue_type').notNull(),
   status: text('status').notNull().default('investigated'), // 'investigated' | 'monitoring' | 'false_positive' | 'wont_fix' | 'fixed'
@@ -786,11 +686,11 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
 }))
 
 export const indexingJobsRelations = relations(indexingJobs, ({ one }) => ({
-  site: one(sites, { fields: [indexingJobs.siteId], references: [sites.siteId] }),
+  site: one(sites, { fields: [indexingJobs.siteId], references: [sites.id] }),
 }))
 
 export const indexingInvestigationsRelations = relations(indexingInvestigations, ({ one }) => ({
-  site: one(sites, { fields: [indexingInvestigations.siteId], references: [sites.siteId] }),
+  site: one(sites, { fields: [indexingInvestigations.siteId], references: [sites.id] }),
 }))
 
 // ─── Type exports ────────────────────────────────────────────────────────────
