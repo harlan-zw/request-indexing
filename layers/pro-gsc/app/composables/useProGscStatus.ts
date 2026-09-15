@@ -1,5 +1,6 @@
 import type { PartnerLifecycleSite } from '../../shared/gscdump-api'
 import { lifecycleSiteToSyncStatus } from '@gscdump/sdk/lifecycle'
+import { useProSiteInjection } from '#layers/pro-saas/app/composables/useProSiteInjection'
 
 interface TableProgress {
   name: string
@@ -47,22 +48,14 @@ const POLL_INTERVAL_SYNCING = 5000
 const POLL_INTERVAL_PERMISSION_LOST = 60000
 const DEMO_GSCDUMP_SITE_ID = 's_9dnsyZ8vVZNlH8'
 
-interface SiteShape {
-  gscdumpSiteId?: string | null
-  gscdumpSiteUrl?: string | null
-}
-
 export function useProGscStatus(siteId: MaybeRefOrGetter<string>) {
-  // TODO(pro-saas-cleanup): re-wire to canonical site injection once the V1
-  // site context composable lands. For now this fetches the site directly so
-  // pro-gsc can stand alone of the deleted `useProSiteInjection`.
+  // The layout's Site, not a second read of the same endpoint. This used to
+  // keep its own `pro-gsc:site:` key and its own `.catch(() => null)`, so the
+  // same Site was fetched twice and a 404 arrived here as "no Site", which the
+  // pages then read as "not connected". nuxtseo.com's `useProGscStatus` reads
+  // the same injection (ADR-0012 names it a sanctioned direct consumer).
   const proFetch = useProFetch()
-  const { data: siteData } = useAsyncData(
-    () => `pro-gsc:site:${toValue(siteId)}`,
-    () => proFetch<{ site: SiteShape }>(`/api/pro/sites/${toValue(siteId)}`).then(r => r.site).catch(() => null),
-    { watch: [() => toValue(siteId)] },
-  )
-  const site = computed<SiteShape | null>(() => siteData.value ?? null)
+  const { site } = useProSiteInjection(siteId)
   const gscdumpSiteId = computed(() => site.value?.gscdumpSiteId)
 
   const syncData = ref<GscSyncStatus | null>(null)
@@ -251,7 +244,13 @@ export function useProGscStatus(siteId: MaybeRefOrGetter<string>) {
     }
   })
 
+  // Only a resolved Site can be "not connected". While the lookup is in flight,
+  // or when it failed, there is nothing to say about this Site's Search Console
+  // connection, and saying "not connected" put the sample-data shell on screen
+  // for a Site that does not exist (D5).
   const isNotConnected = computed(() => {
+    if (!site.value)
+      return false
     if (error.value)
       return true
     return !gscdumpSiteId.value

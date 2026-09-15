@@ -2,6 +2,7 @@ import type { AuthProviderId } from '#layers/pro-saas-auth/shared/types/auth'
 import { desc, eq } from 'drizzle-orm'
 import { googleAccounts } from '~~/layers/core/server/db/schema'
 import { logger } from '~~/shared/server/logger'
+import { lookupUser } from '~~/shared/server/user-lookup'
 import * as schema from '#layers/pro-saas/server/database'
 import { buildGscSessionFields } from '../utils/gsc-session-fields'
 import { hasAuthenticatedSession } from '../utils/session-auth-state'
@@ -16,14 +17,20 @@ export default defineNitroPlugin(() => {
     // Admin impersonation: swap session user if cookie is set
     const impersonateUserId = getCookie(event, 'nuxt-seo-impersonate')
     if (impersonateUserId && isAdminEmail(session.user?.email ?? null)) {
-      const impersonatedUser = await db.query.users.findFirst({
+      const impersonated = await lookupUser(() => db.query.users.findFirst({
         where: eq(schema.users.userId, impersonateUserId),
-      }).catch(() => null)
-      if (impersonatedUser) {
+      }))
+      if (impersonated._tag === 'Unavailable')
+        logger.error('[session] impersonation target lookup failed:', impersonated.cause)
+      if (impersonated._tag === 'Found') {
+        const impersonatedUser = impersonated.user
         const primary = await db.query.userIdentities.findFirst({
           where: eq(schema.userIdentities.userId, impersonatedUser.id),
           orderBy: [desc(schema.userIdentities.lastUsedAt)],
-        }).catch(() => null)
+        }).catch((error: unknown) => {
+          logger.error('[session] impersonation identity lookup failed:', error)
+          return null
+        })
         session.impersonating = {
           adminEmail: session.user.email ?? '',
           targetUserId: impersonatedUser.id,
@@ -40,14 +47,24 @@ export default defineNitroPlugin(() => {
       }
     }
 
-    const user = await db.query.users.findFirst({
+    const lookup = await lookupUser(() => db.query.users.findFirst({
       where: eq(schema.users.userId, session.user!.id),
-    }).catch(() => null)
+    }))
 
-    if (!user) {
+    // A read that never answered is not evidence the account is gone. Skip
+    // enrichment for this one request and leave the sealed session alone; only
+    // a definitive miss may clear it (D4: a D1 blip signed the owner out).
+    if (lookup._tag === 'Unavailable') {
+      logger.error('[session] user lookup unavailable, session kept:', lookup.cause)
+      return
+    }
+
+    if (lookup._tag === 'NotFound') {
       await clearUserSession(event)
       return
     }
+
+    const user = lookup.user
 
     // Remap session.user from the primary identity row. Provider-agnostic
     // shape (id/name/avatarUrl/authProvider) on every authenticated request.
@@ -55,7 +72,10 @@ export default defineNitroPlugin(() => {
     const allIdentities = await db.query.userIdentities.findMany({
       where: eq(schema.userIdentities.userId, user.userId),
       orderBy: [desc(schema.userIdentities.lastUsedAt)],
-    }).catch(() => [])
+    }).catch((error: unknown) => {
+      logger.error('[session] identity lookup failed:', error)
+      return []
+    })
     const primaryIdentity = allIdentities[0] ?? null
     const primaryIdentityEmail = primaryIdentity?.email ?? null
 
@@ -72,7 +92,10 @@ export default defineNitroPlugin(() => {
 
     // The dashboard chrome reads `session.team` for the workspace label.
     const currentTeam = user.currentTeamId
-      ? await db.query.teams.findFirst({ where: eq(schema.teams.teamId, user.currentTeamId) }).catch(() => null)
+      ? await db.query.teams.findFirst({ where: eq(schema.teams.teamId, user.currentTeamId) }).catch((error: unknown) => {
+          logger.error('[session] team lookup failed:', error)
+          return null
+        })
       : null
     session.team = currentTeam
       ? {

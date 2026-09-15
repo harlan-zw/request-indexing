@@ -55,6 +55,11 @@ function persist() {
 }
 
 function classifyTone(img: HTMLImageElement): FaviconTone {
+  // An image the browser has not decoded yet carries no pixels, so sampling it
+  // would memo a blank canvas as this domain's tone for the whole session.
+  if (!img.naturalWidth || !img.naturalHeight)
+    return 'unknown'
+
   const n = 32
   const canvas = document.createElement('canvas')
   canvas.width = n
@@ -109,14 +114,24 @@ export function useFaviconBacking(domain: () => string) {
   })
   watch(domain, d => (tone.value = memo.get(d) ?? 'unknown'))
 
-  function onLoad(e: Event) {
+  /**
+   * Classify the favicon `image` and remember the result for its domain.
+   *
+   * Takes the element, never the `load` event that carried it. A cached
+   * favicon is `complete` before hydration, so no real `load` event ever
+   * fires and the caller has to sample it from `onMounted`. This used to take
+   * the event, so that caller built one: `e.target` is `null` on a synthetic
+   * event, `drawImage(null)` threw out of `onMounted`, and every dashboard
+   * page rendered Nuxt's 500 for anyone whose cache was warm.
+   */
+  function sample(image: HTMLImageElement) {
     const key = domain()
     const cached = memo.get(key)
     if (cached) {
       tone.value = cached
       return
     }
-    const t = classifyTone(e.target as HTMLImageElement)
+    const t = classifyTone(image)
     memo.set(key, t)
     persist()
     tone.value = t
@@ -137,5 +152,5 @@ export function useFaviconBacking(domain: () => string) {
     return 'none'
   })
 
-  return { backing, onLoad }
+  return { backing, sample }
 }

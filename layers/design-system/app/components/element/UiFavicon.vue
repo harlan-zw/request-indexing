@@ -87,19 +87,19 @@ const showFallback = computed(() => failed.value || !cleanDomain.value)
 // favicon would vanish, so a single softened token covers both cases: the 80%
 // opacity keeps it a muted chip rather than a stark card while staying light/dark
 // enough for the glyph to read.
-const { backing, onLoad } = useFaviconBacking(() => cleanDomain.value)
-function markBlankOrBack(image: HTMLImageElement, event: Event) {
+const { backing, sample } = useFaviconBacking(() => cleanDomain.value)
+function markBlankOrBack(image: HTMLImageElement) {
   if (isBlankFaviconSize(image.naturalWidth, image.naturalHeight)) {
     failed.value = true
     return
   }
-  onLoad(event)
+  sample(image)
 }
 
 function handleLoad(event: Event) {
   const image = event.currentTarget
   if (image instanceof HTMLImageElement)
-    markBlankOrBack(image, event)
+    markBlankOrBack(image)
 }
 
 const imageEl = ref<HTMLImageElement | null>(null)
@@ -109,11 +109,12 @@ const imageEl = ref<HTMLImageElement | null>(null)
 // the blank 1x1 the proxy returns for a site with no favicon renders as an
 // empty box instead of the initial. Re-run the same check once on mount, which
 // is after hydration, so the branch swap is a normal update rather than a
-// mismatch.
+// mismatch. The check takes the element for both entry points, so there is no
+// synthetic event to build and nothing null can reach the canvas.
 onMounted(() => {
   const image = imageEl.value
   if (image?.complete && image.naturalWidth)
-    markBlankOrBack(image, new Event('load'))
+    markBlankOrBack(image)
 })
 const attrs = useAttrs()
 </script>
@@ -144,7 +145,7 @@ const attrs = useAttrs()
   <!--
     Always the SAME element shape (span > img) regardless of `backing` — only
     its classes react. `backing` flips from a client-only canvas sample
-    (`useFaviconBacking`) that can resolve via `onMounted`/`onLoad` before a
+    (`useFaviconBacking`) that can resolve via `onMounted`/`load` before a
     later same-domain favicon elsewhere on the page finishes its OWN hydration
     compare (Suspense-chunked hydration interleaves mount callbacks between
     chunks). A `v-if`/`v-else` swap between a bare `<img>` and a wrapping

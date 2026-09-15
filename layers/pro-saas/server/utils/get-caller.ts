@@ -8,6 +8,8 @@ import type { AuthProviderId } from '#layers/pro-saas-auth/shared/types/auth'
 import type { Caller } from '../../shared/caller'
 import type { User } from '../database'
 import { desc, eq } from 'drizzle-orm'
+import { logger } from '~~/shared/server/logger'
+import { lookupUser } from '~~/shared/server/user-lookup'
 import { ProError } from '../../shared/errors'
 import { teamMemberships, teams, userIdentities, users } from '../database'
 
@@ -89,7 +91,10 @@ async function loadPrimaryIdentity(
     .where(eq(userIdentities.userId, userId))
     .orderBy(desc(userIdentities.lastUsedAt))
     .all()
-    .catch(() => [])
+    .catch((error: unknown) => {
+      logger.error('[get-caller] identity lookup failed:', error)
+      return []
+    })
   const primary = rows[0]
     ? {
         provider: rows[0].provider as AuthProviderId,
@@ -145,13 +150,24 @@ export async function getCaller(event: H3Event): Promise<Caller | null> {
     ctx[CACHE_KEY] = null
     return null
   }
-  const user = await db.query.users.findFirst({ where: eq(users.userId, session.user.id) })
-  if (!user) {
+  const lookup = await lookupUser(() => db.query.users.findFirst({ where: eq(users.userId, session.user!.id) }))
+
+  // A read the database never answered says nothing about the account. Fail
+  // this request and keep the sealed session; nothing is memoized, so the next
+  // request re-reads (D4).
+  if (lookup._tag === 'Unavailable') {
+    logger.error('[get-caller] user lookup unavailable:', lookup.cause)
+    throw createError({ statusCode: 503, message: 'Service unavailable' })
+  }
+
+  if (lookup._tag === 'NotFound') {
     // User row gone; clear the stale cookie so the client knows.
     await clearUserSession(event)
     ctx[CACHE_KEY] = null
     return null
   }
+
+  const user = lookup.user
   const [{ primary, providers }, memberships] = await Promise.all([
     loadPrimaryIdentity(db, user.userId),
     loadMemberships(db, user.userId),

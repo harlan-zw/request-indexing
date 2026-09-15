@@ -11,13 +11,27 @@ definePageMeta({
 
 const onSessionExpired = createSessionExpiredHandler()
 
-// Top-level await, so an unhandled 401 here failed the whole page and reported
-// as an error. An expired cookie ends at login instead.
-const preview = await readSessionScoped(() => $fetch<{ sites: SitesPreview }>('/api/sites/preview'))
-if (preview._tag === 'SessionExpired')
-  await onSessionExpired()
+// A bare `$fetch` forwards no cookies during the server render, so this read
+// answered 401 on EVERY server render. The page then tried to sign the user out
+// and navigate to login from a Nuxt context the top-level await had already
+// left, and the whole document came back 500 (D2). `useRequestFetch` sends the
+// incoming request's own cookies, so the server render sees the same session
+// the browser does.
+const requestFetch = useRequestFetch()
+const { data: preview } = await useAsyncData(
+  'pro-saas:team-settings:sites-preview',
+  () => readSessionScoped(() => requestFetch<{ sites: SitesPreview }>('/api/sites/preview')),
+)
 
-const sites = computed<SitesPreview>(() => preview._tag === 'Ready' ? preview.value.sites : [])
+// Leaving for the login page is a client move. During a server render the auth
+// middleware already owns that decision, and `navigateTo` from here cannot
+// reach the Nuxt instance anyway.
+onMounted(async () => {
+  if (preview.value?._tag === 'SessionExpired')
+    await onSessionExpired()
+})
+
+const sites = computed<SitesPreview>(() => preview.value?._tag === 'Ready' ? preview.value.value.sites : [])
 </script>
 
 <template>
