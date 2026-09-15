@@ -8,22 +8,25 @@ const { data: comparisons } = await useAsyncData('all-comparisons', () =>
 
 useSeoMeta({
   title: 'Request Indexing comparisons',
-  description: 'How Request Indexing differs from Indexly, SEO Gets, TagParrot, OmegaIndexer, and the rest of the Google indexing tools landscape.',
+  description: 'Compare Request Indexing with Indexly and SEO Gets, or choose a replacement workflow after Tag Parrot closed.',
 })
 
 defineOgImage('Page', {
   headline: 'Comparisons',
   title: 'Request Indexing vs the rest',
-  description: 'Honest side-by-sides with every major alternative.',
+  description: 'Indexly, SEO Gets, and a replacement workflow for Tag Parrot.',
 })
 </script>
 
 <template>
   <div>
+    <h1 class="sr-only">
+      Request Indexing comparisons
+    </h1>
     <UPageSection
       headline="Comparisons"
       title="Request Indexing vs the rest"
-      description="Honest side-by-sides with every major alternative — what they do well, where we differ, when to pick which."
+      description="Compare Indexly and SEO Gets with Request Indexing. Find a replacement workflow for the closed Tag Parrot service."
       :ui="{ container: 'max-w-7xl', title: 'font-title' }"
     >
       <UPageGrid>
