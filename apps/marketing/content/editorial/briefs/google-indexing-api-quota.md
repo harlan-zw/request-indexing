@@ -1,0 +1,38 @@
+# Brief: google-indexing-api-quota
+
+State: brief reviewed. Parent revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
+Owner: product_writer. Brief reviewer: sources_reviewer. Coordinator: request_content_lead.
+
+Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../../VERIFIED-CLAIMS.md), [SCREENSHOTS](../../SCREENSHOTS.md), and the root glossary.
+
+- File: `guides/google-indexing-api-quota.md`; stable route: `/google-indexing-api-quota`.
+- Reader: Developer debugging quotas.
+- Question: Which limit applies to this request?
+- Outcome: Separate project quota, testing approval, per-minute limits and app limits.
+- Claim IDs: GOOGLE-02, GOOGLE-03, GOOGLE-08, GOOGLE-10, GOOGLE-11, PRODUCT-03. Source dates and qualifications remain in the shared ledger.
+- Search evidence: no current measured demand. NuxtSEO unavailable; locale/Site unresolved. Old research is discovery only.
+- Contribution: A ten-notification example shows why one HTTP batch still uses ten project requests, while app and Google reset clocks stay separate.
+- Progressive outline: Identify interface; quota table scoped to project; Pacific reset example with timezone caveat; approval form; diagnose reason; batching arithmetic; no invented failure charging.
+- Exclusions: unsupported content efficacy, ranking promises, undocumented detection signals, invented tests, unrelated roadmap, and unverified pricing.
+- Related articles, only at a natural decision: bulk-submit-urls-google-indexing-api, google-indexing-api-tutorial.
+- Navigation: Google Indexing Guides; retain current route. Do not add Markdown H1 beneath the rendered title.
+- Dates: preserve publishedAt. Set updatedAt only after actual rewrite and review.
+- Visual plan: No screenshot required for this decision-focused article. Add only if a real control/result materially clarifies the task.
+- Execution boundary: examples must pass syntax/type or mocked protocol checks as appropriate. No authenticated API submission is claimed. A sequential loop is not multipart batching; a per-run limit is not durable project-wide quota.
+- Checks: factual review before humanization; both humanize passes with changes recorded; post-humanize meaning review; one H1, metadata/canonical, internal links/fragments, desktop/mobile render, code/table overflow, FAQ/schema consistency.
+
+## Definitive sources
+
+- https://developers.google.com/search/apis/indexing-api/v3/quickstart
+- https://developers.google.com/search/apis/indexing-api/v3/using-api
+- https://developers.google.com/search/apis/indexing-api/v3/prereqs
+- https://developers.google.com/search/apis/indexing-api/v3/quota-pricing
+- https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl
+
+Use the ledger's additional exact URLs where claim IDs require them. Open full sources during review.
+
+## Review record
+
+Brief review: approved by sources_reviewer on2026-09-15 against foundation files at cf640ac5; evidence in private brief-review.md. Writer response: pending.
+Factual draft review: pending. Humanize surface/structural changes: pending.
+Final article review: pending. Rendered evidence: pending. Coordinator decision: pending.
