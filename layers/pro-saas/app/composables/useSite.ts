@@ -1,31 +1,20 @@
 import { useProGscStatus } from '#layers/pro-gsc/app/composables/useProGscStatus'
+import { useSiteResource } from './useSiteResource'
 
 /**
  * Site context for every `/pro/dashboard/sites/:id` page. The route param is
  * the site's `s_` public id; `/api/pro/sites/:id` resolves it and returns the
  * fields the pages read.
+ *
+ * `site` is null only while the lookup is in flight or when the read failed.
+ * An id that names nothing never reaches a page: `pro-site.global.ts` answers
+ * 404 for it first.
  */
-interface SiteShape {
-  id?: string
-  publicId?: string
-  url?: string
-  name?: string | null
-  domain?: string | null
-  property?: string
-  gscdumpSiteId?: string | null
-  gscdumpSiteUrl?: string | null
-}
-
 export function useSite(pageTitle?: string) {
   const route = useRoute()
   const siteId = computed(() => route.params.id as string)
 
-  const proFetch = useProFetch()
-  const { data: site, status: siteStatus } = useAsyncData<SiteShape | null>(
-    () => `pro-saas:site:${siteId.value}`,
-    () => proFetch<{ site: SiteShape }>(`/api/pro/sites/${siteId.value}`).then(r => r.site).catch(() => null),
-    { watch: [siteId] },
-  )
+  const { lookup, site, status: siteStatus } = useSiteResource(siteId)
 
   const gscdumpSiteId = computed(() => site.value?.gscdumpSiteId)
 
@@ -50,6 +39,7 @@ export function useSite(pageTitle?: string) {
   return {
     siteId,
     site,
+    siteLookup: lookup,
     siteStatus,
     gscdumpSiteId,
     siteName,
