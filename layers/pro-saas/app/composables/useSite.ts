@@ -1,20 +1,23 @@
 import { useProGscStatus } from '#layers/pro-gsc/app/composables/useProGscStatus'
-import { useSiteResource } from './useSiteResource'
+import { useProSiteInjection } from './useProSiteInjection'
 
 /**
- * Site context for every `/pro/dashboard/sites/:id` page. The route param is
- * the site's `s_` public id; `/api/pro/sites/:id` resolves it and returns the
- * fields the pages read.
+ * The only site-scope read for a page or component under the dashboard shell.
  *
- * `site` is null only while the lookup is in flight or when the read failed.
- * An id that names nothing never reaches a page: `pro-site.global.ts` answers
- * 404 for it first.
+ * Follows nuxtseo.com `layers/pro/sites/app/composables/useSite.ts` and its
+ * ADR-0012: the layout owns the fetch and provides the Site, this consumes the
+ * injection, and no page derives its own reactive site read from the route.
+ * GSC readiness flags ride along because they are the common check at site
+ * scope; the full sync surface is still `useProGscStatus`.
+ *
+ * A route id that names no Site never reaches a page: the layout answers 404
+ * for it first.
  */
 export function useSite(pageTitle?: string) {
   const route = useRoute()
   const siteId = computed(() => route.params.id as string)
 
-  const { lookup, site, status: siteStatus } = useSiteResource(siteId)
+  const { site, siteStatus } = useProSiteInjection(siteId)
 
   const gscdumpSiteId = computed(() => site.value?.gscdumpSiteId)
 
@@ -39,7 +42,6 @@ export function useSite(pageTitle?: string) {
   return {
     siteId,
     site,
-    siteLookup: lookup,
     siteStatus,
     gscdumpSiteId,
     siteName,

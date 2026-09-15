@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifySiteLookupFailure, extractSiteRouteId, readSiteLookup } from './site-lookup'
+import { classifySiteLookupFailure, readSiteLookup } from './site-lookup'
 
 describe('classifySiteLookupFailure', () => {
   it('reads a 404 as a Site that does not exist', () => {
@@ -10,24 +10,6 @@ describe('classifySiteLookupFailure', () => {
     expect(classifySiteLookupFailure({ statusCode: 500 })).toEqual({ _tag: 'Unavailable', status: 500 })
     expect(classifySiteLookupFailure({ statusCode: 401 })).toEqual({ _tag: 'Unavailable', status: 401 })
     expect(classifySiteLookupFailure(new Error('network down'))).toEqual({ _tag: 'Unavailable', status: null })
-  })
-})
-
-describe('extractSiteRouteId', () => {
-  it('reads the id out of a Site scoped path', () => {
-    expect(extractSiteRouteId('/pro/dashboard/sites/s_kv1109/search-console')).toBe('s_kv1109')
-    expect(extractSiteRouteId('/pro/dashboard/sites/s_kv1109')).toBe('s_kv1109')
-    expect(extractSiteRouteId('/pro/dashboard/sites/harlanzw.com/search-console')).toBe('harlanzw.com')
-  })
-
-  it('decodes an escaped id', () => {
-    expect(extractSiteRouteId('/pro/dashboard/sites/s_a%20b/settings')).toBe('s_a b')
-  })
-
-  it('ignores a path that names no Site', () => {
-    expect(extractSiteRouteId('/pro/dashboard/sites')).toBeNull()
-    expect(extractSiteRouteId('/pro/dashboard')).toBeNull()
-    expect(extractSiteRouteId('/pro/dashboard/team/settings')).toBeNull()
   })
 })
 

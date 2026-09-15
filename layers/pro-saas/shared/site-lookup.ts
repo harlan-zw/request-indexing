@@ -5,6 +5,10 @@
 // Search Console connection yet", so an id that named nothing answered 200 and
 // rendered the sample-data shell (prod play-through 2026-09-16, D5). A missing
 // Site is a 404, a failed read is neither, and the two must not share a value.
+//
+// This is the same split nuxtseo.com's site layout makes with
+// `queryErrorStatusCode(siteError) === 404`, kept as a value so the layout and
+// the injection fallback cannot disagree about it.
 
 import { errorStatusCode } from '#shared/sentry'
 
@@ -44,23 +48,10 @@ export function classifySiteLookupFailure(cause: unknown): SiteLookup {
   return { _tag: 'Unavailable', status: status ?? null }
 }
 
-const SITE_ROUTE_PATTERN = /^\/pro\/dashboard\/sites\/([^/]+)(?:\/|$)/
-
-/**
- * The Site id a dashboard path names, or null when the path is not Site
- * scoped. `/pro/dashboard/sites` itself is the roster, not a Site.
- */
-export function extractSiteRouteId(path: string): string | null {
-  const match = SITE_ROUTE_PATTERN.exec(path.split('?')[0] ?? '')
-  if (!match)
-    return null
-  return decodeURIComponent(match[1]!) || null
-}
-
 /**
  * Read one Site through `fetchSite` and tag the outcome.
  *
- * The fetcher is an argument so the route middleware, the composable and the
+ * The fetcher is an argument so the layout, the injection fallback and the
  * tests all drive the same decision. The `catch` here is not a swallow: it
  * turns the failure into a value the caller has to branch on.
  */

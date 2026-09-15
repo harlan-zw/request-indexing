@@ -1,6 +1,6 @@
 import type { PartnerLifecycleSite } from '../../shared/gscdump-api'
 import { lifecycleSiteToSyncStatus } from '@gscdump/sdk/lifecycle'
-import { useSiteResource } from '#layers/pro-saas/app/composables/useSiteResource'
+import { useProSiteInjection } from '#layers/pro-saas/app/composables/useProSiteInjection'
 
 interface TableProgress {
   name: string
@@ -49,12 +49,13 @@ const POLL_INTERVAL_PERMISSION_LOST = 60000
 const DEMO_GSCDUMP_SITE_ID = 's_9dnsyZ8vVZNlH8'
 
 export function useProGscStatus(siteId: MaybeRefOrGetter<string>) {
-  // One shared read of `/api/pro/sites/:id` with `useSite`. This used to keep
-  // its own `pro-gsc:site:` key and its own `.catch(() => null)`, so the same
-  // Site was fetched twice and a 404 arrived here as "no Site", which the
-  // pages then read as "not connected".
+  // The layout's Site, not a second read of the same endpoint. This used to
+  // keep its own `pro-gsc:site:` key and its own `.catch(() => null)`, so the
+  // same Site was fetched twice and a 404 arrived here as "no Site", which the
+  // pages then read as "not connected". nuxtseo.com's `useProGscStatus` reads
+  // the same injection (ADR-0012 names it a sanctioned direct consumer).
   const proFetch = useProFetch()
-  const { site } = useSiteResource(siteId)
+  const { site } = useProSiteInjection(siteId)
   const gscdumpSiteId = computed(() => site.value?.gscdumpSiteId)
 
   const syncData = ref<GscSyncStatus | null>(null)
