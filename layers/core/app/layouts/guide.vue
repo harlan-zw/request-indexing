@@ -79,4 +79,26 @@ const breadcrumbs = useBreadcrumbItems()
 :deep(:not(pre) > code) {
   overflow-wrap: anywhere;
 }
+
+:deep(figure > img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+}
+
+:deep(figure > figcaption) {
+  margin-top: 0.75rem;
+  color: var(--ui-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+:deep(figure > figcaption a) {
+  color: inherit;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
 </style>

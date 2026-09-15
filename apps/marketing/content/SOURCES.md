@@ -19,6 +19,7 @@ Open each full supporting page. Discovery patterns are not citations.
 
 - https://developers.google.com/search/apis/indexing-api/v3/quickstart
 - https://developers.google.com/search/apis/indexing-api/v3/prereqs
+- https://docs.cloud.google.com/iam/docs/keys-create-delete
 - https://developers.google.com/search/apis/indexing-api/v3/quota-pricing
 - https://developers.google.com/search/apis/indexing-api/v3/using-api
 - https://developers.google.com/search/apis/indexing-api/v3/reference/indexing/rest/v3/urlNotifications

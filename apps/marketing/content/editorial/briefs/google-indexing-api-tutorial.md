@@ -1,6 +1,6 @@
 # Brief: google-indexing-api-tutorial
 
-State: article reviewed. Original brief base Git revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
+State: draft ready; screenshot followup under review. Original brief base Git revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
 Owner: product_writer. Brief reviewer: sources_reviewer. Coordinator: request_content_lead.
 
 Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../../VERIFIED-CLAIMS.md), [SCREENSHOTS](../../SCREENSHOTS.md), and the root glossary.
@@ -17,7 +17,7 @@ Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../..
 - Related articles, only at a natural decision: google-indexing-api-quota, google-indexing-api-node-js.
 - Navigation: Google Indexing Guides; retain current route. Do not add Markdown H1 beneath the rendered title.
 - Dates: preserve publishedAt. Set updatedAt only after actual rewrite and review.
-- Visual plan: Current control detail only if authorized setup UI is available; coordinator owns capture. Otherwise explain steps clearly and record unavailable visual evidence.
+- Visual plan: Cloud API status, service-account form, and Search Console owner-permission detail captured. Coordinator owns capture.
 - Execution boundary: examples must pass syntax/type or mocked protocol checks as appropriate. No authenticated API submission is claimed. A sequential loop is not multipart batching; a per-run limit is not durable project-wide quota.
 - Checks: factual review before humanization; both humanize passes with changes recorded; post-humanize meaning review; one H1, metadata/canonical, internal links/fragments, desktop/mobile render, code/table overflow, FAQ/schema consistency.
 
@@ -31,7 +31,7 @@ Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../..
 
 Use the ledger's additional exact URLs where claim IDs require them. Open full sources during review.
 
-## Current review status
+## Previous accepted revision, before screenshot followup
 
 Article reviewed on 15 September 2026. Accepted Git revision: `89dd568eda983e68e7132dd2265ef8a6e54fc7f4`.
 Article SHA256 file digest at that revision: `f63beba239e00edf6ab6130654db1dd4758cf9bf730152b8b9a0577330c88372`.
@@ -69,3 +69,15 @@ Structural pass: kept the common task first; removed repeated conclusions and ed
 - "The following example uses Node.js24 and Google's official `googleapis` client." → "Use Node.js 24 and Google's official `googleapis` client."
 - 'The example was checked with the real client and intercepted HTTP responses. Credential exchange and a live Google notification were not tested.' → 'Verification used the real client with intercepted HTTP responses. Credential exchange and live Google notifications remain untested.'
 Meaning recheck: claim scopes, URLs, dates, examples and execution limitations preserved. Vendor mechanism uncertainty and per-user tool denominator retained. Executable code unchanged. Independent humanized review was requested at this stage and subsequently approved.
+
+## Current screenshot followup
+
+Root added three genuine setup figures and step-local instructions. Factual review by sources_reviewer accepted their controls, privacy and density.
+Reviewer requested the final Create action in the JSON-key sequence; root included it from the current key guide.
+The source screenshots prove displayed controls only. No credentials, accounts, permissions or API resources were created or changed.
+Both Cloud and Search Console forms were cancelled. The Search Console connection recovered before its final capture.
+New screenshot prose and rendered figure checks are being reviewed; the previous article digest above remains historical.
+
+Humanize surface pass: changed "An already-enabled project shows" to a direct conditional; shortened alt text to useful UI state.
+Humanize structural pass: removed the closing screenshot-verification summary, which repeated the captions and execution boundary.
+Meaning check: retained already-enabled state, optional Cloud roles, final key Create action, caption dates/redaction, and separate Search Console ownership. The Owner dialog adds current controls without claiming successful authorization.

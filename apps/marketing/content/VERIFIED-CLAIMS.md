@@ -77,3 +77,12 @@ Do not treat the old check count as a new run when changing dependencies.
 On 15 September 2026, the writer and independent reviewer reran the [durable example harness](editorial/examples-check/README.md).
 It extracts current article fences into scratch storage and checks publish success, failure, mixed bulk results, and metadata.
 All four cases passed. This is a new run with the recorded versions, not a replacement for the earlier evidence.
+
+## Setup screenshot evidence, 15 September 2026
+
+- CLOUD-UI-01, Observed: signed-in Cloud API Library displayed Web Search Indexing API, Manage, and API Enabled. This proves the displayed state only.
+- CLOUD-UI-02, Observed: the empty Create service account form displayed Permissions (optional). It was cancelled without submitting.
+- CLOUD-KEY-01, Documented: the current Cloud key guide uses Keys, Add key, Create new key, JSON, then Create. See https://docs.cloud.google.com/iam/docs/keys-create-delete. No key was created in this check.
+- GSC-UI-01, Observed: Settings → Users and permissions → Add user opens an email field and Permission selector with Owner. Captured with blank email and Owner selected, then cancelled. No access was granted; credential authorization remains untested.
+
+Capture geometry, redaction and publication status belong in SCREENSHOTS.md. Private source files remain outside Git.

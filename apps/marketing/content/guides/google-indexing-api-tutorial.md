@@ -21,17 +21,40 @@ Google's default quota covers onboarding and testing. Additional approval is req
 
 ## Set up credentials and property access
 
-Follow [Google's prerequisites](https://developers.google.com/search/apis/indexing-api/v3/prereqs) for these account steps:
+[Google's prerequisites](https://developers.google.com/search/apis/indexing-api/v3/prereqs) separate Cloud setup from Search Console ownership. Complete both before running the script.
 
-1. Create or select a Google Cloud project and enable the Indexing API.
-2. Create a service account in that project. The optional Cloud IAM role step is not required by this setup.
-3. Create its JSON key and keep it outside your repository. The key contains credentials; do not place it in browser code or a public directory.
-4. Verify ownership of the matching property in Search Console.
-5. Add the service account's `client_email` as a delegated owner of that property.
+### Enable the Indexing API
+
+Create or select a Google Cloud project. In the [API Library](https://console.cloud.google.com/apis/library/indexing.googleapis.com), find **Web Search Indexing API** (1) and enable it for that project. If the API is already enabled, you will see **Manage** and **API Enabled** (2).
+
+<figure>
+  <img :zoom="false" src="/images/guides/indexing-api-enabled-2026-09-15.png" alt="Web Search Indexing API details showing Manage and API Enabled." width="650" height="230" loading="lazy">
+  <figcaption>Captured on 15 September 2026 in a project where the API was already enabled. Account and project details are cropped out.<br><a href="/images/guides/indexing-api-enabled-2026-09-15.png">Open the API status at full size</a>.</figcaption>
+</figure>
+
+### Create the service account and key
+
+Open **IAM & Admin → Service Accounts → Create service account**. Give the account a name (1). The **Permissions (optional)** step (2) grants Cloud IAM roles; it is not required for this Indexing API setup.
+
+<figure>
+  <img :zoom="false" src="/images/guides/service-account-form-2026-09-15.png" alt="Empty Create service account form showing the name field and optional Permissions step." width="630" height="525" loading="lazy">
+  <figcaption>Captured on 15 September 2026. The project email preview is redacted. The form was cancelled without creating an account.<br><a href="/images/guides/service-account-form-2026-09-15.png">Open the service account form at full size</a>.</figcaption>
+</figure>
+
+After creating the account, open its **Keys** tab and choose **Add key → Create new key → JSON → Create**. Google's [key creation guide](https://docs.cloud.google.com/iam/docs/keys-create-delete) covers that separate step. Keep the downloaded JSON file outside Git, browser code, and public directories.
+
+### Grant Search Console ownership
+
+Verify ownership of the matching property in Search Console. Open **Settings → Users and permissions → Add user**.
+
+Enter the service account's `client_email` in **Email address** (1). Select **Owner** under **Permission** (2), then choose **Add**. This grants delegated ownership, as required by [Google's owner setup](https://developers.google.com/search/apis/indexing-api/v3/prereqs).
+
+<figure>
+  <img :zoom="false" src="/images/guides/search-console-owner-2026-09-15.png" alt="Add user dialog with an empty email field and Owner permission selected." width="540" height="301" loading="lazy">
+  <figcaption>Captured on 15 September 2026. The dialog was cancelled with the email field empty; no access was granted.<br><a href="/images/guides/search-console-owner-2026-09-15.png">Open the permissions dialog at full size</a>.</figcaption>
+</figure>
 
 Being a Cloud project owner does not grant ownership of a Search Console property. Check the property covers the URL you intend to notify Google about.
-
-These are documentation-based steps. This walkthrough did not create a project, key, or property owner during verification.
 
 ## Send the first notification
 

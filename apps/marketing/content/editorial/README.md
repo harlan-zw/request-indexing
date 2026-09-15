@@ -25,7 +25,7 @@ Prioritize reader problems and verified source gaps; no measured demand claim is
 | --- | --- | --- | --- |
 | guides/indexing-api-for-blog-posts.md | /indexing-api-for-blog-posts | Can I use this API for my blog, and what should I do instead? | article reviewed |
 | guides/google-indexing-api.md | /google-indexing-api | What does the API support and what does a response mean? | article reviewed |
-| guides/google-indexing-api-tutorial.md | /google-indexing-api-tutorial | How do I configure eligible access and send a first notification? | article reviewed |
+| guides/google-indexing-api-tutorial.md | /google-indexing-api-tutorial | How do I configure eligible access and send a first notification? | screenshot followup under review |
 | guides/google-indexing-api-quota.md | /google-indexing-api-quota | Which quota applies and how do I request approval? | article reviewed |
 | guides/google-indexing-api-node-js.md | /google-indexing-api-node-js | How do I send and interpret a notification from Node.js? | article reviewed |
 | guides/bulk-submit-urls-google-indexing-api.md | /bulk-submit-urls-google-indexing-api | How do bulk calls, failures, and quota interact? | article reviewed |
@@ -48,13 +48,13 @@ Production build passed with these editorial records present. Final generated si
 
 ## Article acceptance and delivery
 
-All nine articles are reviewed as of 15 September 2026.
+The nine text articles were reviewed on 15 September 2026. The setup tutorial now has a screenshot followup under review.
 product_writer drafted and applied both humanize passes. sources_reviewer independently approved factual and humanized revisions.
 Root accepted the pilot. request_content_lead verified 11 routes across 22 desktop/mobile renders and 11 HTTP route checks.
 The five editorial exclusion routes return404. Screenshots for Node, bulk and comparisons were inspected.
 Existing tests passed: 32 files, 184 tests. Targeted ESLint and full typecheck passed.
 Production build passed after the final inline-code wrapping repair. Article PR #77 and foundation PR #75 are open for review; live publication is not recorded as verified.
-No authenticated setup screenshots or live Google authorization, notification, or indexing tests were performed.
+Initial text review included no authenticated screenshots. The later Cloud and Search Console screenshot captures is recorded in SCREENSHOTS.md; live Google authorization, notification, and indexing tests remain unperformed.
 
 Final CI found five executable-fence formatting errors that the earlier targeted renderer lint did not cover.
 After formatting those fences, `pnpm exec eslint .` passed across the repository.

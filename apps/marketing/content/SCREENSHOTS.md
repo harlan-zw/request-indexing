@@ -1,18 +1,20 @@
 # Article screenshots
 
 Use real captures only when a visual helps the reader find or interpret a control.
-This collection starts without article screenshots. Text-only articles remain valid when a screenshot adds no instruction.
+The setup tutorial includes real Cloud and Search Console screenshots. Text-only articles remain valid when no visual is needed.
+Required captures stay outstanding if browser access fails; record the next action.
 No authenticated submission is authorized by this capture procedure.
 
 ## Capture
 
-The collection coordinator owns the browser. Use `dev-browser --help` and a unique named page.
+The collection coordinator owns the browser. Check the user-selected Chrome connection first, including Codex browser tools.
+If that connection is unavailable, use `dev-browser --help` and a unique named page. Recheck after browser restarts.
 If DISPLAY is empty, use `dev-browser --headless`. Existing signed-in Chrome uses `--connect` after inspecting its tabs.
 Open controls and cancel forms. Do not create Cloud projects, keys, owners, or indexing submissions for a screenshot.
 
 Save private captures and editable manifests under `~/scratch/request-indexing-content-dogfood/`.
 Publish only sanitized exports under `apps/marketing/public/images/guides/`, served as `/images/guides/` by the marketing layer.
-Use native PNG capture at two source pixels per intended CSS pixel. Measure decoded dimensions against the CSS capture region.
+Use native PNG capture at least two source pixels per intended CSS pixel. Measure decoded dimensions against the CSS capture region.
 Do not upscale, sharpen, or reconstruct blurry UI. Recapture it.
 
 ## Annotation and privacy
@@ -35,8 +37,27 @@ Close named task pages. Never run `dev-browser stop`.
 
 ## Verified examples
 
-Pending first justified capture. Do not copy gscdump renderer paths or invent a completed visual check.
+Three setup control captures are integrated in the setup tutorial. Do not infer live API success from these views.
 The pilot explains supported use and ordinary-page alternatives; it needs no screenshot to establish that boundary.
 A setup-guide control detail is the first candidate. Browser connection availability is checked before declaring that capture unavailable.
 
-Availability check15September2026: `dev-browser --connect` failed to discover remote-debugging Chrome. Local unsigned rendering works. No authenticated Cloud setup capture is currently available.
+Initial check on 15 September 2026: Chrome discovery failed. The connection later recovered, and all three planned captures are complete.
+
+## Capture followup, 15 September 2026
+
+Codex Chrome control returned `CUA_REPL_ENABLED_SURFACES is required`. After the user restarted, dev-browser connected to signed-in Chrome.
+Cloud API details and the empty service-account form were captured at 1200×900 CSS with 2×device density. Native PNGs are 2400×1800.
+Exports: API status 1300×460, display cap 650×230; service-account form 1260×1050, cap 630×525.
+The account header was cropped out. The project email preview received an opaque pixel redaction. No account or key was created.
+Private raw files, geometry manifest, redaction and lossless overlay scripts: `~/scratch/request-indexing-screenshots-20260915/`.
+The setup form was cancelled. The Cloud service was already enabled; capture did not enable it.
+
+The Search Console connection recovered using a dedicated `dev-browser --browser request-indexing-chrome --connect` session.
+The Add user dialog shows a blank email field and Owner selected. The dialog was cancelled without granting access.
+The native source is 3320×1834. Its 540×301 CSS dialog crop exports 2160×1204, preserving four source pixels per display pixel.
+Browser zoom and device density interact. Measure the actual source against element bounds before choosing crop density.
+The crop excludes the account header, property details, and user table. All three planned captures are complete.
+
+Final checks: all three exports preserve sampled source text pixels and contain no EXIF. Build, typecheck, and ESLint pass.
+The tutorial renders at 390px without overflow. Full-size links work by keyboard. Captions are 14px and readable in both themes.
+The unsigned local preview reports missing production credentials. Live API authorization and notification tests remain outside this capture check.
