@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ONBOARDING_ROUTE,
   onboardingStepIndex,
+  parseOnboardingCompletedFlag,
   parseOnboardingStep,
   resolveOnboardingCompletion,
   resolveOnboardingGate,
@@ -126,5 +127,25 @@ describe('resolveOnboardingCompletion', () => {
       _tag: 'AlreadyComplete',
       completedAt: '2026-09-01T00:00:00.000Z',
     })
+  })
+})
+
+describe('parseOnboardingCompletedFlag', () => {
+  it('treats an absent or non-string flag as finished onboarding', () => {
+    expect(parseOnboardingCompletedFlag(undefined)).toBe(true)
+    expect(parseOnboardingCompletedFlag(null)).toBe(true)
+    expect(parseOnboardingCompletedFlag(['0'])).toBe(true)
+  })
+
+  it('reads the opt-out spellings as unfinished onboarding', () => {
+    expect(parseOnboardingCompletedFlag('0')).toBe(false)
+    expect(parseOnboardingCompletedFlag('false')).toBe(false)
+    expect(parseOnboardingCompletedFlag('No')).toBe(false)
+  })
+
+  it('keeps every other value on the finished side', () => {
+    expect(parseOnboardingCompletedFlag('1')).toBe(true)
+    expect(parseOnboardingCompletedFlag('')).toBe(true)
+    expect(parseOnboardingCompletedFlag('yes')).toBe(true)
   })
 })

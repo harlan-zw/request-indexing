@@ -154,3 +154,17 @@ export function resolveOnboardingCompletion(input: OnboardingCompletionInput): O
 
   return { _tag: 'Complete', completedAt: input.now.toISOString() }
 }
+
+/**
+ * Read an untrusted "onboarding is already finished" flag once, at the
+ * boundary. `0`, `false` and `no` mean the account has not finished
+ * onboarding. Every other value, an absent one included, means it has.
+ *
+ * Only the dev sign-in route uses this today. It lives here because the flag
+ * decides which side of the onboarding gate an account starts on.
+ */
+export function parseOnboardingCompletedFlag(value: unknown): boolean {
+  if (typeof value !== 'string')
+    return true
+  return !['0', 'false', 'no'].includes(value.toLowerCase())
+}
