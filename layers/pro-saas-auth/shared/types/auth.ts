@@ -34,7 +34,7 @@ export interface SessionUser {
 
 export interface AuthHookContextBase {
   event: H3Event
-  user: { id: number, apiKey: string | null, source: string | null }
+  user: { id: number, source: string | null }
   identity: AuthIdentityRow
   sourceCookie?: 'pro-free' | null
 }

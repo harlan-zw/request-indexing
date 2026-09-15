@@ -111,8 +111,6 @@ async function deleteAccount() {
 
 <template>
   <div class="space-y-10">
-    <ProAccountApiKey />
-
     <section>
       <h2 class="mb-2 flex items-center gap-1.5 text-lg font-bold">
         <UIcon name="i-heroicons-lock-closed" />

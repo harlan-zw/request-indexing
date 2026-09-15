@@ -7,7 +7,6 @@ export interface ProSaasFeatures {
   invitations: boolean
   onboarding: boolean
   profilePhotos: boolean
-  teamApiTokens: boolean
   teams: boolean
 }
 
@@ -22,7 +21,6 @@ export const defaultProSaasFeatures = {
   invitations: true,
   onboarding: true,
   profilePhotos: false,
-  teamApiTokens: true,
   teams: true,
 } as const satisfies ProSaasFeatures
 

@@ -10,6 +10,7 @@ import type {
   DataQueryOptions,
   GscdumpAnalysisParams,
   GscdumpAvailableSite,
+  GscdumpUserSite,
   IndexingDiagnosticsParams,
   IndexingUrlsParams,
   RegisterPartnerUserParams,
@@ -26,15 +27,15 @@ import type {
 import { GSCDUMP_ONBOARDING_CONTRACT_VERSION } from '@gscdump/contracts'
 import { withDefaultSearchType } from '@gscdump/sdk/hosted-query'
 import {
+  analyticsStatusToSyncStatus,
   findLifecycleSite as findSdkLifecycleSite,
   lifecycleSiteToSyncStatus as lifecycleSdkSiteToSyncStatus,
-  lifecycleSiteToUserSite as lifecycleSdkSiteToUserSite,
 } from '@gscdump/sdk/lifecycle'
 import { isGscdumpV1Error } from '@gscdump/sdk/v1'
 import { CANONICAL_WEBHOOK_EVENTS } from '@gscdump/sdk/webhook'
 import { createGscdumpPublicV1Client } from './gscdump-origin'
 
-export { analyticsStatusToSyncStatus } from '@gscdump/sdk/lifecycle'
+export { analyticsStatusToSyncStatus }
 export type { GscdumpAvailableSite }
 
 export function findLifecycleSite(lifecycle: PartnerLifecycleResponse, siteIdOrPropertyUrl: string): PartnerLifecycleSite | null {
@@ -45,8 +46,38 @@ export function lifecycleSiteToSyncStatus(site: PartnerLifecycleSite): ReturnTyp
   return lifecycleSdkSiteToSyncStatus(site as never)
 }
 
-export function lifecycleSiteToUserSite(site: PartnerLifecycleSite): ReturnType<typeof lifecycleSdkSiteToUserSite> {
-  return lifecycleSdkSiteToUserSite(site as never)
+// `PartnerLifecycleSite.indexing.reason` is an open `string | null` on the wire,
+// while `GscdumpUserSite.indexingIneligibleReason` is a closed union. Narrow it
+// once here; an unrecognised reason means "no known reason", not a crash.
+const INDEXING_INELIGIBLE_REASONS = ['free_plan', 'missing_gsc_read_scope', 'insufficient_gsc_permission'] as const
+
+function narrowIndexingIneligibleReason(reason: string | null): GscdumpUserSite['indexingIneligibleReason'] {
+  return INDEXING_INELIGIBLE_REASONS.find(known => known === reason)
+}
+
+// SDK 3.x dropped `lifecycleSiteToUserSite`, so the projection lives here now.
+// `GscdumpUserSite` is still a contracts type, so this is a pure re-shape of the
+// lifecycle row, not a new local model.
+export function lifecycleSiteToUserSite(site: PartnerLifecycleSite): GscdumpUserSite {
+  const syncStatus = analyticsStatusToSyncStatus(site.analytics.status)
+  return {
+    siteId: site.siteId,
+    siteUrl: site.gscPropertyUrl || site.requestedUrl,
+    analyticsSyncStatus: syncStatus,
+    analyticsSyncProgress: site.analytics.progress,
+    syncStatus,
+    syncProgress: site.analytics.progress,
+    indexingEligible: site.indexing.eligible,
+    indexingIneligibleReason: narrowIndexingIneligibleReason(site.indexing.reason),
+    indexingPermissionLevel: site.permissionLevel,
+    indexingStatus: site.indexing.status === 'ready'
+      ? 'complete'
+      : site.indexing.status === 'not_requested' ? 'not_started' : 'indexing',
+    indexingProgress: site.indexing.progress,
+    lastSyncAt: site.updatedAt ? Date.parse(site.updatedAt) : null,
+    newestDateSynced: site.analytics.syncedRange.newest,
+    oldestDateSynced: site.analytics.syncedRange.oldest,
+  }
 }
 
 export function useGscdumpClient() {

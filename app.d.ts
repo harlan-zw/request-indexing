@@ -12,7 +12,6 @@ module '#auth-utils' {
     currentTeamId: number | null
   }
   export interface UserSession {
-    apiKey?: string
     /**
      * Current team, populated by the session `fetch` hook. Null when the user
      * has no `currentTeamId`. The dashboard layouts read `team.onboardedStep`
@@ -24,6 +23,16 @@ module '#auth-utils' {
      * yet, which is what the connect prompt keys off.
      */
     gscdumpUserId?: string | null
+    /**
+     * Search Console grant state, published as one block by
+     * `buildGscSessionFields`. `pro-gate.global.ts` and both
+     * integration-readiness policies read these.
+     */
+    gscConnected?: boolean
+    gscEmail?: string | null
+    googleScopes?: string | null
+    gscIndexingScope?: boolean
+    gscSitemapsScope?: boolean
     team?: {
       teamId: number
       name: string

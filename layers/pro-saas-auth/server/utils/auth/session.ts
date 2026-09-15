@@ -17,14 +17,10 @@ export function buildSessionUser(
 
 export async function setAuthSession(
   event: H3Event,
-  user: { id: number, apiKey: string | null, currentTeamId: number | null },
+  user: { id: number, currentTeamId: number | null },
   identity: AuthIdentityRow,
 ) {
-  const sessionUser = buildSessionUser(user, identity)
-  await setUserSession(event, {
-    user: sessionUser,
-    apiKey: user.apiKey ?? undefined,
-  })
+  await setUserSession(event, { user: buildSessionUser(user, identity) })
 }
 
 export function rememberLastProvider(_event: H3Event, _providerId: AuthProviderId) {
