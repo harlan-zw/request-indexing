@@ -1,6 +1,6 @@
 # Brief: google-indexing-api-tutorial
 
-State: draft ready; screenshot followup under review. Original brief base Git revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
+State: reviewed; screenshot followup accepted. Original brief base Git revision: cf640ac56542cca8850b2ce3ab773f35c8910e21.
 Owner: product_writer. Brief reviewer: sources_reviewer. Coordinator: request_content_lead.
 
 Read [COPY](../../COPY.md), [SOURCES](../../SOURCES.md), [VERIFIED-CLAIMS](../../VERIFIED-CLAIMS.md), [SCREENSHOTS](../../SCREENSHOTS.md), and the root glossary.
@@ -76,8 +76,12 @@ Root added three genuine setup figures and step-local instructions. Factual revi
 Reviewer requested the final Create action in the JSON-key sequence; root included it from the current key guide.
 The source screenshots prove displayed controls only. No credentials, accounts, permissions or API resources were created or changed.
 Both Cloud and Search Console forms were cancelled. The Search Console connection recovered before its final capture.
-New screenshot prose and rendered figure checks are being reviewed; the previous article digest above remains historical.
+Final three-figure prose and mobile, desktop, and dark renders were accepted by sources_reviewer at 95/100. Root accepted the review. The previous article digest above remains historical.
 
 Humanize surface pass: changed "An already-enabled project shows" to a direct conditional; shortened alt text to useful UI state.
 Humanize structural pass: removed the closing screenshot-verification summary, which repeated the captions and execution boundary.
 Meaning check: retained already-enabled state, optional Cloud roles, final key Create action, caption dates/redaction, and separate Search Console ownership. The Owner dialog adds current controls without claiming successful authorization.
+
+Final screenshot revision: `de440eb2ddf88dff2c04fc9df92df51007addfa4`.
+Article SHA256: `fc510d47300e0a4899dc31d5a9482a33b3d96d1ea2bdaa9a33d0adf26c67f4fb`.
+All 184 tests, build, typecheck, ESLint, native pixel checks, and keyboard full-size navigation pass.
