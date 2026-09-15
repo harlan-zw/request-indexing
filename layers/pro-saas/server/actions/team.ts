@@ -9,13 +9,13 @@ import { dispatchEvent } from '#domain-events/server'
 import { findIdentityByProviderEmail } from '#layers/pro-saas-auth/server/utils/auth/identity'
 import { ProError } from '../../shared/errors'
 import {
-  sites,
   teamInvitations,
   teamMemberships,
   teams,
   userIdentities,
   users,
 } from '../database'
+import { purgeTeamSites } from '../utils/site-rows'
 
 type DB = ReturnType<typeof useDrizzle>
 type CreateTeamInput = z.infer<typeof teamCreateSchema>
@@ -97,9 +97,9 @@ export async function deleteTeam(event: H3Event, ctx: CurrentTeamContext) {
     .where(eq(users.currentTeamId, ctx.team.teamId))
 
   // `sites.team_id` is ON DELETE RESTRICT, so the team's sites go first or the
-  // team delete below fails. It used to purge by creator, which both missed a
-  // teammate's site and took the caller's sites in other teams with it.
-  await ctx.db.delete(sites).where(eq(sites.teamId, ctx.team.teamId))
+  // team delete below fails. Child rows (`team_sites`, `user_sites`, usages,
+  // indexing rows) go before the sites, since D1 runs no cascades.
+  await purgeTeamSites(ctx.db, ctx.team.teamId)
   await ctx.db.delete(teams).where(eq(teams.teamId, ctx.team.teamId))
 
   if (ctx.team.gscdumpTeamId) {
