@@ -22,7 +22,7 @@
     "release": "bumpp",
     "test": "vitest run",
     "typecheck": "nuxt typecheck",
-    "checkin": "nuxt-checkin prepare && nuxt-checkin"
+    "checkin": "nuxt-checkin prepare && nuxt-checkin --save"
   },
   "dependencies": {
     "@gscdump/contracts": "catalog:",
