@@ -11,7 +11,6 @@
 
 export {
   adminEvents,
-  dataforseoRequests,
   failedJobs,
   feedback,
   googleAccounts,
