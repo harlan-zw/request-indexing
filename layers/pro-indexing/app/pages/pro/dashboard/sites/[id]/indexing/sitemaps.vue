@@ -4,7 +4,9 @@ import { useProGscdumpSitemapChanges, useProGscdumpSitemaps } from '#layers/pro-
 
 definePageMeta({ proTab: { feature: 'indexing', label: 'Sitemaps', icon: 'i-lucide-map', order: 20 } })
 
-const { gscdumpSiteId } = useSite()
+const { gscdumpSiteId, isNotConnected } = useSite()
+const route = useRoute()
+const gscConnectUrl = computed(() => `/auth/integrations/gsc/connect?returnTo=${encodeURIComponent(route.fullPath)}`)
 const { period } = useSitePeriod()
 const dateRange = computed(() => periodToDateRange(period.value))
 const periodLabel = computed(() => {
@@ -205,140 +207,156 @@ function sitemapHealth(r: SitemapRow): SemanticStatus {
 
 <template>
   <div class="flex flex-col *:min-w-0">
-    <!-- ═══ HERO ZONE ═══ -->
-    <ProPageZone tier="primary" first>
-      <UiStats :data="heroStats" variant="cards" />
+    <!-- Nothing to load until Search Console is connected. Without this the
+         page sits on its skeleton forever, because the sitemap reads never
+         fire and `loading` only clears when data arrives. -->
+    <UiEmptyState
+      v-if="isNotConnected"
+      icon="i-lucide-map"
+      title="Connect Google Search Console"
+      description="Sitemap health comes from Search Console. Connect this site's property to see its registered sitemaps."
+    >
+      <UiMotionButton :to="gscConnectUrl" external size="xs" icon="i-simple-icons-google">
+        Connect Search Console
+      </UiMotionButton>
+    </UiEmptyState>
 
-      <!-- Alerts -->
-      <Alert
-        v-for="alert in healthAlerts"
-        :key="alert.title"
-        :color="alert.color"
-        :icon="alert.icon"
-        :title="alert.title"
-        :description="alert.description"
-      >
-        <template v-if="alert.action" #action>
-          <UiMotionButton :to="alert.action.to" size="xs" color="neutral" variant="subtle" icon="i-lucide-scan-search">
-            {{ alert.action.label }}
+    <template v-else>
+      <!-- ═══ HERO ZONE ═══ -->
+      <ProPageZone tier="primary" first>
+        <UiStats :data="heroStats" variant="cards" />
+
+        <!-- Alerts -->
+        <UiAlert
+          v-for="alert in healthAlerts"
+          :key="alert.title"
+          :status="alert.color"
+          :icon="alert.icon"
+          :title="alert.title"
+          :description="alert.description"
+        >
+          <template v-if="alert.action" #action>
+            <UiMotionButton :to="alert.action.to" size="xs" color="neutral" variant="subtle" icon="i-lucide-scan-search">
+              {{ alert.action.label }}
+            </UiMotionButton>
+          </template>
+        </UiAlert>
+      </ProPageZone>
+
+      <!-- ═══ SECONDARY ZONE ═══ -->
+      <ProPageZone tier="secondary">
+        <!-- Loading -->
+        <UiCard v-if="loading">
+          <UiSkeleton :lines="4" :base="200" :range="100" />
+        </UiCard>
+
+        <!-- Empty -->
+        <UiEmptyState
+          v-else-if="!rows.length"
+          icon="i-lucide-file-x"
+          title="No sitemaps found"
+          description="No sitemaps registered in Google Search Console."
+        >
+          <UiMotionButton
+            v-if="sitemapsData?.meta?.siteUrl"
+            :to="gscConsoleUrl({ siteLabel: sitemapsData.meta.siteUrl, resource: 'sitemaps' })"
+            target="_blank"
+            size="xs"
+            color="primary"
+            variant="subtle"
+            trailing-icon="i-lucide-external-link"
+          >
+            Open Search Console
           </UiMotionButton>
-        </template>
-      </Alert>
-    </ProPageZone>
+        </UiEmptyState>
 
-    <!-- ═══ SECONDARY ZONE ═══ -->
-    <ProPageZone tier="secondary">
-      <!-- Loading -->
-      <Card v-if="loading">
-        <UiSkeleton :lines="4" :base="200" :range="100" />
-      </Card>
-
-      <!-- Empty -->
-      <EmptyState
-        v-else-if="!rows.length"
-        icon="i-lucide-file-x"
-        title="No sitemaps found"
-        description="No sitemaps registered in Google Search Console."
-      >
-        <UiMotionButton
-          v-if="sitemapsData?.meta?.siteUrl"
-          :to="gscConsoleUrl({ siteLabel: sitemapsData.meta.siteUrl, resource: 'sitemaps' })"
-          target="_blank"
-          size="xs"
-          color="primary"
-          variant="subtle"
-          trailing-icon="i-lucide-external-link"
-        >
-          Open Search Console
-        </UiMotionButton>
-      </EmptyState>
-
-      <!-- Sitemaps + URL Changes side by side -->
-      <ProSecondaryGrid v-if="!loading && rows.length" layout="equal">
-        <DataList
-          title="Sitemaps"
-          icon="i-lucide-file-text"
-          :items="rows"
-          :metric-label="`${useProHumanFriendlyNumber(totalUrls)} URLs`"
-          :bar-value="(item: SitemapRow) => item.urlCount"
-          :bar-total="totalUrls"
-        >
-          <template #default="{ item }: { item: SitemapRow }">
-            <div class="relative z-1 flex items-center justify-between w-full gap-3 py-0.5">
-              <div class="flex items-center gap-2 min-w-0 flex-1">
-                <DotLabel :dot-class="semanticColors[sitemapHealth(item)].dot" dot-size="2">
-                  <span class="text-sm text-default truncate">{{ item.name }}</span>
-                </DotLabel>
-                <UTooltip v-if="item.contentChanged" text="Content changed recently">
-                  <UIcon name="i-lucide-refresh-cw" class="size-3 text-dimmed shrink-0" />
-                </UTooltip>
+        <!-- Sitemaps + URL Changes side by side -->
+        <ProSecondaryGrid v-if="!loading && rows.length" layout="equal">
+          <UiDataList
+            title="Sitemaps"
+            icon="i-lucide-file-text"
+            :items="rows"
+            :metric-label="`${useProHumanFriendlyNumber(totalUrls)} URLs`"
+            :bar-value="(item: SitemapRow) => item.urlCount"
+            :bar-total="totalUrls"
+          >
+            <template #default="{ item }: { item: SitemapRow }">
+              <div class="relative z-1 flex items-center justify-between w-full gap-3 py-0.5">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  <UiDotLabel :dot-class="semanticColors[sitemapHealth(item)].dot" dot-size="2">
+                    <span class="text-sm text-default truncate">{{ item.name }}</span>
+                  </UiDotLabel>
+                  <UTooltip v-if="item.contentChanged" text="Content changed recently">
+                    <UIcon name="i-lucide-refresh-cw" class="size-3 text-dimmed shrink-0" />
+                  </UTooltip>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-[13px] tabular-nums text-default font-semibold">{{ useProHumanFriendlyNumber(item.urlCount) }}</span>
+                  <UiChip v-if="item.urlDelta !== 0" :status="item.urlDelta > 0 ? 'success' : 'error'" tabular>
+                    {{ item.urlDelta > 0 ? '+' : '' }}{{ item.urlDelta }}
+                  </UiChip>
+                </div>
               </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[13px] tabular-nums text-default font-semibold">{{ useProHumanFriendlyNumber(item.urlCount) }}</span>
-                <Chip v-if="item.urlDelta !== 0" :tone="item.urlDelta > 0 ? 'success' : 'error'" tabular>
-                  {{ item.urlDelta > 0 ? '+' : '' }}{{ item.urlDelta }}
-                </Chip>
+            </template>
+          </UiDataList>
+
+          <UiDataList
+            v-if="(hasUrlChanges || contentChangeDates.size > 0) && urlChangeTimeline.length > 1"
+            title="URL Changes"
+            icon="i-lucide-git-commit"
+            :items="recentUrlChanges"
+            :metric-label="periodLabel"
+          >
+            <template #default="{ item }">
+              <div class="relative z-1 flex items-center justify-between w-full gap-3 py-0.5">
+                <span class="text-sm text-default">{{ formatShortDate(item.date) }}</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-[13px] tabular-nums text-muted">{{ useProHumanFriendlyNumber(item.urlCount) }} URLs</span>
+                  <UiChip v-if="item.urlDelta !== 0" :status="item.urlDelta > 0 ? 'success' : 'error'" tabular>
+                    {{ item.urlDelta > 0 ? '+' : '' }}{{ item.urlDelta }}
+                  </UiChip>
+                  <UTooltip v-if="contentChangeDates.has(item.date)" text="Content changed">
+                    <UIcon name="i-lucide-refresh-cw" class="size-3 text-dimmed shrink-0" />
+                  </UTooltip>
+                </div>
               </div>
-            </div>
-          </template>
-        </DataList>
+            </template>
+          </UiDataList>
+        </ProSecondaryGrid>
 
-        <DataList
-          v-if="(hasUrlChanges || contentChangeDates.size > 0) && urlChangeTimeline.length > 1"
-          title="URL Changes"
-          icon="i-lucide-git-commit"
-          :items="recentUrlChanges"
-          :metric-label="periodLabel"
-        >
-          <template #default="{ item }">
-            <div class="relative z-1 flex items-center justify-between w-full gap-3 py-0.5">
-              <span class="text-sm text-default">{{ formatShortDate(item.date) }}</span>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[13px] tabular-nums text-muted">{{ useProHumanFriendlyNumber(item.urlCount) }} URLs</span>
-                <Chip v-if="item.urlDelta !== 0" :tone="item.urlDelta > 0 ? 'success' : 'error'" tabular>
-                  {{ item.urlDelta > 0 ? '+' : '' }}{{ item.urlDelta }}
-                </Chip>
-                <UTooltip v-if="contentChangeDates.has(item.date)" text="Content changed">
-                  <UIcon name="i-lucide-refresh-cw" class="size-3 text-dimmed shrink-0" />
-                </UTooltip>
+        <!-- Recent changes -->
+        <ProSecondaryGrid v-if="recentAdded.length || recentRemoved.length" layout="equal">
+          <UiDataList
+            v-if="recentAdded.length"
+            title="Recently Added"
+            icon="i-lucide-plus"
+            :items="recentAdded"
+            :metric-label="changesData?.summary ? `${changesData.summary.totalAdded} total` : undefined"
+          >
+            <template #default="{ item }">
+              <a :href="item.url" target="_blank" rel="noopener" class="relative z-1 flex items-center gap-3 w-full group/url" @click.stop>
+                <span class="flex-1 min-w-0 text-[13px] text-muted truncate group-hover/url:text-default transition-colors" :title="item.url">{{ displayUrl(item.url) }}</span>
+                <span class="text-[11px] text-dimmed tabular-nums shrink-0">{{ relativeTime(item.ts) }}</span>
+              </a>
+            </template>
+          </UiDataList>
+
+          <UiDataList
+            v-if="recentRemoved.length"
+            title="Recently Removed"
+            icon="i-lucide-minus"
+            :items="recentRemoved"
+            :metric-label="changesData?.summary ? `${changesData.summary.totalRemoved} total` : undefined"
+          >
+            <template #default="{ item }">
+              <div class="relative z-1 flex items-center gap-3 w-full">
+                <span class="flex-1 min-w-0 text-[13px] text-dimmed truncate" :title="item.url">{{ displayUrl(item.url) }}</span>
+                <span class="text-[11px] text-dimmed tabular-nums shrink-0">{{ relativeTime(item.ts) }}</span>
               </div>
-            </div>
-          </template>
-        </DataList>
-      </ProSecondaryGrid>
-
-      <!-- Recent changes -->
-      <ProSecondaryGrid v-if="recentAdded.length || recentRemoved.length" layout="equal">
-        <DataList
-          v-if="recentAdded.length"
-          title="Recently Added"
-          icon="i-lucide-plus"
-          :items="recentAdded"
-          :metric-label="changesData?.summary ? `${changesData.summary.totalAdded} total` : undefined"
-        >
-          <template #default="{ item }">
-            <a :href="item.url" target="_blank" rel="noopener" class="relative z-1 flex items-center gap-3 w-full group/url" @click.stop>
-              <span class="flex-1 min-w-0 text-[13px] text-muted truncate group-hover/url:text-default transition-colors" :title="item.url">{{ displayUrl(item.url) }}</span>
-              <span class="text-[11px] text-dimmed tabular-nums shrink-0">{{ relativeTime(item.ts) }}</span>
-            </a>
-          </template>
-        </DataList>
-
-        <DataList
-          v-if="recentRemoved.length"
-          title="Recently Removed"
-          icon="i-lucide-minus"
-          :items="recentRemoved"
-          :metric-label="changesData?.summary ? `${changesData.summary.totalRemoved} total` : undefined"
-        >
-          <template #default="{ item }">
-            <div class="relative z-1 flex items-center gap-3 w-full">
-              <span class="flex-1 min-w-0 text-[13px] text-dimmed truncate" :title="item.url">{{ displayUrl(item.url) }}</span>
-              <span class="text-[11px] text-dimmed tabular-nums shrink-0">{{ relativeTime(item.ts) }}</span>
-            </div>
-          </template>
-        </DataList>
-      </ProSecondaryGrid>
-    </ProPageZone>
+            </template>
+          </UiDataList>
+        </ProSecondaryGrid>
+      </ProPageZone>
+    </template>
   </div>
 </template>
