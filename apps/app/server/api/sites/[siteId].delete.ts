@@ -14,11 +14,8 @@ import { eq } from 'drizzle-orm'
 import {
   indexingInvestigations,
   indexingJobs,
-  relatedKeywords,
   siteDateAnalytics,
   siteDateCountryAnalytics,
-  siteKeywordDateAnalytics,
-  siteKeywordDatePathAnalytics,
   sitePathDateAnalytics,
   sitePaths,
   teamSites,
@@ -45,12 +42,9 @@ export default defineProApiHandler(async (event) => {
   // a shared array of table refs) so drizzle keeps each `siteId` column's own
   // brand — a generic loop over mixed table types loses that and breaks typing.
   const childDeletes: Array<() => Promise<unknown>> = [
-    () => db.delete(relatedKeywords).where(eq(relatedKeywords.siteId, site.siteId)),
     () => db.delete(siteDateAnalytics).where(eq(siteDateAnalytics.siteId, site.siteId)),
     () => db.delete(siteDateCountryAnalytics).where(eq(siteDateCountryAnalytics.siteId, site.siteId)),
     () => db.delete(sitePathDateAnalytics).where(eq(sitePathDateAnalytics.siteId, site.siteId)),
-    () => db.delete(siteKeywordDateAnalytics).where(eq(siteKeywordDateAnalytics.siteId, site.siteId)),
-    () => db.delete(siteKeywordDatePathAnalytics).where(eq(siteKeywordDatePathAnalytics.siteId, site.siteId)),
     () => db.delete(sitePaths).where(eq(sitePaths.siteId, site.siteId)),
     () => db.delete(usages).where(eq(usages.siteId, site.siteId)),
     () => db.delete(userSites).where(eq(userSites.siteId, site.siteId)),

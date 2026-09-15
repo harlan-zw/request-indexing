@@ -27,13 +27,10 @@ import {
   jobs,
   notifications,
   proEvents,
-  relatedKeywords,
   sessions,
   siteDateAnalytics,
   siteDateCountryAnalytics,
   siteGroups,
-  siteKeywordDateAnalytics,
-  siteKeywordDatePathAnalytics,
   sitePathDateAnalytics,
   sitePaths,
   sites,
@@ -230,24 +227,9 @@ export async function deleteUserData(event: H3Event, opts: DeleteUserOptions): P
       run: () => hasSites() ? db.delete(sitePathDateAnalytics).where(inArray(sitePathDateAnalytics.siteId, siteIds)) : Promise.resolve(),
     },
     {
-      table: 'site_keyword_date_analytics',
-      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_keyword_date_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
-      run: () => hasSites() ? db.delete(siteKeywordDateAnalytics).where(inArray(siteKeywordDateAnalytics.siteId, siteIds)) : Promise.resolve(),
-    },
-    {
-      table: 'site_keyword_date_path_analytics',
-      count: () => hasSites() ? scalar(db, sql`select count(*) as c from site_keyword_date_path_analytics where site_id in ${siteList()}`) : Promise.resolve(0),
-      run: () => hasSites() ? db.delete(siteKeywordDatePathAnalytics).where(inArray(siteKeywordDatePathAnalytics.siteId, siteIds)) : Promise.resolve(),
-    },
-    {
       table: 'usages',
       count: () => hasSites() ? scalar(db, sql`select count(*) as c from usages where site_id in ${siteList()}`) : Promise.resolve(0),
       run: () => hasSites() ? db.delete(usages).where(inArray(usages.siteId, siteIds)) : Promise.resolve(),
-    },
-    {
-      table: 'related_keywords',
-      count: () => hasSites() ? scalar(db, sql`select count(*) as c from related_keywords where site_id in ${siteList()}`) : Promise.resolve(0),
-      run: () => hasSites() ? db.delete(relatedKeywords).where(inArray(relatedKeywords.siteId, siteIds)) : Promise.resolve(),
     },
     {
       table: 'indexing_jobs',

@@ -280,31 +280,6 @@ export const sitePathDateAnalytics = sqliteTable('site_path_date_analytics', {
 
 export type SiteUrlDateAnalyticsSelect = typeof sitePathDateAnalytics.$inferSelect
 
-export const keywords = sqliteTable('keywords', {
-  keywordId: integer('keyword_id').notNull().primaryKey(),
-  keyword: text('keyword').notNull().unique(),
-
-  // googleAdsPayload: text('google_ads_data', { mode: 'json' }).$type<GenerateKeywordIdeaResponse>(),
-  competitionIndex: integer('competition_index'),
-  competition: text('competition'),
-  monthlySearchVolumes: text('monthly_search_volumes', { mode: 'json' }).$type<{ date: string, value: number }[]>(),
-  avgMonthlySearches: integer('avg_monthly_searches'),
-  currentMonthSearchVolume: integer('current_month_search_volume'),
-  averageCpcMicros: integer('average_cpc_micros'),
-  lastSynced: integer('last_synced'),
-
-  ...timestamps,
-})
-
-export const relatedKeywords = sqliteTable('related_keywords', {
-  // composite key for keywords.keywordId and keywords.keywordId
-  keywordId: integer('keyword_id').notNull().references(() => keywords.keywordId),
-  relatedKeywordId: integer('related_keyword_id').notNull().references(() => keywords.keywordId),
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
-}, t => ({
-  unq: unique().on(t.keywordId, t.relatedKeywordId, t.siteId),
-}))
-
 // TODO siteUsages (need to figure out billing but more granular is better)
 export const usages = sqliteTable('usages', {
   siteId: integer('site_id').notNull().references(() => sites.siteId),
@@ -316,31 +291,6 @@ export const usages = sqliteTable('usages', {
     unq: unique().on(t.siteId, t.date, t.key),
   }
 })
-
-export const siteKeywordDateAnalytics = sqliteTable('site_keyword_date_analytics', {
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
-  date: text('date').notNull(), // all data for a path
-  keyword: text('keyword').notNull(),
-  ...googleSearchConsolePageAnalytics,
-  ...timestamps,
-}, t => ({
-  unq: unique().on(t.siteId, t.date, t.keyword),
-}))
-
-export const siteKeywordDatePathAnalytics = sqliteTable('site_keyword_date_path_analytics', {
-  siteId: integer('site_id').notNull().references(() => sites.siteId),
-  date: text('date').notNull(), // all data for a path
-  keyword: text('keyword').notNull(),
-  path: text('path').notNull(),
-  country: text('country').notNull(),
-  device: text('device').notNull(),
-  ...googleSearchConsolePageAnalytics,
-  ...timestamps,
-}, t => ({
-  unq: unique().on(t.siteId, t.date, t.keyword, t.path, t.country, t.device),
-}))
-
-export type SiteKeywordDateAnalyticsSelect = typeof sitePathDateAnalytics.$inferSelect
 
 // allow users to hide sites within a team dashboard, also track their permission level to a site
 export const userSites = sqliteTable('user_sites', {

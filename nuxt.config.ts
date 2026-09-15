@@ -358,10 +358,6 @@ export default defineNuxtConfig({
       // NUXT_DATAFORSEO_DAILY_BUDGET_USD.
       dailyBudgetUsd: '5',
     },
-    google: {
-      adsClientId: '',
-      adsClientSecret: '',
-    },
     public: {
       baseUrl: 'https://requestindexing.com',
       indexing: {
