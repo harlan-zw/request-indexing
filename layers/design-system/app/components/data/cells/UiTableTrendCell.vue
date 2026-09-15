@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { UiTableDash, UiTrend } from '#components'
+import { calcTrendPercent } from '../../../composables/formatting'
+
 const {
   current,
   previous,
@@ -15,7 +19,7 @@ const {
 }>()
 
 // Raw change only. UiTrend owns the `inverted` handling, so applying it here
-// too would flip the sign against the arrow and the colour.
+// too flips the sign back against the arrow and the colour.
 const percent = computed(() => {
   if (current == null || !previous)
     return null
@@ -26,8 +30,8 @@ const alignClass = computed(() => align === 'right' ? 'justify-end' : align === 
 </script>
 
 <template>
-  <div class="flex items-baseline" :class="alignClass">
-    <TableDash v-if="percent === null" />
+  <div class="flex items-center" :class="alignClass">
+    <UiTableDash v-if="percent === null" />
     <UiTrend v-else :value="percent" format="percent" :inverted="inverted" :size="size" />
   </div>
 </template>

@@ -9,16 +9,6 @@ export function percentChange(current: number, prev: number): number {
 }
 
 /**
- * Percentage delta between current and previous, suitable for trend cells.
- * `inverted` flips the sign so a decrease reads as a positive change
- * (e.g. average ranking position, where lower is better).
- */
-export function calcTrendPercent(current: number, previous: number, inverted = false): number {
-  const pct = percentChange(current, previous)
-  return inverted ? -pct : pct
-}
-
-/**
  * Metric keys whose value is a percentage and must always carry a `%` suffix.
  * CTR used to render as the raw ratio `0.074` on stat cards and as `3.6%` in
  * table cells; routing both through here keeps one unit per metric.
@@ -72,7 +62,13 @@ export function metricLabel(key: string): string {
 export function clamp(value: number, arr: readonly unknown[]): number
 export function clamp(value: number, min: number, max: number): number
 export function clamp(value: number, a: number | readonly unknown[], b?: number): number {
-  const min = typeof a === 'number' ? a : 0
-  const max = typeof a === 'number' ? b ?? min : a.length - 1
+  if (isReadonlyArray(a))
+    return Math.min(Math.max(value, 0), a.length - 1)
+  const min = a
+  const max = b ?? min
   return Math.min(Math.max(value, min), max)
+}
+
+function isReadonlyArray(value: number | readonly unknown[]): value is readonly unknown[] {
+  return Array.isArray(value)
 }
