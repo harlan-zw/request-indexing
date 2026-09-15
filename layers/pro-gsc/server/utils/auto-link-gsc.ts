@@ -16,7 +16,7 @@ import { updateOnboardingState } from './onboarding'
 export async function autoLinkGsc(opts: {
   db: ReturnType<typeof useDrizzle>
   gscdumpUserId: string
-  siteId: number
+  siteId: string
   origin: string
   preferredSiteUrl?: string
   /** Pre-fetched available sites (for bulk operations) */
@@ -26,7 +26,7 @@ export async function autoLinkGsc(opts: {
   const gscdump = useGscdumpClient()
 
   // Idempotency guard: return early if already linked
-  const [existing] = await db.select({ gscdumpSiteId: sites.gscdumpSiteId }).from(sites).where(eq(sites.siteId, siteId))
+  const [existing] = await db.select({ gscdumpSiteId: sites.gscdumpSiteId }).from(sites).where(eq(sites.id, siteId))
   if (existing?.gscdumpSiteId)
     return existing.gscdumpSiteId
 
@@ -94,11 +94,11 @@ export async function autoLinkGsc(opts: {
   if (gscdumpSiteId) {
     await db.update(sites)
       .set({ gscdumpSiteId, gscdumpSiteUrl })
-      .where(eq(sites.siteId, siteId))
+      .where(eq(sites.id, siteId))
 
     // Update onboarding state to reflect GSC connection
     // Look up the user who owns this site
-    const [siteRow] = await db.select({ userId: sites.ownerId }).from(sites).where(eq(sites.siteId, siteId))
+    const [siteRow] = await db.select({ userId: sites.ownerId }).from(sites).where(eq(sites.id, siteId))
     if (siteRow?.userId) {
       await updateOnboardingState(siteRow.userId, {
         setupChecklist: { siteAdded: true, gscConnected: true },

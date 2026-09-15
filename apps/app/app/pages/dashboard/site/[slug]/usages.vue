@@ -12,8 +12,8 @@ definePageMeta({
 // The endpoint returns a bare array of `{ key, usage }` summed for the current
 // calendar month. It is not period-scoped, so this page carries no date range.
 const { data, status, error, refresh } = await useAsyncData(
-  `usages:${site.siteId}`,
-  () => $fetch<Array<{ key: string, usage: number }>>(`/api/sites/${site.siteId}/usages`),
+  `usages:${site.publicId}`,
+  () => $fetch<Array<{ key: string, usage: number }>>(`/api/sites/${site.publicId}/usages`),
   { server: false },
 )
 

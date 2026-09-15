@@ -22,7 +22,7 @@ export default defineJob({
           lt(sites.lastSynced, startOfDay(new Date()).getTime()),
         ),
       ))
-      .leftJoin(sites, eq(teamSites.siteId, sites.siteId))
+      .leftJoin(sites, eq(teamSites.siteId, sites.id))
 
     await Promise.all(
       teamsSites.map(row =>

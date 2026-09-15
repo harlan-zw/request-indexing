@@ -15,10 +15,9 @@ const sites = computed(() => sitesData.value?.sites || [])
 // during setup. On a server render the roster is not resolved at that moment,
 // so `site` was `undefined` forever, `site.domain` below threw, and every
 // hard load of this route 500'd while client-side navigation worked.
-// `/api/sites/list` returns `sites.public_id` ("kv1112") as `siteId`, while the
-// row type declares the integer primary key. Compare as strings until that type
-// is honest, so the match does not depend on the lie.
-const site = computed(() => sites.value.find(s => String(s.siteId) === slug))
+// `/api/sites/list` names the public id `siteId` (see `SiteFleetRow`), not
+// `publicId`, which is the raw `sites` table column.
+const site = computed(() => sites.value.find(s => s.siteId === slug))
 
 // Only a loaded roster can prove a slug is wrong. Throwing while `sitesData`
 // is still null would turn "not fetched yet" into "does not exist".

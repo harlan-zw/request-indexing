@@ -13,7 +13,7 @@ export default defineProApiHandler({ team: true }, async ({ team: ctx }) => {
     property: sites.property,
   })
     .from(sites)
-    .innerJoin(teamSites, and(eq(sites.siteId, teamSites.siteId), eq(teamSites.teamId, ctx.team.teamId)))
+    .innerJoin(teamSites, and(eq(sites.id, teamSites.siteId), eq(teamSites.teamId, ctx.team.teamId)))
     .where(eq(sites.active, true))
     .all()
 })

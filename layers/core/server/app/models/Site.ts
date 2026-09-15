@@ -12,7 +12,7 @@ export async function createSites(data: { sites: SiteInsert[], userSites: Partia
   const newUserSites: UserSitesInsert[] = childSites.map((site, index) => {
     return {
       userId: user.userId,
-      siteId: site.siteId,
+      siteId: site.id,
       permissionLevel: data.userSites[index]?.permissionLevel,
     }
   })
@@ -23,6 +23,7 @@ export async function createSites(data: { sites: SiteInsert[], userSites: Partia
 
   await Promise.all(childSites.map((site, i) => ({
     ...site,
+    siteId: site.id,
     env: env ?? {},
     permissionLevel: data.userSites[i]?.permissionLevel ?? undefined,
     userId: user.userId,

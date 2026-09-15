@@ -12,9 +12,9 @@ import { getCFQueue } from './jobs'
 
 export interface EventContextMap {
   'app:user:created': { env: Record<string, unknown>, userId: number }
-  'app:site:created': { env: Record<string, unknown>, siteId: number, userId: number, permissionLevel?: string }
+  'app:site:created': { env: Record<string, unknown>, siteId: string, userId: number, permissionLevel?: string }
   'app:team:sites-selected': { env: Record<string, unknown>, teamId: number }
-  'app:job:completed': { env: Record<string, unknown>, jobId: string, taskName: string, siteId?: number, userId?: number, durationMs: number }
+  'app:job:completed': { env: Record<string, unknown>, jobId: string, taskName: string, siteId?: string, userId?: number, durationMs: number }
   'app:job:failed': { env: Record<string, unknown>, jobId: string, taskName: string, error: string, attempt: number, permanent: boolean }
   'app:batch:progress': { env: Record<string, unknown>, batchId: string, batchName?: string, completed: number, total: number, failed: number }
   'app:batch:complete': { env: Record<string, unknown>, batchId: string, batchName?: string, total: number, failed: number }
@@ -62,7 +62,7 @@ export function buildJobPayload<T extends TaskName>(name: T, payload: TaskMap[T]
 
 export interface BatchOptions {
   name?: string
-  siteId?: number
+  siteId?: string
   userId?: number
   parentBatchId?: string
   delaySeconds?: number
@@ -213,7 +213,7 @@ export async function queueJob<T extends TaskName>(
   env: Record<string, unknown>,
   name: T,
   payload: TaskMap[T],
-  opts?: { siteId?: number, userId?: number, batchId?: string },
+  opts?: { siteId?: string, userId?: number, batchId?: string },
 ): Promise<string> {
   const jobId = crypto.randomUUID()
   const now = Math.floor(Date.now() / 1000)
@@ -255,7 +255,7 @@ export async function createParentBatch(
   db: ReturnType<typeof useDrizzle>,
   opts: {
     name: string
-    siteId?: number
+    siteId?: string
     userId?: number
     allowFailures?: boolean
     onFinish?: { name: TaskName, payload: TaskMap[TaskName] }

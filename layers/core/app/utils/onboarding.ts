@@ -7,40 +7,35 @@ export const ONBOARDING_ROUTE = '/dashboard/team/setup'
  */
 export interface OnboardingSessionInput {
   user?: { id: number } | null
-  team?: { teamId: number, onboardedStep: string | null } | null
+  onboardingCompletedAt?: string | null
 }
 
 /**
  * Onboarding progress for the signed-in user.
  *
- * `NoTeam` is an expected state, not a fault: a session can reach the dashboard
- * before a team row exists. Reading `onboardedStep` off that absent team is
- * what used to throw "Cannot read properties of undefined".
+ * The flag used to hang off the current team, so joining or creating a second
+ * team sent an onboarded person back through setup.
  */
-export type TeamOnboarding
+export type UserOnboarding
   = | { _tag: 'SignedOut' }
-    | { _tag: 'NoTeam' }
-    | { _tag: 'NotOnboarded', teamId: number }
-    | { _tag: 'Onboarded', teamId: number, step: string }
+    | { _tag: 'NotOnboarded' }
+    | { _tag: 'Onboarded', completedAt: string }
 
-export function resolveTeamOnboarding(session: OnboardingSessionInput | null | undefined): TeamOnboarding {
+export function resolveUserOnboarding(session: OnboardingSessionInput | null | undefined): UserOnboarding {
   if (!session?.user)
     return { _tag: 'SignedOut' }
 
-  const team = session.team
-  if (!team)
-    return { _tag: 'NoTeam' }
+  const completedAt = session.onboardingCompletedAt
+  if (!completedAt)
+    return { _tag: 'NotOnboarded' }
 
-  if (!team.onboardedStep)
-    return { _tag: 'NotOnboarded', teamId: team.teamId }
-
-  return { _tag: 'Onboarded', teamId: team.teamId, step: team.onboardedStep }
+  return { _tag: 'Onboarded', completedAt }
 }
 
 /**
  * True when the user must be sent to onboarding. A signed-out session is not
  * onboarded either, but the auth middleware owns that redirect.
  */
-export function needsOnboarding(state: TeamOnboarding): boolean {
-  return state._tag === 'NoTeam' || state._tag === 'NotOnboarded'
+export function needsOnboarding(state: UserOnboarding): boolean {
+  return state._tag === 'NotOnboarded'
 }

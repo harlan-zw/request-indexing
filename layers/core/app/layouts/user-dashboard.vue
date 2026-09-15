@@ -11,7 +11,7 @@ const isOnWelcome = computed(() => router.currentRoute.value.path === ONBOARDING
 // A session with no team is an expected state, not a fault, so it is resolved
 // into `TeamOnboarding` rather than read through. Both absent states end up in
 // the same place: onboarding.
-const onboarding = computed(() => resolveTeamOnboarding(session.value))
+const onboarding = computed(() => resolveUserOnboarding(session.value))
 
 watch([isOnWelcome, onboarding], ([val, state]) => {
   if (!val && needsOnboarding(state))

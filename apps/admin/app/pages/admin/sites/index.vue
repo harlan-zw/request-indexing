@@ -21,7 +21,9 @@ const columns: { key: string, label: string }[] = [
 ]
 
 function deleteSite(site: SiteSelect) {
-  $fetch(`/api/sites/${site.siteId}`, { method: 'DELETE' })
+  // Widened to `string` so Nitro's typed-route inference does not fold this
+  // into the GET-only `/api/sites/list` match a bare template literal reaches.
+  $fetch(`/api/sites/${site.publicId}` as string, { method: 'DELETE' })
 }
 </script>
 

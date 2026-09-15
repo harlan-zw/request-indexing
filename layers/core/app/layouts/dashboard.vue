@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
-import { joinURL, withoutTrailingSlash } from 'ufo'
+import type { SiteFleetRow } from '~~/layers/core/app/types'
+import { withoutTrailingSlash } from 'ufo'
 import { fetchSites } from '~~/layers/core/app/composables/fetch'
 import DashboardShell from './_DashboardShell.vue'
 
@@ -12,7 +13,7 @@ const { data } = await fetchSites()
 const sites = computed(() => data.value?.sites || [])
 
 const isOnWelcome = computed(() => router.currentRoute.value.path === ONBOARDING_ROUTE)
-const onboarding = computed(() => resolveTeamOnboarding(session.value))
+const onboarding = computed(() => resolveUserOnboarding(session.value))
 
 watch([isOnWelcome, onboarding], ([onWelcome, state]) => {
   if (!onWelcome && needsOnboarding(state))
@@ -23,7 +24,7 @@ const site = computed(() => {
   const slug = route.params.slug as string | undefined
   if (!slug)
     return undefined
-  return sites.value.find(candidate => String(candidate.siteId) === slug)
+  return sites.value.find(candidate => candidate.siteId === slug)
 })
 
 const pageTitle = computed(() => String(route.meta.subTitle || route.meta.title || 'Dashboard'))
@@ -32,30 +33,30 @@ const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta
 const dashboards = computed<NavigationMenuItem[]>(() => !site.value
   ? []
   : [
-      { label: 'Organic Search', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'overview'), icon: 'i-ph-app-window-duotone' },
-      { label: 'Keyword Insights', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keyword-insights'), icon: 'i-ph-lightning-duotone' },
-      { label: 'Web Indexing', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'web-indexing'), icon: 'i-ph-check-circle-duotone' },
-      { label: 'Analysis', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'analysis'), icon: 'i-ph-chart-pie-slice-duotone' },
-      { label: 'Sitemaps', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'sitemaps'), icon: 'i-ph-map-trifold-duotone' },
+      { label: 'Organic Search', to: dashboardSiteHref(site.value.siteId, 'overview'), icon: 'i-ph-app-window-duotone' },
+      { label: 'Keyword Insights', to: dashboardSiteHref(site.value.siteId, 'keyword-insights'), icon: 'i-ph-lightning-duotone' },
+      { label: 'Web Indexing', to: dashboardSiteHref(site.value.siteId, 'web-indexing'), icon: 'i-ph-check-circle-duotone' },
+      { label: 'Analysis', to: dashboardSiteHref(site.value.siteId, 'analysis'), icon: 'i-ph-chart-pie-slice-duotone' },
+      { label: 'Sitemaps', to: dashboardSiteHref(site.value.siteId, 'sitemaps'), icon: 'i-ph-map-trifold-duotone' },
     ])
 
 const siteLinks = computed<NavigationMenuItem[]>(() => !site.value
   ? []
   : [
-      { label: 'Pages', icon: 'i-heroicons-folder', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'pages') },
-      { label: 'Keywords', icon: 'i-heroicons-magnifying-glass-circle', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'keywords') },
-      { label: 'Countries', icon: 'i-ph-globe-hemisphere-east-duotone', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'countries') },
+      { label: 'Pages', icon: 'i-heroicons-folder', to: dashboardSiteHref(site.value.siteId, 'pages') },
+      { label: 'Keywords', icon: 'i-heroicons-magnifying-glass-circle', to: dashboardSiteHref(site.value.siteId, 'keywords') },
+      { label: 'Countries', icon: 'i-ph-globe-hemisphere-east-duotone', to: dashboardSiteHref(site.value.siteId, 'countries') },
     ])
 
 const apiLinks = computed<NavigationMenuItem[]>(() => !site.value
   ? []
   : [
-      { label: 'API Usages', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'usages') },
+      { label: 'API Usages', to: dashboardSiteHref(site.value.siteId, 'usages') },
       // Renamed with the page: it archives Search Console data, it does not export.
-      { label: 'Data Archive', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'data') },
+      { label: 'Data Archive', to: dashboardSiteHref(site.value.siteId, 'data') },
       // `settings` had no nav entry at all, so the only way to reach site
       // removal was to type the URL.
-      { label: 'Site Settings', to: joinURL('/dashboard/site', encodeURIComponent(site.value.siteId), 'settings') },
+      { label: 'Site Settings', to: dashboardSiteHref(site.value.siteId, 'settings') },
     ])
 
 const teamLinks = computed<NavigationMenuItem[]>(() => [
@@ -63,14 +64,21 @@ const teamLinks = computed<NavigationMenuItem[]>(() => [
   { label: 'Settings', to: '/dashboard/team/settings', icon: 'i-heroicons-cog' },
 ])
 
+// `GET /api/sites/list` reports sync as `syncStatus`. This list read
+// `candidate.isSynced`, the raw `sites` column, which the roster never sends,
+// so every team site rendered disabled with an error icon.
+function isSynced(candidate: SiteFleetRow) {
+  return candidate.syncStatus === 'synced'
+}
+
 const onlySiteLinks = computed<NavigationMenuItem[]>(() => sites.value.map((candidate) => {
   const label = siteLabel(candidate)
   return {
     label,
-    to: candidate.isSynced ? `/dashboard/site/${candidate.siteId}/overview` : undefined,
-    disabled: !candidate.isSynced,
-    icon: candidate.isSynced ? undefined : 'i-ph-circle-x-duotone',
-    avatar: candidate.isSynced
+    to: isSynced(candidate) ? dashboardSiteHref(candidate.siteId, 'overview') : undefined,
+    disabled: !isSynced(candidate),
+    icon: isSynced(candidate) ? undefined : 'i-ph-circle-x-duotone',
+    avatar: isSynced(candidate)
       ? {
           text: label,
           src: `/_favicon?domain=${withoutTrailingSlash(label)}`,
@@ -91,7 +99,7 @@ const domains = computed(() => {
 
 const domainMenuItems = computed<DropdownMenuItem[]>(() => domains.value.map(candidate => ({
   label: siteLabel(candidate),
-  to: `/dashboard/site/${candidate.siteId}/overview`,
+  to: dashboardSiteHref(candidate.siteId, 'overview'),
 })))
 
 const siteSwitcherItems = computed<DropdownMenuItem[]>(() => sites.value.map((candidate) => {
@@ -106,9 +114,9 @@ const siteSwitcherItems = computed<DropdownMenuItem[]>(() => sites.value.map((ca
   }
 }))
 
-function changeSite(siteId: number | string) {
+function changeSite(siteId: string) {
   const childSegment = route.path.split('/').pop()
-  return navigateTo(`/dashboard/site/${siteId}/${childSegment}`)
+  return navigateTo(dashboardSiteHref(siteId, childSegment ?? 'overview'))
 }
 
 const groups = [{ id: 'links', label: 'Go to', items: [] }]

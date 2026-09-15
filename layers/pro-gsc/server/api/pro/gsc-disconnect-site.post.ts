@@ -20,14 +20,14 @@ export default defineProApiHandler({ body: bodySchema }, async ({ db, body }) =>
   })
 
   // Clear gscdump references from any matching pro site
-  const matchingSites = await db.select({ id: sites.siteId })
+  const matchingSites = await db.select({ id: sites.id })
     .from(sites)
     .where(eq(sites.gscdumpSiteId, body.gscdumpSiteId))
 
   for (const site of matchingSites) {
     await db.update(sites)
       .set({ gscdumpSiteId: null, gscdumpSiteUrl: null })
-      .where(eq(sites.siteId, site.id))
+      .where(eq(sites.id, site.id))
   }
 
   return { success: true }

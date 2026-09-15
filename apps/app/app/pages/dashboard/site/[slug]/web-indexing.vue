@@ -53,7 +53,7 @@ async function submitForIndexing() {
   submitting.value = true
   const result = await $fetch<{ status: string, url: string }>(`/api/indexing/${encodeURIComponent(target.toString())}`, {
     method: 'POST',
-    query: { siteId: String(site.siteId) },
+    query: { siteId: String(site.publicId) },
   })
     .then(response => ({ _tag: 'Ok' as const, response }))
     .catch((error: unknown) => ({ _tag: 'Err' as const, error }))

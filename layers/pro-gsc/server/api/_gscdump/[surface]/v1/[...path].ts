@@ -132,18 +132,20 @@ export default defineProApiHandler({}, async ({ event, db, caller }) => {
   let upstreamUserId: string | undefined
   if (upstreamSiteId) {
     const rows = await db.select({
-      ownerId: sites.ownerId,
-      teamId: teamSites.teamId,
+      owningTeamId: sites.teamId,
+      linkedTeamId: teamSites.teamId,
     })
       .from(sites)
-      .leftJoin(teamSites, eq(teamSites.siteId, sites.siteId))
+      .leftJoin(teamSites, eq(teamSites.siteId, sites.id))
       .where(eq(sites.gscdumpSiteId, upstreamSiteId))
       .all()
 
     const site = rows.length
       ? {
-          ownerId: rows[0]!.ownerId,
-          teamIds: rows.flatMap(row => row.teamId !== null ? [row.teamId] : []),
+          teamIds: [...new Set([
+            rows[0]!.owningTeamId,
+            ...rows.flatMap(row => row.linkedTeamId !== null ? [row.linkedTeamId] : []),
+          ])],
         }
       : null
 

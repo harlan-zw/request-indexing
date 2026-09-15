@@ -1,6 +1,6 @@
 import type { AuthProviderId } from '#layers/pro-saas-auth/shared/types/auth'
 import { desc, eq } from 'drizzle-orm'
-import { googleAccounts, teamSites } from '~~/layers/core/server/db/schema'
+import { googleAccounts } from '~~/layers/core/server/db/schema'
 import { logger } from '~~/shared/server/logger'
 import * as schema from '#layers/pro-saas/server/database'
 import { buildGscSessionFields } from '../utils/gsc-session-fields'
@@ -70,10 +70,7 @@ export default defineNitroPlugin(() => {
       }
     }
 
-    // The dashboard layouts gate onboarding on `session.team.onboardedStep`.
-    // Nothing populated `session.team`, so that read threw
-    // "Cannot read properties of undefined (reading 'onboardedStep')" and 500'd
-    // the dashboard for every signed-in user.
+    // The dashboard chrome reads `session.team` for the workspace label.
     const currentTeam = user.currentTeamId
       ? await db.query.teams.findFirst({ where: eq(schema.teams.teamId, user.currentTeamId) }).catch(() => null)
       : null
@@ -82,7 +79,6 @@ export default defineNitroPlugin(() => {
           teamId: currentTeam.teamId,
           name: currentTeam.name,
           personalTeam: !!currentTeam.personalTeam,
-          onboardedStep: currentTeam.onboardedStep ?? null,
         }
       : null
 
@@ -127,14 +123,11 @@ export default defineNitroPlugin(() => {
     }
     session.onboardingCompletedAt = toIso(user.onboardingCompletedAt)
 
-    // Sites are attached to a team through `team_sites`, not a `team_id`
-    // column on `sites`. The previous read used `schema.sites.teamId`, which
-    // does not exist: drizzle threw on every request and the catch below
-    // turned that into a silent `hasSites: false` for every user.
+    // `sites.team_id` is the ownership axis, so the roster is one read.
     session.hasSites = user.currentTeamId
-      ? await db.select({ siteId: teamSites.siteId })
-          .from(teamSites)
-          .where(eq(teamSites.teamId, user.currentTeamId))
+      ? await db.select({ siteId: schema.sites.id })
+          .from(schema.sites)
+          .where(eq(schema.sites.teamId, user.currentTeamId))
           .limit(1)
           .then(rows => rows.length > 0)
           .catch((error: unknown) => {

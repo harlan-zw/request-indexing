@@ -21,7 +21,7 @@ export default defineProApiHandler({ site: true }, async ({ site: access }) => {
   // Clear gscdump site ID and URL from the site record
   await db.update(sites)
     .set({ gscdumpSiteId: null, gscdumpSiteUrl: null })
-    .where(eq(sites.siteId, siteId))
+    .where(eq(sites.id, siteId))
 
   return { success: true, unlinkedGscSiteUrl }
 })

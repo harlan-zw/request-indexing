@@ -1,7 +1,7 @@
 import type { WebhookEnvelope } from '@gscdump/contracts'
 import { defineEvent } from '@harlan-zw/nuxt-domain-events/server'
 import { z } from 'zod'
-import { idSchema, requestEventSchema } from '#layers/pro-saas/server/events/_schemas'
+import { idSchema, requestEventSchema, siteIdSchema } from '#layers/pro-saas/server/events/_schemas'
 
 const webhookEnvelopeSchema = z.custom<WebhookEnvelope>(value => (
   typeof value === 'object'
@@ -15,6 +15,6 @@ export default defineEvent({
     event: requestEventSchema,
     envelope: webhookEnvelopeSchema,
     userId: idSchema,
-    siteId: idSchema.nullable(),
+    siteId: siteIdSchema.nullable(),
   }),
 })

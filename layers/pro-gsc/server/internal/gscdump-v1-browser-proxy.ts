@@ -83,9 +83,7 @@ export function getGscdumpV1ProxySiteId(operation: GscdumpV1ProxyOperation): str
 }
 
 export interface GscdumpV1SiteAccessCandidate {
-  /** `sites.ownerId`. Direct ownership always grants access. */
-  ownerId: number | null
-  /** Every team id the site is linked to via `team_sites`. */
+  /** The site's owning `sites.team_id`, plus any `team_sites` link. */
   teamIds: readonly number[]
 }
 
@@ -112,14 +110,13 @@ export function selectGscdumpV1SiteAccess(
   if (!site)
     return { _tag: 'site_not_found' }
 
-  const isOwner = caller.isAdmin || site.ownerId === caller.user.id
-  const canRead = isOwner || site.teamIds.some(teamId => callerCan(caller, teamId, 'read-data'))
+  const canRead = caller.isAdmin || site.teamIds.some(teamId => callerCan(caller, teamId, 'read-data'))
   if (!canRead)
     return { _tag: 'site_not_found' }
 
   if (!requiresWrite)
     return { _tag: 'allowed' }
 
-  const canWrite = isOwner || site.teamIds.some(teamId => callerCan(caller, teamId, 'write-data'))
+  const canWrite = caller.isAdmin || site.teamIds.some(teamId => callerCan(caller, teamId, 'write-data'))
   return canWrite ? { _tag: 'allowed' } : { _tag: 'forbidden' }
 }

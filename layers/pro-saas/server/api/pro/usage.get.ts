@@ -6,7 +6,10 @@ import { defineProApiHandler } from '../../utils/handler'
 // DataForSEO + lifetime-grant usage paths removed during V1 port; V1 pricing
 // replaces lifetime grants.
 export default defineProApiHandler({}, async ({ db, caller }) => {
-  const siteRows = await db.select({ id: sites.siteId }).from(sites).where(eq(sites.ownerId, caller.user.id)).all()
+  // The cap counts the current team's sites, because the team owns them.
+  const siteRows = caller.currentTeamId
+    ? await db.select({ id: sites.id }).from(sites).where(eq(sites.teamId, caller.currentTeamId)).all()
+    : []
 
   return {
     sites: {

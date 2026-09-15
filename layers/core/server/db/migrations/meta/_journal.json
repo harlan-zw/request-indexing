@@ -92,6 +92,13 @@
       "when": 1789452195119,
       "tag": "0013_drop_api_keys_and_keywords",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1789454370437,
+      "tag": "0014_sites_team_scoped_uuid",
+      "breakpoints": true
     }
   ]
 }

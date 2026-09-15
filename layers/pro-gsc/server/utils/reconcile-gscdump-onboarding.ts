@@ -98,13 +98,13 @@ export async function reconcileGscdumpOnboardingForUser(opts: ReconcileGscdumpOn
     }
   }
 
-  // V1: sites are owner-scoped; team→site lives on team_sites mediator.
-  // Until pro-gsc consults that mediator, reconcile against the user's owned sites.
+  // Reconcile every unlinked site on the user's current team, not just the
+  // ones they created: the grant being reconciled belongs to the team.
   const unlinkedSites = await db
-    .select({ id: sites.siteId, url: sites.property })
+    .select({ id: sites.id, url: sites.property })
     .from(sites)
     .where(and(
-      eq(sites.ownerId, userId),
+      currentTeamId ? eq(sites.teamId, currentTeamId) : eq(sites.ownerId, userId),
       isNull(sites.gscdumpSiteId),
     ))
 

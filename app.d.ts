@@ -13,10 +13,11 @@ module '#auth-utils' {
   }
   export interface UserSession {
     /**
-     * Current team, populated by the session `fetch` hook. Null when the user
-     * has no `currentTeamId`. The dashboard layouts read `team.onboardedStep`
-     * to decide whether to push the user through setup.
+     * When the user finished onboarding. Null means the dashboard sends them
+     * through setup. It used to live on the team, so a second team looked
+     * unonboarded to the same person.
      */
+    onboardingCompletedAt?: string | null
     /**
      * Set when the user has completed the Search Console integration grant and
      * been registered with gscdump. Null means the dashboard has no data source
@@ -33,11 +34,11 @@ module '#auth-utils' {
     googleScopes?: string | null
     gscIndexingScope?: boolean
     gscSitemapsScope?: boolean
+    /** Current team, populated by the session `fetch` hook. */
     team?: {
       teamId: number
       name: string
       personalTeam: boolean
-      onboardedStep: string | null
     } | null
   }
 }

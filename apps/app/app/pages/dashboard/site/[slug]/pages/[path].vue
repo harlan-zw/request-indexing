@@ -33,7 +33,7 @@ const pageFilter = computed(() => [
   <div class="space-y-7">
     <div>
       <UButton
-        :to="`/dashboard/site/${site.siteId}/pages`"
+        :to="`/dashboard/site/${site.publicId}/pages`"
         icon="i-heroicons-arrow-left-20-solid"
         color="neutral"
         variant="link"
@@ -65,7 +65,7 @@ const pageFilter = computed(() => [
           <GscdumpKeywordsTable
             class="min-w-[44rem] md:min-w-0"
             :gscdump-site-id="site.gscdumpSiteId"
-            :route-slug="String(site.siteId)"
+            :route-slug="String(site.publicId)"
             :extra-filters="pageFilter"
             :page-size="10"
             :exclude-columns="['topPage', 'searchVolume']"

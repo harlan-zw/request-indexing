@@ -74,7 +74,7 @@ onMounted(() => {
   // watch(isPending, () => {
   //   if (!isPending.value && siteRows.value.length) {
   //     if (props.modelValue)
-  //       selected.value = siteRows.value.filter(s => props.modelValue.includes(s.publicId))
+  //       selected.value = siteRows.value.filter(s => props.modelValue.includes(s.siteId))
   //     else
   //       selected.value = klona(siteRows.value).slice(0, Math.min(siteRows.value.length, maxSites))
   //   }

@@ -49,7 +49,7 @@ const mobileSites = computed(() =>
   (sites.value ?? []).map(site => ({
     label: siteLabel(site),
     icon: 'i-ph-browser-duotone',
-    to: `/dashboard/site/${encodeURIComponent(site.siteId)}/overview`,
+    to: dashboardSiteHref(site.siteId, 'overview'),
   })),
 )
 

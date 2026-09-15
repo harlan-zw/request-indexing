@@ -19,7 +19,7 @@ export default defineProApiHandler(async (event) => {
     usage: sql<number>`sum(${usages.usage})`,
   })
     .from(usages)
-    .where(and(eq(usages.siteId, access.site.siteId), gte(usages.date, monthStart)))
+    .where(and(eq(usages.siteId, access.site.id), gte(usages.date, monthStart)))
     .groupBy(usages.key)
     .all()
 
