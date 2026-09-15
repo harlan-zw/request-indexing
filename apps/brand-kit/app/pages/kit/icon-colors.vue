@@ -82,7 +82,7 @@ const healthMap = [
 
     <KitSection
       title="semanticColors"
-      code="composables/proSemanticColors.ts"
+      code="composables/semanticColors.ts"
       description="text/bg/dot/border/hex sets for system status. Plus mappers: healthToSemantic, thresholdToSemantic, trendToSemantic."
     >
       <UCard variant="outline">
@@ -187,7 +187,7 @@ const healthMap = [
 
     <KitSection
       title="Data-viz colors"
-      code="composables/proDataVizColors.ts"
+      code="composables/dataVizColors.ts"
       description="Metric identity: clicks=blue, impressions=purple, CTR=emerald, position=orange. Use only for charts and metric legends — not for system state."
     >
       <UCard variant="outline">
