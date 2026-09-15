@@ -8,6 +8,7 @@ import { gscConsoleUrl } from '@gscdump/sdk/gsc-console-url'
 import { sameSitemapIdentity } from 'gscdump/sitemap-identity'
 import { withQuery } from 'ufo'
 import { getPath, getSitemapName } from '#layers/design-system/app/composables/formatting'
+import ProDateRangePicker from '#layers/pro-gsc/app/components/pro/ProDateRangePicker.vue'
 import { periodToDateRange } from '#layers/pro-gsc/app/composables/useGscPeriod'
 import {
   useProGscdumpSitemapChanges,
