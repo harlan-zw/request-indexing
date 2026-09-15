@@ -35,22 +35,26 @@ const scopedSite = computed<ProNavSite | null>(() => {
 })
 
 /**
- * The dashboard's one `h1`, rendered here rather than in twenty pages.
+ * The dashboard's one `h1`, drawn through the design system's `UiPageHeader`.
  *
- * Every `/pro/dashboard/**` page already declares its name through
- * `definePageMeta({ title })`, so the shell can name the page without a per-page
- * header component. A page that folds its heading into a richer identity block
- * (the query and page drill-ins) sets `proOwnHeading` and this steps aside, so
- * no route ever ships two `h1`s.
+ * nuxtseo.com puts the same component behind `ProPage` / `ProSiteFeaturePage`,
+ * which every one of its dashboard routes renders, so a route there always
+ * names itself. This app's pages are flat (no parent feature route wrapping a
+ * `<NuxtPage>`), so the shell is the shared place to mount the same header.
+ * Titles come from `definePageMeta({ title })`, which the account shell layout
+ * already read before this.
+ *
+ * `proHideHeader` is the page-meta twin of upstream's `hide-header` prop: the
+ * query and page drill-ins fold their heading into a richer identity block, so
+ * the shell steps aside and no route ships two `h1`s.
  */
-const ownsHeading = computed(() => (route.meta as { proOwnHeading?: boolean }).proOwnHeading === true)
+const ownsHeading = computed(() => (route.meta as { proHideHeader?: boolean }).proHideHeader === true)
 const pageTitle = computed(() => {
   if (ownsHeading.value)
     return null
   const title = route.meta.subTitle ?? route.meta.title
   return typeof title === 'string' && title ? title : null
 })
-const pageDescription = computed(() => typeof route.meta.description === 'string' ? route.meta.description : null)
 const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta.icon : undefined)
 
 const userMenuItems = computed(() => [
@@ -115,15 +119,17 @@ const userMenuItems = computed(() => [
       </div>
     </template>
 
-    <header v-if="pageTitle" class="mb-6">
-      <h1 class="flex min-w-0 items-center gap-2 font-title text-xl font-semibold tracking-tight text-highlighted">
-        <UIcon v-if="pageIcon" :name="pageIcon" class="size-5 shrink-0 text-primary" aria-hidden="true" />
-        <span class="truncate">{{ pageTitle }}</span>
-      </h1>
-      <p v-if="pageDescription" class="mt-1 text-sm text-muted">
-        {{ pageDescription }}
-      </p>
-    </header>
+    <UiPageHeader
+      v-if="pageTitle"
+      flush
+      :border="false"
+      :title="pageTitle"
+      class="mb-6"
+    >
+      <template v-if="pageIcon" #icon>
+        <UIcon :name="pageIcon" class="size-5 shrink-0 text-primary" aria-hidden="true" />
+      </template>
+    </UiPageHeader>
 
     <slot />
   </UiAppShell>

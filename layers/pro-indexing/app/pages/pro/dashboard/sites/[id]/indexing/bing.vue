@@ -19,7 +19,6 @@ definePageMeta({
   proTab: { feature: 'indexing', label: 'Bing', icon: 'i-lucide-search-check', order: 50 },
   title: 'Bing indexing',
   icon: 'i-lucide-search-check',
-  description: 'What Bing Webmaster Tools reports about crawling this Site.',
 })
 
 const { gscdumpSiteId } = useSite('Bing indexing')

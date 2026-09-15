@@ -13,7 +13,7 @@ import { decodeRouteParam } from '#layers/pro-gsc/shared/route-params'
 
 // The heading lives under the breadcrumb below, beside the Visit Page action,
 // so the shell does not add a second one.
-definePageMeta({ proOwnHeading: true })
+definePageMeta({ proHideHeader: true })
 
 const { siteId, site, siteStatus, isReady, isNotConnected, gscdumpSiteId } = useSite()
 

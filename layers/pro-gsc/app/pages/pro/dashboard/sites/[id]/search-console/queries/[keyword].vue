@@ -30,7 +30,7 @@ import { isBrandTerm } from '#layers/pro-gsc/shared/query-display'
 
 // The heading lives inside the entity summary below, beside the variant count
 // and the SERP link, so the shell does not add a second one.
-definePageMeta({ proOwnHeading: true })
+definePageMeta({ proHideHeader: true })
 
 const { siteId, site, siteStatus, isReady, isNotConnected, gscdumpSiteId } = useSite()
 

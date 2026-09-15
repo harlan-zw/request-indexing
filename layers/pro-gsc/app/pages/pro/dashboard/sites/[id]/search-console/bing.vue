@@ -15,7 +15,6 @@ definePageMeta({
   proTab: { feature: 'search-console', label: 'Bing', icon: 'i-lucide-search-check', order: 40 },
   title: 'Bing Search Performance',
   icon: 'i-lucide-search-check',
-  description: 'Clicks, impressions and CTR that Bing reports for this Site.',
 })
 
 const { siteId, gscdumpSiteId } = useSite('Bing')
