@@ -38,6 +38,25 @@ describe('resolveGscdumpV1ProxyOperation', () => {
     expect(resolved?.params).toEqual({ siteId: 's_site-1' })
   })
 
+  it('resolves the keyword-sparklines operation the tables batch their rows through', () => {
+    const resolved = resolveGscdumpV1ProxyOperation('POST', 'partner', 'sites/s_site-1/keyword-sparklines')
+    expect(resolved?.operation.id).toBe('partner.sites.keyword.sparklines.query')
+    expect(resolved?.params).toEqual({ siteId: 's_site-1' })
+  })
+
+  it('resolves the grouped analytics rows read the page and country sparklines use', () => {
+    const resolved = resolveGscdumpV1ProxyOperation('POST', 'analytics', 'sites/s_site-1/rows')
+    expect(resolved?.operation.id).toBe('analytics.rows.query')
+  })
+
+  // Bing sits behind an email allowlist and has no surface here yet. Exposing
+  // its reads through the browser proxy would widen the relay for nothing.
+  it('rejects every Bing operation', () => {
+    expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/bing/data')).toBeNull()
+    expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'sites/s_site-1/indexing/bing/connection')).toBeNull()
+    expect(resolveGscdumpV1ProxyOperation('POST', 'partner', 'sites/s_site-1/indexing/bing/connection/verify')).toBeNull()
+  })
+
   it('rejects a path with no matching operation', () => {
     expect(resolveGscdumpV1ProxyOperation('GET', 'partner', 'users/u_1')).toBeNull()
   })

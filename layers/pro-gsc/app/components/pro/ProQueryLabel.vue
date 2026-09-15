@@ -25,6 +25,8 @@ const {
   variantCount?: number | null
   /** Variant breakdown data for tooltip */
   variants?: QueryVariant[] | null
+  /** The variant breakdown is still resolving for this row. */
+  variantsLoading?: boolean
   /** Average position (shown as badge when <= 10) */
   position?: number | null
   /** Whether this is a brand keyword */
@@ -35,8 +37,13 @@ const {
   size?: 'xs' | 'sm'
 }>()
 
+// The breakdown is fetched when the badge is first pointed at, so the badge is
+// interactive as soon as the row says it folded more than one variant, not only
+// once the rows happen to be in hand.
+const emit = defineEmits<{ variantOpen: [] }>()
+
 const showVariants = computed(() => (variantCount ?? 0) > 1)
-const hasVariantData = computed(() => variants?.length && variants[0]?.position)
+const hasVariantData = computed(() => !!variants?.length && !!variants[0]?.position)
 
 const positionStyle = computed(() => {
   if (position == null || position > 10)
@@ -62,8 +69,12 @@ const positionStyle = computed(() => {
       {{ keyword }}
     </component>
     <!-- Variant count with optional breakdown tooltip -->
-    <UiTooltip v-if="showVariants && hasVariantData" size="xl">
-      <span class="variant-badge variant-badge--interactive">
+    <UiTooltip v-if="showVariants" size="xl">
+      <span
+        class="variant-badge variant-badge--interactive"
+        @mouseenter="emit('variantOpen')"
+        @focusin="emit('variantOpen')"
+      >
         {{ variantCount }}v
       </span>
       <template #text>
@@ -71,7 +82,10 @@ const positionStyle = computed(() => {
           <div class="text-[10px] uppercase tracking-wider text-muted font-medium">
             {{ variantCount }} grouped variants
           </div>
-          <div class="max-h-[240px] overflow-y-auto pointer-events-auto">
+          <div v-if="!hasVariantData" class="text-[11px] text-muted">
+            {{ variantsLoading ? 'Loading variants…' : 'No variant breakdown for this period.' }}
+          </div>
+          <div v-else class="max-h-[240px] overflow-y-auto pointer-events-auto">
             <div class="w-full text-[11px] tabular-nums">
               <div class="flex text-dimmed text-[10px] uppercase tracking-wider sticky top-0 bg-elevated pb-1">
                 <span class="flex-1 font-medium pr-3">Query</span>
@@ -100,13 +114,6 @@ const positionStyle = computed(() => {
         </div>
       </template>
     </UiTooltip>
-    <span
-      v-else-if="showVariants"
-      :title="`${variantCount} query variants grouped`"
-      class="variant-badge"
-    >
-      {{ variantCount }}v
-    </span>
     <!-- Position rank — colored, higher visual weight -->
     <span
       v-if="position != null && position <= 10"

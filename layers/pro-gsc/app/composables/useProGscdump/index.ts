@@ -1,6 +1,12 @@
 // Re-export API types so existing consumers of this composable keep working.
 export * from '../../../shared/gscdump-api'
+export { type GscTrendDimension, useGscTopEntityTrend, type UseGscTopEntityTrendOptions } from './useGscTopEntityTrend'
 export { useProAnalyzeWithFallback } from './useProAnalyzeWithFallback'
+export {
+  sparklineDateAxis,
+  useProEntitySparklines,
+  type UseProEntitySparklinesOptions,
+} from './useProEntitySparklines'
 export { useProGscdump } from './useProGscdump'
 export { useProGscdumpAnalysis } from './useProGscdumpAnalysis'
 export { useProGscdumpData } from './useProGscdumpData'
@@ -13,4 +19,22 @@ export {
   useProGscdumpInspectUrls,
 } from './useProGscdumpIndexing'
 export { useProGscdumpSitemapChanges, useProGscdumpSitemaps } from './useProGscdumpSitemaps'
-export { useProGscdumpTableData } from './useProGscdumpTableData'
+export {
+  type Dimension,
+  type ProGscdumpTableOptions,
+  type ProGscdumpTableResponse,
+  useProGscdumpTableData,
+} from './useProGscdumpTableData'
+export {
+  type ProGscQueryVariantRow,
+  type ProGscQueryVariants,
+  useProGscQueryVariants,
+  type UseProGscQueryVariantsOptions,
+} from './useProGscQueryVariants'
+export {
+  projectPositionSeries,
+  type ProQueryPositionSparklines,
+  useProQueryPositionSparklines,
+  type UseProQueryPositionSparklinesOptions,
+} from './useProQueryPositionSparklines'
+export { useProTopAssociations, type UseProTopAssociationsOptions } from './useProTopAssociations'

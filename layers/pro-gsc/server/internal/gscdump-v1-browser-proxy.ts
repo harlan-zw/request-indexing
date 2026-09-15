@@ -9,6 +9,10 @@ import type { ResolvedHttpV1Operation } from '@gscdump/contracts/v1/http'
 // operation from the frozen `@gscdump/contracts` v1 registry. Nothing outside
 // this list resolves, so the proxy cannot become an open relay onto
 // gscdump.com.
+//
+// The Bing operations are deliberately absent. Bing is behind an allowlist and
+// has no surface in this app yet, so exposing its reads through the browser
+// proxy would widen the relay for nothing.
 import type { Caller } from '#layers/pro-saas/shared/caller'
 import { createGscdumpV1Protocol, resolveHttpOperation } from '@gscdump/contracts/v1/http'
 import { callerCan } from '#layers/pro-saas/shared/policies/team-policy'
@@ -34,6 +38,18 @@ const browserOperationEntries = [
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.createSitemapAction },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.recoverSitePermission },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getTopAssociation },
+  // The tables resolve one sparkline per visible row in a single call, and the
+  // entity trend panels read the site's own daily query and page counts.
+  { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.queryKeywordSparklines },
+  // `analytics.rows.query` answers a raw grouped read; the page and country
+  // sparklines use it where no purpose-built operation exists.
+  { surface: protocol.surfaces.analytics, operation: protocol.surfaces.analytics.operations.queryRows },
+  // Entity detail pages read the preset bundle rather than one request per
+  // preset.
+  { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getSiteAnalysisBundle },
+  // Indexing coverage history and the sitemap URL views.
+  { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.listSiteIndexingTransitions },
+  { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.listSitemapUrls },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.listAvailableSites },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getCanonicalMismatches },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getContentVelocity },

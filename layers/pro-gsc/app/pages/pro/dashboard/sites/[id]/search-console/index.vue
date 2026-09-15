@@ -323,6 +323,10 @@ function rowTooltipLines(row: GscdumpDataRow): Array<{ label: string, value: str
     <template v-else>
       <ProContextualTip page-key="search-console-overview" />
 
+      <!-- The shared control bar owns period, comparison, search type, chart
+           metrics and the facets for every Search Console surface. -->
+      <ProGscControlBar v-if="!showDemoPreview" show-metrics show-counts :site-id="siteId" />
+
       <div v-if="!showDemoPreview" class="flex justify-end">
         <UButton
           size="xs"
