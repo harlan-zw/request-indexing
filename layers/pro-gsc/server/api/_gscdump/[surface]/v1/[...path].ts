@@ -6,10 +6,11 @@
 // to the requested site, then forwards upstream with the caller's own stored
 // gscdump credential. The credential never round-trips back to the browser.
 import type { HttpV1OperationDefinition } from '@gscdump/contracts/v1/http'
+import type { getRequestURL } from 'h3'
 import type { GscdumpV1ProxyOperation } from '../../../../internal/gscdump-v1-browser-proxy'
 import process from 'node:process'
 import { eq } from 'drizzle-orm'
-import { createError, getQuery, getRequestHeader, getRequestURL, getRouterParam, readBody } from 'h3'
+import { createError, getQuery, getRequestHeader, getRouterParam, readBody } from 'h3'
 import { teamSites } from '~~/layers/core/server/db/schema'
 import {
   getGscdumpV1ProxySiteId,
@@ -73,18 +74,7 @@ async function proxyBody(
     return undefined
   }
 
-  const raw = await readBody<unknown>(event)
-  // A realtime ticket's origin is host policy, not client input. The browser
-  // may send `{}` but cannot choose or smuggle the upstream origin.
-  const candidate = operation.operation.id === 'realtime.tickets.create'
-    ? (() => {
-        if (raw !== undefined && raw !== null
-          && (typeof raw !== 'object' || Array.isArray(raw) || Object.keys(raw as object).length > 0)) {
-          throw createError({ statusCode: 400, statusMessage: 'invalid_request' })
-        }
-        return { origin: getRequestURL(event).origin }
-      })()
-    : raw
+  const candidate = await readBody<unknown>(event)
 
   const schema = descriptor.request.body
   if (!schema) {

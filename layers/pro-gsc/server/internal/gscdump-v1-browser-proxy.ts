@@ -11,6 +11,11 @@ import type { Caller } from '#layers/pro-saas/shared/caller'
 // this list resolves, so the proxy cannot become an open relay onto
 // gscdump.com.
 //
+// The realtime surface is absent on purpose. gscdump refuses a ticket for this
+// app's origin ("Origin is not allowed"), so the socket could never open and
+// every page paid for a failing request. Restore the entry together with a
+// realtime client once gscdump accepts the origin.
+//
 // The Bing operations are a second, conditional list. They resolve only while
 // `NUXT_PUBLIC_FEATURES_BING` is on, which is the same flag the sidebar reads
 // for the two Bing rows. With the flag off the pages do not exist, so the
@@ -60,7 +65,6 @@ const baseOperationEntries = [
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getDeviceGap },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getKeywordBreadth },
   { surface: protocol.surfaces.partner, operation: protocol.surfaces.partner.operations.getPositionDistribution },
-  { surface: protocol.surfaces.realtime, operation: protocol.surfaces.realtime.operations.createTicket },
 ] as const
 
 /**

@@ -100,8 +100,12 @@ describe('getGscdumpV1ProxySiteId', () => {
   })
 
   it('returns null for an operation with no siteId parameter', () => {
-    const resolved = resolveGscdumpV1ProxyOperation('POST', 'realtime', 'tickets')!
+    const resolved = resolveGscdumpV1ProxyOperation('GET', 'partner', 'users/u_1/available-sites')!
     expect(getGscdumpV1ProxySiteId(resolved)).toBeNull()
+  })
+
+  it('does not relay the realtime surface', () => {
+    expect(resolveGscdumpV1ProxyOperation('POST', 'realtime', 'tickets')).toBeNull()
   })
 })
 

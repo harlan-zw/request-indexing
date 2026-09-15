@@ -1,10 +1,13 @@
 // Per-site invalidation tokens for in-tab live refresh.
 //
-// The realtime plugin (`05.gscdump-realtime.client.ts`) bumps a site's token
-// when gscdump.com fires `sync.site_complete` / `sync.complete` /
-// `enrichment.complete`. `useProGscdump*` composables pass the token into
-// `useGscQuery`'s `watchSources`, so any mounted query re-runs against fresh
-// data without a page reload.
+// A caller bumps a site's token when that site's data is known to have moved.
+// `useProGscdump*` composables pass the token into `useGscQuery`'s
+// `watchSources`, so any mounted query re-runs against fresh data without a
+// page reload.
+//
+// The gscdump realtime plugin used to be the bump source. It was removed: the
+// upstream refuses a realtime ticket for this app's origin, so the socket never
+// opened and every page paid for a failing request.
 //
 // Token == 0 means "no invalidation seen for this site this session" — fine
 // as initial value; useGscQuery's `immediate: true` watcher fires once on
