@@ -8,11 +8,10 @@ import {
 
 function makeCaller(overrides: Partial<Caller> = {}): Caller {
   return {
-    user: { id: 1, email: null, name: null, avatarUrl: null, providers: [], apiKey: null, createdAt: null },
+    user: { id: 1, email: null, name: null, avatarUrl: null, providers: [], createdAt: null },
     memberships: [],
     currentTeamId: null,
     isAdmin: false,
-    authMethod: 'session',
     ...overrides,
   }
 }
