@@ -9,9 +9,6 @@ export default defineNuxtPlugin({
   setup: proFeatureSetup({
     features: [{
       id: 'indexing',
-      label: 'Indexing Coverage',
-      icon: 'i-lucide-database',
-      group: 'health',
       integration: 'gsc-connected',
       stateResolver: useIndexingFeatureState,
       lockedDescription: 'See how Google indexes your site\'s pages. Identify issues blocking indexing.',

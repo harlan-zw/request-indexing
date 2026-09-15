@@ -7,6 +7,7 @@ import type {
 } from '../../shared/types'
 import { markRaw } from 'vue'
 import { tabsByFeature, topNavOrder } from '#pro-shell/tabs'
+import { findProSiteFeatureEntry } from '../../shared/manifest'
 
 interface ResolvedRegistry {
   features: Record<string, ProSiteFeature>
@@ -57,8 +58,16 @@ export function useProFeatureRegistry() {
         const { stateResolver, ...rest } = feature
         if (stateResolver)
           resolvers.set(feature.id, stateResolver)
+        // Identity is a manifest fact. A registration contributes presentation
+        // only, so the sidebar and the page header cannot name the same
+        // surface differently.
+        const entry = findProSiteFeatureEntry(feature.id)
         features[feature.id] = {
           ...rest,
+          label: entry?.label ?? feature.id,
+          icon: entry?.icon,
+          route: entry?.route,
+          integration: rest.integration ?? entry?.integration,
           tabs: (tabsByFeature as Record<string, ProSiteFeature['tabs']>)[feature.id] ?? [],
         }
       },
