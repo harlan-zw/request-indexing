@@ -47,7 +47,11 @@ const ICON_COLOR_MAP: Record<IconColor, { bg: string, text: string }> = {
   purple: { bg: 'bg-purple-500/10', text: 'text-purple-500' },
   pink: { bg: 'bg-pink-500/10', text: 'text-pink-500' },
   rose: { bg: 'bg-rose-500/10', text: 'text-rose-500' },
-  gray: { bg: 'bg-gray-500/10', text: 'text-gray-500' },
+  // 'gray' is a semantic alias for 'neutral': raw `gray-*` Tailwind utilities
+  // render Tailwind's stock cold gray, not the app's warm-slate neutral ramp
+  // (global.css re-derives `--color-slate-*`, not `--color-gray-*`), so this
+  // reuses the same semantic tokens as 'neutral' rather than the raw hue.
+  gray: { bg: 'bg-accented', text: 'text-muted' },
   slate: { bg: 'bg-slate-500/10', text: 'text-slate-500' },
 }
 

@@ -1,7 +1,9 @@
-<script setup lang="ts" generic="T extends RowData">
-import type { Header, RowData } from '@tanstack/vue-table'
-import type { UiTableFeatures } from '../table-features'
+<script setup lang="ts" generic="T extends object">
+import type { Header } from '@tanstack/vue-table'
+import type { UiTableColumn, UiTableFeatures } from '../../../shared/table'
 import { FlexRender } from '@tanstack/vue-table'
+import { computed } from 'vue'
+import { UiIcon, UiTooltip } from '#components'
 
 const { header, sortDirection } = defineProps<{
   header: Header<UiTableFeatures, T, unknown>
@@ -10,13 +12,13 @@ const { header, sortDirection } = defineProps<{
 
 const emit = defineEmits<{ sort: [columnId: string] }>()
 
-const def = computed(() => header.column.columnDef)
+const def = computed(() => header.column.columnDef as UiTableColumn<T>)
 const sortable = computed(() => header.column.getCanSort())
 
 const justifyClass = computed(() => {
-  if (def.value.meta?.align === 'center')
+  if (def.value.align === 'center')
     return 'justify-center'
-  if (def.value.meta?.align === 'right')
+  if (def.value.align === 'right' || def.value.numeric)
     return 'justify-end'
   return 'justify-start'
 })
@@ -28,18 +30,18 @@ const isHeaderEmpty = computed(() => {
 
 const sortIcon = computed(() => {
   if (sortDirection)
-    return 'i-lucide-chevron-up'
-  return 'i-lucide-chevrons-up-down'
+    return 'collapse'
+  return 'sort'
 })
 
 // Chevron rotates 180° between asc/desc — a single icon animates rather than swapping.
 const sortIconRotate = computed(() => sortDirection === 'desc' ? 'rotate-180' : '')
 
-const buttonClass = 'flex items-center gap-1 w-full text-[11px] font-semibold uppercase tracking-[0.08em] cursor-pointer select-none transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+const buttonClass = 'flex min-h-11 items-center gap-1 w-full text-label cursor-pointer select-none transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-0'
 </script>
 
 <template>
-  <UiTooltip v-if="def.meta?.tooltip" :text="def.meta.tooltip">
+  <UiTooltip v-if="def.tooltip" :text="def.tooltip">
     <button
       v-if="sortable"
       type="button"
@@ -48,7 +50,7 @@ const buttonClass = 'flex items-center gap-1 w-full text-[11px] font-semibold up
       @click.stop="emit('sort', header.column.id)"
     >
       <FlexRender v-if="!header.isPlaceholder" :header="header" />
-      <UIcon :name="sortIcon" class="size-3 text-dimmed transition-transform duration-150" :class="sortIconRotate" aria-hidden="true" />
+      <UiIcon :name="sortIcon" class="size-3 text-dimmed transition-transform duration-150" :class="sortIconRotate" aria-hidden="true" />
     </button>
     <div v-else class="flex items-center gap-1" :class="justifyClass">
       <FlexRender v-if="!header.isPlaceholder" :header="header" />
@@ -62,9 +64,9 @@ const buttonClass = 'flex items-center gap-1 w-full text-[11px] font-semibold up
     @click.stop="emit('sort', header.column.id)"
   >
     <FlexRender v-if="!header.isPlaceholder" :header="header" />
-    <UIcon :name="sortIcon" class="size-3 text-dimmed transition-transform duration-150" :class="sortIconRotate" aria-hidden="true" />
+    <UiIcon :name="sortIcon" class="size-3 text-dimmed transition-transform duration-150" :class="sortIconRotate" aria-hidden="true" />
   </button>
   <div v-else class="flex items-center gap-1" :class="justifyClass">
-    <FlexRender v-if="!header.isPlaceholder" :header="header" />
+    <FlexRender v-if="!header.isPlaceholder" :render="def.header" :props="header.getContext()" />
   </div>
 </template>

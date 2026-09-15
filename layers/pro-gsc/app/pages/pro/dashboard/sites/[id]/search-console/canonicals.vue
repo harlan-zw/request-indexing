@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import type { UiTableColumn, UiTableRow } from '~~/layers/design-system/app/components/data/table-features'
+import type { Row } from '@tanstack/table-core'
+import type { UiTableColumn, UiTableFeatures } from '~~/layers/design-system/app/shared/table'
 import { CurveType } from '@unovis/ts'
 import { VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue'
 import { h } from 'vue'
@@ -66,7 +67,7 @@ const columns = computed<UiTableColumn<Mismatch>[]>(() => [
   {
     accessorKey: 'url',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'URL'),
-    cell: ({ row }: { row: UiTableRow<Mismatch> }) => {
+    cell: ({ row }: { row: Row<UiTableFeatures, Mismatch> }) => {
       const r = row.original
       return h('div', { class: 'flex flex-col gap-1 min-w-0' }, [
         h('a', {
@@ -86,8 +87,8 @@ const columns = computed<UiTableColumn<Mismatch>[]>(() => [
   {
     accessorKey: 'verdict',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Verdict'),
-    meta: { align: 'right' as const },
-    cell: ({ row }: { row: UiTableRow<Mismatch> }) => {
+    align: 'right',
+    cell: ({ row }: { row: Row<UiTableFeatures, Mismatch> }) => {
       const r = row.original
       return h(ProStatusBadge, {
         status: r.verdict === 'PASS' ? 'success' : r.verdict === 'FAIL' ? 'error' : 'neutral',

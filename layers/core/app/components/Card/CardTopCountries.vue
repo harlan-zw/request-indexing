@@ -54,13 +54,13 @@ const columns = [{ label: 'Country', key: 'country' }, { label: '%', sortable: t
       <TableData :searchable="false" :value="rows" :columns="columns" :filters="[]">
         <template #country-data="{ row }">
           <div class="flex-1 flex-grow min-h-full">
-            <ProgressPercent :value="row.percent" :total="100" class="min-w-full">
+            <UiProgressPercent :value="row.percent" :total="100" class="min-w-full">
               <div class="flex items-center gap-2 mb-1">
                 <Icon :name="`circle-flags:${row.countryCode.toLowerCase()}`" />
                 <span class=" capitalize">{{ row.country }}</span>
               <!--            <div>{{ useHumanFriendlyNumber(row.clicks / clicksSum * 100) }}%</div> -->
               </div>
-            </ProgressPercent>
+            </UiProgressPercent>
           </div>
         </template>
         <template #clicksPercent-data="{ row }">

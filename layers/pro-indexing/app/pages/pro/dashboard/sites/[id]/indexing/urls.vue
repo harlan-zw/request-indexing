@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UiTableColumn } from '#layers/design-system/app/components/data/table-features'
+import type { UiTableColumn } from '~~/layers/design-system/app/shared/table'
 import type { GscdumpIndexingUrl } from '#layers/pro-gsc/shared/gscdump-api'
 import { h } from 'vue'
 import { ProStatusBadge } from '#components'
@@ -107,7 +107,7 @@ const columns: UiTableColumn<GscdumpIndexingUrl>[] = [
   {
     accessorKey: 'lastCrawlTime',
     header: () => h('span', { class: 'text-[11px] font-semibold uppercase tracking-[0.1em] text-muted' }, 'Last crawl'),
-    meta: { align: 'right' as const },
+    align: 'right',
     cell: ({ row }) => h('span', { class: 'text-sm tabular-nums text-muted' }, formatDate(row.original.lastCrawlTime)),
   },
 ]

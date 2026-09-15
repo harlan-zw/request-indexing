@@ -98,7 +98,11 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2026-08-11',
 
-  css: ['~~/layers/design-system/css/global.css'],
+  // `layers/design-system` turns auto-imports off so every file in it imports
+  // explicitly, the way nuxtseo.com writes them. Nuxt merges layer config into
+  // one graph, so that switch would reach the whole app; re-assert it here.
+  // The design-system files keep their explicit imports either way.
+  imports: { autoImport: true },
 
   hooks: {
     'nitro:config': function (config) {
@@ -272,6 +276,9 @@ export default defineNuxtConfig({
       '0 0 * * *': ['sync.daily'],
     },
     imports: {
+      // See the root `imports` block: the design-system layer turns auto-imports
+      // off for the whole graph, so the server side re-asserts it too.
+      autoImport: true,
       dirs: recursiveServerAppFolders,
     },
     externals: {
@@ -318,13 +325,6 @@ export default defineNuxtConfig({
         'reka-ui',
       ],
     },
-  },
-
-  fonts: {
-    families: [
-      { name: 'DM Sans', weights: [400, 500, 600, 700], global: true },
-      { name: 'Poppins', weights: [600, 700], global: true },
-    ],
   },
 
   runtimeConfig: {

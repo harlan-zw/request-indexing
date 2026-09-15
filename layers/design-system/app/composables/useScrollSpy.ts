@@ -1,6 +1,6 @@
-import type { Ref } from 'vue'
-import { useThrottleFn } from '@vueuse/core'
-import { nextTick, onMounted, ref } from 'vue'
+import type { MaybeRefOrGetter, Ref } from 'vue'
+import { defaultWindow, useEventListener, useThrottleFn, useTimeoutFn } from '@vueuse/core'
+import { nextTick, onMounted, ref, toValue } from 'vue'
 
 // Define types for the sections
 type SectionId = string
@@ -27,13 +27,17 @@ interface ScrollSpyReturn {
 
 /**
  * A composable for tracking which sections are currently visible in the viewport
- * and providing navigation functionality
+ * and providing navigation functionality.
  *
- * @param sections  The sections to track
+ * `sections` accepts a ref/getter so a dynamic section list (e.g. derived from
+ * async content) stays live — it is read via `toValue` on every recalculation
+ * rather than captured once at call time.
+ *
+ * @param sections  The sections to track (reactive)
  * @param options   Configuration options
  * @returns Active section and navigation methods
  */
-export function useScrollSpy(sections: SectionInput[], options: ScrollSpyOptions = {}): ScrollSpyReturn {
+export function useScrollSpy(sections: MaybeRefOrGetter<SectionInput[]>, options: ScrollSpyOptions = {}): ScrollSpyReturn {
   const {
     offsetPx = -10, // Offset from the top (e.g., for fixed headers)
     throttleMs = 100, // Throttle milliseconds
@@ -48,6 +52,12 @@ export function useScrollSpy(sections: SectionInput[], options: ScrollSpyOptions
   function getSectionId(section: SectionInput): SectionId {
     return typeof section === 'string' ? section : section.id
   }
+
+  // Re-arm the "programmatic scroll done" flag after a smooth scroll settles.
+  // useTimeoutFn auto-cancels on scope dispose so it never fires into a torn-down instance.
+  const { start: startResetUserScrolling, stop: stopResetUserScrolling } = useTimeoutFn(() => {
+    isUserScrolling.value = true
+  }, 1000, { immediate: false })
 
   /**
    * Scrolls the page to the selected section
@@ -65,16 +75,16 @@ export function useScrollSpy(sections: SectionInput[], options: ScrollSpyOptions
       const rect = element.getBoundingClientRect()
       const absoluteTop = window.scrollY + rect.top - offsetPx
 
-      // Scroll with smooth behavior
+      // Scroll smoothly, unless the user prefers reduced motion (then jump).
+      const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
       window.scrollTo({
         top: absoluteTop,
-        behavior: 'smooth',
+        behavior: prefersReduced ? 'auto' : 'smooth',
       })
 
-      // Reset the flag after scrolling animation is likely to be complete
-      setTimeout(() => {
-        isUserScrolling.value = true
-      }, 1000) // Typical smooth scroll takes less than 1000ms
+      // Reset the flag after the smooth scroll is likely complete
+      stopResetUserScrolling()
+      startResetUserScrolling()
     }
   }
 
@@ -87,10 +97,12 @@ export function useScrollSpy(sections: SectionInput[], options: ScrollSpyOptions
       return
     }
 
+    const sectionList = toValue(sections)
+
     // Get all sections and their positions
     const sectionElements: { id: string, top: number }[] = []
 
-    sections.forEach((section) => {
+    sectionList.forEach((section) => {
       const id = getSectionId(section)
       const element = document.getElementById(id)
       if (element) {
@@ -126,9 +138,9 @@ export function useScrollSpy(sections: SectionInput[], options: ScrollSpyOptions
     if (activeSectionId) {
       activeSection.value = activeSectionId
     }
-    else if (sections[0]) {
+    else if (sectionList[0]) {
       // Fallback to first section if nothing else is active
-      activeSection.value = getSectionId(sections[0])
+      activeSection.value = getSectionId(sectionList[0])
     }
   }
 
@@ -140,32 +152,23 @@ export function useScrollSpy(sections: SectionInput[], options: ScrollSpyOptions
     isUserScrolling.value = true
   }
 
-  // Setup handlers
+  // Bind listeners synchronously at setup so useEventListener registers its
+  // cleanup against the active effect scope (binding inside the async nextTick
+  // below would lose the scope and leak the listeners).
+  useEventListener(defaultWindow, 'scroll', throttledCalculateActiveSection, { passive: true })
+  useEventListener(defaultWindow, 'mousedown', handleUserInteraction, { passive: true })
+  useEventListener(defaultWindow, 'keydown', handleUserInteraction, { passive: true })
+  useEventListener(defaultWindow, 'touchstart', handleUserInteraction, { passive: true })
+
+  // Recalculate shortly after mount to catch dynamic content that shifts offsets.
+  const { start: startDeferredRecalc } = useTimeoutFn(calculateActiveSection, 300, { immediate: false })
+
   onMounted(() => {
-    // Wait for DOM to be fully rendered
+    // Wait for DOM to be fully rendered before the first measurement
     void nextTick(() => {
-      // Add scroll event listener
-      window.addEventListener('scroll', throttledCalculateActiveSection, { passive: true })
-
-      // Listen for user interaction
-      window.addEventListener('mousedown', handleUserInteraction, { passive: true })
-      window.addEventListener('keydown', handleUserInteraction, { passive: true })
-      window.addEventListener('touchstart', handleUserInteraction, { passive: true })
-
-      // Calculate initial section
       calculateActiveSection()
-
-      // Also recalculate after a short delay to handle any dynamic content loading
-      setTimeout(calculateActiveSection, 300)
+      startDeferredRecalc()
     })
-  })
-
-  // Clean up
-  onUnmounted(() => {
-    window.removeEventListener('scroll', throttledCalculateActiveSection)
-    window.removeEventListener('mousedown', handleUserInteraction)
-    window.removeEventListener('keydown', handleUserInteraction)
-    window.removeEventListener('touchstart', handleUserInteraction)
   })
 
   return {

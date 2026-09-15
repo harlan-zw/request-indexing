@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { VNode } from 'vue'
-import { TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from 'reka-ui'
+import type { VNodeChild } from 'vue'
+import { computed, shallowRef, useSlots } from 'vue'
+import { TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger, UiIcon } from '#components'
 /**
  * UiTooltip
  *
@@ -41,36 +42,64 @@ interface Props {
   /** Whether the cursor may enter the tooltip body. Default `true` (tooltip semantics). */
   disableHoverableContent?: boolean
   disabled?: boolean
+  /**
+   * Default-variant trigger element. `'span'` (default) wraps the slot in a
+   * non-focusable span — correct when the slot content is itself focusable.
+   * `'button'` wraps it in a focusable button so a non-interactive trigger
+   * (e.g. a bare info icon) stays keyboard- and screen-reader-reachable.
+   * `'child'` makes the slot's single root element the trigger directly — use
+   * it for full-width links/rows where an extra inline wrapper would alter
+   * layout or truncate the hit area.
+   */
+  triggerAs?: 'span' | 'button' | 'child'
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  side: 'top',
-  align: 'center',
-  sideOffset: 6,
-  disableHoverableContent: true,
-  disabled: false,
-  size: 'md',
-})
+const {
+  text,
+  title,
+  description,
+  html,
+  side = 'top',
+  align = 'center',
+  sideOffset = 6,
+  disableHoverableContent = true,
+  disabled = false,
+  size = 'md',
+  triggerAs = 'span',
+} = defineProps<Props>()
 
 defineSlots<{
-  default?: () => VNode[]
-  text?: () => VNode[]
+  default?: () => VNodeChild
+  text?: () => VNodeChild
 }>()
 
 const slots = useSlots()
+const childTriggerElement = shallowRef<HTMLElement>()
+
+// Reka's as-child ref can stop at a Vue component instance. NuxtLink and other
+// component triggers then leave Floating UI with no measurable anchor, so the
+// tooltip falls back to viewport 0,0. Event listeners still reach the rendered
+// DOM root, which gives us the concrete anchor without adding a layout wrapper.
+function captureChildTrigger(event: Event): void {
+  if (event.currentTarget instanceof HTMLElement)
+    childTriggerElement.value = event.currentTarget
+}
 
 const hasContent = computed(() =>
-  !!(props.text || props.title || props.description || props.html || slots.text),
+  !!(text || title || description || html || slots.text),
+)
+const tooltipMaxWidth = computed(() =>
+  `min(${sizes[size]}px, calc(100vw - 2.5rem), var(--reka-tooltip-content-available-width, 100vw))`,
 )
 </script>
 
 <script lang="ts">
 export const sizes = {
-  xs: 'max-w-[80px]',
-  sm: 'max-w-[160px]',
-  md: 'max-w-[250px]',
-  lg: 'max-w-[440px]',
-  xl: 'max-w-[640px]',
+  xs: 80,
+  sm: 160,
+  md: 250,
+  lg: 440,
+  xl: 640,
 }
 </script>
 
@@ -84,8 +113,11 @@ export const sizes = {
         :disable-hoverable-content="disableHoverableContent"
         :disabled="disabled || !hasContent"
       >
-        <TooltipTrigger as-child>
-          <UIcon name="i-carbon-help" class="size-3 text-dimmed hover:text-muted transition-colors cursor-help" />
+        <TooltipTrigger
+          :aria-label="`More information: ${label}`"
+          class="-m-1.5 inline-flex min-h-6 min-w-6 items-center justify-center rounded-full text-dimmed hover:text-muted transition-colors cursor-help focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <UiIcon name="life-buoy" class="size-3" aria-hidden="true" />
         </TooltipTrigger>
         <TooltipPortal>
           <TooltipContent
@@ -96,7 +128,7 @@ export const sizes = {
             class="ui-tooltip-content"
             role="tooltip"
           >
-            <div class="text-xs text-left font-normal leading-normal space-y-2 w-max" :class="sizes[size]" data-ui="UiTooltip">
+            <div class="w-max space-y-2 text-left text-xs font-normal leading-normal" :style="{ maxWidth: tooltipMaxWidth }" data-ui="UiTooltip">
               <template v-if="title">
                 <div class="font-semibold">
                   {{ title }}
@@ -127,11 +159,35 @@ export const sizes = {
       :disable-hoverable-content="disableHoverableContent"
       :disabled="disabled || !hasContent"
     >
-      <TooltipTrigger as-child>
-        <span :class="$slots.default ? 'inline-block' : 'inline-flex'">
-          <slot v-if="$slots.default" />
-          <UIcon v-else name="i-carbon-help" color="primary" :size="iconSize || 'md'" class="cursor-help" />
+      <TooltipTrigger
+        v-if="$slots.default && triggerAs === 'child'"
+        :reference="childTriggerElement"
+        as-child
+        @pointermove="captureChildTrigger"
+        @focus="captureChildTrigger"
+      >
+        <slot />
+      </TooltipTrigger>
+      <TooltipTrigger v-else as-child>
+        <span v-if="$slots.default && triggerAs === 'span'" class="inline-block">
+          <slot />
         </span>
+        <button
+          v-else-if="$slots.default"
+          type="button"
+          :aria-label="text || title || description"
+          class="-m-0.5 inline-flex min-h-6 min-w-6 items-center justify-center cursor-help rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <slot />
+        </button>
+        <button
+          v-else
+          type="button"
+          aria-label="More information"
+          class="-m-0.5 inline-flex min-h-6 min-w-6 items-center justify-center cursor-help rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <UiIcon name="life-buoy" color="primary" :size="iconSize || 'md'" aria-hidden="true" />
+        </button>
       </TooltipTrigger>
       <TooltipPortal>
         <TooltipContent
@@ -142,7 +198,7 @@ export const sizes = {
           class="ui-tooltip-content"
           role="tooltip"
         >
-          <div class="text-xs text-left font-normal leading-normal space-y-2 w-max" :class="sizes[size]" data-ui="UiTooltip">
+          <div class="w-max space-y-2 text-left text-xs font-normal leading-normal" :style="{ maxWidth: tooltipMaxWidth }" data-ui="UiTooltip">
             <slot v-if="$slots.text" name="text" />
             <template v-else-if="title">
               <div class="font-semibold">
@@ -166,12 +222,10 @@ export const sizes = {
 <style>
 .ui-tooltip-content {
   background-color: var(--ui-bg-elevated);
-  background-image: linear-gradient(
-    to bottom,
-    rgb(255 255 255 / 0.025),
-    rgb(0 0 0 / 0.015) 60%,
-    rgb(0 0 0 / 0.03)
-  );
+  /* Popover-tier depth — see global.css. --elevation-popover carries the
+     atmospheric shadow + brand bevel; --surface-raised is the top-lit fill. */
+  background-image: var(--surface-raised);
+  box-shadow: var(--elevation-popover);
   color: var(--ui-text);
   border: 1px solid var(--ui-border);
   border-radius: 0.5rem;
@@ -180,21 +234,6 @@ export const sizes = {
   z-index: 50;
   will-change: transform, opacity;
   transform-origin: var(--reka-tooltip-content-transform-origin, center);
-  /*
-   * Stacked depth, all in box-shadow (gradients are forbidden by DESIGN.pro.md):
-   * - tight contact shadow
-   * - soft mid shadow
-   * - atmospheric long shadow
-   * - 1px inset top highlight (light-from-above)
-   * - 1px inset bottom hairline (settled-on-surface)
-   * The two inset lines create a beveled edge without any gradient surface.
-   */
-  box-shadow:
-    0 1px 1px 0 rgb(0 0 0 / 0.05),
-    0 4px 12px -2px rgb(0 0 0 / 0.08),
-    0 16px 32px -8px rgb(0 0 0 / 0.12),
-    inset 0 1px 0 0 rgb(255 255 255 / 0.06),
-    inset 0 -1px 0 0 rgb(0 0 0 / 0.04);
   letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;
 }
@@ -243,15 +282,6 @@ export const sizes = {
   .ui-tooltip-content[data-state="closed"] {
     animation: none;
   }
-}
-
-.dark .ui-tooltip-content {
-  background-image: linear-gradient(
-    to bottom,
-    rgb(255 255 255 / 0.04),
-    rgb(255 255 255 / 0.015) 55%,
-    rgb(0 0 0 / 0.04)
-  );
 }
 
 [data-ui="UiTooltip"] {

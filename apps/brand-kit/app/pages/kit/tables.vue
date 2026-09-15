@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import type { UiTableColumn } from '~~/layers/design-system/app/components/data/table-features'
+import type { UiTableColumn } from '~~/layers/design-system/app/shared/table'
 
 definePageMeta({ layout: 'kit' })
 useHead({ title: 'Data tables · Brand Kit' })
 
+// UiDataTableSection takes a plain record, so the demo row carries an index
+// signature rather than being cast at every call site.
 interface PageRow {
+  [key: string]: unknown
   id: string
   path: string
   url: string
@@ -53,10 +56,10 @@ const statusColor: Record<PageRow['status'], 'primary' | 'warning' | 'neutral'> 
   excluded: 'neutral',
 }
 
-const TablePathCellC = resolveComponent('TablePathCell')
-const TableMetricCellC = resolveComponent('TableMetricCell')
-const TableTrendCellC = resolveComponent('TableTrendCell')
-const TableScoreTileC = resolveComponent('TableScoreTile')
+const TablePathCellC = resolveComponent('UiTablePathCell')
+const TableMetricCellC = resolveComponent('UiTableMetricCell')
+const TableTrendCellC = resolveComponent('UiTableTrendCell')
+const TableScoreTileC = resolveComponent('UiTableScoreTile')
 const UBadgeC = resolveComponent('UBadge')
 
 const columns: UiTableColumn<PageRow>[] = [
@@ -75,38 +78,38 @@ const columns: UiTableColumn<PageRow>[] = [
     accessorKey: 'clicks',
     header: 'Clicks',
     enableSorting: true,
-    meta: { align: 'right' },
+    align: 'right',
     cell: ({ row }) => h(TableMetricCellC, { value: row.original.clicks, display: row.original.clicks.toLocaleString() }),
   },
   {
     id: 'clicksTrend',
     header: 'Δ Clicks',
-    meta: { align: 'right' },
+    align: 'right',
     cell: ({ row }) => h(TableTrendCellC, { current: row.original.clicks, previous: row.original.prevClicks }),
   },
   {
     accessorKey: 'impressions',
     header: 'Impr.',
     enableSorting: true,
-    meta: { align: 'right' },
+    align: 'right',
     cell: ({ row }) => h(TableMetricCellC, { value: row.original.impressions, display: row.original.impressions.toLocaleString(), muted: true }),
   },
   {
     accessorKey: 'ctr',
     header: 'CTR',
-    meta: { align: 'right' },
+    align: 'right',
     cell: ({ row }) => h(TableMetricCellC, { value: row.original.ctr, display: `${row.original.ctr.toFixed(2)}%` }),
   },
   {
     accessorKey: 'position',
     header: 'Pos.',
-    meta: { align: 'right' },
+    align: 'right',
     cell: ({ row }) => h(TableTrendCellC, { current: row.original.position, previous: row.original.prevPosition, inverted: true }),
   },
   {
     accessorKey: 'score',
     header: 'Perf',
-    meta: { align: 'center' },
+    align: 'center',
     cell: ({ row }) => h(TableScoreTileC, { score: row.original.score, label: 'Performance', bgClass: scoreBg(row.original.score) }),
   },
 ]
@@ -162,7 +165,7 @@ const columns: UiTableColumn<PageRow>[] = [
           </template>
           <tr v-for="row in rows.slice(0, 4)" :key="row.id">
             <UiTableTd>
-              <TablePathCell :url="row.url" :label="row.path" />
+              <UiTablePathCell :url="row.url" :label="row.path" />
             </UiTableTd>
             <UiTableTd>
               <UBadge variant="soft" :color="statusColor[row.status]">
@@ -170,7 +173,7 @@ const columns: UiTableColumn<PageRow>[] = [
               </UBadge>
             </UiTableTd>
             <UiTableTd align="right">
-              <TableMetricCell :value="row.clicks" :display="row.clicks.toLocaleString()" />
+              <UiTableMetricCell :value="row.clicks" :display="row.clicks.toLocaleString()" />
             </UiTableTd>
             <UiTableTd align="right">
               <UiTrend :value="Math.round((row.prevPosition - row.position) * 10)" />

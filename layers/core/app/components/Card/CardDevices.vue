@@ -49,13 +49,13 @@ const rows = computed(() => {
     </div>
     <TableData :searchable="false" :value="rows" :columns="[{ label: 'Device', key: 'device' }, { label: 'Clicks', sortable: true, key: 'clicksPercent' }, { label: '%', key: 'percent', sortable: true }, { label: 'Keywords', key: 'keywords' }]">
       <template #device-data="{ row }">
-        <ProgressPercent :value="row.clicks" :total="clicksSum">
+        <UiProgressPercent :value="row.clicks" :total="clicksSum">
           <div class="flex items-center gap-1">
             <UIcon v-if="row.device === 'TABLET'" name="i-heroicons-device-tablet" class="w-4 h-4" />
             <UIcon v-else :name="row.device === 'DESKTOP' ? 'i-heroicons-computer-desktop' : 'i-heroicons-device-phone-mobile' " class="w-4 h-4" />
             <span class="text-sm text-gray-600 capitalize">{{ row.device.toLowerCase() }}</span>
           </div>
-        </ProgressPercent>
+        </UiProgressPercent>
       </template>
       <template #clicksPercent-data="{ row }">
         {{ useHumanFriendlyNumber(row.clicksPercent) }}%

@@ -13,7 +13,10 @@ const { activeSection, scrollToSection } = useScrollSpy(spySections, { offsetPx:
 
 const colCount = ref(4)
 const hasPanel = ref(false)
-const gridCols = useProGridCols(colCount, hasPanel)
+// The second argument is a fallback `grid-template-columns` value, used verbatim
+// when it is truthy. `false` falls through to the generated track list.
+const panelCols = computed(() => hasPanel.value && 'repeat(4, minmax(0, 1fr))')
+const gridCols = useGridCols(colCount, panelCols)
 </script>
 
 <template>
@@ -62,8 +65,8 @@ const gridCols = useProGridCols(colCount, hasPanel)
     </KitSection>
 
     <KitSection
-      title="useProGridCols()"
-      code="composables/useProGridCols.ts"
+      title="useGridCols()"
+      code="composables/useGridCols.ts"
       description="Reactive `grid-template-columns` string for variable-width dashboard tables (avatar + label + N metric columns + actions)."
     >
       <UCard variant="outline">

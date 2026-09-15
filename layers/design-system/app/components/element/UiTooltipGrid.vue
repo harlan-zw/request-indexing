@@ -1,4 +1,6 @@
 <script setup lang="ts" generic="T = unknown">
+import { defaultWindow, useEventListener, useMounted } from '@vueuse/core'
+import { nextTick, ref, shallowRef, useId, useTemplateRef, watch } from 'vue'
 /**
  * UiTooltipGrid
  *
@@ -42,14 +44,17 @@ interface Props {
   maxWidth?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  selector: '[data-tooltip-row]',
-  side: 'top',
-  sideOffset: 6,
-  maxWidth: '250px',
-})
+const {
+  resolve,
+  selector = '[data-tooltip-row]',
+  side = 'top',
+  sideOffset = 6,
+  maxWidth = '250px',
+} = defineProps<Props>()
 
 const tooltipEl = useTemplateRef<HTMLElement>('tooltipEl')
+const mounted = useMounted()
+const tooltipId = useId()
 const data = shallowRef<ResolvedTooltip | null>(null)
 const open = ref(false)
 
@@ -61,14 +66,27 @@ let tipWidth = 0
 let tipHeight = 0
 let rafPending = false
 
+function addDescription(target: HTMLElement) {
+  const descriptions = new Set(target.getAttribute('aria-describedby')?.split(/\s+/).filter(Boolean) ?? [])
+  descriptions.add(tooltipId)
+  target.setAttribute('aria-describedby', [...descriptions].join(' '))
+}
+
+function removeDescription(target: HTMLElement) {
+  const descriptions = target.getAttribute('aria-describedby')?.split(/\s+/).filter(id => id && id !== tooltipId) ?? []
+  if (descriptions.length)
+    target.setAttribute('aria-describedby', descriptions.join(' '))
+  else
+    target.removeAttribute('aria-describedby')
+}
+
 function applyTransform(refRect: DOMRect) {
   if (!tooltipEl.value || !tipWidth || !tipHeight)
     return
   const vw = window.innerWidth
   const vh = window.innerHeight
   const pad = 8
-  const offset = props.sideOffset
-  const side = props.side
+  const offset = sideOffset
 
   let top = 0
   let left = 0
@@ -141,15 +159,18 @@ function activate(target: HTMLElement) {
     const n = Number(raw)
     value = (Number.isFinite(n) && raw.trim() !== '') ? n : raw
   }
-  const resolved = props.resolve({ row, col, value: value as T, el: target })
+  const resolved = resolve({ row, col, value: value as T, el: target })
   if (!resolved)
     return false
 
   const wasOpen = open.value
   // Stamp active state on the new cell, clear it on the previous one.
-  if (currentTarget && currentTarget !== target)
+  if (currentTarget && currentTarget !== target) {
     currentTarget.removeAttribute('data-tooltip-active')
+    removeDescription(currentTarget)
+  }
   target.setAttribute('data-tooltip-active', 'true')
+  addDescription(target)
 
   currentTarget = target
   data.value = resolved
@@ -182,13 +203,15 @@ function deactivate() {
   if (!open.value && !currentTarget)
     return
   open.value = false
-  if (currentTarget)
+  if (currentTarget) {
     currentTarget.removeAttribute('data-tooltip-active')
+    removeDescription(currentTarget)
+  }
   currentTarget = null
 }
 
 function handlePointerMove(e: PointerEvent) {
-  const target = (e.target as HTMLElement | null)?.closest(props.selector) as HTMLElement | null
+  const target = (e.target as HTMLElement | null)?.closest(selector) as HTMLElement | null
   if (!target) {
     deactivate()
     return
@@ -204,7 +227,7 @@ function handlePointerLeave() {
 }
 
 function handleFocusIn(e: FocusEvent) {
-  const target = (e.target as HTMLElement | null)?.closest(props.selector) as HTMLElement | null
+  const target = (e.target as HTMLElement | null)?.closest(selector) as HTMLElement | null
   if (!target)
     return
   activate(target)
@@ -236,14 +259,8 @@ watch(data, () => {
   })
 })
 
-onMounted(() => {
-  window.addEventListener('scroll', onScrollOrResize, { passive: true, capture: true })
-  window.addEventListener('resize', onScrollOrResize, { passive: true })
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', onScrollOrResize, { capture: true })
-  window.removeEventListener('resize', onScrollOrResize)
-})
+useEventListener(defaultWindow, 'scroll', onScrollOrResize, { passive: true, capture: true })
+useEventListener(defaultWindow, 'resize', onScrollOrResize, { passive: true })
 </script>
 
 <template>
@@ -256,9 +273,10 @@ onBeforeUnmount(() => {
     @keydown="handleKey"
   >
     <slot />
-    <Teleport to="body">
+    <Teleport v-if="mounted" to="body">
       <div
         v-show="open && data"
+        :id="tooltipId"
         ref="tooltipEl"
         role="tooltip"
         class="ui-tooltip-grid-content"
@@ -278,7 +296,7 @@ onBeforeUnmount(() => {
             <!-- Header: status dot + uppercase title -->
             <div v-if="data.title" class="flex items-center gap-1.5 mb-1.5">
               <span class="ui-tooltip-grid-dot" aria-hidden="true" />
-              <span class="text-[10px] uppercase tracking-wider font-medium text-dimmed">
+              <span class="text-label">
                 {{ data.title }}
               </span>
             </div>
@@ -293,14 +311,14 @@ onBeforeUnmount(() => {
                     'text-warning': data.details[0]!.color === 'warning',
                   }"
                 >{{ data.details[0]!.value ?? '—' }}</span>
-                <span class="text-[10px] uppercase tracking-wider text-dimmed">{{ data.details[0]!.label }}</span>
+                <span class="text-label">{{ data.details[0]!.label }}</span>
               </div>
               <!-- Secondary rows: stacked key/value -->
               <div v-if="data.details.length > 1" class="mt-2 pt-2 border-t border-default space-y-0.5">
                 <div
                   v-for="(d, i) in data.details.slice(1)"
                   :key="i"
-                  class="flex items-center justify-between gap-4 text-[11px]"
+                  class="flex items-center justify-between gap-4 text-mini"
                 >
                   <span class="text-muted">{{ d.label }}</span>
                   <span
@@ -331,27 +349,14 @@ onBeforeUnmount(() => {
   left: 0;
   z-index: 50;
   background-color: var(--ui-bg-elevated);
-  background-image: linear-gradient(
-    to bottom,
-    rgb(255 255 255 / 0.025),
-    rgb(0 0 0 / 0.015) 60%,
-    rgb(0 0 0 / 0.03)
-  );
+  /* Popover-tier chrome — shares the exact tokens UiTooltip uses. */
+  background-image: var(--surface-raised);
+  box-shadow: var(--elevation-popover);
   color: var(--ui-text);
   border: 1px solid var(--ui-border);
   border-radius: 0.5rem;
   padding: 0.625rem 0.75rem;
   pointer-events: none;
-  /*
-   * Matches UiTooltip chrome — see notes there. Inset highlights only,
-   * no gradient surface (DESIGN.pro.md rule).
-   */
-  box-shadow:
-    0 1px 1px 0 rgb(0 0 0 / 0.05),
-    0 4px 12px -2px rgb(0 0 0 / 0.08),
-    0 16px 32px -8px rgb(0 0 0 / 0.12),
-    inset 0 1px 0 0 rgb(255 255 255 / 0.06),
-    inset 0 -1px 0 0 rgb(0 0 0 / 0.04);
   letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;
   will-change: transform, opacity;
@@ -368,15 +373,6 @@ onBeforeUnmount(() => {
 
 .ui-tooltip-grid-content[data-open="true"] {
   opacity: 1;
-}
-
-.dark .ui-tooltip-grid-content {
-  background-image: linear-gradient(
-    to bottom,
-    rgb(255 255 255 / 0.04),
-    rgb(255 255 255 / 0.015) 55%,
-    rgb(0 0 0 / 0.04)
-  );
 }
 
 /* ─── Body ─── */

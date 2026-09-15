@@ -4,7 +4,7 @@ import { VisArea, VisAxis, VisCrosshair, VisLine, VisTooltip, VisXYContainer } f
 import { format } from 'date-fns'
 import { graphLineMode } from '~~/layers/core/app/composables/state'
 import { resolveMetricDomain, resolvePlotRange } from '~~/layers/core/app/utils/dashboard-site-card'
-import { gscMetricColors } from '~~/layers/design-system/app/composables/proDataVizColors'
+import { gscMetricColors } from '~~/layers/design-system/app/composables/dataVizColors'
 
 type MetricKey = 'clicks' | 'impressions' | 'position' | 'ctr'
 

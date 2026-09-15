@@ -1,5 +1,5 @@
-import type { ComputedRef, VNode } from 'vue'
-import { computed, inject, provide } from 'vue'
+import type { VNode } from 'vue'
+import { getCurrentInstance, toValue } from 'vue'
 
 /**
  * Helper function to check if the current setup-script component has a named listener
@@ -34,81 +34,11 @@ export function getSlotTextContent(slot: Slot): string {
   }).join(' ').trim()
 }
 
-/**
- * Creates a overridable context provider composable with defaults
- *
- * Its purpose is to provide an upstream set of values that can be
- * overridden by downstream child components, and in turn pass those
- * values on in turn.
- *
- * The props at each level should be passed in to the context at that
- * level so that the values can be merged with the parent values.
- *
- * @example
- *
- * // create new provider
- * const useFormLayout = createContextHook<FormContext>('form-layout', {
- *   orientation: 'vertical',
- *   labelWidth: undefined,
- *   inputSize: 'md',
- * })
- *
- * // form (sets and uses orientation)
- * const { orientation } = useFormLayout(props)
- *
- * // field (receives orientation and overrides input size)
- * const { orientation } = useFormLayout(props)
- *
- * // input (receives modified input size)
- * const { inputSize } = useFormLayout(props)
- */
-export function makeProvider<T extends object>(
-  key: string,
-  defaults: T,
-) {
-  return function useContext<P extends Partial<T>>(props: P) {
-    // symbol
-    const symbol = Symbol(key)
-
-    // Get parent context or use defaults
-    const parentContext = inject<ComputedRef<T> | T>(symbol, defaults)
-
-    // Create merged context that automatically watches props
-    const context = computed<T>(() => {
-      const parentValues = 'value' in parentContext
-        ? parentContext.value
-        : parentContext
-
-      // Filter out undefined values from props
-      const filteredProps = Object.fromEntries(
-        Object.entries(props).filter(([_, v]) => v !== undefined),
-      )
-
-      // Merge parent values with props
-      return {
-        ...parentValues,
-        ...filteredProps,
-      }
-    })
-
-    // Provide the merged context
-    provide(symbol, context)
-
-    // Return computed refs for each property
-    return Object.fromEntries(
-      Object.keys(defaults).map(key => [
-        key,
-        computed(() => context.value[key as keyof T]),
-      ]),
-    ) as { [K in keyof T]: ComputedRef<T[K]> }
-  }
-}
-
 export function deepUnref<T>(obj: T): T {
   const value = toValue(obj)
 
   if (!value || typeof value !== 'object') {
-    return value as T
+    return value
   }
 
   if (Array.isArray(value)) {
@@ -116,13 +46,12 @@ export function deepUnref<T>(obj: T): T {
   }
 
   const result: Record<string, unknown> = {}
-  const record = value as Record<string, unknown>
   for (const key in value) {
     // Skip Vue's internal ref properties
     if (key.startsWith('__v_') || key === '_rawValue' || key === '_value') {
       continue
     }
-    result[key] = deepUnref(record[key])
+    result[key] = deepUnref(value[key])
   }
   return result as T
 }
