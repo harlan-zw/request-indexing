@@ -216,6 +216,9 @@ export default defineNuxtConfig({
   routeRules: {
     ...runtimeOnlyRouteRules(),
     '/_alt/**': { robots: false, prerender: false },
+    // The legacy sign-up door. `/pro/onboarding` is the one entry now, so the
+    // old path keeps its inbound links and search results alive.
+    '/get-started': { redirect: { to: '/pro/onboarding', statusCode: 301 } },
     // `/dashboard/**` and `/account/**` are 301'd to the one tree by
     // `layers/pro-saas/server/middleware/00-legacy-dashboard.ts`. A route rule
     // can only swap the prefix, and several of those pages moved further.

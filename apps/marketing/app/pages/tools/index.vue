@@ -188,7 +188,7 @@ const tools = [
         description="Request Indexing submits your pages directly to Google's Indexing API. Free, open-source, and set up in under a minute."
         variant="subtle"
         :links="[
-          { label: 'Get Started Free', to: '/get-started', color: 'primary', size: 'xl', trailingIcon: 'i-heroicons-arrow-right' },
+          { label: 'Get Started Free', to: '/pro/onboarding', color: 'primary', size: 'xl', trailingIcon: 'i-heroicons-arrow-right' },
           { label: 'Read the guides', to: '/guides', variant: 'ghost', color: 'neutral', size: 'xl' },
         ]"
       />

@@ -275,7 +275,7 @@ const recommendationColor = {
               Connect your Google Search Console to Request Indexing for detailed coverage data and one-click URL submission via the Indexing API.
             </p>
             <div class="flex flex-wrap gap-3">
-              <UButton to="/get-started" color="primary" trailing-icon="i-heroicons-arrow-right">
+              <UButton to="/pro/onboarding" color="primary" trailing-icon="i-heroicons-arrow-right">
                 Get Started Free
               </UButton>
               <UButton to="/tools/bulk-indexing-checker" variant="outline" color="neutral">

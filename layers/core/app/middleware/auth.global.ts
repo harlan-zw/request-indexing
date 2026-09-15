@@ -1,8 +1,11 @@
-const AnonymousAllowlistPrefixes = ['/tools', '/login', '/auth', '/get-started']
+const AnonymousAllowlistPrefixes = ['/tools', '/login', '/auth', '/pro/onboarding']
 
 export default defineNuxtRouteMiddleware((to) => {
   const { loggedIn } = useUserSession()
-  if (loggedIn.value && (to.path === '/get-started' || to.path === '/login'))
+  // `/pro/onboarding` is deliberately absent here. It resolves its own landing
+  // for a signed-in visitor, so it resumes the wizard at the right step instead
+  // of being bounced to the dashboard.
+  if (loggedIn.value && to.path === '/login')
     return navigateTo('/pro/dashboard')
   if (AnonymousAllowlistPrefixes.some(p => to.path === p || to.path.startsWith(`${p}/`)))
     return

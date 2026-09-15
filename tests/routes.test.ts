@@ -6,6 +6,8 @@ describe('isRuntimeOnlyRoute', () => {
     '/dashboard',
     '/dashboard/team/setup',
     '/pro/dashboard/sites/1/indexing',
+    // The sign-up door, moved off the prerendered `/get-started` page.
+    '/pro/onboarding',
     '/account',
     '/admin/users',
     '/kit/buttons',
@@ -20,7 +22,6 @@ describe('isRuntimeOnlyRoute', () => {
   it.each([
     '/',
     '/login',
-    '/get-started',
     '/guides',
     '/tools/google-indexing-checker',
     '/comparisons/some-rival',
