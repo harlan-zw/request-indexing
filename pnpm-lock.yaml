@@ -25,11 +25,11 @@ catalogs:
       specifier: 0.1.2
       version: 0.1.2
     '@harlan-zw/nuxt-checkin':
-      specifier: 0.2.0
-      version: 0.2.0
+      specifier: 0.3.0
+      version: 0.3.0
     '@harlan-zw/nuxt-cloudflare':
-      specifier: 0.4.2
-      version: 0.4.2
+      specifier: 0.4.3
+      version: 0.4.3
     '@harlan-zw/nuxt-domain-events':
       specifier: 0.1.1
       version: 0.1.1
@@ -37,8 +37,8 @@ catalogs:
       specifier: 0.1.3
       version: 0.1.3
     '@harlan-zw/nuxt-sentry':
-      specifier: 0.1.6
-      version: 0.1.6
+      specifier: 0.1.7
+      version: 0.1.7
     '@harlan-zw/nuxt-use-query':
       specifier: 0.1.0
       version: 0.1.0
@@ -294,7 +294,7 @@ importers:
         version: 0.1.2(cabb6b03befa0b1be5ba252369cf89f2)
       '@harlan-zw/nuxt-checkin':
         specifier: 'catalog:'
-        version: 0.2.0(5ecd7347fde047ed9ad990ee3414dced)
+        version: 0.3.0(5ecd7347fde047ed9ad990ee3414dced)
       '@harlan-zw/nuxt-domain-events':
         specifier: 'catalog:'
         version: 0.1.1(34e4d44bd71eb19d2125d9d5b11bf80c)
@@ -481,13 +481,13 @@ importers:
         version: 5.20260816.1
       '@harlan-zw/nuxt-cloudflare':
         specifier: 'catalog:'
-        version: 0.4.2(667fbb80534557ed442eff9c1d2071de)
+        version: 0.4.3(68a15a8f5678a42658f6a1cbc27a6d19)
       '@harlan-zw/nuxt-dx':
         specifier: 'catalog:'
         version: 0.1.3(1d55cda512087521921ce921683aed9b)
       '@harlan-zw/nuxt-sentry':
         specifier: 'catalog:'
-        version: 0.1.6(ed734840af9ffc3362438b46b973ada7)
+        version: 0.1.7(3bca0dae79f9a6a4c878c99bb73639d6)
       '@nuxt/test-utils':
         specifier: 'catalog:'
         version: 4.1.0(crossws@0.4.10(srvx@0.12.5))(esbuild@0.28.1)(happy-dom@20.14.5)(magicast@0.5.4)(rolldown@1.2.3)(rollup@4.62.4)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))(vitest@4.1.10(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(esbuild@0.28.1)(happy-dom@20.14.5)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))
@@ -1681,19 +1681,19 @@ packages:
       nuxt: '>=4.5.0 <5.0.0'
       vue: 3.5.41
 
-  '@harlan-zw/nuxt-checkin@0.2.0':
-    resolution: {integrity: sha512-1c7YBwovlMSN5cxe9jYt5Kfh7crZxlZciWvoyqdn0r/acE/Zb5lYE+byYVFVD2EZ82IOfLpecdQGijnXTSOVBw==}
+  '@harlan-zw/nuxt-checkin@0.3.0':
+    resolution: {integrity: sha512-vJmK74WIwLENHvMLvHvwWLV7bqDWybXGyByaqHI9DLiYyB4V+xwT2gILFOG7+JDB2tt/dVcHS75/2pKAaPLpVA==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
       nuxt: '>=4.5.0 <6.0.0'
 
-  '@harlan-zw/nuxt-cloudflare@0.4.2':
-    resolution: {integrity: sha512-800IClygYpN4U0GiFS1tW3OmF5boa14B6EDbkZkPcrJLF3bq4eN6Zo2UE0y5g+QFLma3o91VNAw74LupV3uy1A==}
+  '@harlan-zw/nuxt-cloudflare@0.4.3':
+    resolution: {integrity: sha512-EPUR0kfdmqdLc1aTsTq5HkJYQwexdLzfDZBSYjnWkM449k/2Y0/tDl8Ilo4aZDqGbehu1YBsv0TjCIrV2Ebtgg==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
-      '@harlan-zw/nuxt-checkin': ^0.1.0 || ^0.2.0-0
+      '@harlan-zw/nuxt-checkin': ^0.1.0 || ^0.2.0-0 || ^0.3.0
       nuxt: '>=4.5.0 <6.0.0'
       wrangler: '>=4.120.0 <5.0.0'
     peerDependenciesMeta:
@@ -1719,11 +1719,11 @@ packages:
       nuxt: '>=4.5.0 <6.0.0'
       vite: ^8.0.0
 
-  '@harlan-zw/nuxt-sentry@0.1.6':
-    resolution: {integrity: sha512-Z0vdTmqzO7kk5KYjhrh7f9sH6PUkq+YTaaGEMlo3CRrpEn3AqlTw0EmFDtgG9Nhc8ScpjHBzDKISo2a/JE1lMw==}
+  '@harlan-zw/nuxt-sentry@0.1.7':
+    resolution: {integrity: sha512-z29FglYFX4NeVo7PUfGzWCX4xuyjH+UMmRrTKoNpHmMx8vgzKbfnd7EUluvppCqBfLXrH7YsUDi8+tBz16OggA==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
-      '@harlan-zw/nuxt-checkin': ^0.1.0 || ^0.2.0-0
+      '@harlan-zw/nuxt-checkin': ^0.1.0 || ^0.2.0-0 || ^0.3.0
       '@sentry/cloudflare': ^10.70.0
       '@sentry/nuxt': ^10.70.0
       nuxt: '>=4.5.0 <6.0.0'
@@ -3497,8 +3497,8 @@ packages:
     resolution: {integrity: sha512-GwdDyGGr6UXAtubF14yAwcXvdaogqfsQgIk89Suebjxob/Rjq2xvfmXsjDF1rQmKmhHsJm9TOY7myxv3i6geJw==}
     engines: {node: '>=20'}
 
-  '@tanstack/virtual-core@3.17.10':
-    resolution: {integrity: sha512-eMorKWIi2nekElu+8DgSMJR4iR+sTDeh+W8VjKiMH79yUfEDJ3W9aL/96/wwbxNjyV6EfN39HKszSxjd90zAqQ==}
+  '@tanstack/virtual-core@3.17.11':
+    resolution: {integrity: sha512-+ILjvtHup6Y2hzQ6YzwMgX1Q+oQpxEGOXCEsCNaPoIP0VxMbizIBTmYTDtkerkIQS8/CbP1BRuyt8V/8BCsy1g==}
 
   '@tanstack/virtual-core@3.17.7':
     resolution: {integrity: sha512-bp+v10y65sp2H7WpWfIMyxTNfl8ZVfxFTLRjPIFRryi6FV/J33z4IS53WO4pTk36KlvJ4iLiQz+oaydDC1xbcA==}
@@ -3520,8 +3520,8 @@ packages:
     peerDependencies:
       vue: 3.5.41
 
-  '@tanstack/vue-virtual@3.13.38':
-    resolution: {integrity: sha512-9GE1RY5EBmA5w+0AR7AIL940EnGKik7o69QLDDcZg2sBLbitkjFRUD1BKxgKPD6WsCS/ptOPndARtDTkShH1jA==}
+  '@tanstack/vue-virtual@3.13.39':
+    resolution: {integrity: sha512-AG8sI+6nfrDvN6ixuHJL9LaJTf3//0V5VITZYW3UOaIuSVexnEzsbMu4LH/JhMfRTxwhUXPnLqkl1DlzkZbRtg==}
     peerDependencies:
       vue: 3.5.41
 
@@ -10105,7 +10105,7 @@ snapshots:
       - shiki
       - unplugin
 
-  '@harlan-zw/nuxt-checkin@0.2.0(5ecd7347fde047ed9ad990ee3414dced)':
+  '@harlan-zw/nuxt-checkin@0.3.0(5ecd7347fde047ed9ad990ee3414dced)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.3.1)(magicast@0.5.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0)))
       nuxt: 4.5.2(patch_hash=139197491882e4310aa687fadad314f827b63f558122dada1565f2b7d42ca8da)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0(supports-color@10.2.2)))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.0(supports-color@10.2.2)))(@oxc-project/types@0.144.0)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.41)(db0@0.3.4(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)))(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1))(esbuild@0.28.1)(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(ioredis@5.11.1(supports-color@10.2.2))(lightningcss@1.33.0)(magicast@0.5.4)(optionator@0.9.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(rollup-plugin-visualizer@7.0.1(rolldown@1.2.3)(rollup@4.62.4))(rollup@4.62.4)(srvx@0.12.5)(supports-color@10.2.2)(terser@5.50.0)(tsx@4.23.11)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))(vue-tsc@3.3.10(typescript@6.0.3))(yaml@2.9.0)
@@ -10119,7 +10119,7 @@ snapshots:
       - rolldown
       - unplugin
 
-  '@harlan-zw/nuxt-cloudflare@0.4.2(667fbb80534557ed442eff9c1d2071de)':
+  '@harlan-zw/nuxt-cloudflare@0.4.3(68a15a8f5678a42658f6a1cbc27a6d19)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.3.1)(magicast@0.5.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0)))
       citty: 0.2.2
@@ -10132,7 +10132,7 @@ snapshots:
       unstorage: 1.17.5(db0@0.3.4(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)))(ioredis@5.11.1(supports-color@10.2.2))
       wrangler: 4.123.0(@cloudflare/workers-types@5.20260816.1)(@types/node@25.6.0)
     optionalDependencies:
-      '@harlan-zw/nuxt-checkin': 0.2.0(5ecd7347fde047ed9ad990ee3414dced)
+      '@harlan-zw/nuxt-checkin': 0.3.0(5ecd7347fde047ed9ad990ee3414dced)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -10206,14 +10206,14 @@ snapshots:
       - unplugin
       - vue
 
-  '@harlan-zw/nuxt-sentry@0.1.6(ed734840af9ffc3362438b46b973ada7)':
+  '@harlan-zw/nuxt-sentry@0.1.7(3bca0dae79f9a6a4c878c99bb73639d6)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.3.1)(magicast@0.5.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0)))
       '@sentry/nuxt': 10.70.0(5c7b53d002ce9505d799e05119d65a13)
       nuxt: 4.5.2(patch_hash=139197491882e4310aa687fadad314f827b63f558122dada1565f2b7d42ca8da)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0(supports-color@10.2.2)))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.0(supports-color@10.2.2)))(@oxc-project/types@0.144.0)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.41)(db0@0.3.4(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)))(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1))(esbuild@0.28.1)(eslint@10.8.1(jiti@2.7.0)(supports-color@10.2.2))(ioredis@5.11.1(supports-color@10.2.2))(lightningcss@1.33.0)(magicast@0.5.4)(optionator@0.9.4)(oxc-parser@0.144.0)(rolldown@1.2.3)(rollup-plugin-visualizer@7.0.1(rolldown@1.2.3)(rollup@4.62.4))(rollup@4.62.4)(srvx@0.12.5)(supports-color@10.2.2)(terser@5.50.0)(tsx@4.23.11)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))(vue-tsc@3.3.10(typescript@6.0.3))(yaml@2.9.0)
       pathe: 2.0.3
     optionalDependencies:
-      '@harlan-zw/nuxt-checkin': 0.2.0(5ecd7347fde047ed9ad990ee3414dced)
+      '@harlan-zw/nuxt-checkin': 0.3.0(5ecd7347fde047ed9ad990ee3414dced)
       '@sentry/cloudflare': 10.70.0(@cloudflare/workers-types@5.20260816.1)(supports-color@10.2.2)(wrangler@4.123.0(@cloudflare/workers-types@5.20260816.1)(@types/node@25.6.0))
     transitivePeerDependencies:
       - magic-string
@@ -11321,7 +11321,7 @@ snapshots:
       '@tailwindcss/postcss': 4.3.3
       '@tailwindcss/vite': 4.3.3(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))
       '@tanstack/vue-table': 8.21.3(vue@3.5.41(typescript@6.0.3))
-      '@tanstack/vue-virtual': 3.13.38(vue@3.5.41(typescript@6.0.3))
+      '@tanstack/vue-virtual': 3.13.39(vue@3.5.41(typescript@6.0.3))
       '@tiptap/core': 3.31.3(@tiptap/pm@3.31.3)
       '@tiptap/extension-bubble-menu': 3.31.3(@tiptap/core@3.31.3(@tiptap/pm@3.31.3))(@tiptap/pm@3.31.3)
       '@tiptap/extension-code': 3.31.3(@tiptap/core@3.31.3(@tiptap/pm@3.31.3))
@@ -12431,7 +12431,7 @@ snapshots:
     dependencies:
       '@tanstack/store': 0.11.1
 
-  '@tanstack/virtual-core@3.17.10': {}
+  '@tanstack/virtual-core@3.17.11': {}
 
   '@tanstack/virtual-core@3.17.7': {}
 
@@ -12451,9 +12451,9 @@ snapshots:
       '@tanstack/virtual-core': 3.17.7
       vue: 3.5.41(typescript@6.0.3)
 
-  '@tanstack/vue-virtual@3.13.38(vue@3.5.41(typescript@6.0.3))':
+  '@tanstack/vue-virtual@3.13.39(vue@3.5.41(typescript@6.0.3))':
     dependencies:
-      '@tanstack/virtual-core': 3.17.10
+      '@tanstack/virtual-core': 3.17.11
       vue: 3.5.41(typescript@6.0.3)
 
   '@tiptap/core@3.31.3(@tiptap/pm@3.31.3)':
