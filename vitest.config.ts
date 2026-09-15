@@ -30,6 +30,29 @@ function alias() {
   ]
 }
 
+/**
+ * Nuxt stamps `import.meta.client` and `import.meta.server` at build time.
+ * Vitest leaves both undefined, so a composable guarded on `import.meta.client`
+ * does nothing at all and the test asserts against a no-op. The client project
+ * runs the browser branch, so the flags are rewritten for it here.
+ */
+function nuxtBuildFlags() {
+  return {
+    name: 'nuxt-build-flags',
+    enforce: 'pre' as const,
+    transform(code: string, id: string) {
+      if (id.includes('/node_modules/') || !/import\.meta\.(?:client|server)/.test(code))
+        return null
+      return {
+        code: code
+          .replace(/import\.meta\.client/g, 'true')
+          .replace(/import\.meta\.server/g, 'false'),
+        map: null,
+      }
+    },
+  }
+}
+
 export default defineConfig({
   test: {
     projects: [
@@ -55,7 +78,7 @@ export default defineConfig({
         resolve: { alias: alias() },
       }),
       defineProject({
-        plugins: [vue()],
+        plugins: [vue(), nuxtBuildFlags()],
         test: {
           name: 'client',
           environment: 'happy-dom',

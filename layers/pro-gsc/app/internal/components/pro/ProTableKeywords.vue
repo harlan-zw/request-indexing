@@ -209,7 +209,7 @@ const columns = computed<UiTableColumn<KeywordTableRow>[]>(() => {
           ]),
           h(ProSparklineCell, {
             data: sparklines.map.value.get(query) ?? null,
-            pending: sparklines.pending.value,
+            pending: sparklines.pendingFor(query),
             error: !!sparklines.error.value,
             dates: sparklines.dates.value,
             label: query,
@@ -236,10 +236,11 @@ const columns = computed<UiTableColumn<KeywordTableRow>[]>(() => {
       cell: ({ row }: CellContext<UiTableFeatures, KeywordTableRow, unknown>) => {
         if (!gscdumpSiteId)
           return dash()
+        const key = rowQuery(row.original)
         return h(ProTopPageCell, {
           siteId,
-          page: topPages.map.value.get(rowQuery(row.original)) ?? null,
-          pending: topPages.pending.value,
+          page: topPages.map.value.get(key) ?? null,
+          pending: topPages.pendingFor(key),
         })
       },
     },

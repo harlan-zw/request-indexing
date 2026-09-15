@@ -22,6 +22,10 @@ export { sparklineDateAxis }
  * one grouped `(dimension, date)` analytics report instead. Either way the
  * result is projected onto a shared day axis, so every series is the same
  * length and a missing day reads as zero rather than shortening the line.
+ *
+ * Each batch settles on its own. One pending flag over every batch held all 25
+ * cells in their loading block until the slowest read returned, so a slow or
+ * failed batch read as a permanent grey placeholder down the column.
  */
 
 /** Keywords one `keyword-sparklines` request accepts. */
@@ -58,12 +62,15 @@ export function useProEntitySparklines(opts: UseProEntitySparklinesOptions): {
   /** Shared `YYYY-MM-DD` day axis every series is projected onto. */
   dates: Ref<string[]>
   pending: Ref<boolean>
+  /** True only while the batch carrying this key is in flight. */
+  pendingFor: (key: string) => boolean
   error: Ref<Error | null>
 } {
   const gscdump = useProGscdump()
   const map = ref<Map<string, number[]>>(new Map())
   const dates = ref<string[]>([])
-  const pending = ref(false)
+  const unresolved = ref<Set<string>>(new Set())
+  const pending = computed(() => unresolved.value.size > 0)
   const filters = useProGscFilters()
   const metric = computed(() => toValue(opts.metric) ?? 'clicks')
   const searchType = computed(() => toValue(opts.searchType) ?? filters.searchType.value)
@@ -91,22 +98,18 @@ export function useProEntitySparklines(opts: UseProEntitySparklinesOptions): {
   ): Promise<Map<string, Map<string, number>>> {
     const axis = sparklineDateAxis(range.start, range.end)
     const out = new Map<string, Map<string, number>>()
-    const batches = await Promise.all(chunk(keys, SPARKLINE_KEYWORD_BATCH).map(batch =>
-      gscdump.queryKeywordSparklines<{ sparklines: Record<string, number[]> }>({
-        params: { siteId },
-        body: { keywords: batch, startDate: range.start, endDate: range.end, searchType: slice },
-      }, true),
-    ))
-    for (const batch of batches) {
-      for (const [key, series] of Object.entries(batch?.sparklines ?? {})) {
-        const byDate = new Map<string, number>()
-        series.forEach((value, index) => {
-          const day = axis[index]
-          if (day)
-            byDate.set(day, Number(value) || 0)
-        })
-        out.set(key, byDate)
-      }
+    const batch = await gscdump.queryKeywordSparklines<{ sparklines: Record<string, number[]> }>({
+      params: { siteId },
+      body: { keywords: keys, startDate: range.start, endDate: range.end, searchType: slice },
+    }, true)
+    for (const [key, series] of Object.entries(batch?.sparklines ?? {})) {
+      const byDate = new Map<string, number>()
+      series.forEach((value, index) => {
+        const day = axis[index]
+        if (day)
+          byDate.set(day, Number(value) || 0)
+      })
+      out.set(key, byDate)
     }
     return out
   }
@@ -146,6 +149,23 @@ export function useProEntitySparklines(opts: UseProEntitySparklinesOptions): {
     return out
   }
 
+  function publish(keys: readonly string[]): void {
+    const next = new Map<string, number[]>()
+    for (const key of keys) {
+      const series = cached.get(key)
+      if (series)
+        next.set(key, series)
+    }
+    map.value = next
+  }
+
+  function settle(keys: readonly string[]): void {
+    const next = new Set(unresolved.value)
+    for (const key of keys)
+      next.delete(key)
+    unresolved.value = next
+  }
+
   let token = 0
   onScopeDispose(() => token++)
   watch(
@@ -162,53 +182,51 @@ export function useProEntitySparklines(opts: UseProEntitySparklinesOptions): {
       if (!import.meta.client || !siteId || !keys.length || !range?.start || !range?.end) {
         map.value = new Map()
         dates.value = []
-        pending.value = false
+        unresolved.value = new Set()
         return
       }
       const axis = sparklineDateAxis(range.start, range.end)
       dates.value = axis
       const missing = keys.filter(k => !cached.has(k))
-      if (missing.length === 0) {
-        const next = new Map<string, number[]>()
-        for (const key of keys)
-          next.set(key, cached.get(key) ?? [])
-        map.value = next
-        pending.value = false
+      publish(keys)
+      unresolved.value = new Set(missing)
+      if (missing.length === 0)
         return
-      }
-      pending.value = true
-      map.value = new Map(keys.filter(key => cached.has(key)).map(key => [key, cached.get(key) ?? []]))
 
-      const byEntity = await (isKeywordDimension
-        ? readKeywordSeries(siteId, range, missing, selectedSearchType)
-        : readBreakdownSeries(siteId, range, missing, facets)
-      ).catch((cause: unknown) => {
-        // A missing sparkline degrades to a dash in the cell, so the failure is
-        // surfaced on the cell rather than as a toast over the whole table.
-        if (current === token)
-          error.value = cause instanceof Error ? cause : new Error('Trend data could not load.')
-        return null
-      })
+      // Keyword reads are capped per request, so they run as several batches.
+      // Page and country series come back in one grouped report.
+      const batches = isKeywordDimension ? chunk(missing, SPARKLINE_KEYWORD_BATCH) : [missing]
+      await Promise.all(batches.map(async (batch) => {
+        const byEntity = await (isKeywordDimension
+          ? readKeywordSeries(siteId, range, batch, selectedSearchType)
+          : readBreakdownSeries(siteId, range, batch, facets)
+        ).catch((cause: unknown) => {
+          // A missing sparkline degrades to a dash in the cell, so the failure is
+          // surfaced on the cell rather than as a toast over the whole table.
+          if (current === token)
+            error.value = cause instanceof Error ? cause : new Error('Trend data could not load.')
+          return null
+        })
+        if (current !== token)
+          return
+        if (byEntity) {
+          for (const key of batch)
+            cached.set(key, null)
+          for (const [key, series] of byEntity)
+            cached.set(key, axis.map(d => series.get(d) ?? 0))
+          publish(keys)
+        }
+        // A failed batch settles too: its cells read as no data, never as a
+        // placeholder that outlives the request.
+        settle(batch)
+      }))
       if (current !== token)
         return
-      if (!byEntity) {
-        pending.value = false
-        return
-      }
-
-      for (const key of missing)
-        cached.set(key, null)
-      for (const [key, series] of byEntity)
-        cached.set(key, axis.map(d => series.get(d) ?? 0))
-      const next = new Map<string, number[]>()
-      for (const key of keys)
-        next.set(key, cached.get(key) ?? [])
-      map.value = next
       dates.value = axis
-      pending.value = false
+      unresolved.value = new Set()
     },
     { immediate: true, deep: true },
   )
 
-  return { map, dates, pending, error }
+  return { map, dates, pending, pendingFor: (key: string) => unresolved.value.has(key), error }
 }

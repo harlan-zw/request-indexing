@@ -168,7 +168,7 @@ const columns = computed<UiTableColumn<PageTableRow>[]>(() => {
           ]),
           h(ProSparklineCell, {
             data: sparklines.map.value.get(pageUrl) ?? null,
-            pending: sparklines.pending.value,
+            pending: sparklines.pendingFor(pageUrl),
             error: !!sparklines.error.value,
             dates: sparklines.dates.value,
             label: pageUrl,
@@ -198,7 +198,7 @@ const columns = computed<UiTableColumn<PageTableRow>[]>(() => {
         return h(ProTopKeywordCell, {
           siteId,
           keyword: topKeywords.map.value.get(r.page) ?? null,
-          pending: topKeywords.pending.value,
+          pending: topKeywords.pendingFor(r.page),
         })
       },
     },

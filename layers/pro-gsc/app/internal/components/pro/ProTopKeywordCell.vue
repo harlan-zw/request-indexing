@@ -6,6 +6,8 @@ import { NuxtLink } from '#components'
 // Presentational cell for the page table's "Top Keyword" column. The value is
 // resolved in bulk by `useProTopAssociations` (one scan for the whole page),
 // so this component just renders the resolved keyword or a placeholder.
+// `pending` is this row's own state: an empty cell that never resolves is the
+// bug a shared per-table flag produced.
 defineProps<{
   siteId: string
   keyword: string | null
@@ -37,5 +39,11 @@ const linkSiteId = computed(() => linkRoute.params.id as string)
   >
     {{ keyword }}
   </NuxtLink>
-  <span v-else-if="!pending" class="text-dimmed">—</span>
+  <span
+    v-else-if="pending"
+    class="inline-block h-4 w-20 animate-pulse rounded bg-accented align-bottom"
+    aria-busy="true"
+    aria-label="Loading"
+  />
+  <span v-else class="text-dimmed">&mdash;</span>
 </template>
