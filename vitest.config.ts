@@ -16,7 +16,7 @@ const UNIT = '**/*.test.ts'
 
 const EXCLUDE = ['**/node_modules/**', '**/.nuxt/**', '**/.output/**', '**/dist/**']
 
-// `#shared` and `#schema/pro` are Nuxt build aliases. A node-environment test
+// `#shared`, `#imports` and `#schema/pro` are Nuxt build aliases. A node-environment test
 // gets no Nuxt resolver, so they are mapped here; `#schema/pro` points at the
 // barrel `modules/drizzle-layers` emits, which means a test importing it needs
 // `nuxt prepare` to have run at least once. That is what `postinstall` does.
@@ -25,6 +25,7 @@ function alias() {
     { find: '#schema/pro', replacement: fileURLToPath(new URL('./.nuxt/drizzle-layers/pro/schema.ts', import.meta.url)) },
     { find: '#db/pro', replacement: fileURLToPath(new URL('./.nuxt/drizzle-layers/pro/db.ts', import.meta.url)) },
     { find: '#shared', replacement: fileURLToPath(new URL('./shared', import.meta.url)) },
+    { find: '#imports', replacement: fileURLToPath(new URL('./tests/setup/nuxt-imports.ts', import.meta.url)) },
     { find: /^#layers\/(.*)$/, replacement: `${ROOT}layers/$1` },
     { find: '~~', replacement: ROOT },
   ]
