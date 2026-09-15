@@ -15,7 +15,10 @@
 // `?email=` picks a different seeded account, `?site=` the seeded property.
 // `?onboarding=0` seeds the account before onboarding, so the setup wizard can
 // be walked locally. It clears `onboarding_completed_at` on an account that
-// already finished, so the wizard can be walked again without reseeding.
+// already finished, so the wizard can be walked again without reseeding, and it
+// seeds no Site: the wizard resumes from what the account has actually done, so
+// a seeded Site would drop the walk on the last step and skip the one required
+// step there is. Pass `?site=` with it to seed one anyway.
 import { and, eq } from 'drizzle-orm'
 import { googleAccounts, googleOAuthClients, sites, teamSites } from '~~/layers/core/server/db/schema'
 import { userIdentities, users } from '#layers/pro-saas/server/database'
@@ -32,7 +35,8 @@ export default defineEventHandler(async (event) => {
 
   const query = getQuery(event)
   const email = typeof query.email === 'string' && query.email ? query.email : DEFAULT_EMAIL
-  const property = typeof query.site === 'string' && query.site ? query.site : DEFAULT_SITE
+  const explicitProperty = typeof query.site === 'string' && query.site ? query.site : null
+  const property = explicitProperty ?? DEFAULT_SITE
   const skipOnboarding = parseOnboardingCompletedFlag(query.onboarding)
   const providerUserId = `dev-${email}`
   const db = useDrizzle(event)
@@ -98,9 +102,13 @@ export default defineEventHandler(async (event) => {
     }).returning().get()
   }
 
-  // 3. One active Site on the team, linked through `team_sites`.
-  let site = await db.select().from(sites).where(and(eq(sites.teamId, teamId), eq(sites.property, property))).get()
-  if (!site) {
+  // 3. One active Site on the team, linked through `team_sites`. Skipped for a
+  //    pre-onboarding account unless `?site=` asked for one by name.
+  const seedSite = skipOnboarding || explicitProperty
+  let site = seedSite
+    ? await db.select().from(sites).where(and(eq(sites.teamId, teamId), eq(sites.property, property))).get()
+    : undefined
+  if (seedSite && !site) {
     site = await db.insert(sites).values({
       teamId,
       property,
