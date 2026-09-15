@@ -1,7 +1,8 @@
 import { and, eq, inArray, or } from 'drizzle-orm'
-import { teamSites } from '~~/layers/core/server/db/schema'
 import { googleAccounts, sites, teams, users } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
+import { relinkTeamSites } from '#layers/pro-saas/server/utils/site-rows'
+import { resolveSiteSelection } from '#layers/pro-saas/server/utils/site-selection'
 import { ProError } from '#layers/pro-saas/shared/errors'
 import { teamOnboardingUpdateSchema } from '#layers/pro-saas/shared/validators/teams'
 
@@ -27,15 +28,24 @@ export default defineProApiHandler({
   // Sites are team scoped, so the picker may only name a site this team
   // already owns or one the caller created. Selecting a site the caller
   // created elsewhere moves it onto this team, which is what picking it means.
-  const realSites = selectedSites.length
-    ? await db.select({ siteId: sites.id })
+  const found = selectedSites.length
+    ? await db.select({ id: sites.id, publicId: sites.publicId })
         .from(sites)
         .where(and(inArray(sites.publicId, selectedSites), or(eq(sites.teamId, ctx.team.teamId), eq(sites.ownerId, caller.user.id))))
         .all()
     : []
+  // A selection naming a site this caller cannot pick is a bad request, not
+  // a partial save. Dropping unknown ids once cleared every link on a team.
+  const selection = resolveSiteSelection(selectedSites, found)
+  if (selection._tag === 'UnknownSites') {
+    throw new ProError('validation_failed', {
+      message: `Unknown sites: ${selection.unknown.join(', ')}`,
+    })
+  }
+  const siteIds = selection.siteIds
 
   let googleAccountId: number | null = null
-  if (realSites.length) {
+  if (siteIds.length) {
     const account = await db.select({ id: googleAccounts.googleAccountId })
       .from(googleAccounts)
       .where(eq(googleAccounts.userId, caller.user.id))
@@ -57,24 +67,12 @@ export default defineProApiHandler({
       .where(eq(users.userId, caller.user.id))
   }
 
-  await db.delete(teamSites).where(eq(teamSites.teamId, ctx.team.teamId))
-
-  if (realSites.length && googleAccountId) {
-    await db.update(sites)
-      .set({ teamId: ctx.team.teamId })
-      .where(inArray(sites.id, realSites.map(site => site.siteId)))
-
-    await db.insert(teamSites).values(realSites.map(site => ({
-      teamId: ctx.team.teamId,
-      siteId: site.siteId,
-      googleAccountId,
-    })))
-  }
+  await relinkTeamSites(db, { teamId: ctx.team.teamId, siteIds, googleAccountId })
 
   return {
     teamId: ctx.team.teamId,
     onboardingCompleted: !!completeOnboarding,
     backupsEnabled: backupsEnabled ?? !!ctx.team.backupsEnabled,
-    sitesSelected: realSites.length,
+    sitesSelected: siteIds.length,
   }
 })
