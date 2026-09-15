@@ -1,424 +1,95 @@
 ---
-title: "Google Indexing API with Node.js"
-description: "Implement the Google Indexing API in Node.js. Covers authentication, single and batch URL submission, error handling, and production-ready patterns."
+title: "Google Indexing API with Node.js: Send One Notification"
+description: "Use GoogleAuth and googleapis to send an eligible URL_UPDATED notification, inspect failures, and distinguish notification metadata from indexing status."
 navigation:
   order: 3
   icon: i-simple-icons-nodedotjs
 icon: i-simple-icons-nodedotjs
 publishedAt: "2026-03-04"
-updatedAt: "2026-03-04"
-readTime: "10 min"
+updatedAt: "2026-09-15"
+readTime: "5 min"
 keywords:
   - google indexing api node js
   - google indexing api javascript
   - google indexing api typescript
   - googleapis indexing npm
-relatedPages:
-  - path: /google-indexing-api-tutorial
-    title: Setup Tutorial
-  - path: /bulk-submit-urls-google-indexing-api
-    title: Bulk URL Submission
 ---
 
-This guide covers everything you need to implement the Google Indexing API in a Node.js or TypeScript project — from initial setup to production-ready code with error handling, batch requests, and retry logic.
+Use Google's `googleapis` client to send one `URL_UPDATED` notification from a server-side Node.js script. The example uses Node.js 24 and `googleapis` 181.0.0.
 
-**Prerequisites:** You need a Google Cloud project with the Indexing API enabled and a service account JSON key. If you haven't done this yet, follow our [setup tutorial](/google-indexing-api-tutorial) first.
+Before running it against Google, complete the [service-account setup](/google-indexing-api-tutorial), including delegated property ownership and approval. Only eligible `JobPosting` pages or `BroadcastEvent` embedded in `VideoObject` are supported. See [Google's quickstart](https://developers.google.com/search/apis/indexing-api/v3/quickstart).
 
-## Installation
+## Install and run
 
-Install the official Google APIs client library:
-
-```bash
-npm install googleapis
-```
-
-Or if you prefer a lighter package that only includes the Indexing API:
+Keep the service-account JSON key outside Git and public directories. In a new local directory:
 
 ```bash
-npm install @googleapis/indexing google-auth-library
+npm init -y
+npm install googleapis@181.0.0
+export GOOGLE_APPLICATION_CREDENTIALS="/absolute/path/to/service-account.json"
 ```
 
-The `googleapis` package (~70MB) includes every Google API client. The `@googleapis/indexing` package (~8,400 weekly downloads) is much smaller and only includes what you need. Both work identically for the Indexing API.
+Save the following as `notify.mjs`:
 
-## Authentication Setup
-
-### Using a JSON Key File
-
-The simplest approach — reference your service account JSON key directly:
-
-```typescript
+```js
 import { google } from 'googleapis'
 
-const auth = new google.auth.GoogleAuth({
-  keyFile: './service-account.json',
-  scopes: ['https://www.googleapis.com/auth/indexing'],
-})
-
-const indexing = google.indexing({ version: 'v3', auth })
-```
-
-### Using Environment Variables
-
-For production deployments, load credentials from environment variables instead of a file:
-
-```typescript
-import { google } from 'googleapis'
-
-const auth = new google.auth.GoogleAuth({
-  credentials: {
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  },
-  scopes: ['https://www.googleapis.com/auth/indexing'],
-})
-
-const indexing = google.indexing({ version: 'v3', auth })
-```
-
-Note the `.replace(/\\n/g, '\n')` on the private key — this is critical. Environment variables often escape newlines as literal `\n` strings, but the PEM format requires actual newline characters. Without this, you'll get a `PEM routines: get_name: no start line` error.
-
-### Using JWT Client Directly
-
-An alternative authentication approach using the JWT client:
-
-```typescript
-import { google } from 'googleapis'
-import key from './service-account.json' assert { type: 'json' }
-
-const jwtClient = new google.auth.JWT(
-  key.client_email,
-  undefined,
-  key.private_key,
-  ['https://www.googleapis.com/auth/indexing'],
-)
-
-await jwtClient.authorize()
-
-const indexing = google.indexing({ version: 'v3', auth: jwtClient })
-```
-
-## Submitting a Single URL
-
-The most basic operation — notify Google that a URL has been updated:
-
-```typescript
-async function submitUrl(url: string, type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED') {
-  const response = await indexing.urlNotifications.publish({
-    requestBody: { url, type },
-  })
-  return response.data
+const url = process.argv[2]
+if (!url) {
+  throw new Error('Pass one eligible URL: node notify.mjs URL')
 }
 
-// Usage
-const result = await submitUrl('https://example.com/my-page')
-console.log('Notification sent:', result.urlNotificationMetadata?.latestUpdate?.notifyTime)
-```
+const auth = new google.auth.GoogleAuth({
+  scopes: ['https://www.googleapis.com/auth/indexing'],
+})
+const indexing = google.indexing({ version: 'v3', auth })
 
-## Checking Notification Status
-
-Query whether Google received a notification for a specific URL:
-
-```typescript
-async function getStatus(url: string) {
-  const response = await indexing.urlNotifications.getMetadata({
+await indexing.urlNotifications.publish({
+  requestBody: { url, type: 'URL_UPDATED' },
+}, { retry: false }).then(({ data }) => {
+  console.log(JSON.stringify({ status: 'notification-accepted', url, metadata: data }))
+}).catch((error) => {
+  const details = error.response?.data?.error
+  console.error(JSON.stringify({
+    status: 'request-failed',
     url,
-  })
-  return response.data
-}
-
-const status = await getStatus('https://example.com/my-page')
-console.log('Last notification:', status.latestUpdate)
-```
-
-This only confirms Google received your notification. It does **not** tell you whether the page was indexed.
-
-## Batch Requests
-
-Submit up to 100 URLs in a single HTTP request. The batch endpoint uses `multipart/mixed` format. The `googleapis` library handles the formatting for you:
-
-```typescript
-import { google } from 'googleapis'
-
-const auth = new google.auth.GoogleAuth({
-  keyFile: './service-account.json',
-  scopes: ['https://www.googleapis.com/auth/indexing'],
-})
-
-async function submitBatch(urls: string[]) {
-  const indexing = google.indexing({ version: 'v3', auth })
-  const batch = new google.batching.Batch()
-
-  const results: Array<{ url: string, success: boolean, error?: string }> = []
-
-  for (const url of urls) {
-    batch.add(
-      indexing.urlNotifications.publish({
-        requestBody: { url, type: 'URL_UPDATED' },
-      })
-    )
-  }
-
-  const responses = await batch.execute()
-
-  return responses
-}
-```
-
-Batch requests count against your quota individually — 100 URLs in one batch = 100 quota used, not 1. For more details on handling batch submissions at scale, see our [bulk submission guide](/bulk-submit-urls-google-indexing-api).
-
-### Manual Batch Requests with fetch
-
-If you want full control over the batch request format:
-
-```typescript
-async function submitBatchManual(urls: string[], accessToken: string) {
-  const boundary = 'batch_indexing'
-  const body = `${urls.map((url, i) => [
-    `--${boundary}`,
-    'Content-Type: application/http',
-    `Content-ID: <item${i + 1}>`,
-    '',
-    'POST /v3/urlNotifications:publish HTTP/1.1',
-    'Content-Type: application/json',
-    '',
-    JSON.stringify({ url, type: 'URL_UPDATED' }),
-  ].join('\r\n')).join('\r\n')}\r\n--${boundary}--`
-
-  const response = await fetch('https://indexing.googleapis.com/batch', {
-    method: 'POST',
-    headers: {
-      'Content-Type': `multipart/mixed; boundary=${boundary}`,
-      'Authorization': `Bearer ${accessToken}`,
-    },
-    body,
-  })
-
-  return response.text()
-}
-```
-
-## Error Handling
-
-A production-ready wrapper that handles common error scenarios:
-
-```typescript
-import { GaxiosError } from 'googleapis-common'
-
-interface IndexingResult {
-  url: string
-  success: boolean
-  error?: string
-  retryable: boolean
-}
-
-async function submitUrlSafe(url: string): Promise<IndexingResult> {
-  return indexing.urlNotifications.publish({
-    requestBody: { url, type: 'URL_UPDATED' },
-  })
-    .then(() => ({ url, success: true, retryable: false }))
-    .catch((error: GaxiosError) => {
-      const status = error.response?.status
-      const message = error.response?.data?.error?.message || error.message
-
-      // Determine if this error is retryable
-      const retryable = status === 429 || status === 500 || status === 503
-
-      return { url, success: false, error: `${status}: ${message}`, retryable }
-    })
-}
-```
-
-### Retry with Exponential Backoff
-
-For retryable errors (429, 500, 503), implement exponential backoff:
-
-```typescript
-async function submitWithRetry(
-  url: string,
-  maxRetries = 3,
-  baseDelay = 1000,
-): Promise<IndexingResult> {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const result = await submitUrlSafe(url)
-
-    if (result.success || !result.retryable || attempt === maxRetries) {
-      return result
-    }
-
-    // Exponential backoff: 1s, 2s, 4s
-    const delay = baseDelay * 2 ** attempt
-    await new Promise(resolve => setTimeout(resolve, delay))
-  }
-
-  // TypeScript: unreachable, but satisfies the compiler
-  return { url, success: false, error: 'Max retries exceeded', retryable: false }
-}
-```
-
-## Production Patterns
-
-### Queue-Based Submission
-
-For sites that publish content throughout the day, use a queue to batch submissions and respect the daily limit. (Read more about [managing your API quota](/google-indexing-api-quota)).
-
-```typescript
-const DAILY_QUOTA = 200
-let usedToday = 0
-const queue: string[] = []
-
-function enqueueUrl(url: string) {
-  queue.push(url)
-  processQueue()
-}
-
-async function processQueue() {
-  while (queue.length > 0 && usedToday < DAILY_QUOTA) {
-    const url = queue.shift()!
-    const result = await submitWithRetry(url)
-
-    if (result.success) {
-      usedToday++
-      console.log(`[${usedToday}/${DAILY_QUOTA}] Submitted: ${url}`)
-    }
-    else if (result.error?.startsWith('429')) {
-      // Quota exceeded — put it back and stop
-      queue.unshift(url)
-      console.log('Quota exceeded. Stopping until reset.')
-      break
-    }
-    else {
-      console.error(`Failed: ${url} — ${result.error}`)
-    }
-  }
-}
-```
-
-### CMS Integration Hook
-
-Trigger indexing when content is published in your CMS or framework:
-
-```typescript
-// Example: Nuxt server route
-export default defineEventHandler(async (event) => {
-  const { url } = await readBody(event)
-
-  const result = await submitWithRetry(url)
-
-  if (!result.success)
-    throw createError({ statusCode: 502, message: result.error })
-
-  return { submitted: true, url }
+    httpStatus: error.response?.status,
+    reasons: details?.errors?.map(item => item.reason),
+    message: details?.message ?? error.message,
+  }))
+  process.exitCode = 1
 })
 ```
 
-### Sitemap-Driven Submission
-
-Parse your sitemap and submit all URLs:
-
-```typescript
-import { parseStringPromise } from 'xml2js'
-
-function getSitemapUrls(value: unknown): string[] {
-  if (typeof value !== 'object' || value === null || !('urlset' in value))
-    return []
-  const urlset = value.urlset
-  if (typeof urlset !== 'object' || urlset === null || !('url' in urlset) || !Array.isArray(urlset.url))
-    return []
-  return urlset.url.flatMap((entry) => {
-    if (typeof entry !== 'object' || entry === null || !('loc' in entry) || !Array.isArray(entry.loc))
-      return []
-    return typeof entry.loc[0] === 'string' ? [entry.loc[0]] : []
-  })
-}
-
-async function submitFromSitemap(sitemapUrl: string) {
-  const response = await fetch(sitemapUrl)
-  const xml = await response.text()
-  const parsed = await parseStringPromise(xml)
-
-  const urls = getSitemapUrls(parsed)
-
-  console.log(`Found ${urls.length} URLs in sitemap`)
-
-  const results = []
-  for (const url of urls.slice(0, DAILY_QUOTA)) {
-    results.push(await submitWithRetry(url))
-    // Small delay between requests to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 100))
-  }
-
-  const succeeded = results.filter(r => r.success).length
-  const failed = results.filter(r => !r.success).length
-  console.log(`Results: ${succeeded} submitted, ${failed} failed`)
-
-  return results
-}
+```bash
+node notify.mjs 'https://example.com/jobs/42'
 ```
 
-## Ecosystem Comparison
+The library reads the credential file through `GOOGLE_APPLICATION_CREDENTIALS`. `GoogleAuth` supplies the scoped authentication to the Indexing API client. The current [Google client](https://github.com/googleapis/google-api-nodejs-client) and [authentication documentation](https://github.com/googleapis/google-auth-library-nodejs) describe this pattern.
 
-| Tool | Type | Best For |
-|---|---|---|
-| **`googleapis`** | Library | Full Google API access, production apps |
-| **`@googleapis/indexing`** | Library | Lightweight, Indexing API only |
-| **[google-indexing-script](https://github.com/goenning/google-indexing-script)** | CLI Tool | Quick one-time bulk submission |
-| **[Request Indexing](/)** | Web App | No-code, dashboard, GSC integration |
+## What the output means
 
-For most Node.js applications, `googleapis` (or `@googleapis/indexing`) is the right choice. It handles authentication, token refresh, and request formatting. The `google-indexing-script` CLI tool (7,500+ GitHub stars) is useful for one-off bulk submissions but isn't designed for integration into application code.
+A successful response produces `notification-accepted`. That label reports receipt, not a crawl or an indexed page. If you store the result, keep that receipt separate from indexing status.
 
-## Complete Working Example
+The failure path prints the HTTP status and Google's structured reasons when available. It sets a nonzero exit code so a calling job can detect failure. Automatic retries are disabled in this small example; decide what to retry after identifying the failure.
 
-Here's a self-contained script you can run immediately:
+A `429` does not identify the exhausted limit by itself, and a `403` is not always an ownership error. Compare the reason and message with [Google's error reference](https://developers.google.com/search/apis/indexing-api/v3/core-errors) and the [quota guide](/google-indexing-api-quota).
 
-```typescript
-import { google } from 'googleapis'
+## Read notification metadata separately
 
-// --- Configuration ---
-const KEY_FILE = './service-account.json'
-const URLS_TO_SUBMIT = [
-  'https://example.com/page-1',
-  'https://example.com/page-2',
-  'https://example.com/page-3',
-]
+In a script with the same `indexing` client and `url`, you can read the notification record:
 
-// --- Setup ---
-const auth = new google.auth.GoogleAuth({
-  keyFile: KEY_FILE,
-  scopes: ['https://www.googleapis.com/auth/indexing'],
-})
-const indexing = google.indexing({ version: 'v3', auth })
-
-// --- Submit URLs ---
-for (const url of URLS_TO_SUBMIT) {
-  const result = await indexing.urlNotifications.publish({
-    requestBody: { url, type: 'URL_UPDATED' },
-  })
-    .then(res => ({ url, success: true, time: res.data.urlNotificationMetadata?.latestUpdate?.notifyTime }))
-    .catch(err => ({ url, success: false, error: err.response?.data?.error?.message || err.message }))
-
-  if (result.success) {
-    console.log(`Submitted: ${url}`)
-  }
-  else {
-    console.error(`Failed: ${url} — ${result.error}`)
-  }
-}
+```js
+const { data } = await indexing.urlNotifications.getMetadata({ url })
+console.log(data)
 ```
 
-Save this as `submit-urls.ts`, place your `service-account.json` in the same directory, update the URLs array, and run with `npx tsx submit-urls.ts`.
+This is an additional snippet, not a second standalone file. Metadata describes the last notification Google received for that URL. It does not establish index status. [Google's usage guide](https://developers.google.com/search/apis/indexing-api/v3/using-api) documents the distinction.
 
-## Frequently Asked Questions
+For index information, use the separate [URL Inspection API](https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect) and its Search Console authorization scope. Adding a metadata call to this script does not turn it into an indexing checker.
 
-::content-faq
----
-items:
-  - question: "Should I use googleapis or @googleapis/indexing?"
-    answer: "If you only need the Indexing API, use @googleapis/indexing for a smaller bundle. If you also use other Google APIs (Search Console, Analytics, etc.), use the full googleapis package."
-  - question: "Does the googleapis library handle token refresh automatically?"
-    answer: "Yes. Both GoogleAuth and JWT clients handle token refresh automatically. You don't need to manually refresh access tokens."
-  - question: "Can I use ESM imports with googleapis?"
-    answer: "Yes. The googleapis package supports both CommonJS (require) and ESM (import) syntax. TypeScript type definitions are included."
-  - question: "What's the minimum Node.js version required?"
-    answer: "The googleapis package requires Node.js 14 or later. For TypeScript support with modern features, Node.js 18+ is recommended."
----
-::
+## When you have several URLs
+
+For a list of eligible URLs, start with [sequential submission](/bulk-submit-urls-google-indexing-api). It is easier to inspect each result before adding multipart batching or a shared queue.
+
+Verification here used Node.js 24.18.0 and the actual installed client with a mocked credential provider and intercepted HTTP transport. It checked request construction and success/failure output. It did not establish valid credentials, property ownership, or a live indexing outcome.
