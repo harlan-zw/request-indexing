@@ -7,7 +7,7 @@ export const teamRoleSchema = z.enum(['admin', 'editor', 'viewer'])
 export const teamMemberRoleUpdateSchema = z.object({ role: teamRoleSchema })
 export const teamTransferOwnershipSchema = z.object({ newOwnerUserId: z.string().min(1) })
 
-// Onboarding: persist the team's selected GSC sites.
+// Persist the team's selected Search Console sites.
 //
 // This bound is a payload sanity ceiling, not the product limit. It used to say
 // `.max(6, 'You can select up to 6 sites')` while the server enforced 3, so the

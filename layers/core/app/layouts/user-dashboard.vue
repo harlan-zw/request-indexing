@@ -2,7 +2,6 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 import DashboardShell from './_DashboardShell.vue'
 
-const router = useRouter()
 const route = useRoute()
 const { session } = useUserSession()
 

@@ -5,50 +5,15 @@
  * nuxt-seo-pro) listen via `app/plugins/*.ts`. See
  * docs/adr/0010-page-flows-via-nuxt-layer-hooks.md and ADR-0015 (Site
  * Features now live in pro-shell's build-time registry).
+ *
+ * The `pro:onboarding:step` registry is gone. Onboarding is a three-step
+ * wizard at `/pro/dashboard/onboarding` whose order is fixed, so a per-layer
+ * step registry had one contributor, no consumer, and nothing to order.
  */
 import type { Component } from 'vue'
-import type { Caller } from '#layers/pro-saas/shared/caller'
 
 /** A required external integration that gates a surface or feature. */
 export type SiteFeatureIntegration = 'gscdump' | 'lighthouse' | null
-
-/** Context passed to Onboarding Step listeners and `isComplete` predicates. */
-export interface OnboardingContext {
-  caller: Caller
-  /** Number of sites the Caller has access to (across all teams). */
-  siteCount: number
-  /** True if the Caller has linked Google Search Console for at least one site. */
-  gscConnected: boolean
-}
-
-/**
- * One Onboarding Step contributed by a layer.
- *
- * Today every step has its own dedicated page (saas onboarding, sites/add,
- * gsc connect), so `route` is the primary render strategy. When the flow
- * grows to render steps inline inside `/pro/onboarding`, add a sibling
- * `component` field; the resolver will then prefer `component` over `route`.
- */
-export interface OnboardingStep {
-  /** Stable id; used in URL fragments and analytics. */
-  id: string
-  /** Title rendered in the flow. */
-  title: string
-  /** Path to navigate to when this step is the next incomplete one. */
-  route: string
-  /** Lower runs earlier; first incomplete step is rendered. */
-  priority: number
-  /** Decides whether this step has already been satisfied. */
-  isComplete: (ctx: OnboardingContext) => boolean | Promise<boolean>
-  /** When true, the resolver allows the user to skip the step. */
-  optional?: boolean
-  /** Optional one-line description shown under the title. */
-  description?: string
-}
-
-export interface OnboardingStepRegistry {
-  add: (step: OnboardingStep) => void
-}
 
 /** A page on which surfaces can be rendered. Closed set; new pages should be opt-in. */
 export type SiteSurfacePage
@@ -116,13 +81,6 @@ export interface OverviewGroupRegistry {
 
 declare module '#app' {
   interface RuntimeNuxtHooks {
-    /**
-     * Fired once at app boot by pro-saas. Listeners register their layer's
-     * Onboarding Steps. The registry is frozen after the hook resolves; the
-     * resolver picks the next incomplete step in priority order at render time.
-     */
-    'pro:onboarding:step': (registry: OnboardingStepRegistry) => void | Promise<void>
-
     /**
      * Fired once at app boot by pro-saas. Listeners register their layer's
      * Site Surfaces — tiles rendered on `<ProSiteSurfaceStack page="...">`.

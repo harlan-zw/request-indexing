@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { createLogoutHandler } from '~~/layers/core/app/composables/auth'
+import { ONBOARDING_ROUTE } from '#layers/pro-saas/shared/onboarding'
 
 const { toggle = true } = defineProps<{
   toggle?: boolean

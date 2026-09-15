@@ -1,19 +1,23 @@
 import { and, eq, inArray, or } from 'drizzle-orm'
-import { googleAccounts, sites, teams, users } from '#layers/pro-saas/server/database'
+import { googleAccounts, sites, teams } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
 import { relinkTeamSites } from '#layers/pro-saas/server/utils/site-rows'
 import { resolveSiteSelection } from '#layers/pro-saas/server/utils/site-selection'
 import { ProError } from '#layers/pro-saas/shared/errors'
-import { teamOnboardingUpdateSchema } from '#layers/pro-saas/shared/validators/teams'
+import { teamSitesUpdateSchema } from '#layers/pro-saas/shared/validators/teams'
 
-// Team onboarding: persist the selected GSC sites + backup preference for the
-// caller's current team. `team_sites` requires a `googleAccountId`, so we
-// resolve one of the caller's own linked Google accounts to satisfy it.
+// Persist the team's selected Search Console sites + backup preference.
+// `team_sites` requires a `googleAccountId`, so we resolve one of the caller's
+// own linked Google accounts to satisfy it.
+//
+// Onboarding completion is not written here any more. It is user scoped and
+// `POST /api/pro/onboarding/complete` owns it, so a team settings save can no
+// longer close a user's setup gate as a side effect.
 export default defineProApiHandler({
   team: { ability: 'manage-sites' },
-  body: teamOnboardingUpdateSchema,
+  body: teamSitesUpdateSchema,
 }, async ({ db, caller, team: ctx, body }) => {
-  const { completeOnboarding, backupsEnabled, selectedSites } = body
+  const { backupsEnabled, selectedSites } = body
 
   // Reject an over-limit selection at the boundary. This endpoint used to
   // accept any number of sites, so the only thing enforcing the limit was the
@@ -61,17 +65,10 @@ export default defineProApiHandler({
     updatedAt: Date.now(),
   }).where(eq(teams.teamId, ctx.team.teamId))
 
-  if (completeOnboarding) {
-    await db.update(users)
-      .set({ onboardingCompletedAt: new Date() })
-      .where(eq(users.userId, caller.user.id))
-  }
-
   await relinkTeamSites(db, { teamId: ctx.team.teamId, siteIds, googleAccountId })
 
   return {
     teamId: ctx.team.teamId,
-    onboardingCompleted: !!completeOnboarding,
     backupsEnabled: backupsEnabled ?? !!ctx.team.backupsEnabled,
     sitesSelected: siteIds.length,
   }
