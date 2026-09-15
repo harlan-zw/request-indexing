@@ -1,5 +1,5 @@
 minimumReleaseAgeExclude:
-  - '@harlan-zw/nuxt-checkin@0.2.0'
+  - '@harlan-zw/nuxt-checkin@0.2.1'
   - '@harlan-zw/nuxt-cloudflare@0.4.2'
   - '@harlan-zw/nuxt-sentry@0.1.6'
   - nuxt-ai-ready@1.7.9
@@ -57,7 +57,7 @@ catalog:
   '@gscdump/engine': ^2.2.0
   '@gscdump/sdk': ^2.2.0
   '@harlan-zw/comark-content': 0.1.2
-  '@harlan-zw/nuxt-checkin': 0.2.0
+  '@harlan-zw/nuxt-checkin': 0.2.1
   '@harlan-zw/nuxt-cloudflare': 0.4.2
   '@harlan-zw/nuxt-domain-events': 0.1.1
   '@harlan-zw/nuxt-dx': 0.1.3

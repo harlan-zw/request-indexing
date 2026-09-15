@@ -11,8 +11,13 @@ Load the private token before running the shared CLI:
 set -a
 . "$HOME/.config/harlan-checkin/requestindexing.com.env"
 set +a
+export DAILY_CHECKIN_DIR="${DAILY_CHECKIN_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/daily-checkin/harlan-zw/request-indexing}"
 pnpm checkin
 ```
+
+Keep the archive and state outside disposable worktrees.
+Complete reports advance the daily baseline, including warnings and failures.
+Incomplete coverage never advances it. The first run uses a 24-hour window.
 
 Run from the repository root. Never print or commit the token.
 Configure `CHECKIN_DEPLOYMENT`, `SENTRY_ORG=harlan-zw`, and `SENTRY_AUTH_TOKEN` externally.
