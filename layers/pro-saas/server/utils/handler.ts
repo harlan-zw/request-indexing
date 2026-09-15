@@ -80,6 +80,28 @@ function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null ? value as Record<string, unknown> : {}
 }
 
+// Marks an error the way Sentry marks captured exceptions (non-enumerable
+// `__sentry_captured__`, read with `in` by @sentry/nuxt captureErrorHook.js).
+// The `handler.unhandled_error` sink has already reported the failure to
+// Sentry, so the Nitro `error` hook must skip its own auto-capture of the
+// thrown 500.
+function markCapturedBySentry(error: unknown): void {
+  if (typeof error !== 'object' || error === null)
+    return
+  try {
+    Object.defineProperty(error, '__sentry_captured__', {
+      value: true,
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    })
+  }
+  catch {
+    // Genuinely ignorable: a frozen/sealed cause cannot carry the mark, so
+    // the hook adds a second capture instead of losing the 500 entirely.
+  }
+}
+
 // Options-bag form of defineProApiHandler. Absorbs the per-route prelude
 // (caller / subscription / team / body) into one declaration so handler bodies
 // stay focused on the business logic. Each prelude step is opt-in; the resulting
@@ -208,6 +230,7 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
         requestId,
         ...(caller ? { userId: caller.user.id, teamId: caller.currentTeamId } : {}),
       })
+      markCapturedBySentry(e)
       throw createError({
         statusCode: 500,
         statusMessage: 'internal_error',
