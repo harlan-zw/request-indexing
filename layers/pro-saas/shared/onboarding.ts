@@ -1,0 +1,156 @@
+// The onboarding decision layer. Pure data in, pure data out, so the route
+// middleware, the wizard page and the completion endpoint all read one rule set
+// instead of three copies that drift.
+//
+// The flow is nuxtseo.com's URL-driven wizard cut to what this product does:
+// Google Search Console is the only integration, there is no billing and there
+// are no invites, so `help`, `plan` and `invite` are gone and `integrations`
+// folds into `connect`.
+
+/** Where a signed-out visitor starts. Renders the provider buttons. */
+export const ONBOARDING_ENTRY_ROUTE = '/pro/onboarding'
+
+/**
+ * The wizard. It sits under `/pro/dashboard` so one auth gate covers it, and
+ * the onboarding gate exempts it so it can never redirect onto itself.
+ */
+export const ONBOARDING_ROUTE = '/pro/dashboard/onboarding'
+
+/** Where a finished user lands. */
+export const DASHBOARD_ROUTE = '/pro/dashboard'
+
+/**
+ * Paths a user may reach while onboarding is unfinished. Without the account
+ * pages here, a half-onboarded user cannot sign out or delete their account.
+ */
+export const ONBOARDING_EXEMPT_PREFIXES = [
+  '/pro/dashboard/account',
+  '/account',
+  ONBOARDING_ROUTE,
+] as const
+
+export const ONBOARDING_STEPS = ['connect', 'sites', 'sync'] as const
+
+export type OnboardingStep = typeof ONBOARDING_STEPS[number]
+
+export const ONBOARDING_STEP_LABELS: Record<OnboardingStep, string> = {
+  connect: 'Connect Google',
+  sites: 'Connect sites',
+  sync: 'Start syncing',
+}
+
+/** Parse an untrusted `?step=` value once, at the boundary. */
+export function parseOnboardingStep(value: unknown): OnboardingStep | null {
+  if (typeof value !== 'string')
+    return null
+  return (ONBOARDING_STEPS as readonly string[]).includes(value) ? value as OnboardingStep : null
+}
+
+export function onboardingStepIndex(step: OnboardingStep): number {
+  return ONBOARDING_STEPS.indexOf(step)
+}
+
+export interface OnboardingResumeSignals {
+  /** The user granted the Search Console scopes and gscdump holds their key. */
+  gscConnected: boolean
+  /** The user's current team owns at least one site. */
+  hasSites: boolean
+}
+
+/**
+ * The step a half-onboarded user resumes at, inferred from persisted state.
+ * There is no "current step" column, so a Google round trip or a closed tab
+ * cannot strand the user on a step they already finished.
+ */
+export function resolveOnboardingResumeStep(signals: OnboardingResumeSignals): OnboardingStep {
+  if (!signals.gscConnected)
+    return 'connect'
+  if (!signals.hasSites)
+    return 'sites'
+  return 'sync'
+}
+
+export interface OnboardingGateInput extends OnboardingResumeSignals {
+  path: string
+  loggedIn: boolean
+  onboardingCompletedAt: string | null | undefined
+}
+
+export type OnboardingGate
+  = | { _tag: 'Allow' }
+    | { _tag: 'Redirect', path: string, query?: { step: OnboardingStep } }
+
+function isUnder(path: string, prefix: string): boolean {
+  return path === prefix || path.startsWith(`${prefix}/`)
+}
+
+/**
+ * The whole gate, as one function of the current path and the session.
+ *
+ * The gate used to live in two dashboard layouts as a `watch` plus a
+ * `router.push`, which fired after the page had already started rendering and
+ * could not see `/account`. Deciding here means the redirect happens before the
+ * page mounts and the exemptions are one list.
+ */
+export function resolveOnboardingGate(input: OnboardingGateInput): OnboardingGate {
+  if (!isUnder(input.path, DASHBOARD_ROUTE))
+    return { _tag: 'Allow' }
+
+  // Signed out is the auth middleware's redirect, not this one's.
+  if (!input.loggedIn)
+    return { _tag: 'Allow' }
+
+  const onWizard = isUnder(input.path, ONBOARDING_ROUTE)
+
+  if (input.onboardingCompletedAt) {
+    // A stale bookmark must not re-open first-run setup for a finished user.
+    return onWizard ? { _tag: 'Redirect', path: DASHBOARD_ROUTE } : { _tag: 'Allow' }
+  }
+
+  if (ONBOARDING_EXEMPT_PREFIXES.some(prefix => isUnder(input.path, prefix)))
+    return { _tag: 'Allow' }
+
+  return {
+    _tag: 'Redirect',
+    path: ONBOARDING_ROUTE,
+    query: { step: resolveOnboardingResumeStep(input) },
+  }
+}
+
+export interface OnboardingCompletionInput {
+  completedAt: Date | string | null | undefined
+  /** The caller's current team owns at least one site. */
+  hasSites: boolean
+  now: Date
+}
+
+export type OnboardingCompletion
+  = | { _tag: 'AlreadyComplete', completedAt: string }
+    | { _tag: 'Blocked', reason: 'no_sites', message: string }
+    | { _tag: 'Complete', completedAt: string }
+
+/**
+ * Whether the completion endpoint may stamp `users.onboarding_completed_at`.
+ *
+ * Finishing with no site is the one state the wizard must not reach: the flag
+ * closes the gate forever, so the user would land on a dashboard with nothing
+ * in it and no route back to setup.
+ */
+export function resolveOnboardingCompletion(input: OnboardingCompletionInput): OnboardingCompletion {
+  if (input.completedAt) {
+    const completedAt = input.completedAt instanceof Date
+      ? input.completedAt.toISOString()
+      : new Date(input.completedAt).toISOString()
+    return { _tag: 'AlreadyComplete', completedAt }
+  }
+
+  if (!input.hasSites) {
+    return {
+      _tag: 'Blocked',
+      reason: 'no_sites',
+      message: 'Connect at least one site before you finish setup.',
+    }
+  }
+
+  return { _tag: 'Complete', completedAt: input.now.toISOString() }
+}
