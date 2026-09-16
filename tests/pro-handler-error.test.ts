@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3'
+import type { H3Error, H3Event } from 'h3'
 import type { LogSink } from '../shared/logging'
 import { createError, defineEventHandler } from 'h3'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -46,7 +46,7 @@ describe('defineProApiHandler unhandled-error branch', () => {
     })
     const event = makeEvent()
 
-    const error = await handler(event).catch((e: unknown) => e)
+    const error = await handler(event).catch((e: unknown) => e) as H3Error
 
     expect(error.statusCode).toBe(500)
     expect(error.data).toMatchObject({
@@ -65,7 +65,7 @@ describe('defineProApiHandler unhandled-error branch', () => {
     })
     const event = makeEvent()
 
-    const error = await handler(event).catch((e: unknown) => e)
+    const error = await handler(event).catch((e: unknown) => e) as H3Error
     const entry = sink.mock.calls.map(c => c[0] as { name: string, level: string, error: { message: string } | null, ctx: Record<string, unknown> | null })
       .find(e => e.name === 'handler.unhandled_error')
 
