@@ -49,7 +49,7 @@ Engine features land here by upgrading the gscdump protocol, not by rebuilding t
 ## Run locally
 
 ```bash
-git clone git@github.com:harlan-zw/request-indexing.git
+git clone git@github.com:harlan-zw/requestindexing.com.git
 pnpm i
 ```
 

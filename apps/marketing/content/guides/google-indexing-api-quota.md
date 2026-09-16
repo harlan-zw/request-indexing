@@ -51,7 +51,7 @@ Use the approval form linked from [Google's quota page](https://developers.googl
 
 ## A tool can impose another limit
 
-Request Indexing's inspected implementation uses an allowance of 100 requests per day per authenticated user, shared across that user's tool calls, resetting at midnight UTC. It also applies a per-minute limiter. That app policy is separate from Google's project quota, and it does not promise a customer 200 successful submissions daily. [Inspect the policy at the reviewed revision](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/layers/pro-saas/server/utils/rate-limit.ts).
+Request Indexing's inspected implementation uses an allowance of 100 requests per day per authenticated user, shared across that user's tool calls, resetting at midnight UTC. It also applies a per-minute limiter. That app policy is separate from Google's project quota, and it does not promise a customer 200 successful submissions daily. [Inspect the policy at the reviewed revision](https://github.com/harlan-zw/requestindexing.com/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/layers/pro-saas/server/utils/rate-limit.ts).
 
 A script's local counter only knows about its own run. If several processes share a project, they need shared accounting; restarting a script does not reset Google's quota.
 

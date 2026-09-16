@@ -66,7 +66,7 @@ This is a new check, not a rewrite of the earlier targeted-lint evidence.
 The latest accepted Git revision recorded here is `89dd568eda983e68e7132dd2265ef8a6e54fc7f4`.
 Independent review covered the formatting-only change from `aae59aa3769fe298fc9b06bbf0cd66514d847f53` and found no material defects.
 The brief headers record SHA256 file digests for that accepted revision. Pilot history separately identifies Git blob object IDs.
-[Article PR #77](https://github.com/harlan-zw/request-indexing/pull/77) depends on [foundation PR #75](https://github.com/harlan-zw/request-indexing/pull/75).
+[Article PR #77](https://github.com/harlan-zw/requestindexing.com/pull/77) depends on [foundation PR #75](https://github.com/harlan-zw/requestindexing.com/pull/75).
 Any later record or content revision requires its own review. This reconciliation does not approve its future commit.
 CI passed for accepted Git revision `89dd568eda983e68e7132dd2265ef8a6e54fc7f4`. Later revisions require fresh checks.
 Merge, deployment, and live verification remain delivery gates; local checks do not replace them.

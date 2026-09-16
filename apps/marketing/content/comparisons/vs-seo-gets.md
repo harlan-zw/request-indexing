@@ -19,7 +19,7 @@ Checked 15 September 2026 against vendor documentation and Request Indexing sour
 | SEO Gets | Opens Search Console's URL Inspection tool with the selected URL loaded |
 | Request Indexing | Uses connected Google credentials to send an Indexing API notification, with a check for recent notifications |
 
-SEO Gets explains its shortcut in [Index Reporting](https://seogets.com/features/index-reporting). Request Indexing's behavior is visible in its [notification endpoint](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/apps/app/server/api/indexing/%5Burl%5D.post.ts).
+SEO Gets explains its shortcut in [Index Reporting](https://seogets.com/features/index-reporting). Request Indexing's behavior is visible in its [notification endpoint](https://github.com/harlan-zw/requestindexing.com/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/apps/app/server/api/indexing/%5Burl%5D.post.ts).
 
 For an ordinary blog post, opening Search Console can be the appropriate next step. Google's API notification path supports only eligible job and livestream pages. Use the [blog-post guide](/indexing-api-for-blog-posts) to choose the interface before comparing convenience.
 
@@ -33,7 +33,7 @@ For teams reviewing several properties, the [feature list](https://seogets.com/f
 
 ## Request Indexing's scope and limits
 
-Request Indexing's [source is MIT licensed](https://github.com/harlan-zw/request-indexing/blob/main/LICENSE). The inspected implementation is a free beta and retrieves stored indexing states through gscdump. You can inspect that request path in the source.
+Request Indexing's [source is MIT licensed](https://github.com/harlan-zw/requestindexing.com/blob/main/LICENSE). The inspected implementation is a free beta and retrieves stored indexing states through gscdump. You can inspect that request path in the source.
 
 This comparison does not establish an unlimited-row allowance or a hosted retention guarantee for Request Indexing. Its application request limits also differ from Google's project quotas. Read [the quota guide](/google-indexing-api-quota) if request volume affects your choice.
 

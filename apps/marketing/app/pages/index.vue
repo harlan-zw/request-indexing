@@ -126,7 +126,7 @@ const marketingTools = [
                     Dashboard
                   </UButton>
                 </template>
-                <UButton size="xl" variant="ghost" color="neutral" icon="i-simple-icons-github" target="_blank" to="https://github.com/harlan-zw/request-indexing">
+                <UButton size="xl" variant="ghost" color="neutral" icon="i-simple-icons-github" target="_blank" to="https://github.com/harlan-zw/requestindexing.com">
                   View source
                 </UButton>
               </div>
@@ -706,7 +706,7 @@ const marketingTools = [
           variant="subtle"
           :links="[
             { label: 'Get Started Free', to: '/pro/onboarding', color: 'primary', size: 'xl', trailingIcon: 'i-heroicons-arrow-right' },
-            { label: 'View on GitHub', to: 'https://github.com/harlan-zw/request-indexing', target: '_blank', variant: 'ghost', color: 'neutral', size: 'xl', icon: 'i-simple-icons-github' },
+            { label: 'View on GitHub', to: 'https://github.com/harlan-zw/requestindexing.com', target: '_blank', variant: 'ghost', color: 'neutral', size: 'xl', icon: 'i-simple-icons-github' },
           ]"
         />
       </UPageSection>

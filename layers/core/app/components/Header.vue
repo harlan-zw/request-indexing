@@ -182,7 +182,7 @@ const authDropdownItems = computed(() => {
 
         <UButton
           aria-label="Request Indexing on GitHub"
-          to="https://github.com/harlan-zw/request-indexing"
+          to="https://github.com/harlan-zw/requestindexing.com"
           target="_blank"
           color="neutral"
           variant="ghost"
