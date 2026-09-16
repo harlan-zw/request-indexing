@@ -56,4 +56,4 @@ Visual identity: [DESIGN.md](./DESIGN.md).
 
 ## License
 
-[GPL-3.0](./LICENSE) Harlan Wilton
+[MIT](./LICENSE) Harlan Wilton

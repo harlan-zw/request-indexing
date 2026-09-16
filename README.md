@@ -11,7 +11,7 @@ Search Console data and multi-engine submission, in one small app.
 <td align="center">
 <img alt="" width="800" height="0" /><br>
 <i></i> <a href="https://requestindexing.com/">requestindexing.com</a> <br>
-<sup>GPL-3.0 · Cloudflare-native · free during beta</sup><br>
+<sup>MIT · Cloudflare-native · free during beta</sup><br>
 <sub>Built by <a href="https://harlanzw.com">Harlan Wilton</a> · maintainer of <a href="https://nuxtseo.com">Nuxt SEO</a><br> Follow <a href="https://twitter.com/harlan_zw">@harlan_zw</a> · Join <a href="https://discord.gg/275MBUBvgP">Discord</a></sub><br>
 <img alt="" width="800" height="0" />
 </td>
@@ -31,7 +31,7 @@ Connect Search Console, see which pages are indexed and which are not, and submi
 - 📈 **Coverage over time**: index percentage, transitions, and what changed since last week
 - 🗺️ **Sitemaps**: what you declared, what was discovered, what drifted
 - 📊 **The regular Search Console reads**: queries, pages, countries, devices, kept past Google's 16-month window
-- 🔓 **GPL-3.0 + self-host**: same app, your Cloudflare account, your keys
+- 🔓 **MIT + self-host**: same app, your Cloudflare account, your keys
 
 ## What it is not
 
@@ -93,4 +93,4 @@ The original Request Indexing was inspired by [google-indexing-script](https://g
 
 ## License
 
-[GPL-3.0](./LICENSE) © 2022-PRESENT [Harlan Wilton](https://github.com/harlan-zw)
+[MIT](./LICENSE) © 2022-PRESENT [Harlan Wilton](https://github.com/harlan-zw)

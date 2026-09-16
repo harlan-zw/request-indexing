@@ -33,7 +33,7 @@ For teams reviewing several properties, the [feature list](https://seogets.com/f
 
 ## Request Indexing's scope and limits
 
-Request Indexing's [source is GPLv3](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/LICENSE). The inspected implementation is a free beta and retrieves stored indexing states through gscdump. You can inspect that request path in the source.
+Request Indexing's [source is MIT licensed](https://github.com/harlan-zw/request-indexing/blob/main/LICENSE). The inspected implementation is a free beta and retrieves stored indexing states through gscdump. You can inspect that request path in the source.
 
 This comparison does not establish an unlimited-row allowance or a hosted retention guarantee for Request Indexing. Its application request limits also differ from Google's project quotas. Read [the quota guide](/google-indexing-api-quota) if request volume affects your choice.
 

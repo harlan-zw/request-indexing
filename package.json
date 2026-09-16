@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.22.0",
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "scripts": {
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply request-indexin-bw2z --remote",

@@ -35,6 +35,6 @@ Neither option establishes that a URL will be indexed. Google's [usage guide](ht
 3. Inspect important URLs in Search Console before deciding what to request again. An old submission record does not establish their current status.
 4. Choose a replacement for each task: sitemap maintenance, inspection reporting, or eligible API notifications.
 
-Request Indexing's [GPLv3 repository](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/LICENSE) provides source access. This comparison does not verify a hosted retention guarantee, an import from Tag Parrot, or an automatic migration.
+Request Indexing's [MIT licensed repository](https://github.com/harlan-zw/request-indexing/blob/main/LICENSE) provides source access. This comparison does not verify a hosted retention guarantee, an import from Tag Parrot, or an automatic migration.
 
 *Correction, 15 September 2026: This page previously grouped Tag Parrot with several other vendors and recommended it as an active service. The revision follows Tag Parrot's current closure notice and removes unsupported group-wide claims.*
