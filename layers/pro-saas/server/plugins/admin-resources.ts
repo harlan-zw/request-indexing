@@ -4,7 +4,6 @@ import notificationsResource from '../admin/resources/notifications'
 import proFeedbackResource from '../admin/resources/pro-feedback'
 import sitesResource from '../admin/resources/sites'
 import usersResource from '../admin/resources/users'
-import waitlistResource from '../admin/resources/waitlist'
 
 export default defineNitroPlugin((nitroApp) => {
   nitroApp.hooks.hook('admin:resources', (r) => {
@@ -12,7 +11,6 @@ export default defineNitroPlugin((nitroApp) => {
     r.addResource(proFeedbackResource)
     r.addResource(notificationsResource)
     r.addResource(moduleConnectionsResource)
-    r.addResource(waitlistResource)
     r.addResource(usersResource)
     r.addResource(sitesResource)
   })

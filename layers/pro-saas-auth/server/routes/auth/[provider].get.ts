@@ -95,7 +95,7 @@ export default defineEventHandler(async (event) => {
     path: event.path,
   })
 
-  // Store source for waitlist tracking before bouncing to provider.
+  // Store the signup source for attribution before bouncing to provider.
   if (query.source && typeof query.source === 'string' && !query.code)
     setCookie(event, 'auth-source', query.source, { maxAge: 600, httpOnly: true })
 
