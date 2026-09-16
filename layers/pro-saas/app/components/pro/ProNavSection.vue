@@ -41,7 +41,7 @@ function toggle() {
   <div>
     <button
       type="button"
-      class="mb-1.5 flex min-h-11 w-full cursor-pointer items-center gap-1 rounded px-1 text-sm font-medium tracking-wide text-dimmed transition-colors hover:text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:min-h-0 lg:text-xs dark:text-muted"
+      class="mb-0.5 flex min-h-11 w-full cursor-pointer items-center gap-1 rounded px-1 text-sm font-medium tracking-wide text-dimmed transition-colors hover:text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:mb-1.5 lg:min-h-0 lg:text-xs dark:text-muted"
       :aria-expanded="open"
       @click="toggle"
     >
