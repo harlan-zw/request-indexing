@@ -20,7 +20,7 @@ const emit = defineEmits<{ navigate: [] }>()
 
 const primaryLinks = computed<UiNavLink[]>(() => [
   { label: 'Dashboard', icon: 'home', to: '/pro/dashboard', active: p => p === '/pro/dashboard' },
-  { label: 'Submit a URL', icon: 'send', to: '/pro/dashboard/web-indexing' },
+  { label: 'Indexing', icon: 'database', to: '/pro/dashboard/web-indexing' },
 ])
 
 function hostnameOf(value: string): string {

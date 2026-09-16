@@ -3,9 +3,9 @@ import { fetchSites } from '~~/layers/core/app/composables/fetch'
 
 definePageMeta({
   layout: 'pro-dashboard',
-  title: 'Web Indexing',
+  title: 'Indexing',
   icon: 'i-ph-list-checks-duotone',
-  description: 'See how your sites organic Google traffic is performing.',
+  description: 'See the indexing status of every connected site.',
 })
 
 const { data } = await fetchSites()
