@@ -126,7 +126,7 @@ export type SitesPreview = SitePreview[]
 // The row shape `GET /api/sites/list` returns (see
 // `layers/pro-saas/server/api/sites/list.get.ts`), consumed by every
 // dashboard fleet view: `CardSite`, `Header`, `HeaderSitesMenu`,
-// `web-indexing`, `team/sites`. The public id is `siteId`, not `publicId`
+// `web-indexing`, `sites/connect`. The public id is `siteId`, not `publicId`
 // (the raw `sites` table column) — a caller that reads `.publicId` off this
 // row gets `undefined` and silently links to `/sites/undefined/...`.
 export interface SiteFleetRow {

@@ -40,7 +40,7 @@ const sites = computed(() => (data.value?.sites || []))
               This site is not synced with Search Console. Resync your sites to start collecting indexing data.
             </p>
           </div>
-          <UButton to="/dashboard/team/sites" color="neutral" variant="outline" size="sm" class="min-h-11" label="Resync sites" />
+          <UButton to="/pro/dashboard/sites/connect" color="neutral" variant="outline" size="sm" class="min-h-11" label="Resync sites" />
         </div>
       </UCard>
     </div>

@@ -5,8 +5,8 @@ import { fetchSites } from '~~/layers/core/app/composables/fetch'
 
 definePageMeta({
   layout: 'pro-dashboard',
-  title: 'Sites',
-  icon: 'i-heroicons-globe-alt',
+  title: 'Connect a Site',
+  icon: 'i-heroicons-plus-circle',
 })
 
 // `property` is kept alongside `domain` because `siteLabel()` falls back to it

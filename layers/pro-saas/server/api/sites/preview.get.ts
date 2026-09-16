@@ -1,4 +1,4 @@
-// Site picker for `dashboard/team/sites.vue` and the onboarding wizard.
+// Site picker for `dashboard/sites/connect.vue` and the onboarding wizard.
 // Lists the synced GSC properties the caller can pick from: their current
 // team's sites, plus any they created before a team owned them.
 // Sync status/progress comes from gscdump's lifecycle;
