@@ -20,7 +20,7 @@ const faqItems = [
   {
     label: 'Can I see the code?',
     icon: 'i-heroicons-code-bracket',
-    content: 'Sure! The entire project is open-source and available on GitHub under the GPL-3.0 license. Build your own version if you like.',
+    content: 'Sure! The entire project is open-source and available on GitHub under the MIT license. Build your own version if you like.',
   },
 ]
 
@@ -257,7 +257,7 @@ const marketingTools = [
               Open, portable, yours
             </h3>
             <p class="text-toned text-sm leading-relaxed">
-              GPL-3.0 on GitHub. Self-host on Cloudflare with your own Google OAuth app if you'd rather own the full stack.
+              MIT on GitHub. Self-host on Cloudflare with your own Google OAuth app if you'd rather own the full stack.
             </p>
           </div>
 
@@ -662,7 +662,7 @@ const marketingTools = [
             <div>
               <UIcon name="i-heroicons-check-badge" class="size-6 text-primary mb-3" />
               <div class="font-title text-base font-semibold text-default mb-1.5 tracking-[-0.01em]">
-                GPL-3.0
+                MIT
               </div>
               <p class="text-muted text-sm leading-relaxed">
                 Released on GitHub. Built with Nuxt by a Nuxt core team member.
