@@ -147,14 +147,14 @@ function fmtDate(s: string | null) {
 
 <template>
   <section class="space-y-3">
-    <ProSectionHeader
-      title="Connected accounts"
-      description="Sign-in methods linked to your Request Indexing account."
-    />
+    <ProSectionHeader title="Connected accounts" icon="link" />
+    <p class="text-sm text-muted">
+      These sign-in methods open your Request Indexing account.
+    </p>
 
-    <div v-if="pending" class="grid gap-3">
-      <ProCard v-for="i in 2" :key="i" variant="default">
-        <div class="p-4 flex items-start gap-3">
+    <div v-if="pending" class="grid min-w-0 gap-3">
+      <ProCard v-for="i in 2" :key="i" variant="default" size="sm" class="min-w-0">
+        <div class="flex min-w-0 items-start gap-3">
           <UiSkeleton type="bar" :index="i" class="size-10 rounded-2xl shrink-0" />
           <div class="flex-1 min-w-0 space-y-2">
             <UiSkeleton type="text" :index="i" :base="70" :range="20" />
@@ -166,11 +166,11 @@ function fmtDate(s: string | null) {
       </ProCard>
     </div>
 
-    <div v-else class="grid gap-3">
+    <div v-else class="grid min-w-0 gap-3">
       <!-- GitHub -->
-      <ProCard variant="default">
-        <div class="p-4 flex items-start gap-3">
-          <ProNavIcon icon="i-simple-icons-github" />
+      <ProCard variant="default" size="sm" class="min-w-0">
+        <div class="flex min-w-0 items-start gap-3">
+          <ProNavIcon icon="github" />
           <div class="flex-1 min-w-0">
             <div class="flex items-baseline gap-2">
               <p class="text-base font-medium text-highlighted">
@@ -185,7 +185,7 @@ function fmtDate(s: string | null) {
                 Active
               </UBadge>
             </div>
-            <p v-if="githubIdentity" class="text-sm text-muted">
+            <p v-if="githubIdentity" class="text-sm break-words text-muted">
               {{ githubIdentity.displayName ?? githubIdentity.email ?? 'Linked' }}
               <span v-if="githubIdentity.email && githubIdentity.displayName"> · {{ githubIdentity.email }}</span>
             </p>
@@ -221,9 +221,9 @@ function fmtDate(s: string | null) {
       </ProCard>
 
       <!-- Google: three states -->
-      <ProCard variant="default">
-        <div class="p-4 flex items-start gap-3">
-          <ProNavIcon icon="i-simple-icons-google" />
+      <ProCard variant="default" size="sm" class="min-w-0">
+        <div class="flex min-w-0 items-start gap-3">
+          <ProNavIcon icon="google" />
           <div class="flex-1 min-w-0">
             <div class="flex items-baseline gap-2">
               <p class="text-base font-medium text-highlighted">
@@ -241,7 +241,7 @@ function fmtDate(s: string | null) {
 
             <!-- State A: linked as sign-in identity -->
             <template v-if="googleIdentity">
-              <p class="text-sm text-muted">
+              <p class="text-sm break-words text-muted">
                 {{ googleIdentity.displayName ?? googleIdentity.email ?? 'Linked' }}
                 <span v-if="googleIdentity.email && googleIdentity.displayName"> · {{ googleIdentity.email }}</span>
               </p>
@@ -254,14 +254,14 @@ function fmtDate(s: string | null) {
             <template v-else-if="canPromoteGoogle">
               <p class="text-sm text-muted">
                 <template v-if="googleIntegrationEmail">
-                  {{ googleIntegrationEmail }} — connected for Search Console.
+                  {{ googleIntegrationEmail }} is connected for Search Console.
                 </template>
                 <template v-else>
                   Connected for Search Console.
                 </template>
               </p>
               <p class="text-[11px] text-dimmed mt-1">
-                Enable Google sign-in too? No extra permissions needed.
+                You can enable Google sign-in. It needs no extra permissions.
               </p>
             </template>
 
@@ -314,15 +314,15 @@ function fmtDate(s: string | null) {
           <ProAlert
             v-if="disconnectIsActive"
             color="warning"
-            icon="i-lucide-log-out"
-            title="You'll be signed out"
+            icon="log-out"
+            title="You will be signed out"
             :description="`Next sign-in uses ${remainingProviderLabel || 'your remaining provider'}.`"
           />
           <p v-else class="text-sm text-muted">
             Next sign-in uses {{ remainingProviderLabel || 'your remaining provider' }}.
           </p>
           <p class="text-sm text-dimmed">
-            Subscription and site data untouched.
+            Your subscription and site data stay unchanged.
           </p>
         </div>
       </template>
