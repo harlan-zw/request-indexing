@@ -56,6 +56,13 @@ const ICON_CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000
 /** A cached miss is re-fetched after 1 day, so a new favicon appears sooner. */
 const MISS_CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000
 
+// Storage-level expiry, in seconds. The read-time freshness check above
+// decides what to serve; these stop the namespace growing without bound.
+// The host comes from the query and the route needs no session, so any caller
+// can mint new keys. Each TTL sits above its max age, so freshness still wins.
+const ICON_CACHE_TTL_S = 35 * 24 * 60 * 60
+const MISS_CACHE_TTL_S = 2 * 24 * 60 * 60
+
 /** Hostnames under these suffixes name internal networks. Never fetch them. */
 const BLOCKED_SUFFIXES = new Set([
   'arpa',
@@ -78,7 +85,7 @@ const HOSTNAME_PATTERN = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63
 const IPV4_PATTERN = /^\d{1,3}(?:\.\d{1,3}){3}$/
 
 /** The fallback icon. A neutral globe, so a failed lookup still renders. */
-const FALLBACK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`
+const FALLBACK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`
 
 /**
  * Parses the untrusted `domain` query value into a hostname.
@@ -209,7 +216,8 @@ export default defineEventHandler(async (event) => {
 
   // A network failure is transient, so do not cache it as a miss.
   if (resolved._tag === 'Icon' || resolved.reason !== 'network') {
-    await storage.setItem(cacheKey, entry).catch((error: unknown) => {
+    const ttl = entry.base64 ? ICON_CACHE_TTL_S : MISS_CACHE_TTL_S
+    await storage.setItem(cacheKey, entry, { ttl }).catch((error: unknown) => {
       // A cache write failure only costs a re-fetch. Log it, then serve.
       console.error('[_favicon] cache write failed', { host: host.value, error })
     })
