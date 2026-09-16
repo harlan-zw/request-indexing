@@ -40,8 +40,8 @@ watch(colorMode, () => {
 useSeoMeta({
   titleTemplate: '%s %separator Request Indexing',
   ogSiteName: 'Request Indexing',
+  // `og:title` also drives the X preview. Unhead deprecates `twitter:title`.
   ogTitle: 'Get your pages indexed within 48 hours.',
-  twitterTitle: 'Get your pages indexed within 48 hours.',
 })
 
 // Only prerendered routes get the site-wide OG image. `ogImage.zeroRuntime`

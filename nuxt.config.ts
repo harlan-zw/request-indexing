@@ -182,6 +182,9 @@ export default defineNuxtConfig({
 
   seo: {
     redirectToCanonicalSiteUrl: false,
+    // Unhead deprecates every `twitter:*` meta tag. X reads Open Graph metadata
+    // now. This flag stops `nuxt-seo-utils` and `nuxt-og-image` emitting them.
+    automaticTwitterTags: false,
   },
 
   // `@harlan-zw/nuxt-sentry` sets `sourcemap.client` when a Sentry auth token is

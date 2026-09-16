@@ -88,7 +88,7 @@ catalog:
   '@nuxt/test-utils': ^4.1.0
   '@nuxt/ui': ^4.11.1
   '@nuxtjs/robots': ^6.1.4
-  '@nuxtjs/seo': ^5.3.12
+  '@nuxtjs/seo': ^5.3.16
   '@nuxtjs/sitemap': ^8.3.4
   '@sentry/cloudflare': ^10.70.0
   '@sentry/nuxt': ^10.70.0
@@ -126,7 +126,7 @@ catalog:
   nuxt: ^4.5.2
   nuxt-ai-ready: ^1.7.13
   nuxt-auth-utils: ^0.5.30
-  nuxt-og-image: ^6.7.8
+  nuxt-og-image: ^6.8.0
   nuxt-schema-org: ^6.2.9
   nuxt-skew-protection: ^1.5.0
   ohash: ^2.0.12
