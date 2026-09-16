@@ -9,6 +9,7 @@ import type { Ability } from '../../shared/policies/team-policy'
 import type { CurrentTeamContext } from './require-current-team'
 import type { RequireSiteAccessOptions } from './require-site-access'
 import { createConsola } from 'consola'
+import { logError } from '~~/shared/logging'
 import { ProError } from '../../shared/errors'
 import { getCaller, requireCaller } from './get-caller'
 import { requireCurrentTeam } from './require-current-team'
@@ -77,6 +78,29 @@ function isH3StyleError(error: unknown): error is H3StyleError {
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null ? value as Record<string, unknown> : {}
+}
+
+// Returns the cause for the thrown unhandled 500, marked the way Sentry marks
+// captured exceptions (non-enumerable `__sentry_captured__`, read with `in` by
+// @sentry/nuxt captureErrorHook.js). The `handler.unhandled_error` sink has
+// already reported the failure to Sentry, so the Nitro `error` hook must skip
+// its own auto-capture of the thrown 500. The hook only inspects an object
+// cause, so primitive throws are wrapped in an `Error` before marking.
+function markCapturedBySentry(error: unknown): unknown {
+  const cause = typeof error === 'object' && error !== null ? error : new Error(String(error))
+  try {
+    Object.defineProperty(cause, '__sentry_captured__', {
+      value: true,
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    })
+  }
+  catch {
+    // Genuinely ignorable: a frozen/sealed cause cannot carry the mark, so
+    // the hook adds a second capture instead of losing the 500 entirely.
+  }
+  return cause
 }
 
 // Options-bag form of defineProApiHandler. Absorbs the per-route prelude
@@ -166,8 +190,7 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
   return defineEventHandler(async (event) => {
     const requestId = ensureRequestId(event)
     setResponseHeader(event, 'x-request-id', requestId)
-    const logger = event.context.logger ?? createLogger(event, requestId)
-    event.context.logger = logger
+    event.context.logger ??= createLogger(event, requestId)
     try {
       if (mode._tag === 'context') {
         const ctx = await buildHandlerCtx(event, mode.options)
@@ -203,7 +226,12 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
         } satisfies ProErrorEnvelope
         throw e
       }
-      logger.error('unhandled error', e)
+      const caller = event.context.__caller
+      logError('handler.unhandled_error', e, {
+        requestId,
+        ...(caller ? { userId: caller.user.id, teamId: caller.currentTeamId } : {}),
+      })
+      const cause = markCapturedBySentry(e)
       throw createError({
         statusCode: 500,
         statusMessage: 'internal_error',
@@ -212,6 +240,7 @@ function createProHandler<O extends ProHandlerOptions, T>(mode: HandlerMode<O, T
           message: 'Internal error',
           requestId,
         } satisfies ProErrorEnvelope,
+        cause,
       })
     }
   })

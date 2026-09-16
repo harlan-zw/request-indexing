@@ -104,6 +104,7 @@ catalog:
   '@vueuse/nuxt': ^14.4.0
   bumpp: ^12.2.1
   cheerio: ^1.2.0
+  consola: ^3.4.2
   date-fns: ^4.4.0
   date-fns-tz: ^3.2.0
   devalue: ^5.9.0
