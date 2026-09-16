@@ -57,7 +57,7 @@ const sites = computed<SitesPreview>(() => preview.value?._tag === 'Ready' ? pre
     </div>
     <p class="text-sm text-muted">
       To change which sites this team tracks, go to
-      <NuxtLink to="/dashboard/team/sites" class="text-primary underline">
+      <NuxtLink to="/pro/dashboard/sites/connect" class="text-primary underline">
         Sites
       </NuxtLink>.
     </p>
