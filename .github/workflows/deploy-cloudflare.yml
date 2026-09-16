@@ -80,14 +80,39 @@ jobs:
           # blamed live errors on code that was never deployed.
           SENTRY_RELEASE: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      # TODO: apply D1 migrations here, before the deploy. Blocked on token scope:
-      # `secrets.CLOUDFLARE_API_TOKEN` is Workers-scoped, so `d1 migrations apply`
-      # returns 7403 and failed the whole deploy (run 31679455527). Grant that
-      # token "D1: Edit" and restore the step.
+      # Schema before code. On 2026-09-15 a deploy shipped code that reads
+      # migration 0014's `sites` columns while production D1 still held the old
+      # table. The gscdump webhook and site registration failed for two hours.
       #
-      # Until then `pnpm db:migrate` is a manual step run with a D1-scoped token,
-      # so a deploy CAN ship code whose migration nobody applied. Nothing has
-      # gone wrong from this yet; the risk is that it is unenforced.
+      # Wrangler records each applied file in the `d1_migrations` table, so this
+      # step is a no-op when nothing is pending, and it auto-confirms in CI.
+      #
+      # `secrets.CLOUDFLARE_API_TOKEN` is Workers-scoped today. Wrangler calls
+      # the D1 API before it reads the pending list, so a Workers-only token
+      # returns 7403 on every run and once blocked the whole deploy
+      # (run 31679455527). That one code warns and continues, because a blocked
+      # pipeline is worse than the manual step. Every other failure stops the
+      # deploy. If the token gains "D1: Edit", delete the guard and call
+      # `pnpm db:migrate` directly.
+      - name: Apply D1 migrations
+        timeout-minutes: 10
+        run: |
+          set +e
+          pnpm db:migrate 2>&1 | tee "$RUNNER_TEMP/d1-migrate.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          if ! grep -q 'code: 7403' "$RUNNER_TEMP/d1-migrate.log"; then
+            exit "$status"
+          fi
+          echo '::warning::D1 migrations were not applied. The deploy token has no D1 Edit permission. Run "pnpm db:migrate" with a D1-scoped token.'
+          {
+            echo '### D1 migrations were not applied'
+            echo 'The deploy token has no D1 Edit permission.'
+            echo 'Run `pnpm db:migrate` with a D1-scoped token.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - run: pnpm deploy
 
@@ -109,3 +134,43 @@ jobs:
           echo '::warning::Nuxt DX reporting failed. See the report step.'
           echo '### Nuxt DX report unavailable' >> "$GITHUB_STEP_SUMMARY"
           echo 'Reporting failed. The deployment result is unchanged.' >> "$GITHUB_STEP_SUMMARY"
+
+      # Second gate, and the only one that works without a D1-scoped token.
+      # `server/checks/database.ts` runs inside the Worker this job just
+      # shipped, so it reads the live schema through the `DB` binding. Read it
+      # once here. A schema that lags the code now turns a silent outage into a
+      # red run within seconds of the deploy.
+      - name: Verify the production D1 schema
+        timeout-minutes: 3
+        env:
+          CHECKIN_TOKEN: ${{ secrets.NUXT_CHECKIN_TOKEN }}
+          CHECKIN_URL: https://requestindexing.com/api/internal/checkin
+        run: |
+          if [ -z "$CHECKIN_TOKEN" ]; then
+            echo '::error::NUXT_CHECKIN_TOKEN is not set. Add the repository secret, then re-run this job.'
+            exit 1
+          fi
+          if ! report=$(curl -fsS --max-time 30 --retry 3 --retry-delay 5 \
+            -H "Authorization: Bearer $CHECKIN_TOKEN" "$CHECKIN_URL"); then
+            echo '::error::The check-in endpoint gave no answer. Check the deployed Worker and the token.'
+            exit 1
+          fi
+          result=$(printf '%s' "$report" \
+            | jq -r '.results[] | select(.id == "request-indexing.database") | .result._tag')
+          if [ "$result" = 'Pass' ]; then
+            exit 0
+          fi
+          if [ -z "$result" ]; then
+            echo '::error::The check-in report holds no request-indexing.database result. The deployed Worker is not healthy.'
+            exit 1
+          fi
+          reason=$(printf '%s' "$report" \
+            | jq -r '.results[] | select(.id == "request-indexing.database") | .result.reason // "no reason given"')
+          echo "::error::The production D1 schema check returned $result. $reason"
+          {
+            echo '### The production D1 schema check failed'
+            echo "Result: \`$result\`."
+            echo "Reason: $reason"
+            echo 'If migrations are pending, run `pnpm db:migrate` with a D1-scoped token.'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1

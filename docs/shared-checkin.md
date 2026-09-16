@@ -18,6 +18,8 @@ The agent reads `CHECKIN_TOKEN` from `~/.config/harlan-checkin/requestindexing.c
 The production Worker or Pages project stores the same value as `NUXT_CHECKIN_TOKEN`.
 Only `GET /api/internal/checkin` accepts this token. Existing admin sessions keep their existing authorization.
 Never include either token or Sentry credentials in report evidence.
+The deploy workflow stores the same value as the `NUXT_CHECKIN_TOKEN` repository secret.
+It reads the report after every deploy and fails the run when the D1 schema check fails.
 
 ## Limits
 
