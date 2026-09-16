@@ -87,32 +87,15 @@ jobs:
       # Wrangler records each applied file in the `d1_migrations` table, so this
       # step is a no-op when nothing is pending, and it auto-confirms in CI.
       #
-      # `secrets.CLOUDFLARE_API_TOKEN` is Workers-scoped today. Wrangler calls
-      # the D1 API before it reads the pending list, so a Workers-only token
-      # returns 7403 on every run and once blocked the whole deploy
-      # (run 31679455527). That one code warns and continues, because a blocked
-      # pipeline is worse than the manual step. Every other failure stops the
-      # deploy. If the token gains "D1: Edit", delete the guard and call
-      # `pnpm db:migrate` directly.
+      # A failure here stops the deploy on purpose. Shipping code past a
+      # migration that did not apply is the exact fault this step prevents.
+      #
+      # `secrets.CLOUDFLARE_API_TOKEN` needs "D1: Edit". A Workers-only token
+      # returns 7403 before wrangler even reads the pending list, which once
+      # blocked every deploy (run 31679455527).
       - name: Apply D1 migrations
         timeout-minutes: 10
-        run: |
-          set +e
-          pnpm db:migrate 2>&1 | tee "$RUNNER_TEMP/d1-migrate.log"
-          status=${PIPESTATUS[0]}
-          set -e
-          if [ "$status" -eq 0 ]; then
-            exit 0
-          fi
-          if ! grep -q 'code: 7403' "$RUNNER_TEMP/d1-migrate.log"; then
-            exit "$status"
-          fi
-          echo '::warning::D1 migrations were not applied. The deploy token has no D1 Edit permission. Run "pnpm db:migrate" with a D1-scoped token.'
-          {
-            echo '### D1 migrations were not applied'
-            echo 'The deploy token has no D1 Edit permission.'
-            echo 'Run `pnpm db:migrate` with a D1-scoped token.'
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: pnpm db:migrate
 
       - run: pnpm deploy
 
