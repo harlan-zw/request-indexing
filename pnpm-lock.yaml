@@ -13,14 +13,14 @@ catalogs:
       specifier: ^5.20260816.1
       version: 5.20260816.1
     '@gscdump/contracts':
-      specifier: 3.6.3
-      version: 3.6.3
+      specifier: 3.8.0
+      version: 3.8.0
     '@gscdump/engine':
-      specifier: 3.6.3
-      version: 3.6.3
+      specifier: 3.8.0
+      version: 3.8.0
     '@gscdump/sdk':
-      specifier: 3.6.3
-      version: 3.6.3
+      specifier: 3.8.0
+      version: 3.8.0
     '@harlan-zw/comark-content':
       specifier: 0.1.2
       version: 0.1.2
@@ -175,8 +175,8 @@ catalogs:
       specifier: ^1.8.0
       version: 1.8.0
     gscdump:
-      specifier: 3.6.3
-      version: 3.6.3
+      specifier: 3.8.0
+      version: 3.8.0
     h3:
       specifier: ^1.15.11
       version: 1.15.11
@@ -285,13 +285,13 @@ importers:
     dependencies:
       '@gscdump/contracts':
         specifier: 'catalog:'
-        version: 3.6.3
+        version: 3.8.0
       '@gscdump/engine':
         specifier: 'catalog:'
-        version: 3.6.3(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
+        version: 3.8.0(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
       '@gscdump/sdk':
         specifier: 'catalog:'
-        version: 3.6.3
+        version: 3.8.0
       '@harlan-zw/comark-content':
         specifier: 'catalog:'
         version: 0.1.2(571f4335386f985378a8682eb392f10f)
@@ -408,7 +408,7 @@ importers:
         version: 16.2.3
       gscdump:
         specifier: 'catalog:'
-        version: 3.6.3
+        version: 3.8.0
       h3:
         specifier: 'catalog:'
         version: 1.15.11
@@ -1667,12 +1667,12 @@ packages:
   '@floating-ui/vue@1.1.11':
     resolution: {integrity: sha512-HzHKCNVxnGS35r9fCHBc3+uCnjw9IWIlCPL683cGgM9Kgj2BiAl8x1mS7vtvP6F9S/e/q4O6MApwSHj8hNLGfw==}
 
-  '@gscdump/contracts@3.6.3':
-    resolution: {integrity: sha512-vR7MjPBsl7eF7cRiwQc5XhRffMpsvWsEArBtLhwdyDGKnvuV/Ek+qtIC2dDeP8qfI1K4HoNcRziy1u61eAuG4w==}
+  '@gscdump/contracts@3.8.0':
+    resolution: {integrity: sha512-U3/qtuVvB3BEFTObWZ/bg8CtYVBAha31ybQJV0Q9K0Yrua/4NCY7clYQkVB6VkzZPqA2H10JQ3xDBTHYRm9org==}
     engines: {node: '>=22'}
 
-  '@gscdump/engine@3.6.3':
-    resolution: {integrity: sha512-TSYJLvQsko6D1VSMiMD2IHp0qMWvDk2EML23W4LSgXZRVTgm5STsHV97UjdHNa3AcNPUnRVoj7GbUvjDbk5rww==}
+  '@gscdump/engine@3.8.0':
+    resolution: {integrity: sha512-2OTEnm6nmwX2Dzu2T6cmF1pGGQm8T7v3u27zHGnbCJRSGJTEucDJHWqMAzhN82Mbwxy9kPTL8NFl6LEqYb1h5w==}
     engines: {node: '>=22'}
     peerDependencies:
       '@duckdb/node-api': ^1.5.5-r.4
@@ -1680,12 +1680,12 @@ packages:
       '@duckdb/node-api':
         optional: true
 
-  '@gscdump/lakehouse@3.6.3':
-    resolution: {integrity: sha512-V7HXIYa/0YQV5hkHCU6mW4cWobInVKxiaHxyKXgVp8Ax+vno09SX1+PRh26yqW8gblMAKe31Ag3pdRdhlVOqaw==}
+  '@gscdump/lakehouse@3.8.0':
+    resolution: {integrity: sha512-hPUp900O9mJ5coM4QhJ6Mj92bi4rMR21qCnicg1ZeF240r6MJqkVtqDJ1QeR7A2vSNw+mS8XWbpy9u8ZuNimLg==}
     engines: {node: '>=22'}
 
-  '@gscdump/sdk@3.6.3':
-    resolution: {integrity: sha512-CpzBku0/+JEMZMwyoZsPncKbZ/gaP+6UA1YWD9WUhLgdk1EeLaEi73Ifvy8Mv2gAb/NVaxxUOmXa63zQHOcOEA==}
+  '@gscdump/sdk@3.8.0':
+    resolution: {integrity: sha512-7Xu1CIQeneCOtbnA2tpamu3CTrX7vkr3i5oQhzen9p4wyFYTqX1FRwEuWWONdMMD3HNqr7aDgkevZeUTt0VF4w==}
     engines: {node: '>=22'}
 
   '@harlan-zw/comark-content@0.1.2':
@@ -6211,8 +6211,8 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  gscdump@3.6.3:
-    resolution: {integrity: sha512-trJURNfnUoeKTbozsEWADaxePI11Wqydszqmn8oRIBJVeUpIr2z29JSn0jGwxA8WkYs38QJKz1dU4MtrNTGRZA==}
+  gscdump@3.8.0:
+    resolution: {integrity: sha512-4D+eSzMoLV/GpXMNXUx60PgmTPH6PultyaHwelzhJ66ygvykR+BmfqpMxCU7y63AD8fAICVh6O5YSC3T8stksw==}
     engines: {node: '>=22'}
 
   gzip-size@7.0.0:
@@ -10094,16 +10094,16 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@gscdump/contracts@3.6.3':
+  '@gscdump/contracts@3.8.0':
     dependencies:
       zod: 4.6.5
 
-  '@gscdump/engine@3.6.3(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)':
+  '@gscdump/engine@3.8.0(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)':
     dependencies:
-      '@gscdump/contracts': 3.6.3
-      '@gscdump/lakehouse': 3.6.3
+      '@gscdump/contracts': 3.8.0
+      '@gscdump/lakehouse': 3.8.0
       drizzle-orm: 1.0.0-rc.4(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
-      gscdump: 3.6.3
+      gscdump: 3.8.0
       pathe: 2.0.3
       proper-lockfile: 4.1.2
     transitivePeerDependencies:
@@ -10155,12 +10155,12 @@ snapshots:
       - valibot
       - zod
 
-  '@gscdump/lakehouse@3.6.3': {}
+  '@gscdump/lakehouse@3.8.0': {}
 
-  '@gscdump/sdk@3.6.3':
+  '@gscdump/sdk@3.8.0':
     dependencies:
-      '@gscdump/contracts': 3.6.3
-      gscdump: 3.6.3
+      '@gscdump/contracts': 3.8.0
+      gscdump: 3.8.0
       ofetch: 1.5.1
       zod: 4.6.5
 
@@ -11243,11 +11243,11 @@ snapshots:
 
   '@nuxt/schema@4.5.2':
     dependencies:
-      '@vue/shared': 3.5.41
+      '@vue/shared': 3.5.42
       defu: 6.1.7
       nostics: 1.2.0
       pathe: 2.0.3
-      pkg-types: 2.3.1
+      pkg-types: 2.3.3
       std-env: 4.2.0
 
   '@nuxt/scripts@1.3.5(@oxc-project/types@0.144.0)(@unhead/vue@3.4.0(@oxc-project/types@0.144.0)(esbuild@0.28.1)(lightningcss@1.33.0)(oxc-parser@0.144.0)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3)))(db0@0.3.4(drizzle-orm@0.45.2(@cloudflare/workers-types@5.20260816.1)(@opentelemetry/api@1.9.1)))(esbuild@0.28.1)(ioredis@5.11.1(supports-color@10.2.2))(magicast@0.5.5)(rolldown@1.2.3)(rollup@4.62.4)(typescript@6.0.3)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))':
@@ -15459,9 +15459,9 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  gscdump@3.6.3:
+  gscdump@3.8.0:
     dependencies:
-      '@gscdump/contracts': 3.6.3
+      '@gscdump/contracts': 3.8.0
       ofetch: 1.5.1
 
   gzip-size@7.0.0:
@@ -16614,7 +16614,7 @@ snapshots:
       '@rollup/plugin-terser': 1.0.0(rollup@4.62.4)
       '@vercel/nft': 1.5.0(rollup@4.62.4)(supports-color@10.2.2)
       archiver: 7.0.1
-      c12: 3.3.4(magicast@0.5.4)
+      c12: 3.3.4(magicast@0.5.5)
       chokidar: 5.0.0
       citty: 0.2.2
       compatx: 0.2.0
@@ -16642,7 +16642,7 @@ snapshots:
       knitwork: 1.3.0
       listhen: 1.10.0(srvx@0.12.5)
       magic-string: 0.30.21
-      magicast: 0.5.4
+      magicast: 0.5.5
       mime: 4.1.0
       mlly: 1.8.2
       node-fetch-native: 1.6.7
@@ -16651,7 +16651,7 @@ snapshots:
       ohash: 2.0.12
       pathe: 2.0.3
       perfect-debounce: 2.1.0
-      pkg-types: 2.3.1
+      pkg-types: 2.3.3
       pretty-bytes: 7.1.0
       radix3: 1.1.2
       rollup: 4.62.4
@@ -17104,9 +17104,9 @@ snapshots:
       defu: 6.1.7
       h3: 1.15.11
       nuxt-site-config-kit: 4.2.3(magic-string@1.3.1)(magicast@0.5.5)(oxc-parser@0.144.0)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@25.6.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.11)(yaml@2.9.0)))(vue@3.5.41(typescript@6.0.3))
-      nuxtseo-shared: 5.3.12(99b23524ed05619889ed66ae3f350d4c)
+      nuxtseo-shared: 5.3.16(99b23524ed05619889ed66ae3f350d4c)
       pathe: 2.0.3
-      pkg-types: 2.3.1
+      pkg-types: 2.3.3
       site-config-stack: 4.2.3(vue@3.5.41(typescript@6.0.3))
       ufo: 1.6.4
       vue: 3.5.41(typescript@6.0.3)
@@ -18671,7 +18671,7 @@ snapshots:
       mlly: 1.8.2
       pathe: 2.0.3
       picomatch: 4.0.5
-      pkg-types: 2.3.1
+      pkg-types: 2.3.3
       scule: 1.3.0
       strip-literal: 4.0.0
       tinyglobby: 0.2.17
@@ -18836,7 +18836,7 @@ snapshots:
       magic-string: 0.30.21
       mlly: 1.8.2
       pathe: 2.0.3
-      pkg-types: 2.3.1
+      pkg-types: 2.3.3
 
   update-browserslist-db@1.3.0(browserslist@4.28.8):
     dependencies:
