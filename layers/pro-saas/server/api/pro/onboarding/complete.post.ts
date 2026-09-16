@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { sites, users } from '#layers/pro-saas/server/database'
 import { defineProApiHandler } from '#layers/pro-saas/server/utils/handler'
+import { emitFirstProEvent } from '#layers/pro-saas/server/utils/pro-events'
 import { ProError } from '#layers/pro-saas/shared/errors'
 import { resolveOnboardingCompletion } from '#layers/pro-saas/shared/onboarding'
 
@@ -35,6 +36,13 @@ export default defineProApiHandler({ team: true }, async ({ db, caller, team: ct
     await db.update(users)
       .set({ onboardingCompletedAt: new Date(decision.completedAt) })
       .where(eq(users.userId, caller.user.id))
+
+    // Record the last funnel milestone. The flag is committed here, and an
+    // `AlreadyComplete` or a `Blocked` decision never reaches this branch.
+    // `emitFirstProEvent` never throws, so completion keeps its own failure modes.
+    await emitFirstProEvent(db, caller.user.id, 'onboarding_completed', {
+      teamId: ctx.team.teamId,
+    })
   }
 
   // The gate reads `session.onboardingCompletedAt` on the very next render, so

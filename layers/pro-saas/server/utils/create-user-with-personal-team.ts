@@ -2,6 +2,7 @@ import type { AuthProviderId, NewUser } from '../database'
 import { eq } from 'drizzle-orm'
 import { logWarn } from '~~/shared/logging'
 import { teams, userIdentities, users } from '../database'
+import { emitFirstProEvent } from './pro-events'
 
 /**
  * `currentTeamId` is deliberately excluded: this helper creates the personal
@@ -87,6 +88,14 @@ export async function createUserWithPersonalTeam(
       lastUsedAt: now,
     }).catch(err => logWarn('create_user.identity_insert_failed', err, { userId: userRow.userId, provider: identity.provider }))
   }
+
+  // Record the first funnel milestone. The user row, the personal team and the
+  // identity row all exist here, so this is the first moment an account is real.
+  // `emitFirstProEvent` never throws, so signup keeps its own failure modes.
+  await emitFirstProEvent(db, userRow.userId, 'signed_up', {
+    source: userInsert.source ?? null,
+    provider: identity?.provider ?? null,
+  })
 
   return {
     user: { ...userRow, currentTeamId: teamRow.teamId },

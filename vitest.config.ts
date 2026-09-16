@@ -24,6 +24,7 @@ function alias() {
   return [
     { find: '#schema/pro', replacement: fileURLToPath(new URL('./.nuxt/drizzle-layers/pro/schema.ts', import.meta.url)) },
     { find: '#db/pro', replacement: fileURLToPath(new URL('./.nuxt/drizzle-layers/pro/db.ts', import.meta.url)) },
+    { find: '#domain-events/server', replacement: fileURLToPath(new URL('./.nuxt/domain-events/server.mjs', import.meta.url)) },
     { find: '#shared', replacement: fileURLToPath(new URL('./shared', import.meta.url)) },
     { find: '#imports', replacement: fileURLToPath(new URL('./tests/setup/nuxt-imports.ts', import.meta.url)) },
     { find: /^#layers\/(.*)$/, replacement: `${ROOT}layers/$1` },
