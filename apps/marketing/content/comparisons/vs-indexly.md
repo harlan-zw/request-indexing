@@ -20,9 +20,9 @@ That broader scope may suit a team that wants content automation and AI visibili
 
 ## What Request Indexing implements
 
-The [notification endpoint](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/apps/app/server/api/indexing/%5Burl%5D.post.ts) reads notification metadata before sending a new request. It skips another publish when it finds a recent update notification within its 48-hour window. That is an application policy, not evidence that Google indexed the URL.
+The [notification endpoint](https://github.com/harlan-zw/requestindexing.com/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/apps/app/server/api/indexing/%5Burl%5D.post.ts) reads notification metadata before sending a new request. It skips another publish when it finds a recent update notification within its 48-hour window. That is an application policy, not evidence that Google indexed the URL.
 
-The application also reads stored indexing information through its gscdump integration. Its [GPLv3 source](https://github.com/harlan-zw/request-indexing/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/LICENSE) is available to inspect. Self-hosting requires infrastructure and configuration; this comparison does not establish a completed one-click setup.
+The application also reads stored indexing information through its gscdump integration. Its [GPLv3 source](https://github.com/harlan-zw/requestindexing.com/blob/cf640ac56542cca8850b2ce3ab773f35c8910e21/LICENSE) is available to inspect. Self-hosting requires infrastructure and configuration; this comparison does not establish a completed one-click setup.
 
 ## Questions to settle before choosing
 

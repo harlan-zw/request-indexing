@@ -32,7 +32,7 @@ const teamLinks: UiNavLink[] = [
 const supportLinks: UiNavLink[] = [
   { icon: 'mail', label: 'Email', to: 'mailto:harlan@harlanzw.com' },
   { icon: 'discord', label: 'Discord', to: 'https://discord.gg/275MBUBvgP' },
-  { icon: 'github', label: 'Submit a bug', to: 'https://github.com/harlan-zw/request-indexing/issues/new/choose' },
+  { icon: 'github', label: 'Submit a bug', to: 'https://github.com/harlan-zw/requestindexing.com/issues/new/choose' },
 ]
 </script>
 

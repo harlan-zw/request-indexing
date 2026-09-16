@@ -37,7 +37,7 @@ Article reviewed on 15 September 2026. Accepted Git revision: `89dd568eda983e68e
 Article SHA256 file digest at that revision: `ab80616a012174de093b2f7fea164e514c87c0c178b1c7becdd007670bcfe13f`.
 sources_reviewer approved factual and humanized prose, then reviewed the final formatting-only revision.
 Shared coordinator acceptance and rendered checks are recorded in the [collection ledger](../README.md).
-Article PR: [#77](https://github.com/harlan-zw/request-indexing/pull/77), stacked on foundation [#75](https://github.com/harlan-zw/request-indexing/pull/75).
+Article PR: [#77](https://github.com/harlan-zw/requestindexing.com/pull/77), stacked on foundation [#75](https://github.com/harlan-zw/requestindexing.com/pull/75).
 Later revisions require review of their changes. This record does not approve an unreviewed future head.
 Merge and live publication are not recorded as complete. Authenticated Google actions remain untested.
 

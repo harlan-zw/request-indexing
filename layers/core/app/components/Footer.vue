@@ -61,7 +61,7 @@ const links = [
     children: [
       {
         label: 'Docs',
-        to: 'https://github.com/harlan-zw/request-indexing',
+        to: 'https://github.com/harlan-zw/requestindexing.com',
         target: '_blank',
       },
       {
@@ -79,17 +79,17 @@ const links = [
     children: [
       {
         label: 'Report a bug',
-        to: 'https://github.com/harlan-zw/request-indexing/issues/new?assignees=&labels=pending+triage&projects=&template=bug_report.yml',
+        to: 'https://github.com/harlan-zw/requestindexing.com/issues/new?assignees=&labels=pending+triage&projects=&template=bug_report.yml',
         target: '_blank',
       },
       {
         label: 'Roadmap',
-        to: 'https://github.com/harlan-zw/request-indexing/issues?q=is%3Aopen+label%3Aenhancement+sort%3Aupdated-desc',
+        to: 'https://github.com/harlan-zw/requestindexing.com/issues?q=is%3Aopen+label%3Aenhancement+sort%3Aupdated-desc',
         target: '_blank',
       },
       {
         label: 'Changelog',
-        to: 'https://github.com/harlan-zw/request-indexing/releases',
+        to: 'https://github.com/harlan-zw/requestindexing.com/releases',
         target: '_blank',
       },
       {
@@ -166,7 +166,7 @@ function toaster() {
       <UButton color="neutral" title="Twitter" variant="link" to="https://twitter.com/harlan_zw" target="_blank">
         <UIcon name="i-simple-icons-twitter" class="text-xl" />
       </UButton>
-      <UButton color="neutral" title="GitHub" aria-label="GitHub" variant="link" to="https://github.com/harlan-zw/request-indexing" target="_blank">
+      <UButton color="neutral" title="GitHub" aria-label="GitHub" variant="link" to="https://github.com/harlan-zw/requestindexing.com" target="_blank">
         <UIcon name="i-simple-icons-github" class="text-xl" />
       </UButton>
       <UButton color="neutral" title="Discord" aria-label="Discord" variant="link" to="https://discord.gg/275MBUBvgP" target="_blank">
