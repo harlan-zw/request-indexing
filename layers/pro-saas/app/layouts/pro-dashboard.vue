@@ -13,7 +13,6 @@ import { fetchSites } from '~~/layers/core/app/composables/fetch'
 import { readSiteLookup, siteLookupKey } from '#layers/pro-saas/shared/site-lookup'
 
 const route = useRoute()
-const { session } = useUserSession()
 
 const { data: siteData, status: sitesStatus } = await fetchSites()
 const sites = computed<ProNavSite[]>(() => (siteData.value?.sites ?? []) as ProNavSite[])
@@ -94,22 +93,12 @@ const pageTitle = computed(() => {
   return typeof title === 'string' && title ? title : null
 })
 const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta.icon : undefined)
-
-const userMenuItems = computed(() => [
-  [{ label: 'Account', icon: 'i-lucide-user', to: '/pro/dashboard/account' }],
-  [{ label: 'Sign out', icon: 'i-lucide-log-out', color: 'error' as const, to: '/auth/logout', external: true }],
-])
 </script>
 
 <template>
   <UiAppShell content-class="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">
     <template #brand>
-      <NuxtLink
-        to="/pro/dashboard"
-        class="inline-flex min-h-11 items-center rounded-md text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:min-h-0"
-      >
-        <OgBrand :size="26" wordmark semantic />
-      </NuxtLink>
+      <ProSidebarHeader to="/pro/dashboard" />
     </template>
 
     <template #sidebar>
@@ -124,37 +113,25 @@ const userMenuItems = computed(() => [
     </template>
 
     <template #mobile="{ closeNav }">
-      <div class="mb-4">
-        <NuxtLink to="/pro/dashboard" class="inline-flex min-h-11 items-center rounded-md text-default" @click="closeNav">
-          <OgBrand :size="24" wordmark semantic />
-        </NuxtLink>
+      <div class="flex min-h-full flex-col gap-4">
+        <ProSidebarHeader to="/pro/dashboard" @navigate="closeNav" />
+        <!-- Flex column, so the nav body's `mt-auto` rail pins to the drawer bottom. -->
+        <div class="flex flex-1 flex-col *:flex-1">
+          <ProSingleSiteSidebarNav v-if="scopedSite" :site="scopedSite" @navigate="closeNav" />
+          <ProFleetSidebarNav v-else :sites="sites" :loading="sitesLoading" @navigate="closeNav" />
+        </div>
+        <div class="border-t border-default pt-3">
+          <ProSidebarFooter :single-site="sites.length === 1" />
+        </div>
       </div>
-      <ProSingleSiteSidebarNav v-if="scopedSite" :site="scopedSite" @navigate="closeNav" />
-      <ProFleetSidebarNav v-else :sites="sites" :loading="sitesLoading" @navigate="closeNav" />
     </template>
 
     <template #footer>
-      <div class="flex items-center gap-1">
-        <UDropdownMenu
-          :items="userMenuItems"
-          :content="{ side: 'right', align: 'end' }"
-          :ui="{ content: 'min-w-48' }"
-          class="min-w-0 flex-1"
-        >
-          <button class="flex w-full min-h-11 items-center gap-2.5 rounded-lg px-1 py-1 transition-colors hover:bg-elevated lg:min-h-0">
-            <UAvatar
-              :src="session?.user?.avatarUrl ?? undefined"
-              :alt="session?.user?.name ?? undefined"
-              size="xs"
-            />
-            <span class="min-w-0 flex-1 truncate text-left text-sm font-medium text-default">
-              {{ session?.user?.name ?? 'Account' }}
-            </span>
-            <UIcon name="i-lucide-chevrons-up-down" class="size-3.5 shrink-0 text-dimmed" aria-hidden="true" />
-          </button>
-        </UDropdownMenu>
-        <UColorModeButton size="xs" variant="ghost" color="neutral" class="shrink-0" />
-      </div>
+      <ProSidebarFooter :single-site="sites.length === 1" />
+    </template>
+
+    <template #extras>
+      <ProCommandPalette :sites="sites" />
     </template>
 
     <UiPageHeader

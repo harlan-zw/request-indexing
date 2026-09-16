@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // The fleet sidebar body: workspace destinations, then the Site roster.
 // Adapted from nuxtseo.com's `ProDashboardSidebarNav.vue`, minus the group
-// switcher, the monitoring rail and the Reports/Alerts/Chat rows.
+// switcher, the monitoring rail and the Reports/Alerts/Chat rows. Account lives
+// in the user menu, as upstream; the rail keeps Manage Sites.
 //
 // Rendered only when the resolved scope is more than one Site. At n=1 the
 // layout mounts `ProSingleSiteSidebarNav` instead, so a one-Site account never
@@ -9,7 +10,7 @@
 import type { UiNavLink } from '#layers/design-system/app/shared/nav'
 import type { ProNavSite } from '#layers/pro-shell/app/composables/useProSingleSiteNav'
 import { computed } from 'vue'
-import { UiFavicon, UiNavList, UiSkeleton } from '#components'
+import { NuxtLink, UiFavicon, UiIcon, UiNavList, UiSkeleton } from '#components'
 
 const { sites, loading = false } = defineProps<{
   sites: ProNavSite[]
@@ -59,8 +60,16 @@ const siteLinks = computed<FleetSiteLink[]>(() => sites.map((site) => {
     />
 
     <div>
-      <div class="mb-1.5 px-1 text-sm font-medium tracking-wide text-dimmed lg:text-xs dark:text-muted">
-        Sites
+      <div class="mb-1.5 flex items-center justify-between px-1">
+        <span class="text-sm font-medium tracking-wide text-dimmed lg:text-xs dark:text-muted">Sites</span>
+        <NuxtLink
+          to="/pro/dashboard/sites/connect"
+          aria-label="Connect a Site"
+          class="flex size-11 items-center justify-center rounded text-dimmed transition-colors hover:bg-elevated hover:text-highlighted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:size-6"
+          @click="emit('navigate')"
+        >
+          <UiIcon name="add" class="size-3.5" aria-hidden="true" />
+        </NuxtLink>
       </div>
       <!-- A roster that has not arrived yet is three rows of nothing, not an
            empty list: an empty list reads as "you have no sites". -->
@@ -87,8 +96,8 @@ const siteLinks = computed<FleetSiteLink[]>(() => sites.map((site) => {
     <div class="mt-auto border-t border-default pt-3">
       <UiNavList
         variant="sidebar"
-        label="Account"
-        :links="[{ label: 'Account', icon: 'user', to: '/pro/dashboard/account' }]"
+        label="Manage"
+        :links="[{ label: 'Manage Sites', icon: 'settings', to: '/pro/dashboard/sites', active: p => p === '/pro/dashboard/sites' }]"
         @click="emit('navigate')"
       />
     </div>
