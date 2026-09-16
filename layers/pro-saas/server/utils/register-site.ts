@@ -5,6 +5,7 @@ import { and, eq } from 'drizzle-orm'
 import { dispatchEvent } from '#domain-events/server'
 import { sites } from '#layers/pro-saas/server/database'
 import { parseSiteUrlInput } from '#layers/pro-saas/shared/site-url'
+import { emitFirstProEvent } from './pro-events'
 import { checkTeamSiteSelection } from './team-site-limit'
 
 export interface RegisterSiteInput {
@@ -79,6 +80,11 @@ export async function registerSite(
       return { _tag: 'AlreadyConnected', site: raced }
     throw new Error('Failed to create site')
   }
+
+  // Record the funnel milestone. The Site row is committed here, and an
+  // `AlreadyConnected` or a failure returned before this point. `emitFirstProEvent`
+  // never throws, so registration keeps its own failure modes.
+  await emitFirstProEvent(db, caller.user.id, 'site_added', { domain: parsed.domain })
 
   // Fan out so Search Console links itself to the new Site. The listener is
   // isolated, so a Google failure leaves the Site registered rather than

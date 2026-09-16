@@ -4,8 +4,13 @@ import { proEvents } from '#layers/pro-saas/server/database'
 
 type ProDB = ReturnType<typeof useDrizzle>
 
+// The signup funnel reads in this order: signed_up, gsc_connected, site_added,
+// onboarding_completed. Each type records one first-time milestone per user.
 export type ProEventType
-  = | 'gsc_connected'
+  = | 'signed_up'
+    | 'gsc_connected'
+    | 'site_added'
+    | 'onboarding_completed'
     | 'first_sync_complete'
     | 'first_mcp_tool_call'
     | 'mcp_tutorial_shown'
