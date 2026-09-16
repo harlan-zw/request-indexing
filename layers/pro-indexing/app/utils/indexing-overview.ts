@@ -124,6 +124,12 @@ export interface IndexingOverviewPipeline {
 
 interface WaitingModel {
   _tag: 'waiting'
+  /**
+   * Which setup gate produced the wait. `not_connected` needs a connect action;
+   * `pending` needs patience. Collapsing both into one branch left the connect
+   * case with copy that asked for a link and no way to follow it.
+   */
+  state: 'not_connected' | 'pending'
   reason: string
   progress: {
     inspected: number
@@ -478,6 +484,7 @@ export function buildIndexingOverviewModel(input: IndexingOverviewInput): Indexi
   if (input.trust.state === 'not_connected' || input.trust.state === 'pending') {
     return {
       _tag: 'waiting',
+      state: input.trust.state,
       reason: input.trust.reason,
       progress: input.sitemapTotal > 0
         ? {

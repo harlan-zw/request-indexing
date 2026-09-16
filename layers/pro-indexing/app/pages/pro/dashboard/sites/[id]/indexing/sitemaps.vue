@@ -461,7 +461,9 @@ const isConnected = computed(() => Boolean(gscdumpSiteId.value))
         icon="link"
         title="Connect Search Console to see sitemaps"
         description="Sitemap files, their reported issues and their URL history all come from Search Console."
-      />
+      >
+        <ConnectSearchConsoleButton />
+      </UiEmptyState>
 
       <UiEmptyState
         v-else-if="!hasReportShell && !resolvedEmptyState"
