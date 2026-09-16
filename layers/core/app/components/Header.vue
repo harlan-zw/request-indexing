@@ -84,13 +84,18 @@ const authDropdownItems = computed(() => {
 </script>
 
 <template>
-  <!-- The menu toggle grows to 44x44 for touch. Its negative margins pull the extra
-       width back, so the row keeps the same layout width and the icon does not move. -->
+  <!-- The menu toggle grows to 44x44 for touch. The end margin pulls the extra
+       width back, so the icon keeps the page gutter and the row keeps its width.
+       The pull-back is on the end side only, so the whole 12px lands outside the
+       row and the gap to the call to action survives. Below lg the right slot
+       holds that gap at 8px, the spacing both Apple and Material ask for between
+       adjacent touch targets. The wordmark drops one step below sm to pay for it. -->
   <UHeader
     :ui="{
       root: 'border-none bg-transparent pt-2 mb-3 px-4 sm:px-5 h-auto',
       container: 'max-w-[1452px] lg:bg-elevated/40 lg:border border-default mx-auto py-0 px-0 lg:px-5 sm:px-0 rounded-lg max-lg:gap-2',
-      toggle: 'min-h-11 min-w-11 justify-center -ms-1.5 -me-3',
+      right: 'max-lg:gap-2',
+      toggle: 'min-h-11 min-w-11 justify-center -me-3',
     }"
   >
     <template #left>
@@ -98,7 +103,7 @@ const authDropdownItems = computed(() => {
         to="/"
         title="Home"
         aria-label="Request Indexing"
-        class="flex items-center gap-2 font-bold text-xl text-default tracking-[-1.5px] max-lg:min-h-11"
+        class="flex items-center gap-2 font-bold text-lg sm:text-xl text-default tracking-[-1.5px] max-lg:min-h-11"
       >
         <span class="text-primary italic">Request</span> Indexing
       </NuxtLink>
