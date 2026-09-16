@@ -96,11 +96,20 @@ function closeNav() {
       </div>
     </div>
 
-    <UDrawer v-model:open="navOpen" direction="left">
+    <!-- A left drawer sizes to its content by default, which squeezed the nav
+         to ~210px on a phone. Fixed width, capped so the scrim stays tappable.
+         No handle: it is a swipe affordance for bottom sheets and overlapped
+         the nav rows here. -->
+    <UDrawer
+      v-model:open="navOpen"
+      direction="left"
+      :handle="false"
+      :ui="{ content: 'w-80 max-w-[calc(100vw-3rem)]' }"
+    >
       <template #content>
-        <div class="flex flex-col h-full min-w-0 overflow-x-hidden">
+        <div class="flex flex-1 flex-col h-full min-w-0 overflow-x-hidden">
           <template v-if="slots.mobile">
-            <div class="flex-1 min-h-0 overflow-y-auto p-5">
+            <div class="flex-1 min-h-0 overflow-y-auto px-4 pt-4 pb-3">
               <slot name="mobile" :close-nav="closeNav" />
             </div>
           </template>

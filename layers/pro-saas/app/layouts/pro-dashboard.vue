@@ -113,14 +113,14 @@ const pageIcon = computed(() => typeof route.meta.icon === 'string' ? route.meta
     </template>
 
     <template #mobile="{ closeNav }">
-      <div class="flex min-h-full flex-col gap-4">
+      <div class="flex min-h-full flex-col gap-3">
         <ProSidebarHeader to="/pro/dashboard" @navigate="closeNav" />
         <!-- Flex column, so the nav body's `mt-auto` rail pins to the drawer bottom. -->
         <div class="flex flex-1 flex-col *:flex-1">
           <ProSingleSiteSidebarNav v-if="scopedSite" :site="scopedSite" @navigate="closeNav" />
           <ProFleetSidebarNav v-else :sites="sites" :loading="sitesLoading" @navigate="closeNav" />
         </div>
-        <div class="border-t border-default pt-3">
+        <div class="border-t border-default pt-2">
           <ProSidebarFooter :single-site="sites.length === 1" />
         </div>
       </div>

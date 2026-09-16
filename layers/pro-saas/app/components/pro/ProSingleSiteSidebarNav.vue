@@ -26,9 +26,9 @@ const headerActive = computed(() => route.path === nav.siteTo.value)
 <template>
   <!-- flex + min-h-full so the bottom rail (`mt-auto`) pins above the footer
        when the nav is short. -->
-  <div class="flex min-h-full flex-col gap-5">
+  <div class="flex min-h-full flex-col gap-3 lg:gap-5">
     <div>
-      <div class="mb-2 flex items-center justify-between px-1">
+      <div class="mb-0.5 flex items-center justify-between px-1 lg:mb-2">
         <!-- The header IS the Site landing row, so it renders like one: the
              same raised active surface every UiNavList row gets. -->
         <NuxtLink
@@ -55,7 +55,7 @@ const headerActive = computed(() => route.path === nav.siteTo.value)
       />
     </div>
 
-    <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-3 lg:gap-5">
       <ProNavSection
         v-for="section in nav.sections.value"
         :key="section.id"
@@ -66,7 +66,7 @@ const headerActive = computed(() => route.path === nav.siteTo.value)
       />
     </div>
 
-    <div class="mt-auto border-t border-default pt-3">
+    <div class="mt-auto border-t border-default pt-2 lg:pt-3">
       <UiNavList
         variant="sidebar"
         label="Site settings"

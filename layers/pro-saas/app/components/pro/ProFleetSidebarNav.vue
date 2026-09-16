@@ -50,7 +50,7 @@ const siteLinks = computed<FleetSiteLink[]>(() => sites.map((site) => {
 </script>
 
 <template>
-  <div class="flex min-h-full flex-col gap-5">
+  <div class="flex min-h-full flex-col gap-3 lg:gap-5">
     <UiNavList
       variant="sidebar"
       tone="default"
@@ -60,7 +60,7 @@ const siteLinks = computed<FleetSiteLink[]>(() => sites.map((site) => {
     />
 
     <div>
-      <div class="mb-1.5 flex items-center justify-between px-1">
+      <div class="mb-0.5 flex items-center justify-between px-1 lg:mb-1.5">
         <span class="text-sm font-medium tracking-wide text-dimmed lg:text-xs dark:text-muted">Sites</span>
         <NuxtLink
           to="/pro/dashboard/sites/connect"
@@ -93,7 +93,7 @@ const siteLinks = computed<FleetSiteLink[]>(() => sites.map((site) => {
       </UiNavList>
     </div>
 
-    <div class="mt-auto border-t border-default pt-3">
+    <div class="mt-auto border-t border-default pt-2 lg:pt-3">
       <UiNavList
         variant="sidebar"
         label="Manage"
