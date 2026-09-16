@@ -127,30 +127,16 @@ function toaster() {
 </script>
 
 <template>
-  <UFooter>
+  <!-- The top slot ships no gutter of its own, so the first column sat flush
+       against the viewport edge. These match the page container. -->
+  <UFooter :ui="{ top: 'px-4 sm:px-6 lg:px-8' }">
     <template #top>
-      <UFooterColumns :links="links">
-        <template #right>
-          <UCard class=" p-5">
-            <div>
-              <div class="mb-2">
-                Hey <Icon name="noto:waving-hand" /> My name is <a href="https://harlanzw.com" target="_blank" class="underline">Harlan</a> <img alt="Harlan Wilton" loading="lazy" src="https://avatars.githubusercontent.com/u/5326365?v=4" class="inline rounded-full w-5 h-5">, I'm the creator of Request Indexing.
-              </div>
-              <div>
-                Do you like this tool? Need a hand? Get in <a href="https://twitter.com/harlan_zw" class="underline">touch</a> with me.
-              </div>
-            </div>
-          </UCard>
-        </template>
-      </UFooterColumns>
+      <UFooterColumns :columns="links" />
     </template>
 
     <template #left>
-      <p class="text-muted text-sm mr-5">
-        Copyright © {{ new Date().getFullYear() }}. All rights reserved.
-      </p>
       <p class="text-muted text-sm">
-        Credits for the idea to <a href="https://seogets.com/" target="_blank" class="underline">SEO Gets</a>.
+        Copyright © {{ new Date().getFullYear() }}. All rights reserved.
       </p>
     </template>
 
