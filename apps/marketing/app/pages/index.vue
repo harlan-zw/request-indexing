@@ -283,8 +283,8 @@ const marketingTools = [
       >
         <div class="mt-12 lg:mt-16 grid gap-14 lg:gap-24">
           <template v-for="(step, i) in walkthroughSteps" :key="step.num">
-            <div class="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
-              <div class="lg:col-span-5" :class="[i % 2 === 1 ? 'lg:order-2' : '']">
+            <div class="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center min-w-0">
+              <div class="lg:col-span-5 min-w-0" :class="[i % 2 === 1 ? 'lg:order-2' : '']">
                 <div class="flex items-center gap-3 mb-5">
                   <span class="inline-flex size-10 rounded-full bg-primary/10 text-primary font-mono text-sm font-semibold items-center justify-center">
                     {{ step.num }}
@@ -304,7 +304,7 @@ const marketingTools = [
                   </li>
                 </ul>
               </div>
-              <div class="lg:col-span-7" :class="[i % 2 === 1 ? 'lg:order-1' : '']">
+              <div class="lg:col-span-7 min-w-0" :class="[i % 2 === 1 ? 'lg:order-1' : '']">
                 <!-- Step 1: Google sign-in -->
                 <div v-if="i === 0" class="rounded-xl border border-default bg-elevated shadow-lg overflow-hidden">
                   <div class="flex items-center gap-2 px-5 py-3 border-b border-default bg-muted/60">
@@ -377,12 +377,12 @@ const marketingTools = [
                 <div v-else-if="i === 2" class="rounded-xl border border-default bg-elevated shadow-lg overflow-hidden">
                   <div class="flex items-center gap-2 px-5 py-3 border-b border-default bg-muted/60">
                     <UIcon name="i-heroicons-command-line" class="size-4 text-muted" />
-                    <span class="text-xs font-mono text-muted">POST /v3/urlNotifications:publish</span>
+                    <span class="text-xs font-mono text-muted truncate">POST /v3/urlNotifications:publish</span>
                     <UBadge color="primary" variant="subtle" size="xs" class="ml-auto">
                       200 OK
                     </UBadge>
                   </div>
-                  <pre class="px-5 py-5 text-xs sm:text-sm font-mono text-toned overflow-x-auto leading-relaxed"><code><span class="text-muted"># Submit a URL to the Indexing API</span>
+                  <pre class="px-5 py-5 text-xs sm:text-sm font-mono text-toned overflow-x-auto leading-relaxed min-w-0"><code><span class="text-muted"># Submit a URL to the Indexing API</span>
 <span class="text-primary">curl</span> <span class="text-default">-X POST</span> \
   <span class="text-default">-H</span> <span class="text-toned">"Content-Type: application/json"</span> \
   <span class="text-default">-H</span> <span class="text-toned">"Authorization: Bearer $TOKEN"</span> \

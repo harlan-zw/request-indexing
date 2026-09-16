@@ -90,7 +90,7 @@ const authDropdownItems = computed(() => {
         to="/"
         title="Home"
         aria-label="Request Indexing"
-        class="flex mr-4 items-center gap-2 font-bold text-xl text-default tracking-[-1.5px]"
+        class="flex mr-4 max-[375px]:mr-0 items-center gap-2 font-bold text-xl text-default tracking-[-1.5px]"
       >
         <span class="text-primary italic">Request</span> Indexing
       </NuxtLink>
@@ -162,7 +162,7 @@ const authDropdownItems = computed(() => {
     </template>
 
     <template #right>
-      <div class="flex items-center justify-end lg:-mr-1.5 ml-3 gap-3">
+      <div class="flex items-center justify-end lg:-mr-1.5 ml-3 max-[375px]:ml-0 gap-3">
         <UColorModeButton />
 
         <UButton
@@ -181,8 +181,11 @@ const authDropdownItems = computed(() => {
           <UButton to="/login" external color="neutral" variant="ghost" class="hidden md:flex">
             Sign in
           </UButton>
-          <UButton to="/pro/onboarding" external color="primary" variant="solid">
-            Get started
+          <!-- Under 375px the label collapses to an icon so the call to action and
+               the menu toggle both fit. The label stays as the accessible name. -->
+          <UButton to="/pro/onboarding" external color="primary" variant="solid" class="max-[375px]:min-h-11 max-[375px]:min-w-11 max-[375px]:justify-center">
+            <UIcon name="next" class="hidden size-5 max-[375px]:block" />
+            <span class="max-[375px]:sr-only">Get started</span>
           </UButton>
         </template>
         <template v-else>

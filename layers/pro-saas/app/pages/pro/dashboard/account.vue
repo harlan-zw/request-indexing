@@ -1,9 +1,18 @@
 <script setup lang="ts">
+// The sidebar calls this page "Profile", so it opens with the signed-in
+// person: avatar, name, email and sign-in method. Every field below comes from
+// the session the `pro-saas` session plugin already publishes. No endpoint and
+// no column was added for this page.
+//
+// The layer that owns `ProConnectedAccounts` opts out of auto-import, so the
+// component is imported by path.
+import ProConnectedAccounts from '#layers/pro-saas-auth/app/components/auth/ProConnectedAccounts.vue'
+
 definePageMeta({
   layout: 'user-dashboard',
   title: 'Account',
   icon: 'i-ph-user-circle-duotone',
-  description: 'Manage your API key, Web Indexing access and account data.',
+  description: 'Manage your profile, connected accounts and account data.',
 })
 
 const { session, fetch } = useUserSession()
@@ -11,6 +20,18 @@ const indexingAuth = computed(() => session.value?.googleIndexingAuth)
 const logout = createLogoutHandler()
 const toast = useToast()
 const route = useRoute()
+
+const user = computed(() => session.value?.user ?? null)
+const displayName = computed(() => user.value?.name || user.value?.email || 'Your account')
+const avatarUrl = computed(() => user.value?.avatarUrl || undefined)
+const providerLabel = computed(() => user.value?.authProvider === 'google' ? 'Google' : 'GitHub')
+
+// Search Console lives on `google_accounts`, not on an identity row. The
+// session already carries the grant state, so the row below is a read of
+// `gscConnected` / `gscEmail` rather than a second request.
+const gscConnected = computed(() => !!session.value?.gscConnected)
+const gscEmail = computed(() => session.value?.gscEmail ?? null)
+const gscConnectHref = `/auth/integrations/gsc/connect?returnTo=${encodeURIComponent('/pro/dashboard/account')}`
 
 // Identity linking bounces back here with `?notice=` / `?error=` from
 // `attachIdentityToCurrentSession`. Without feedback the round trip through
@@ -110,49 +131,129 @@ async function deleteAccount() {
 </script>
 
 <template>
-  <div class="space-y-10">
+  <div class="max-w-3xl space-y-10">
     <section>
-      <h2 class="mb-2 flex items-center gap-1.5 text-lg font-bold">
-        <UIcon name="i-heroicons-lock-closed" />
-        Web Indexing API
-      </h2>
-      <template v-if="indexingAuth?.indexingOAuthId">
-        <p class="mb-3 text-muted">
-          You gave this app access to the Web Indexing API. You can revoke access at any time.
-        </p>
-        <UButton
-          color="error"
-          variant="outline"
-          :loading="revokeState._tag === 'revoking'"
-          @click="revokeIndexingAuth"
-        >
-          Revoke tokens
-        </UButton>
-      </template>
-      <p v-else class="text-muted">
-        This app has no access to the Web Indexing API. Grant access when you request indexing.
-      </p>
+      <ProSectionHeader title="Profile" icon="user" />
+      <ProCard variant="default">
+        <div class="flex items-center gap-4">
+          <UAvatar
+            :src="avatarUrl"
+            :alt="displayName"
+            size="xl"
+            class="shrink-0"
+          />
+          <div class="min-w-0">
+            <p class="truncate text-base font-medium text-highlighted">
+              {{ displayName }}
+            </p>
+            <p v-if="user?.email" class="truncate text-sm text-muted">
+              {{ user.email }}
+            </p>
+            <p class="mt-1 text-xs text-dimmed">
+              You signed in with {{ providerLabel }}.
+            </p>
+          </div>
+        </div>
+      </ProCard>
     </section>
 
-    <section class="rounded-[var(--ui-radius)] border border-error/40 bg-error/5 dark:bg-error/10">
-      <div class="flex items-center gap-2 border-b border-error/30 px-4 py-3">
-        <UIcon name="i-ph-warning-octagon-duotone" class="size-5 text-error" />
-        <h2 class="text-lg font-bold text-error">
+    <ProConnectedAccounts />
+
+    <section>
+      <ProSectionHeader title="Search Console" icon="chart" />
+      <ProCard variant="default">
+        <div class="flex min-w-0 items-start gap-3">
+          <ProNavIcon icon="google" :variant="gscConnected ? 'success' : 'default'" />
+          <div class="min-w-0 flex-1">
+            <div class="flex items-baseline gap-2">
+              <p class="text-base font-medium text-highlighted">
+                Google Search Console
+              </p>
+              <UBadge
+                size="xs"
+                :color="gscConnected ? 'success' : 'neutral'"
+                variant="subtle"
+              >
+                {{ gscConnected ? 'Connected' : 'Not connected' }}
+              </UBadge>
+            </div>
+            <p v-if="gscConnected" class="text-sm break-words text-muted">
+              <template v-if="gscEmail">
+                {{ gscEmail }} grants access to your properties.
+              </template>
+              <template v-else>
+                This app reads your Search Console properties.
+              </template>
+            </p>
+            <p v-else class="text-sm text-muted">
+              Connect Search Console to load your search data.
+            </p>
+          </div>
+          <UButton
+            v-if="!gscConnected"
+            color="primary"
+            variant="subtle"
+            size="sm"
+            :to="gscConnectHref"
+            external
+            class="shrink-0"
+          >
+            Connect
+          </UButton>
+        </div>
+      </ProCard>
+    </section>
+
+    <section>
+      <ProSectionHeader title="Web Indexing API" icon="lock" />
+      <ProCard variant="default">
+        <template v-if="indexingAuth?.indexingOAuthId">
+          <p class="mb-3 text-sm text-muted">
+            You gave this app access to the Web Indexing API. You can revoke access at any time.
+          </p>
+          <UButton
+            color="error"
+            variant="outline"
+            size="sm"
+            class="self-start"
+            :loading="revokeState._tag === 'revoking'"
+            @click="revokeIndexingAuth"
+          >
+            Revoke tokens
+          </UButton>
+        </template>
+        <p v-else class="text-sm text-muted">
+          This app has no access to the Web Indexing API. Grant access when you request indexing.
+        </p>
+      </ProCard>
+    </section>
+
+    <!-- Demoted on purpose. Deleting the account used to be the only filled
+         card on the page, so a red panel read as the page's main content. The
+         action and its confirmation are unchanged; only the weight dropped. -->
+    <section class="border-t border-default pt-6">
+      <div class="mb-3 flex items-center gap-2">
+        <ProNavIcon icon="warning" variant="error" />
+        <h2 class="text-[13px] font-semibold tracking-tight">
           Danger zone
         </h2>
       </div>
-      <div class="px-4 py-4">
-        <p class="mb-2 text-muted">
-          Delete all data linked to your account.
-        </p>
-        <ul class="mb-4 ml-5 list-disc text-sm text-muted">
-          <li>We delete every cached and stored record for your account.</li>
-          <li>We revoke your Google account tokens.</li>
-        </ul>
-        <UButton color="error" @click="deleteState = { _tag: 'confirming' }">
-          Delete account
-        </UButton>
-      </div>
+      <p class="text-sm text-muted">
+        Delete all data linked to your account.
+      </p>
+      <ul class="mt-2 ml-5 list-disc text-sm text-muted">
+        <li>We delete every cached and stored record for your account.</li>
+        <li>We revoke your Google account tokens.</li>
+      </ul>
+      <UButton
+        color="error"
+        variant="outline"
+        size="sm"
+        class="mt-4"
+        @click="deleteState = { _tag: 'confirming' }"
+      >
+        Delete account
+      </UButton>
     </section>
 
     <UModal

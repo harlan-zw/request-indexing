@@ -6,7 +6,7 @@ import { UiAtmosphere, UiIcon } from '#components'
 import { entrancePresets, entranceProps } from '../../shared/motion'
 
 // The "spark joy" moment (DESIGN principle 8): a success / milestone reveal — a
-// site connected, a waitlist joined, a trial started. This is the ONE place a
+// site connected, a trial started. This is the ONE place a
 // component defaults to atmosphere (a Dawn bloom = first light), because it is
 // exclusively a celebratory edge, never a data surface. Restraint: the joy is the
 // bloom + a single quiet spring on reveal, NOT confetti. Reduced-motion safe.

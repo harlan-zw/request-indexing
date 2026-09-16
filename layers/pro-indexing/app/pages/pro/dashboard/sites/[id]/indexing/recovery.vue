@@ -63,7 +63,9 @@ const hasEvidence = computed(() => Boolean(diagnostics.value))
         icon="link"
         title="Connect Search Console to see refused pages"
         description="Recovery reads the crawled-not-indexed, discovered-not-indexed, and soft-404 buckets from Search Console."
-      />
+      >
+        <ConnectSearchConsoleButton />
+      </UiEmptyState>
 
       <UiAlert
         v-else-if="hasEvidence && status === 'success' && totalRejected === 0"

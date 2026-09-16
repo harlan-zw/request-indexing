@@ -2,7 +2,7 @@
 import type { IndexingOverviewModel } from '#layers/pro-indexing/app/utils/indexing-overview'
 import type { IndexCohortLead } from '#layers/pro-indexing/shared/index-cohorts'
 import { computed } from 'vue'
-import { UiButton, UiCard, UiSkeleton, UiStatusBadge } from '#components'
+import { ConnectSearchConsoleButton, UiButton, UiCard, UiSkeleton, UiStatusBadge } from '#components'
 
 export type IndexingDiagnosisPanelState
   = | { _tag: 'loading' }
@@ -62,23 +62,32 @@ const status = computed(() => {
       <div v-if="model._tag === 'waiting'" class="flex min-h-56 flex-col justify-center gap-4">
         <UiStatusBadge
           status="neutral"
-          :label="model.progress
-            ? model.progress.inspected > 0 ? 'Inspection in progress' : 'Waiting for Google'
-            : 'Setup needed'"
+          :label="model.state === 'not_connected'
+            ? 'Setup needed'
+            : model.progress && model.progress.inspected > 0 ? 'Inspection in progress' : 'Waiting for Google'"
         />
         <div>
           <h2 class="text-2xl font-strong text-default">
-            <template v-if="model.progress">
+            <template v-if="model.state === 'not_connected'">
+              Connect Search Console to collect indexing evidence
+            </template>
+            <template v-else-if="model.progress">
               {{ model.progress.inspected.toLocaleString() }} of {{ model.progress.total.toLocaleString() }} sitemap URLs inspected
             </template>
             <template v-else>
-              Connect Search Console to collect indexing evidence
+              Waiting for Google to inspect your pages
             </template>
           </h2>
           <p class="mt-2 max-w-2xl text-sm text-muted">
             {{ model.reason }}
           </p>
         </div>
+        <!-- The reason above states the condition. This is the only control
+             that clears it, so the setup branch must never render without it. -->
+        <ConnectSearchConsoleButton
+          v-if="model.state === 'not_connected'"
+          class="self-start"
+        />
         <div v-if="model.progress" class="max-w-sm">
           <div
             class="h-2 overflow-hidden rounded-full bg-accented"
