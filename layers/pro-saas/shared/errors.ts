@@ -13,6 +13,7 @@ export type ProErrorCode
     | 'idempotency_conflict'
     | 'not_found'
     | 'conflict'
+    | 'search_console_required'
     | 'internal_error'
 
 interface ProErrorDefaults {
@@ -33,6 +34,7 @@ const DEFAULTS: Record<ProErrorCode, ProErrorDefaults> = {
   idempotency_conflict: { statusCode: 409, message: 'Idempotency conflict' },
   not_found: { statusCode: 404, message: 'Not found' },
   conflict: { statusCode: 409, message: 'Conflict' },
+  search_console_required: { statusCode: 409, message: 'Connect Search Console first.' },
   internal_error: { statusCode: 500, message: 'Internal error' },
 }
 

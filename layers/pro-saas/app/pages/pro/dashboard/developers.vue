@@ -1,18 +1,21 @@
 <script lang="ts" setup>
+import type { CreatedDeveloperApiKey, DeveloperApiKey, DeveloperApiKeysState } from '#layers/pro-gsc/shared/developer-api-keys'
+import type { SetupMethod } from '#layers/pro-gsc/shared/developer-setup'
 import { useClipboard } from '@vueuse/core'
+import { fetchSites } from '~~/layers/core/app/composables/fetch'
+import { DEVELOPER_API_KEY_LABEL_MAX } from '#layers/pro-gsc/shared/developer-api-keys'
+import { buildSetupSteps, presentApiKey } from '#layers/pro-gsc/shared/developer-setup'
 
-// Ported from nuxtseo.com's `developers.vue` + `developers/index.vue`. This app
-// has no API of its own: its data plane is gscdump (VISION.md), so every setup
-// method points at gscdump. gscdump keys its accounts by Google account, so the
-// same Google sign-in reaches the Sites this account syncs. nuxtseo.com's
-// token list, MCP connection list and request logs have no equivalent here.
+// Ported from nuxtseo.com's `developers/index.vue` and `DevApiTokenCreate.vue`.
+// This app has no API of its own: its data plane is gscdump (VISION.md), so
+// every setup method points at gscdump. The API keys are gscdump user keys
+// that this app issues through the partner API. gscdump stores them; this page
+// holds a new raw key in memory only, until the reader leaves the page.
 definePageMeta({
   layout: 'pro-dashboard',
   title: 'Developers',
   icon: 'i-heroicons-command-line',
 })
-
-type SetupMethod = 'cli' | 'mcp' | 'api'
 
 interface ClientIcon { label: string, icon: string }
 interface SetupMethodOption {
@@ -69,83 +72,100 @@ function selectSetupMethod(method: SetupMethod) {
   void navigateTo({ query: { ...route.query, setup: method === 'cli' ? undefined : method } }, { replace: true })
 }
 
-const GSCDUMP_API_KEY_URL = 'https://gscdump.com/app/developers?setup=api'
-
-type Step
-  = | { _tag: 'command', title: string, body: string, value: string }
-    | { _tag: 'link', title: string, body: string, to: string, label: string }
-
 const quickStartDescription = computed(() => {
   if (setupMethod.value === 'mcp')
     return 'Add the server once. Then ask your client about your Search Console data.'
   if (setupMethod.value === 'api')
-    return 'Send your gscdump API key as a bearer token.'
+    return 'Send your API key as a bearer token.'
   return 'Sign in once on each machine. Then run queries from the terminal or an agent.'
 })
 
-const steps = computed<Step[]>(() => {
-  if (setupMethod.value === 'mcp') {
-    return [
-      {
-        _tag: 'command',
-        title: 'Add the MCP server',
-        body: 'Enter this URL in Claude, ChatGPT, or another MCP client that supports OAuth.',
-        value: 'https://gscdump.com/mcp',
-      },
-      {
-        _tag: 'link',
-        title: 'Approve access',
-        body: 'Sign in to gscdump with the Google account you use here. Then approve the connection.',
-        to: 'https://gscdump.com/learn-google-search-console/ai-agents/mcp-server',
-        label: 'Read the MCP setup guide',
-      },
-    ]
-  }
-  if (setupMethod.value === 'api') {
-    return [
-      {
-        _tag: 'link',
-        title: 'Create an API key',
-        body: 'Sign in to gscdump with the Google account you use here. One key authenticates the CLI, MCP clients, and the API.',
-        to: GSCDUMP_API_KEY_URL,
-        label: 'Create a key on gscdump',
-      },
-      {
-        _tag: 'command',
-        title: 'Call the API',
-        body: 'Send the key as a bearer token.',
-        value: 'curl -H "Authorization: Bearer $GSCDUMP_API_KEY" \\\n  https://gscdump.com/api/partner/v1/sites',
-      },
-    ]
-  }
-  return [
-    {
-      _tag: 'command',
-      title: 'Install the CLI',
-      body: 'Use Node.js 22.13 or later.',
-      value: 'npm install -g @gscdump/cli',
-    },
-    {
-      _tag: 'link',
-      title: 'Create an API key',
-      body: 'Sign in to gscdump with the Google account you use here.',
-      to: GSCDUMP_API_KEY_URL,
-      label: 'Create a key on gscdump',
-    },
-    {
-      _tag: 'command',
-      title: 'Sign in',
-      body: 'Paste the key when the CLI asks for it.',
-      value: 'gscdump auth login --mode cloud',
-    },
-    {
-      _tag: 'command',
-      title: 'List your Sites',
-      body: 'Every command has --help.',
-      value: 'gscdump sites',
-    },
-  ]
+// API keys
+const proFetch = useProFetch()
+const toast = useToast()
+const { data: keysState, status: keysStatus, error: keysError, refresh: refreshKeys } = await useFetch<DeveloperApiKeysState>('/api/pro/developer/api-keys', {
+  $fetch: proFetch,
+  server: false,
 })
+const { data: sitesData } = await fetchSites()
+
+const keys = computed<DeveloperApiKey[]>(() => keysState.value?._tag === 'Ready' ? keysState.value.keys : [])
+const firstSiteId = computed(() => sitesData.value?.sites.find(site => site.gscdumpSiteId)?.gscdumpSiteId ?? null)
+
+// The raw key from the last create. It lives only in this ref.
+const createdKey = ref<CreatedDeveloperApiKey | null>(null)
+const createdKeyPresentation = computed(() => presentApiKey(createdKey.value?.apiKey ?? null))
+const steps = computed(() => buildSetupSteps(setupMethod.value, createdKey.value?.apiKey ?? null, firstSiteId.value))
+
+// A Pro API error carries its reader-facing message in the envelope.
+function apiErrorMessage(error: unknown, fallback: string): string {
+  const body = (error as { data?: { data?: { message?: unknown } } } | null)?.data
+  const message = body?.data?.message
+  return typeof message === 'string' && message ? message : fallback
+}
+
+const label = ref('')
+const creating = ref(false)
+const createError = ref<string | null>(null)
+
+async function createKey() {
+  if (creating.value)
+    return
+  const trimmed = label.value.trim()
+  if (!trimmed) {
+    createError.value = 'Enter a name for the key.'
+    return
+  }
+  creating.value = true
+  createError.value = null
+  const result = await proFetch<CreatedDeveloperApiKey>('/api/pro/developer/api-keys', { method: 'POST', body: { label: trimmed } })
+    .then(value => ({ _tag: 'Ok' as const, value }))
+    .catch((error: unknown) => ({ _tag: 'Err' as const, error }))
+  creating.value = false
+
+  if (result._tag === 'Err') {
+    createError.value = apiErrorMessage(result.error, 'The API key could not be created. Try again.')
+    return
+  }
+  createdKey.value = result.value
+  label.value = ''
+  await refreshKeys()
+}
+
+const keyToRevoke = ref<DeveloperApiKey | null>(null)
+const revoking = ref(false)
+const revokeOpen = computed({
+  get: () => keyToRevoke.value !== null,
+  set: (open: boolean) => {
+    if (!open && !revoking.value)
+      keyToRevoke.value = null
+  },
+})
+
+async function revokeKey() {
+  const key = keyToRevoke.value
+  if (!key)
+    return
+  revoking.value = true
+  const result = await proFetch(`/api/pro/developer/api-keys/${encodeURIComponent(key.keyId)}`, { method: 'DELETE' })
+    .then(() => ({ _tag: 'Ok' as const }))
+    .catch((error: unknown) => ({ _tag: 'Err' as const, error }))
+  revoking.value = false
+
+  if (result._tag === 'Err') {
+    toast.add({
+      title: 'The API key could not be revoked',
+      description: apiErrorMessage(result.error, 'Try again in a moment.'),
+      color: 'error',
+    })
+    return
+  }
+  keyToRevoke.value = null
+  if (createdKey.value?.keyId === key.keyId)
+    createdKey.value = null
+  toast.add({ title: 'API key revoked', description: `${key.label} no longer works.`, color: 'success' })
+  await refreshKeys()
+}
 
 const { copy, copied } = useClipboard({ legacy: true })
 const copiedValue = ref<string | null>(null)
@@ -161,6 +181,137 @@ function copyValue(value: string) {
       Request Indexing runs on <a href="https://gscdump.com" target="_blank" rel="noopener" class="text-primary hover:underline">gscdump</a>.
       The gscdump CLI, MCP server, and API read the same Search Console data this account syncs.
     </p>
+
+    <section id="api-keys" aria-labelledby="api-keys-heading" class="scroll-mt-20">
+      <h2 id="api-keys-heading" class="text-base font-semibold text-highlighted">
+        API keys
+      </h2>
+      <p class="mt-1 text-sm text-muted">
+        An API key signs in the CLI, MCP clients, and the API as you. Only you can see your keys.
+      </p>
+
+      <UiAlert
+        v-if="keysError"
+        class="mt-4"
+        status="error"
+        icon="caution"
+        title="Your API keys could not be loaded"
+      >
+        <template #action>
+          <UiButton size="xs" purpose="secondary" @click="refreshKeys()">
+            Retry
+          </UiButton>
+        </template>
+      </UiAlert>
+
+      <div v-else-if="keysStatus === 'pending' && !keysState" class="mt-4 space-y-2" aria-label="Loading API keys">
+        <UiSkeleton class="h-11 w-full rounded-lg" />
+        <UiSkeleton class="h-14 w-full rounded-lg" />
+      </div>
+
+      <UiEmptyState
+        v-else-if="keysState?._tag === 'SearchConsoleRequired'"
+        class="mt-4"
+        icon="key"
+        title="Connect Search Console first"
+        description="API keys read the data that Request Indexing syncs from Search Console. Connect Search Console, then create a key."
+        compact
+      >
+        <ConnectSearchConsoleButton />
+      </UiEmptyState>
+
+      <template v-else-if="keysState?._tag === 'Ready'">
+        <form class="mt-4" @submit.prevent="createKey()">
+          <UFormField label="Key name" :error="createError || undefined" help="Use a name that tells you where the key is used.">
+            <div class="flex flex-col gap-2 sm:flex-row">
+              <UiInput
+                v-model="label"
+                class="min-w-0 grow"
+                placeholder="Laptop CLI"
+                autocomplete="off"
+                :maxlength="DEVELOPER_API_KEY_LABEL_MAX"
+                :disabled="creating"
+              />
+              <UiButton type="submit" purpose="cta" icon="key" class="min-h-11 shrink-0" :loading="creating">
+                Create API key
+              </UiButton>
+            </div>
+          </UFormField>
+        </form>
+
+        <div
+          v-if="createdKey"
+          class="mt-4 rounded-xl border border-default bg-elevated p-4"
+          role="status"
+        >
+          <p class="text-sm font-medium text-highlighted">
+            Copy {{ createdKey.label }} now
+          </p>
+          <p class="mt-0.5 text-sm text-muted">
+            This page does not show the key again. If you lose it, revoke it and create a new key.
+          </p>
+          <div class="mt-3 flex min-h-11 items-center gap-2 rounded-lg border border-default bg-muted px-3 py-2">
+            <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-default">{{ createdKeyPresentation.display }}</code>
+            <UiButton
+              :icon="copied && copiedValue === createdKeyPresentation.copy ? 'check' : 'copy'"
+              purpose="secondary"
+              size="sm"
+              class="min-h-11 shrink-0"
+              @click="copyValue(createdKeyPresentation.copy)"
+            >
+              {{ copied && copiedValue === createdKeyPresentation.copy ? 'Copied' : 'Copy key' }}
+            </UiButton>
+          </div>
+          <p class="mt-2 inline-flex items-center gap-1 text-xs text-muted">
+            <UiIcon name="check" class="size-3.5 text-success" aria-hidden="true" />
+            The setup steps below include this key.
+          </p>
+        </div>
+
+        <p v-if="!keys.length" class="mt-4 text-sm text-muted">
+          You have no API keys.
+        </p>
+        <ul v-else class="mt-4 divide-y divide-default overflow-hidden rounded-xl border border-default bg-default" aria-label="Your API keys">
+          <li v-for="key in keys" :key="key.keyId" class="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-medium text-highlighted">
+                {{ key.label }}
+              </p>
+              <p class="mt-0.5 truncate font-mono text-xs text-muted">
+                {{ key.preview }}
+              </p>
+            </div>
+            <dl class="flex gap-4 text-xs text-muted">
+              <div>
+                <dt class="text-dimmed">
+                  Created
+                </dt>
+                <dd><UiRelativeTime :date="new Date(key.createdAt)" /></dd>
+              </div>
+              <div>
+                <dt class="text-dimmed">
+                  Last used
+                </dt>
+                <dd>
+                  <UiRelativeTime v-if="key.lastUsedAt !== null" :date="new Date(key.lastUsedAt)" />
+                  <span v-else>Never</span>
+                </dd>
+              </div>
+            </dl>
+            <UiButton
+              purpose="danger"
+              size="sm"
+              icon="delete"
+              class="min-h-11"
+              :aria-label="`Revoke ${key.label}`"
+              @click="keyToRevoke = key"
+            >
+              Revoke
+            </UiButton>
+          </li>
+        </ul>
+      </template>
+    </section>
 
     <section aria-labelledby="setup-method-heading">
       <h2 id="setup-method-heading" class="text-base font-semibold text-highlighted">
@@ -230,16 +381,24 @@ function copyValue(value: string) {
               v-if="step._tag === 'command'"
               class="mt-2.5 flex min-h-11 items-center gap-2 rounded-lg border border-default bg-muted px-3 py-2"
             >
-              <code tabindex="0" class="min-w-0 flex-1 overflow-x-auto whitespace-pre text-xs text-default">{{ step.value }}</code>
+              <code tabindex="0" class="min-w-0 flex-1 overflow-x-auto whitespace-pre text-xs text-default">{{ step.command.display }}</code>
               <UiButton
-                :icon="copied && copiedValue === step.value ? 'check' : 'copy'"
+                :icon="copied && copiedValue === step.command.copy ? 'check' : 'copy'"
                 purpose="quiet"
                 size="xs"
                 class="min-h-11 min-w-11 shrink-0"
-                :aria-label="copied && copiedValue === step.value ? `Copied: ${step.title}` : `Copy: ${step.title}`"
-                @click="copyValue(step.value)"
+                :aria-label="copied && copiedValue === step.command.copy ? `Copied: ${step.title}` : `Copy: ${step.title}`"
+                @click="copyValue(step.command.copy)"
               />
             </div>
+
+            <p v-else-if="step._tag === 'api-key'" class="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm">
+              <template v-if="createdKey">
+                <UiIcon name="check" class="size-4 text-success" aria-hidden="true" />
+                <span class="text-default">Using {{ createdKey.label }}</span>
+              </template>
+              <a v-else href="#api-keys" class="text-primary hover:underline">Go to API keys</a>
+            </p>
 
             <NuxtLink
               v-else
@@ -255,5 +414,27 @@ function copyValue(value: string) {
         </li>
       </ol>
     </section>
+
+    <UModal
+      v-model:open="revokeOpen"
+      title="Revoke this API key?"
+      :description="`${keyToRevoke?.label ?? 'This key'} stops working at once.`"
+    >
+      <template #body>
+        <p class="text-sm text-muted">
+          Every CLI, MCP client, or script that uses this key loses access. You cannot undo this. Create a new key to connect again.
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-3">
+          <UiButton purpose="quiet" :disabled="revoking" @click="revokeOpen = false">
+            Cancel
+          </UiButton>
+          <UiButton purpose="danger" :loading="revoking" @click="revokeKey()">
+            Revoke key
+          </UiButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
