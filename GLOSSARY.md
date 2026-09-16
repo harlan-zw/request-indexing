@@ -15,6 +15,10 @@ No prior glossary was found. This file does not rename product concepts or certi
 | URL Inspection | Google Search Console tool/API | Reports index information; manual tool also offers a request | URL Inspection |
 | crawling | Google Search process | Fetch precedes possible indexing | crawling |
 | indexing | Google Search process | Inclusion decision after processing | indexing |
+| signup | users table, /pro/onboarding | Account creation for a person | signup |
+| onboarding | onboarding wizard, users.onboarding_completed_at | First-run setup an account completes once | setup |
+| connect | Connect site controls, registerSite | Attaching a Site to a Team | connect |
+| funnel milestone | pro_events table | First-time record of one step toward an active account | (internal) |
 
 Collisions: the product's submission history and Google's indexing state are different evidence. Never imply one proves the other.
 
@@ -49,6 +53,24 @@ Collisions: the product's submission history and Google's indexing state are dif
 **Use for:** the process supported by the evidence.
 **Never:** interchangeable results of HTTP200.
 **Casing:** lowercase in ordinary prose.
+
+### Signup and onboarding
+**Is:** signup creates the account; onboarding is the first-run setup the account completes once.
+**Use for:** the two separate steps, named separately.
+**Never:** registration or sign-up as a synonym for signup. Never wizard alone for onboarding.
+**Casing:** lowercase in prose.
+
+### Connect
+**Is:** the act of attaching a Site to a Team. Every control in the product says Connect.
+**Use for:** prose and labels about attaching a Site.
+**Never:** add, create, or register a Site in prose or in a label. Code keeps `registerSite` and the `site_added` value.
+**Casing:** Match the visible label when naming a control.
+
+### Funnel milestone
+**Is:** one first-time row in `pro_events` marking a step toward an active account.
+**Use for:** internal analysis of signup, connect, and onboarding steps.
+**Never:** conversion event or activation event as synonyms. This term is internal and has no customer word.
+**Casing:** lowercase in prose; stored values stay snake_case.
 
 ## Banned
 
