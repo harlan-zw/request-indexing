@@ -84,13 +84,21 @@ const authDropdownItems = computed(() => {
 </script>
 
 <template>
-  <UHeader :ui="{ root: 'border-none bg-transparent pt-2 mb-3 px-5 h-auto', container: 'max-w-[1452px] lg:bg-elevated/40 lg:border border-default mx-auto py-0 px-0 lg:px-5 sm:px-0 rounded-lg' }">
+  <!-- The menu toggle grows to 44x44 for touch. Its negative margins pull the extra
+       width back, so the row keeps the same layout width and the icon does not move. -->
+  <UHeader
+    :ui="{
+      root: 'border-none bg-transparent pt-2 mb-3 px-4 sm:px-5 h-auto',
+      container: 'max-w-[1452px] lg:bg-elevated/40 lg:border border-default mx-auto py-0 px-0 lg:px-5 sm:px-0 rounded-lg max-lg:gap-2',
+      toggle: 'min-h-11 min-w-11 justify-center -ms-1.5 -me-3',
+    }"
+  >
     <template #left>
       <NuxtLink
         to="/"
         title="Home"
         aria-label="Request Indexing"
-        class="flex mr-4 max-[375px]:mr-0 items-center gap-2 font-bold text-xl text-default tracking-[-1.5px]"
+        class="flex items-center gap-2 font-bold text-xl text-default tracking-[-1.5px] max-lg:min-h-11"
       >
         <span class="text-primary italic">Request</span> Indexing
       </NuxtLink>
@@ -162,8 +170,10 @@ const authDropdownItems = computed(() => {
     </template>
 
     <template #right>
-      <div class="flex items-center justify-end lg:-mr-1.5 ml-3 max-[375px]:ml-0 gap-3">
-        <UColorModeButton />
+      <div class="flex items-center justify-end lg:-mr-1.5 gap-2 lg:gap-3">
+        <!-- Below lg the box grows to 44x44 for touch. The negative margins pull
+             the extra width back, so the row keeps the same layout width. -->
+        <UColorModeButton class="max-lg:min-h-11 max-lg:min-w-11 max-lg:justify-center max-lg:-mx-1.5" />
 
         <UButton
           aria-label="Request Indexing on GitHub"
@@ -178,19 +188,19 @@ const authDropdownItems = computed(() => {
         <template v-if="!loggedIn">
           <!-- Two doors, as on nuxtseo.com: `/login` for an existing account,
                `/pro/onboarding` for a new one. -->
-          <UButton to="/login" external color="neutral" variant="ghost" class="hidden md:flex">
+          <UButton to="/login" external color="neutral" variant="ghost" class="hidden md:flex max-lg:min-h-11">
             Sign in
           </UButton>
           <!-- Under 375px the label collapses to an icon so the call to action and
                the menu toggle both fit. The label stays as the accessible name. -->
-          <UButton to="/pro/onboarding" external color="primary" variant="solid" class="max-[375px]:min-h-11 max-[375px]:min-w-11 max-[375px]:justify-center">
+          <UButton to="/pro/onboarding" external color="primary" variant="solid" class="max-lg:min-h-11 max-[375px]:min-w-11 max-[375px]:justify-center">
             <UIcon name="next" class="hidden size-5 max-[375px]:block" />
             <span class="max-[375px]:sr-only">Get started</span>
           </UButton>
         </template>
         <template v-else>
           <UDropdownMenu :items="authDropdownItems" mode="hover" class="flex items-center">
-            <UButton color="neutral" variant="ghost" class="p-0">
+            <UButton color="neutral" variant="ghost" class="p-0 max-lg:min-h-11">
               <UAvatar :src="user?.avatarUrl || undefined" :alt="user?.name || user?.email || 'Account'" size="sm" />
               <UIcon name="i-heroicons-chevron-down" class="w-4 h-4 ml-1 opacity-50" />
             </UButton>
